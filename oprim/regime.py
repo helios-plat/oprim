@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import warnings
+from itertools import groupby
 from typing import Any, Literal
 
 import numpy as np
@@ -54,16 +56,16 @@ def regime_filter_data(
                 raise ValueError(f"target_regime '{t}' not found in labels")
         mask = labels_aligned.isin(target_regime)
     else:  # soft
-        mask = pd.Series(False, index=common_idx)
-        for idx, val in labels_aligned.items():
-            if isinstance(val, dict):
-                for t in target_regime:
-                    if val.get(t, 0) >= min_probability:
-                        mask[idx] = True
-                        break
-            else:
-                if val in target_regime:
-                    mask[idx] = True
+        # Check for non-dict elements in soft mode
+        non_dict_mask = ~labels_aligned.apply(lambda x: isinstance(x, dict))
+        if non_dict_mask.any():
+            raise ValueError(
+                f"mode='soft' requires dict values, found {non_dict_mask.sum()} non-dict elements"
+            )
+        
+        # Vectorized: convert to DataFrame
+        prob_df = pd.DataFrame(labels_aligned.tolist(), index=common_idx)
+        mask = (prob_df[target_regime] >= min_probability).any(axis=1)
 
     return data_aligned[mask]
 
@@ -95,11 +97,26 @@ def regime_transition_matrix(
     n_states = len(states)
     state_idx = {s: i for i, s in enumerate(states)}
 
-    # Count transitions
+    # Count transitions and track unknown labels
     trans_counts = np.zeros((n_states, n_states))
+    unknown_labels = set()
+    skipped_transitions = 0
+    
     for i in range(len(labels) - 1):
         if labels[i] in state_idx and labels[i + 1] in state_idx:
             trans_counts[state_idx[labels[i]], state_idx[labels[i + 1]]] += 1
+        else:
+            skipped_transitions += 1
+            if labels[i] not in state_idx:
+                unknown_labels.add(labels[i])
+            if labels[i + 1] not in state_idx:
+                unknown_labels.add(labels[i + 1])
+    
+    if skipped_transitions > 0 and states is not None:
+        warnings.warn(
+            f"{skipped_transitions} transitions skipped due to unknown labels: {unknown_labels}",
+            stacklevel=2
+        )
 
     # Normalize to probabilities
     row_sums = trans_counts.sum(axis=1, keepdims=True)
@@ -108,31 +125,28 @@ def regime_transition_matrix(
 
     trans_df = pd.DataFrame(trans_matrix, index=states, columns=states)
 
-    # Stationary distribution (eigenvector)
+    # Stationary distribution - handle non-ergodic chains
     try:
         eigenvalues, eigenvectors = np.linalg.eig(trans_matrix.T)
+        # Find eigenvalue closest to 1
         idx = np.argmin(np.abs(eigenvalues - 1.0))
         stationary = np.real(eigenvectors[:, idx])
-        stationary = stationary / stationary.sum()
+        # Handle non-ergodic chains: force non-negative
+        stationary = np.abs(stationary)
+        if stationary.sum() == 0 or np.isnan(stationary.sum()):
+            stationary = np.ones(n_states) / n_states
+        else:
+            stationary = stationary / stationary.sum()
     except Exception:
         stationary = np.ones(n_states) / n_states
 
     stat_dist = pd.Series(stationary, index=states)
 
-    # Duration distribution
+    # Duration distribution - vectorized with groupby
     duration_dist = {}
     if include_duration:
         for state in states:
-            durations = []
-            count = 0
-            for label in labels:
-                if label == state:
-                    count += 1
-                elif count > 0:
-                    durations.append(count)
-                    count = 0
-            if count > 0:
-                durations.append(count)
+            durations = [sum(1 for _ in g) for k, g in groupby(labels) if k == state]
             if durations:
                 duration_dist[state] = {
                     "mean": float(np.mean(durations)),
@@ -181,25 +195,23 @@ def regime_label_align(
     if not isinstance(target_index, pd.DatetimeIndex):
         target_index = pd.DatetimeIndex(target_index)
 
-    if method == "asof":
-        target_df = pd.DataFrame(index=target_index)
-        label_df = pd.DataFrame({"regime": regime_labels.values}, index=regime_labels.index)
+    # Use merge_asof for both methods (ffill just differs in tolerance handling)
+    target_df = pd.DataFrame(index=target_index)
+    label_df = pd.DataFrame({"regime": regime_labels.values}, index=regime_labels.index)
+    
+    if method == "ffill" and tolerance is None:
+        # ffill without tolerance: allow unlimited forward-fill
+        merged = pd.merge_asof(
+            target_df, label_df,
+            left_index=True, right_index=True,
+            direction="backward",
+        )
+    else:
         merged = pd.merge_asof(
             target_df, label_df,
             left_index=True, right_index=True,
             direction="backward",
             tolerance=tolerance,
         )
-        return merged["regime"]
-    else:  # ffill
-        # Reindex and forward-fill
-        combined = regime_labels.reindex(regime_labels.index.union(target_index))
-        combined = combined.ffill()
-        result = combined.reindex(target_index)
-        if tolerance is not None:
-            # Null out values beyond tolerance
-            for i, t in enumerate(target_index):
-                nearest = regime_labels.index[regime_labels.index <= t]
-                if len(nearest) == 0 or (t - nearest[-1]) > tolerance:
-                    result.iloc[i] = np.nan
-        return result
+    
+    return merged["regime"]

@@ -149,13 +149,13 @@ class TestRegimeLabelAlign:
 # Additional coverage tests
 # ============================================================
 class TestRegimeExtra:
-    def test_soft_mode_string_fallback(self):
-        """Soft mode with non-dict values falls back to string match."""
+    def test_soft_mode_mixed_input_raises(self):
+        """Soft mode with non-dict values should raise."""
         idx = pd.date_range("2024-01-01", periods=3, freq="D")
         data = pd.DataFrame({"val": [1, 2, 3]}, index=idx)
         labels = pd.Series(["bull", "bear", "bull"], index=idx)
-        result = regime_filter_data(data, labels, "bull", mode="soft")
-        assert len(result) == 2
+        with pytest.raises(ValueError, match="mode='soft' requires dict values"):
+            regime_filter_data(data, labels, "bull", mode="soft")
 
     def test_transition_no_duration(self):
         labels = pd.Series(["A", "B", "A"])
@@ -167,6 +167,14 @@ class TestRegimeExtra:
         result = regime_transition_matrix(labels, states=["A", "B", "C"])
         assert result["duration_distribution"]["C"]["count"] == 0
 
+    def test_transition_unknown_label_warns(self):
+        """Unknown labels in data should warn when states is provided."""
+        labels = pd.Series(["A", "B", "C", "A"])  # C is not in explicit states
+        with pytest.warns(UserWarning, match="unknown labels"):
+            result = regime_transition_matrix(labels, states=["A", "B"])
+        # Only A->B and C->A transitions, C is skipped
+        assert result["n_transitions"] == 1  # only A->B counted
+
     def test_ffill_with_tolerance(self):
         regime_idx = pd.DatetimeIndex(["2024-01-01"])
         labels = pd.Series(["bull"], index=regime_idx)
@@ -175,3 +183,147 @@ class TestRegimeExtra:
         # Jan 1-4 should be bull, Jan 5+ should be NaN
         assert result.iloc[0] == "bull"
         assert pd.isna(result.iloc[5])
+
+
+# ============================================================
+# Academic Validation Tests
+# ============================================================
+class TestRegimeAcademicValidation:
+    def test_absorbing_state_chain(self):
+        """Test transition matrix for chain with absorbing state."""
+        # Chain with true absorbing state: A never leaves
+        # A -> A -> A -> B -> B -> B -> B (A is absorbing because last A never transitions out)
+        # But we need proper absorbing: A that only self-transitions
+        # Let's use: X (absorbing) where all X transitions are X->X
+        labels = pd.Series(["X", "X", "X"])  # Only X, all self-transitions
+        result = regime_transition_matrix(labels)
+        
+        # X should have 1.0 self-transition probability
+        assert result["transition_matrix"].loc["X", "X"] == 1.0
+        
+        # Stationary distribution should be valid (sums to 1)
+        assert result["stationary_distribution"].sum() == pytest.approx(1.0)
+        # All values should be non-negative
+        assert (result["stationary_distribution"] >= 0).all()
+        # Stationary for X should be 1.0
+        assert result["stationary_distribution"]["X"] == pytest.approx(1.0)
+
+    def test_two_state_markov_chain_known(self):
+        """Test against known 2-state Markov chain parameters."""
+        # Generate sequence from known transition matrix
+        # P = [[0.7, 0.3], [0.4, 0.6]] (row-stochastic)
+        # Expected stationary: solve pi = pi @ P -> pi = [0.571, 0.429]
+        np.random.seed(42)
+        P_true = np.array([[0.7, 0.3], [0.4, 0.6]])  # row-stochastic
+        states = ["bull", "bear"]
+        
+        # Generate 1000 steps
+        labels = []
+        current = 0
+        for _ in range(1000):
+            labels.append(states[current])
+            current = 1 if np.random.random() < P_true[current, 1] else 0
+        
+        result = regime_transition_matrix(pd.Series(labels))
+        
+        # Stationary should be close to theoretical
+        # pi_bull = P_bear_bull / (P_bear_bull + P_bull_bear) = 0.4 / (0.4 + 0.3) = 0.571
+        stat = result["stationary_distribution"]
+        assert stat["bull"] == pytest.approx(0.571, abs=0.1)
+
+    def test_transition_matrix_matches_analytical(self):
+        """Compare with analytical transition count."""
+        # Transitions: A->B, B->B, B->A, A->A, A->A, A->B
+        labels = pd.Series(["A", "B", "B", "A", "A", "A", "B"])
+        result = regime_transition_matrix(labels)
+        
+        # Manual count:
+        # From A: A->B (1), A->A (2), A->B (1) = 4 transitions from A
+        #   Actually: positions 0,3,4,5 are A
+        #   0->1: A->B, 3->4: A->A, 4->5: A->A, 5->6: A->B
+        #   So from A: A->B=2, A->A=2 -> P(A|A)=0.5, P(B|A)=0.5
+        # From B: positions 1,2,6 are B
+        #   1->2: B->B, 2->3: B->A
+        #   So from B: B->B=1, B->A=1 -> P(A|B)=0.5, P(B|B)=0.5
+        tm = result["transition_matrix"]
+        assert tm.loc["A", "A"] == pytest.approx(0.5)
+        assert tm.loc["A", "B"] == pytest.approx(0.5)
+        assert tm.loc["B", "A"] == pytest.approx(0.5)
+        assert tm.loc["B", "B"] == pytest.approx(0.5)
+
+    def test_duration_calculation_accuracy(self):
+        """Test duration statistics match manual calculation."""
+        labels = pd.Series(["A", "A", "B", "A", "A", "A", "B", "B"])
+        result = regime_transition_matrix(labels)
+        
+        # A durations: [2, 3], B durations: [1, 2]
+        dur_a = result["duration_distribution"]["A"]
+        dur_b = result["duration_distribution"]["B"]
+        
+        assert dur_a["count"] == 2
+        assert dur_a["mean"] == 2.5
+        assert dur_a["min"] == 2
+        assert dur_a["max"] == 3
+        
+        assert dur_b["count"] == 2
+        assert dur_b["mean"] == 1.5
+
+    def test_stationary_distribution_single_state(self):
+        """Test stationary distribution for single-state chain."""
+        labels = pd.Series(["A", "A", "A"])
+        result = regime_transition_matrix(labels)
+        
+        # Single state should have stationary = [1.0]
+        assert result["stationary_distribution"]["A"] == pytest.approx(1.0)
+
+
+# ============================================================
+# Performance Tests
+# ============================================================
+class TestRegimePerformance:
+    def test_label_align_ffill_performance(self):
+        """ffill mode should handle n=10000 in < 1 second."""
+        import time
+        
+        regime_idx = pd.date_range("2020-01-01", periods=100, freq="D")
+        labels = pd.Series(["bull", "bear"] * 50, index=regime_idx)
+        target = pd.date_range("2020-01-01", "2047-05-01", freq="h")  # ~10000 points
+        
+        start = time.perf_counter()
+        result = regime_label_align(target, labels, method="ffill")
+        elapsed = time.perf_counter() - start
+        
+        assert elapsed < 1.0, f"ffill took {elapsed:.2f}s, should be < 1s"
+        assert len(result) == len(target)
+
+    def test_filter_data_soft_performance(self):
+        """Soft mode should handle n=10000 in < 100ms."""
+        import time
+        
+        n = 10000
+        idx = pd.date_range("2020-01-01", periods=n, freq="min")
+        data = pd.DataFrame({"val": np.random.randn(n)}, index=idx)
+        
+        # Create probability dicts
+        probs = np.random.dirichlet([1, 1], size=n)
+        labels = pd.Series(
+            [{"bull": p[0], "bear": p[1]} for p in probs],
+            index=idx
+        )
+        
+        start = time.perf_counter()
+        result = regime_filter_data(data, labels, "bull", mode="soft")
+        elapsed = time.perf_counter() - start
+        
+        assert elapsed < 0.1, f"soft mode took {elapsed*1000:.1f}ms, should be < 100ms"
+
+
+class TestRegimeLabelAlignEdgeCases:
+    def test_label_align_list_input(self):
+        """Test that list input is converted to DatetimeIndex."""
+        regime_idx = pd.DatetimeIndex(["2024-01-01"])
+        labels = pd.Series(["bull"], index=regime_idx)
+        # Pass list instead of DatetimeIndex
+        target = ["2024-01-01", "2024-01-02"]
+        result = regime_label_align(target, labels, method="asof")
+        assert len(result) == 2
