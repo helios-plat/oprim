@@ -6,6 +6,7 @@ import warnings
 from typing import Any, Callable, Literal
 
 import numpy as np
+import pandas as pd
 from scipy import stats
 
 
@@ -586,3 +587,31 @@ def kde_density(
     density = kde(eval_points)
 
     return {"x": eval_points, "density": density}
+
+
+def correlation_batch(
+    data: pd.DataFrame,
+    method: Literal["pearson", "spearman"] = "pearson",
+) -> pd.DataFrame:
+    """Compute full correlation matrix for a DataFrame.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Input data (n_samples × m_features).
+    method : {"pearson", "spearman"}
+        Correlation method.
+
+    Returns
+    -------
+    pd.DataFrame
+        m × m correlation matrix.
+    """
+    if not isinstance(data, pd.DataFrame):
+        raise ValueError("data must be a pandas DataFrame")
+    if data.empty:
+        raise ValueError("data must not be empty")
+    if method not in ("pearson", "spearman"):
+        raise ValueError(f"method must be 'pearson' or 'spearman', got '{method}'")
+
+    return data.corr(method=method)

@@ -303,3 +303,117 @@ def value_at_risk(
         "method": method,
         "confidence_level": confidence_level,
     }
+
+
+def nelson_siegel_yield_curve(
+    tenors: np.ndarray,
+    yields: np.ndarray,
+    initial_lambda: float = 1.0,
+) -> dict[str, Any]:
+    """Fit Nelson-Siegel yield curve model.
+
+    y(τ) = β0 + β1·((1-exp(-τ/λ))/(τ/λ)) + β2·((1-exp(-τ/λ))/(τ/λ) - exp(-τ/λ))
+
+    Parameters
+    ----------
+    tenors : np.ndarray
+        Maturities in years.
+    yields : np.ndarray
+        Observed yields (same length as tenors).
+    initial_lambda : float
+        Initial guess for decay parameter λ.
+
+    Returns
+    -------
+    dict with beta_0, beta_1, beta_2, lambda, fitted_yields, residuals, r_squared.
+    """
+    from scipy.optimize import curve_fit
+
+    tenors = np.asarray(tenors, dtype=np.float64)
+    yields = np.asarray(yields, dtype=np.float64)
+    if len(tenors) != len(yields):
+        raise ValueError("tenors and yields must have same length")
+    if len(tenors) < 4:
+        raise ValueError("Need at least 4 tenor points for Nelson-Siegel fit")
+
+    def _ns_model(tau, beta0, beta1, beta2, lam):
+        lam = max(lam, 0.01)
+        x = tau / lam
+        factor1 = (1 - np.exp(-x)) / x
+        factor2 = factor1 - np.exp(-x)
+        return beta0 + beta1 * factor1 + beta2 * factor2
+
+    try:
+        p0 = [yields[-1], yields[0] - yields[-1], 0.0, initial_lambda]
+        popt, _ = curve_fit(_ns_model, tenors, yields, p0=p0, maxfev=5000)
+        beta0, beta1, beta2, lam = popt
+        fitted = _ns_model(tenors, *popt)
+        residuals = yields - fitted
+        ss_res = np.sum(residuals**2)
+        ss_tot = np.sum((yields - yields.mean())**2)
+        r_squared = 1 - ss_res / ss_tot if ss_tot > 0 else 0.0
+    except Exception as e:
+        raise ValueError(f"Nelson-Siegel fit failed: {e}")
+
+    return {
+        "beta_0": float(beta0),
+        "beta_1": float(beta1),
+        "beta_2": float(beta2),
+        "lambda": float(lam),
+        "fitted_yields": fitted,
+        "residuals": residuals,
+        "r_squared": float(r_squared),
+    }
+
+
+def futures_curve_shape(
+    prices_by_tenor: dict[int, float],
+    spot_price: float,
+) -> dict[str, Any]:
+    """Analyze futures curve shape (contango/backwardation).
+
+    Parameters
+    ----------
+    prices_by_tenor : dict[int, float]
+        Futures prices keyed by months to expiry.
+    spot_price : float
+        Current spot price.
+
+    Returns
+    -------
+    dict with shape, slope, curvature, roll_yield_pct.
+    """
+    if not prices_by_tenor:
+        raise ValueError("prices_by_tenor must not be empty")
+    if spot_price <= 0:
+        raise ValueError("spot_price must be positive")
+
+    sorted_tenors = sorted(prices_by_tenor.keys())
+    shortest = prices_by_tenor[sorted_tenors[0]]
+    longest = prices_by_tenor[sorted_tenors[-1]]
+
+    slope = (longest - shortest) / spot_price
+    if slope > 0.01:
+        shape = "contango"
+    elif slope < -0.01:
+        shape = "backwardation"
+    else:
+        shape = "flat"
+
+    # Roll yield: annualized cost of rolling nearest future
+    nearest_tenor = sorted_tenors[0]
+    roll_yield_pct = (spot_price - shortest) / spot_price * (12 / max(nearest_tenor, 1))
+
+    # Curvature (second derivative approximation)
+    curvature = 0.0
+    if len(sorted_tenors) >= 3:
+        prices = [prices_by_tenor[t] for t in sorted_tenors]
+        mid = len(prices) // 2
+        curvature = (prices[-1] + prices[0] - 2 * prices[mid]) / spot_price
+
+    return {
+        "shape": shape,
+        "slope": float(slope),
+        "curvature": float(curvature),
+        "roll_yield_pct": float(roll_yield_pct),
+    }

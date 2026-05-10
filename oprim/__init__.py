@@ -8,13 +8,14 @@ from oprim.distance import (
     symmetric_kl_divergence,
     wasserstein_distance,
 )
-from oprim.finance import beta_alpha_ols, drawdown_curve, sharpe_ratio, value_at_risk
+from oprim.finance import beta_alpha_ols, drawdown_curve, futures_curve_shape, nelson_siegel_yield_curve, sharpe_ratio, value_at_risk
 from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
 from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
 from oprim.statistics import (
     bayes_beta_update,
     bootstrap_ci,
     brier_score_decomposed,
+    correlation_batch,
     distribution_summary,
     kde_density,
     kolmogorov_smirnov_test,
@@ -48,7 +49,7 @@ __all__ = [
     "bootstrap_ci", "percentile_ci", "distribution_summary",
     "skew_kurt_robust", "kolmogorov_smirnov_test", "mann_kendall_trend",
     "bayes_beta_update", "brier_score_decomposed", "pearson_spearman_corr",
-    "kde_density",
+    "kde_density", "correlation_batch",
     # Distance (5)
     "wasserstein_distance", "dtw_distance", "cosine_similarity_batch",
     "euclidean_distance_matrix", "symmetric_kl_divergence",
@@ -58,4 +59,5 @@ __all__ = [
     "regime_filter_data", "regime_transition_matrix", "regime_label_align",
     # Finance (4)
     "drawdown_curve", "sharpe_ratio", "beta_alpha_ols", "value_at_risk",
+    "nelson_siegel_yield_curve", "futures_curve_shape",
 ]
