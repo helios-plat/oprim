@@ -69,6 +69,14 @@ class TestDtwDistance:
         result = dtw_distance(x, x)
         assert result["distance"] == pytest.approx(0.0, abs=1e-10)
 
+    def test_euclidean_vs_manhattan(self):
+        """Euclidean should differ from manhattan."""
+        x = np.array([0.0, 1.0, 2.0])
+        y = np.array([0.0, 2.0, 4.0])
+        euclidean = dtw_distance(x, y, distance_metric="euclidean")
+        manhattan = dtw_distance(x, y, distance_metric="manhattan")
+        assert euclidean["distance"] != manhattan["distance"]
+
     def test_shifted(self):
         x = np.array([0.0, 1.0, 2.0, 1.0, 0.0])
         y = np.array([0.0, 0.0, 1.0, 2.0, 1.0, 0.0])
@@ -100,6 +108,24 @@ class TestDtwDistance:
         result = dtw_distance(x, y, distance_metric="manhattan")
         assert result["distance"] == pytest.approx(0.0, abs=1e-10)
 
+    def test_empty_raises(self):
+        with pytest.raises(ValueError, match="empty"):
+            dtw_distance(np.array([]), np.array([1.0]))
+
+    def test_nan_raises(self):
+        with pytest.raises(ValueError, match="NaN"):
+            dtw_distance(np.array([1.0, np.nan]), np.array([1.0, 2.0]))
+
+    def test_large_warning(self):
+        """Large sequences should warn about performance."""
+        import warnings
+        x = np.arange(600.0)
+        y = np.arange(600.0)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            dtw_distance(x, y)
+            assert any("slow" in str(x.message) for x in w)
+
 
 # ============================================================
 # cosine_similarity_batch
@@ -111,6 +137,14 @@ class TestCosineSimilarityBatch:
         result = cosine_similarity_batch(query, db)
         assert result[0] == pytest.approx(1.0, abs=1e-9)
         assert result[1] == pytest.approx(0.0, abs=1e-9)
+
+    def test_top_k_1_keeps_shape(self):
+        """top_k=1 should return 1D arrays, not scalars."""
+        query = np.array([1.0, 0.0])
+        db = np.array([[1.0, 0.0], [0.9, 0.1], [0.0, 1.0]])
+        scores, indices = cosine_similarity_batch(query, db, top_k=1)
+        assert isinstance(scores, np.ndarray) and scores.ndim == 1
+        assert isinstance(indices, np.ndarray) and indices.ndim == 1
 
     def test_batch_query(self):
         query = np.array([[1.0, 0.0], [0.0, 1.0]])

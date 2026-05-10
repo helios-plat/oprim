@@ -88,6 +88,14 @@ def dtw_distance(
     x = np.asarray(x, dtype=np.float64)
     y = np.asarray(y, dtype=np.float64)
 
+    # Input validation
+    if x.size == 0 or y.size == 0:
+        raise ValueError("Input arrays must not be empty")
+    if np.isnan(x).any() or np.isnan(y).any():
+        raise ValueError("Input arrays must not contain NaN")
+    if x.ndim > 2 or y.ndim > 2:
+        raise ValueError("Input arrays must be 1D or 2D")
+
     if x.ndim == 1 and y.ndim == 1:
         dist, path = _dtw_1d(x, y, window, distance_metric)
     elif multivariate_mode == "independent":
@@ -112,9 +120,15 @@ def dtw_distance(
 
 
 def _dtw_1d(x, y, window, metric):
+    import warnings
+    
     n, m = len(x), len(y)
+    if n > 500 or m > 500:
+        warnings.warn(f"DTW with n={n}, m={m} may be slow (O(n×m))", stacklevel=3)
+    
     w = window if window is not None else max(n, m)
 
+    # For euclidean: use squared distance in DP, sqrt at end
     cost = np.full((n + 1, m + 1), np.inf)
     cost[0, 0] = 0.0
 
@@ -123,7 +137,7 @@ def _dtw_1d(x, y, window, metric):
         j_end = min(m, i + w)
         for j in range(j_start, j_end + 1):
             if metric == "euclidean":
-                d = abs(x[i - 1] - y[j - 1])
+                d = (x[i - 1] - y[j - 1]) ** 2  # squared
             else:
                 d = abs(x[i - 1] - y[j - 1])
             cost[i, j] = d + min(cost[i - 1, j], cost[i, j - 1], cost[i - 1, j - 1])
@@ -138,7 +152,12 @@ def _dtw_1d(x, y, window, metric):
                       (cost[i, j - 1], i, j - 1)]
         _, i, j = min(candidates, key=lambda c: c[0])
     path.reverse()
-    return cost[n, m], path
+    
+    # Euclidean: sqrt the final cost
+    final_cost = cost[n, m]
+    if metric == "euclidean":
+        final_cost = np.sqrt(final_cost)
+    return final_cost, path
 
 
 def _dtw_multi(x, y, window, metric):
@@ -185,6 +204,8 @@ def cosine_similarity_batch(
     np.ndarray or tuple[np.ndarray, np.ndarray]
         Similarity scores, or (scores, indices) if top_k is set.
     """
+    import warnings
+    
     query = np.asarray(query, dtype=np.float64)
     database = np.asarray(database, dtype=np.float64)
 
@@ -193,10 +214,14 @@ def cosine_similarity_batch(
 
     if not pre_normalize:
         q_norm = np.linalg.norm(query, axis=1, keepdims=True)
+        if (q_norm == 0).any():
+            warnings.warn("Query contains zero vectors", stacklevel=2)
         q_norm[q_norm == 0] = 1.0
         query = query / q_norm
 
         db_norm = np.linalg.norm(database, axis=1, keepdims=True)
+        if (db_norm == 0).any():
+            warnings.warn("Database contains zero vectors", stacklevel=2)
         db_norm[db_norm == 0] = 1.0
         database = database / db_norm
 
@@ -206,9 +231,10 @@ def cosine_similarity_batch(
         top_k = min(top_k, similarities.shape[1])
         indices = np.argsort(-similarities, axis=1)[:, :top_k]
         scores = np.take_along_axis(similarities, indices, axis=1)
-        return scores.squeeze(), indices.squeeze()
+        # Keep at least 1D when top_k=1
+        return scores.squeeze(0) if scores.shape[0] == 1 else scores, indices.squeeze(0) if indices.shape[0] == 1 else indices
 
-    return similarities.squeeze()
+    return similarities.squeeze(0) if similarities.shape[0] == 1 else similarities
 
 
 def euclidean_distance_matrix(
@@ -277,8 +303,12 @@ def symmetric_kl_divergence(
     float
         Divergence value.
     """
-    p = np.asarray(p, dtype=np.float64) + epsilon
-    q = np.asarray(q, dtype=np.float64) + epsilon
+    p = np.asarray(p, dtype=np.float64)
+    q = np.asarray(q, dtype=np.float64)
+    
+    # Only add epsilon where zero
+    p = np.where(p == 0, epsilon, p)
+    q = np.where(q == 0, epsilon, q)
 
     # Normalize
     p = p / p.sum()
