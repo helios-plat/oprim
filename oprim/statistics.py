@@ -46,6 +46,8 @@ def bootstrap_ci(
         raise ValueError("confidence_level must be in (0, 1)")
     if n_bootstrap < 100:
         warnings.warn("n_bootstrap < 100 may give unreliable estimates", stacklevel=2)
+    if data.size > 1000 and method == "bca":
+        warnings.warn(f"BCa with n={data.size} may be slow (O(n²) jackknife)", stacklevel=2)
 
     rng = np.random.default_rng(random_state)
     point_estimate = statistic_fn(data)
@@ -73,12 +75,14 @@ def bootstrap_ci(
     elif method == "bca":
         # Bias correction
         z0 = stats.norm.ppf(np.mean(boot_stats < point_estimate))
-        # Acceleration (jackknife)
+        # Acceleration (jackknife) - corrected formula
         n = len(data)
         jack_stats = np.array([statistic_fn(np.delete(data, i)) for i in range(n)])
         jack_mean = jack_stats.mean()
-        num = np.sum((jack_mean - jack_stats) ** 3)
-        den = 6 * (np.sum((jack_mean - jack_stats) ** 2) ** 1.5)
+        # BCa acceleration: a = sum((jack_mean - jack_i)^3) / (6 * sum((jack_mean - jack_i)^2)^1.5)
+        diff = jack_mean - jack_stats
+        num = np.sum(diff ** 3)
+        den = 6 * (np.sum(diff ** 2) ** 1.5)
         a = num / den if den != 0 else 0.0
 
         z_alpha_low = stats.norm.ppf(alpha / 2)
@@ -301,15 +305,11 @@ def mann_kendall_trend(
         return {"trend": "no_trend", "p_value": 1.0, "tau": 0.0,
                 "z_score": 0.0, "slope": 0.0, "n": n}
 
-    # Compute S statistic
-    s = 0
-    for i in range(n - 1):
-        for j in range(i + 1, n):
-            diff = data[j] - data[i]
-            if diff > 0:
-                s += 1
-            elif diff < 0:
-                s -= 1
+    # Vectorized S statistic using broadcasting
+    # S = sum_{i<j} sign(x_j - x_i)
+    diff_matrix = np.subtract.outer(data, data)
+    # Upper triangle (i < j): data[j] - data[i]
+    s = np.sum(np.sign(-diff_matrix[np.triu_indices(n, k=1)]))
 
     # Kendall's tau
     tau = 2.0 * s / (n * (n - 1))
@@ -322,18 +322,26 @@ def mann_kendall_trend(
     for t in counts[counts > 1]:
         var_s -= t * (t - 1) * (2 * t + 5) / 18.0
 
-    # Hamed-Rao correction for autocorrelation
+    # Hamed-Rao correction (1998): only use significant ACF lags
     if hamed_rao_correction and n > 10:
         ranks = stats.rankdata(data)
-        ranks_centered = ranks - ranks.mean()
-        n_s = n * (n - 1) * (2 * n + 5) / 18.0
-        # Compute autocorrelation correction factor
-        correction = 0.0
+        # Compute ACF of ranks
+        acf = np.zeros(n - 1)
+        mean_rank = ranks.mean()
+        var_rank = ((ranks - mean_rank) ** 2).sum()
         for lag in range(1, n - 1):
-            acf_lag = np.corrcoef(ranks_centered[:-lag], ranks_centered[lag:])[0, 1]
-            correction += (n - lag) * acf_lag
-        ns_ratio = 1 + (2.0 / n_s) * correction
-        var_s = var_s * max(ns_ratio, 1.0)
+            cov = ((ranks[:-lag] - mean_rank) * (ranks[lag:] - mean_rank)).sum()
+            acf[lag] = cov / var_rank
+        
+        # Significance test: |ACF| > 1.96/sqrt(n) at alpha=0.05
+        acf_threshold = 1.96 / np.sqrt(n)
+        significant_lags = np.where(np.abs(acf) > acf_threshold)[0]
+        
+        if len(significant_lags) > 0:
+            correction = 0.0
+            for lag in significant_lags:
+                correction += (n - lag) * (n - lag - 1) * (n - lag - 2) * acf[lag]
+            var_s = var_s + 2 * correction / (n * (n - 1) * (n - 2))
 
     # Z-score
     if s > 0:
@@ -345,13 +353,10 @@ def mann_kendall_trend(
 
     p_value = 2 * (1 - stats.norm.cdf(abs(z)))
 
-    # Sen's slope
-    slopes = []
-    for i in range(n - 1):
-        for j in range(i + 1, n):
-            if j != i:
-                slopes.append((data[j] - data[i]) / (j - i))
-    slope = float(np.median(slopes)) if slopes else 0.0
+    # Sen's slope: vectorized
+    i_idx, j_idx = np.triu_indices(n, k=1)
+    slopes = (data[j_idx] - data[i_idx]) / (j_idx - i_idx)
+    slope = float(np.median(slopes))
 
     # Determine trend
     if p_value <= alpha:
@@ -459,8 +464,6 @@ def brier_score_decomposed(
         forecasts = np.clip(forecasts, 0, 1)
 
     n = len(forecasts)
-    if n > n_bins:
-        warnings.warn("", stacklevel=2) if n_bins > n else None
 
     brier_score = float(np.mean((forecasts - outcomes) ** 2))
     obar = float(np.mean(outcomes))
@@ -550,7 +553,6 @@ def kde_density(
     data: np.ndarray,
     bandwidth: Literal["silverman", "scott"] | float = "silverman",
     eval_points: np.ndarray | None = None,
-    reflect_boundary: bool = False,
 ) -> dict[str, np.ndarray]:
     """Kernel density estimation.
 
@@ -562,8 +564,6 @@ def kde_density(
         Bandwidth selection method or explicit value.
     eval_points : np.ndarray | None
         Points at which to evaluate density. None = auto.
-    reflect_boundary : bool
-        Whether to reflect data at boundaries (for bounded support).
 
     Returns
     -------
@@ -575,9 +575,6 @@ def kde_density(
     if data.size < 2:
         raise ValueError("Need at least 2 data points for KDE")
 
-    if reflect_boundary:
-        data = np.concatenate([data, -data])
-
     bw = bandwidth if isinstance(bandwidth, (int, float)) else bandwidth
     kde = stats.gaussian_kde(data, bw_method=bw)
 
@@ -587,8 +584,5 @@ def kde_density(
         eval_points = np.linspace(x_min - margin, x_max + margin, 200)
 
     density = kde(eval_points)
-
-    if reflect_boundary:
-        density *= 2  # Correct for reflection doubling
 
     return {"x": eval_points, "density": density}

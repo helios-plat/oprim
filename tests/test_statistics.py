@@ -284,6 +284,25 @@ class TestMannKendallTrend:
         result = mann_kendall_trend(data, hamed_rao_correction=False)
         assert result["trend"] == "increasing"
 
+    def test_academic_vs_pymannkendall(self):
+        """Compare with pyMannKendall if available."""
+        try:
+            import pymannkendall as mk
+            rng = np.random.default_rng(42)
+            data = rng.normal(0.001, 0.02, 100)
+            # Without correction
+            result = mann_kendall_trend(data, hamed_rao_correction=False)
+            mk_result = mk.original_test(data)
+            np.testing.assert_allclose(result["tau"], mk_result.Tau, rtol=1e-6)
+            np.testing.assert_allclose(result["p_value"], mk_result.p, rtol=1e-6)
+            # With Hamed-Rao
+            result_hr = mann_kendall_trend(data, hamed_rao_correction=True)
+            mk_hr = mk.hamed_rao_modification_test(data)
+            np.testing.assert_allclose(result_hr["tau"], mk_hr.Tau, rtol=1e-5)
+            np.testing.assert_allclose(result_hr["p_value"], mk_hr.p, rtol=1e-4)
+        except ImportError:
+            pass  # Skip if pyMannKendall not installed
+
 
 # ============================================================
 # bayes_beta_update
@@ -422,12 +441,6 @@ class TestKdeDensity:
     def test_bandwidth_float(self):
         data = np.arange(100.0)
         result = kde_density(data, bandwidth=0.5)
-        assert result["density"].sum() > 0
-
-    def test_reflect_boundary(self):
-        rng = np.random.default_rng(42)
-        data = np.abs(rng.normal(0, 1, 200))
-        result = kde_density(data, reflect_boundary=True)
         assert result["density"].sum() > 0
 
     def test_too_few_points_raises(self):
