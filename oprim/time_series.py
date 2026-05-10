@@ -419,27 +419,30 @@ def realized_vol(
             # σ² = (1/(4*ln2))*(ln(H/L))²
             var = (1 / (4 * np.log(2))) * (h - l) ** 2
         else:  # yang_zhang
-            # Yang-Zhang (2000): combines overnight and intraday volatility
-            # σ² = σ²_overnight + σ²_open_to_close + k*σ²_RS
-            # Where k optimally weights Rogers-Satchell vs close-to-open
-            # Simplified: uses power-of-2 ratio for k
-            log_ho = h - o  # log(H/O)
-            log_lo = l - o  # log(L/O)
-            log_co = c - o  # log(C/O)
-            log_oc = o - c.shift(1)  # log(O/C_prev) - overnight
-            log_cc = c - c.shift(1)  # log(C/C_prev) - close-to-close
+            # Yang & Zhang 2000: σ²_yz = σ²_o + k·σ²_c + (1-k)·σ²_rs
+            # σ²_o = overnight variance, σ²_c = close-to-close, σ²_rs = Rogers-Satchell
             
-            # Rogers-Satchell variance
+            # Overnight: log(O_t / C_{t-1})
+            log_oc = o - c.shift(1)
+            ov_mean = log_oc.rolling(window).mean()
+            ov_var = ((log_oc - ov_mean) ** 2).rolling(window).mean()
+            
+            # Rogers-Satchell intraday variance
+            log_ho = h - o
+            log_lo = l - o
+            log_co = c - o
             rs_var = log_ho * (log_ho - log_co) + log_lo * (log_lo - log_co)
+            rs_var = rs_var.rolling(window).mean()
             
-            # Overnight variance
-            ov_var = log_oc ** 2
+            # Close-to-close variance with mean subtraction
+            log_cc = c - c.shift(1)
+            cc_mean = log_cc.rolling(window).mean()
+            cc_var = ((log_cc - cc_mean) ** 2).rolling(window).mean()
             
-            # Optimal k (simplified)
+            # Optimal k per Yang-Zhang
             k = 0.34 / (1.34 + (window + 1) / (window - 1))
             
-            # Yang-Zhang variance
-            var = ov_var + rs_var + k * (log_cc ** 2)
+            var = ov_var + k * cc_var + (1 - k) * rs_var
 
         vol = np.sqrt(var.rolling(window).mean() * annualization_factor)
     else:
@@ -528,7 +531,7 @@ def gap_detect(
 
     if expected_interval is None:
         diffs = pd.Series(times).diff().dropna()
-        expected_interval = diffs.median()
+        expected_interval = diffs.mode().iloc[0] if len(diffs.mode()) > 0 else diffs.median()
 
     if severity_thresholds is None:
         severity_thresholds = _default_severity(asset_class)
@@ -696,8 +699,9 @@ def purge_embargo_split(
         # Only include train samples that come before test_start (no look-ahead)
         train_idx = np.array([i for i in indices[:test_start] if i not in excluded])
         
-        # Skip first fold if train is empty (per López de Prado, need min train samples)
-        if len(train_idx) == 0 and fold_idx == 0:
+        # Skip any fold with empty train (per López de Prado, need min train samples)
+        if len(train_idx) == 0:
+            warnings.warn(f"Fold {fold_idx} skipped: empty train set", stacklevel=2)
             current = test_end
             continue
 
