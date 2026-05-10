@@ -18,6 +18,8 @@ def logsumexp_safe(
 ) -> np.ndarray:
     """Numerically stable log(sum(exp(x))).
 
+    Computes log(sum(exp(x))) or log(sum(weights * exp(x))) if weights given.
+
     Parameters
     ----------
     x : np.ndarray
@@ -32,11 +34,10 @@ def logsumexp_safe(
     Returns
     -------
     np.ndarray
-        Result of log(sum(exp(x) * weights)).
+        Result of log(sum(exp(x))) or log(sum(weights * exp(x))).
     """
     x = np.asarray(x, dtype=np.float64)
-    b = weights if weights is not None else None
-    return np.asarray(_scipy_logsumexp(x, axis=axis, b=b, keepdims=keepdims))
+    return np.asarray(_scipy_logsumexp(x, axis=axis, b=weights, keepdims=keepdims))
 
 
 def softmax_safe(
@@ -94,27 +95,31 @@ def clip_with_warning(
     -------
     np.ndarray | float
         Clipped values.
-    """
-    scalar = np.isscalar(x)
-    arr = np.asarray(x, dtype=np.float64)
 
-    n = arr.size
+    Notes
+    -----
+    NaN values are not counted in clipped_count or the proportion denominator.
+    """
+    arr = np.asarray(x, dtype=np.float64)
+    is_scalar = np.ndim(x) == 0
+
+    n = np.sum(~np.isnan(arr))
     clipped_count = 0
 
     if lower is not None:
-        clipped_count += int(np.sum(arr < lower))
+        clipped_count += int(np.nansum(arr < lower))
     if upper is not None:
-        clipped_count += int(np.sum(arr > upper))
+        clipped_count += int(np.nansum(arr > upper))
 
     result = np.clip(arr, lower, upper)
 
     if n > 0 and clipped_count / n > warning_threshold_pct:
-        msg = f"clip_with_warning: {clipped_count}/{n} ({clipped_count/n:.1%}) values clipped"
+        msg = f"clip_with_warning: {clipped_count}/{int(n)} ({clipped_count/n:.1%}) values clipped"
         if logger is not None:
             logger.warning(msg)
         else:
             warnings.warn(msg, stacklevel=2)
 
-    if scalar:
+    if is_scalar:
         return float(result)
     return result

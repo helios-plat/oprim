@@ -156,3 +156,60 @@ class TestClipWithWarning:
         x = np.array([0.0, 5.0, 10.0])
         result = clip_with_warning(x, upper=7.0)
         assert result[2] == 7.0
+
+    def test_nan_not_counted(self):
+        """NaN values should not be counted in clipped_count or denominator."""
+        x = np.array([0.0, np.nan, 10.0])
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            result = clip_with_warning(x, upper=5.0)
+            # 1/2 = 50% > 5% threshold, should warn
+            assert len(w) == 1
+            assert result[1] is np.nan or np.isnan(result[1])
+
+    def test_numpy_scalar(self):
+        """np.float64 scalars should be detected correctly."""
+        x = np.float64(5.0)
+        result = clip_with_warning(x, upper=3.0)
+        assert result == 3.0
+        assert isinstance(result, float)
+
+    def test_zero_d_array(self):
+        """0-d arrays should be detected as scalar."""
+        x = np.array(5.0)
+        result = clip_with_warning(x, upper=3.0)
+        assert result == 3.0
+        assert isinstance(result, float)
+
+
+# ============================================================
+# Academic Validation
+# ============================================================
+class TestNumericsAcademic:
+    def test_logsumexp_vs_scipy_weights(self):
+        """logsumexp_safe with weights matches scipy exactly."""
+        rng = np.random.default_rng(42)
+        x = rng.normal(0, 5, 30)
+        w = rng.uniform(0.5, 2.0, 30)
+        result = logsumexp_safe(x, weights=w)
+        expected = scipy_logsumexp(x, b=w)
+        np.testing.assert_allclose(result, expected, rtol=1e-12)
+
+    def test_softmax_T1_vs_scipy(self):
+        """softmax_safe(T=1) matches scipy.special.softmax exactly."""
+        rng = np.random.default_rng(42)
+        x = rng.normal(0, 3, 15)
+        result = softmax_safe(x, temperature=1.0)
+        expected = scipy_softmax(x)
+        np.testing.assert_allclose(result, expected, rtol=1e-12)
+
+    def test_softmax_T05_manual(self):
+        """softmax_safe(T=0.5) matches manual calculation."""
+        x = np.array([1.0, 2.0, 3.0])
+        result = softmax_safe(x, temperature=0.5)
+        # Manual: softmax(x/0.5) = softmax(2*x)
+        # exp(2)/exp(2) + exp(4) + exp(6) = e^2 / (e^2 + e^4 + e^6)
+        scaled = x / 0.5  # [2, 4, 6]
+        e_scaled = np.exp(scaled)
+        expected = e_scaled / e_scaled.sum()
+        np.testing.assert_allclose(result, expected, rtol=1e-12)
