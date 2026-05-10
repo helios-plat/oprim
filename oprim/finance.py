@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
+import statsmodels.api as sm
 from scipy import stats
 
 
@@ -21,7 +23,7 @@ def drawdown_curve(
     Parameters
     ----------
     equity_or_returns : pd.Series
-        Equity curve or returns series.
+        Equity curve or returns series. NaN values are dropped.
     input_type : {"equity", "returns"}
         Type of input.
     compound : bool
@@ -31,6 +33,11 @@ def drawdown_curve(
     -------
     dict with drawdown_series, max_drawdown, max_drawdown_start/end/recovery, underwater_duration_days.
     """
+    # Handle NaN
+    equity_or_returns = equity_or_returns.dropna()
+    if len(equity_or_returns) == 0:
+        raise ValueError("No valid (non-NaN) data points")
+    
     if input_type == "returns":
         if compound:
             equity = (1 + equity_or_returns).cumprod()
@@ -64,8 +71,12 @@ def drawdown_curve(
     peak_val = equity.loc[dd_start_idx]
     after_end = equity.loc[dd_end_idx:]
     recovery_mask = after_end >= peak_val
-    recovery_idx = recovery_mask.idxmax() if recovery_mask.any() else None
-    if recovery_idx == dd_end_idx and not recovery_mask.iloc[0]:
+    # Fixed: explicitly get first True index
+    if recovery_mask.any():
+        recovery_idx = recovery_mask[recovery_mask].index[0]
+        if recovery_idx == dd_end_idx and after_end.loc[dd_end_idx] < peak_val:
+            recovery_idx = None
+    else:
         recovery_idx = None
 
     # Underwater duration
@@ -119,7 +130,20 @@ def sharpe_ratio(
     if not isinstance(returns, pd.Series):
         returns = pd.Series(returns)
 
-    excess = returns - risk_free_rate
+    # Check alignment if risk_free_rate is Series
+    if isinstance(risk_free_rate, pd.Series):
+        common_idx = returns.index.intersection(risk_free_rate.index)
+        if len(common_idx) < len(returns):
+            warnings.warn(
+                f"risk_free_rate index mismatch: {len(common_idx)}/{len(returns)} aligned",
+                stacklevel=2
+            )
+        returns = returns.loc[common_idx]
+        rf = risk_free_rate.loc[common_idx]
+    else:
+        rf = risk_free_rate
+
+    excess = returns - rf
     excess = excess.dropna()
 
     std = excess.std(ddof=ddof)
@@ -147,7 +171,7 @@ def beta_alpha_ols(
     use_hac : bool
         Use Newey-West HAC standard errors.
     hac_lags : int | None
-        Number of lags for HAC. None = auto.
+        Number of lags for HAC. None = auto-compute via 4*(n/100)^(2/9).
     min_samples : int
         Minimum samples required.
 
@@ -155,8 +179,6 @@ def beta_alpha_ols(
     -------
     dict with alpha, beta, alpha_se, beta_se, r_squared, adj_r_squared, n_samples, p_values.
     """
-    import statsmodels.api as sm
-
     if not isinstance(asset_returns, pd.Series):
         asset_returns = pd.Series(asset_returns)
 
@@ -168,14 +190,19 @@ def beta_alpha_ols(
 
     # Align
     combined = pd.concat([asset_returns.rename("y"), market_returns], axis=1).dropna()
-    if len(combined) < min_samples:
-        raise ValueError(f"Only {len(combined)} samples, need >= {min_samples}")
+    n = len(combined)
+    if n < min_samples:
+        raise ValueError(f"Only {n} samples, need >= {min_samples}")
 
     y = combined["y"]
     X = sm.add_constant(combined.drop(columns=["y"]))
 
     if use_hac:
-        model = sm.OLS(y, X).fit(cov_type="HAC", cov_kwds={"maxlags": hac_lags})
+        # Auto-compute lags if not specified: Newey-West formula
+        maxlags = hac_lags
+        if maxlags is None:
+            maxlags = int(4 * (n / 100) ** (2 / 9))
+        model = sm.OLS(y, X).fit(cov_type="HAC", cov_kwds={"maxlags": maxlags})
     else:
         model = sm.OLS(y, X).fit()
 
@@ -232,6 +259,14 @@ def value_at_risk(
         returns = pd.Series(returns)
 
     returns_clean = returns.dropna()
+    n = len(returns_clean)
+    
+    # Sample size checks
+    if n < 10:
+        raise ValueError(f"Insufficient samples: {n} < 10")
+    if n < 30:
+        warnings.warn(f"Small sample ({n} < 30): historical VaR may be unstable", stacklevel=2)
+    
     alpha = 1 - confidence_level
 
     if method == "historical":
@@ -259,6 +294,8 @@ def value_at_risk(
         # ES = expected loss given loss > VaR
         tail = returns_clean[returns_clean <= -var]
         es = float(-tail.mean()) if len(tail) > 0 else var
+        if len(tail) == 0:
+            warnings.warn("No tail samples for ES, falling back to VaR", stacklevel=2)
 
     return {
         "var": var,

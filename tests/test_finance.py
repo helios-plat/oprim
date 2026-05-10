@@ -28,6 +28,12 @@ class TestDrawdownCurve:
         # Max drawdown from 130 to 60 = -70/130
         assert result["max_drawdown"] == pytest.approx(-70 / 130, abs=1e-9)
 
+    def test_returns_with_nan(self):
+        """NaN in returns should be dropped."""
+        returns = pd.Series([0.1, np.nan, -0.2, 0.05])
+        result = drawdown_curve(returns, input_type="returns")
+        assert result["max_drawdown"] < 0
+
     def test_no_recovery(self):
         equity = pd.Series([100, 110, 90, 85, 80.0])
         result = drawdown_curve(equity)
@@ -77,6 +83,17 @@ class TestSharpeRatio:
         sr_365 = sharpe_ratio(returns, annualization_factor=365)
         # Higher annualization → higher absolute Sharpe
         assert abs(sr_365) > abs(sr_252)
+
+    def test_risk_free_mismatch_warning(self):
+        """Index mismatch should warn."""
+        import warnings
+        rng = np.random.default_rng(42)
+        returns = pd.Series(rng.normal(0.001, 0.02, 100), index=range(100))
+        rf = pd.Series(np.full(50, 0.0001), index=range(50, 100))
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            sharpe_ratio(returns, risk_free_rate=rf)
+            assert any("mismatch" in str(x.message) for x in w)
 
     def test_risk_free_series(self):
         rng = np.random.default_rng(42)
@@ -169,6 +186,21 @@ class TestValueAtRisk:
         result = value_at_risk(returns, method="cornish_fisher")
         assert result["var"] > 0
 
+    def test_small_sample_warning(self):
+        """n < 30 should warn."""
+        import warnings
+        returns = pd.Series(np.random.default_rng(42).normal(0, 0.02, 25))
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            value_at_risk(returns)
+            assert any("unstable" in str(x.message) for x in w)
+
+    def test_too_small_raises(self):
+        """n < 10 should raise."""
+        returns = pd.Series(np.random.default_rng(42).normal(0, 0.02, 8))
+        with pytest.raises(ValueError, match="Insufficient"):
+            value_at_risk(returns)
+
     def test_normal_methods_agree(self):
         """For normal distribution, all methods should give similar VaR."""
         rng = np.random.default_rng(42)
@@ -224,5 +256,7 @@ class TestFinanceExtra:
         assert np.isfinite(result)
 
     def test_var_unknown_method_raises(self):
+        rng = np.random.default_rng(42)
+        returns = pd.Series(rng.normal(0, 0.02, 100))
         with pytest.raises(ValueError, match="Unknown"):
-            value_at_risk(pd.Series([0.01, -0.02, 0.03]), method="invalid")
+            value_at_risk(returns, method="invalid")
