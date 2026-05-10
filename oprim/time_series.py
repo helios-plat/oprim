@@ -7,6 +7,7 @@ from typing import Literal
 
 import numpy as np
 import pandas as pd
+from scipy.stats import rankdata
 
 
 def log_returns(
@@ -178,7 +179,7 @@ def lag_forward_fill(
     if not isinstance(data, (pd.Series, pd.DataFrame)):
         data = pd.Series(data)
 
-    # Check for gaps exceeding max_gap
+    # Check for gaps exceeding max_gap in strict mode
     if strict:
         if isinstance(data, pd.DataFrame):
             for col in data.columns:
@@ -186,7 +187,23 @@ def lag_forward_fill(
         else:
             _check_gap(data, max_gap)
 
-    limit = max_gap if isinstance(max_gap, int) else None
+    # Determine fill limit
+    if isinstance(max_gap, int):
+        limit = max_gap
+    elif isinstance(max_gap, pd.Timedelta):
+        # For Timedelta, compute max consecutive NaN periods allowed
+        if isinstance(data.index, pd.DatetimeIndex) and len(data.index) > 1:
+            # Use median gap between consecutive timestamps
+            median_diff = pd.Series(data.index).diff().median()
+            if pd.notna(median_diff) and median_diff.total_seconds() > 0:
+                limit = int(max_gap.total_seconds() / median_diff.total_seconds())
+            else:
+                limit = None
+        else:
+            limit = None
+    else:
+        limit = None
+
     result = data.ffill(limit=limit)
 
     if lag != 0:
@@ -205,7 +222,21 @@ def _check_gap(series: pd.Series, max_gap: int | pd.Timedelta) -> None:
     if nan_groups.empty:
         return
     max_consecutive = nan_groups.value_counts().max()
-    limit = max_gap if isinstance(max_gap, int) else max_gap.days
+    
+    if isinstance(max_gap, int):
+        limit = max_gap
+    elif isinstance(max_gap, pd.Timedelta):
+        if isinstance(series.index, pd.DatetimeIndex) and len(series.index) > 1:
+            median_diff = pd.Series(series.index).diff().median()
+            if pd.notna(median_diff) and median_diff.total_seconds() > 0:
+                limit = int(max_gap.total_seconds() / median_diff.total_seconds())
+            else:
+                limit = max_consecutive + 1
+        else:
+            limit = max_consecutive + 1
+    else:
+        limit = max_consecutive + 1
+    
     if max_consecutive > limit:
         raise ValueError(f"Gap of {max_consecutive} exceeds max_gap={max_gap}")
 
@@ -234,8 +265,6 @@ def percentile_rank(
     pd.Series | pd.DataFrame
         Percentile ranks in [0, 1].
     """
-    from scipy.stats import rankdata
-
     if method == "rolling":
         if window is None:
             raise ValueError("window required for rolling method")
@@ -265,49 +294,43 @@ def percentile_rank(
 
 
 def _rolling_rank(series: pd.Series, window: int, ties: str) -> pd.Series:
-    from scipy.stats import rankdata
-
+    """Compute rolling percentile rank. Current value is last in window."""
     result = pd.Series(np.nan, index=series.index)
-    for i in range(len(series)):
-        if i < window - 1:
+    for i in range(window - 1, len(series)):
+        window_vals = series.iloc[i - window + 1 : i + 1].values
+        valid_mask = ~np.isnan(window_vals)
+        n_valid = valid_mask.sum()
+        if n_valid == 0:
             continue
-        w = series.iloc[i - window + 1 : i + 1].values
-        valid = ~np.isnan(w)
-        if valid.sum() == 0:
-            continue
-        vals = w[valid]
-        ranks = rankdata(vals, method=ties)
-        # Current value's rank (last valid in window)
-        cur_val = series.iloc[i]
+        # Current value is the last in the window
+        cur_val = window_vals[-1]
         if np.isnan(cur_val):
             continue
-        cur_rank = rankdata(np.append(vals, cur_val), method=ties)[-1] if np.isnan(w[-1]) else ranks[-1]
-        # Actually rank current value within window
-        all_ranks = rankdata(vals, method=ties)
-        # Find rank of current value
-        cur_idx = np.where(valid)[0]
-        # Position of i within the window
-        pos_in_window = window - 1
-        if valid[pos_in_window]:
-            result.iloc[i] = all_ranks[np.sum(valid[:pos_in_window + 1]) - 1] / valid.sum()
+        # Rank within valid values
+        valid_vals = window_vals[valid_mask]
+        ranks = rankdata(valid_vals, method=ties)
+        # Find rank of current value (last valid position maps to last rank)
+        # If current is valid, it's the last in valid_vals
+        result.iloc[i] = ranks[-1] / n_valid
     return result
 
 
 def _expanding_rank(series: pd.Series, ties: str) -> pd.Series:
-    from scipy.stats import rankdata
-
+    """Compute expanding percentile rank. Current value is last in window."""
     result = pd.Series(np.nan, index=series.index)
     for i in range(len(series)):
-        w = series.iloc[: i + 1].values
-        valid = ~np.isnan(w)
-        if valid.sum() == 0:
-            continue
         cur_val = series.iloc[i]
         if np.isnan(cur_val):
             continue
-        vals = w[valid]
-        ranks = rankdata(vals, method=ties)
-        result.iloc[i] = ranks[-1] / valid.sum()
+        window_vals = series.iloc[: i + 1].values
+        valid_mask = ~np.isnan(window_vals)
+        n_valid = valid_mask.sum()
+        if n_valid == 0:
+            continue
+        valid_vals = window_vals[valid_mask]
+        ranks = rankdata(valid_vals, method=ties)
+        # Current value is last in valid_vals
+        result.iloc[i] = ranks[-1] / n_valid
     return result
 
 
@@ -346,7 +369,7 @@ def ewma_smooth(
 def realized_vol(
     returns: pd.Series,
     window: int = 20,
-    estimator: Literal["close_to_close", "garman_klass", "parkinson"] = "close_to_close",
+    estimator: Literal["close_to_close", "garman_klass", "parkinson", "yang_zhang"] = "close_to_close",
     annualization_factor: int = 252,
     ohlc: pd.DataFrame | None = None,
 ) -> pd.Series:
@@ -358,12 +381,12 @@ def realized_vol(
         Return series (used for close_to_close).
     window : int
         Rolling window size.
-    estimator : {"close_to_close", "garman_klass", "parkinson"}
+    estimator : {"close_to_close", "garman_klass", "parkinson", "yang_zhang"}
         Volatility estimator.
     annualization_factor : int
         Annualization factor (252 equity, 365 crypto, 8760 crypto hourly).
     ohlc : pd.DataFrame | None
-        OHLC data (required for garman_klass and parkinson).
+        OHLC data (required for garman_klass, parkinson, and yang_zhang).
 
     Returns
     -------
@@ -377,7 +400,7 @@ def realized_vol(
 
     if estimator == "close_to_close":
         vol = returns.rolling(window).std() * np.sqrt(annualization_factor)
-    elif estimator in ("garman_klass", "parkinson"):
+    elif estimator in ("garman_klass", "parkinson", "yang_zhang"):
         if ohlc is None:
             raise ValueError(f"ohlc required for estimator='{estimator}'")
         for col in ["open", "high", "low", "close"]:
@@ -392,9 +415,31 @@ def realized_vol(
         if estimator == "garman_klass":
             # σ² = 0.5*(ln(H/L))² - (2ln2-1)*(ln(C/O))²
             var = 0.5 * (h - l) ** 2 - (2 * np.log(2) - 1) * (c - o) ** 2
-        else:  # parkinson
+        elif estimator == "parkinson":
             # σ² = (1/(4*ln2))*(ln(H/L))²
             var = (1 / (4 * np.log(2))) * (h - l) ** 2
+        else:  # yang_zhang
+            # Yang-Zhang (2000): combines overnight and intraday volatility
+            # σ² = σ²_overnight + σ²_open_to_close + k*σ²_RS
+            # Where k optimally weights Rogers-Satchell vs close-to-open
+            # Simplified: uses power-of-2 ratio for k
+            log_ho = h - o  # log(H/O)
+            log_lo = l - o  # log(L/O)
+            log_co = c - o  # log(C/O)
+            log_oc = o - c.shift(1)  # log(O/C_prev) - overnight
+            log_cc = c - c.shift(1)  # log(C/C_prev) - close-to-close
+            
+            # Rogers-Satchell variance
+            rs_var = log_ho * (log_ho - log_co) + log_lo * (log_lo - log_co)
+            
+            # Overnight variance
+            ov_var = log_oc ** 2
+            
+            # Optimal k (simplified)
+            k = 0.34 / (1.34 + (window + 1) / (window - 1))
+            
+            # Yang-Zhang variance
+            var = ov_var + rs_var + k * (log_cc ** 2)
 
         vol = np.sqrt(var.rolling(window).mean() * annualization_factor)
     else:
@@ -625,7 +670,7 @@ def purge_embargo_split(
 
     splits = []
     current = 0
-    for fold_size in fold_sizes:
+    for fold_idx, fold_size in enumerate(fold_sizes):
         test_start = current
         test_end = current + fold_size
         test_idx = indices[test_start:test_end]
@@ -646,9 +691,15 @@ def purge_embargo_split(
             purge_mask = np.zeros(n, dtype=bool)
             purge_mask[purge_start:test_start] = True
 
-        # Train: everything not in test, embargo, or purged
+        # Train: everything not in test, embargo, or purged, before test block
         excluded = set(test_idx) | set(embargo_idx) | set(indices[purge_mask])
-        train_idx = np.array([i for i in indices if i not in excluded])
+        # Only include train samples that come before test_start (no look-ahead)
+        train_idx = np.array([i for i in indices[:test_start] if i not in excluded])
+        
+        # Skip first fold if train is empty (per López de Prado, need min train samples)
+        if len(train_idx) == 0 and fold_idx == 0:
+            current = test_end
+            continue
 
         splits.append({
             "train": train_idx,
