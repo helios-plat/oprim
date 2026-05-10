@@ -1,5 +1,61 @@
 """Oprim — atomic operations library (Layer 1 meta-primitives)."""
 
 from oprim._version import __version__
+from oprim.distance import (
+    cosine_similarity_batch,
+    dtw_distance,
+    euclidean_distance_matrix,
+    symmetric_kl_divergence,
+    wasserstein_distance,
+)
+from oprim.finance import beta_alpha_ols, drawdown_curve, sharpe_ratio, value_at_risk
+from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
+from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
+from oprim.statistics import (
+    bayes_beta_update,
+    bootstrap_ci,
+    brier_score_decomposed,
+    distribution_summary,
+    kde_density,
+    kolmogorov_smirnov_test,
+    mann_kendall_trend,
+    pearson_spearman_corr,
+    percentile_ci,
+    skew_kurt_robust,
+)
+from oprim.time_series import (
+    cumulative_returns,
+    ewma_smooth,
+    gap_detect,
+    lag_forward_fill,
+    log_returns,
+    percentile_rank,
+    purge_embargo_split,
+    realized_vol,
+    resample_align,
+    rolling_window_split,
+    zscore_normalize,
+)
 
-__all__ = ["__version__"]
+__all__ = [
+    "__version__",
+    # Time Series (11)
+    "log_returns", "cumulative_returns", "rolling_window_split",
+    "lag_forward_fill", "percentile_rank", "ewma_smooth",
+    "realized_vol", "zscore_normalize", "gap_detect",
+    "resample_align", "purge_embargo_split",
+    # Statistics (10)
+    "bootstrap_ci", "percentile_ci", "distribution_summary",
+    "skew_kurt_robust", "kolmogorov_smirnov_test", "mann_kendall_trend",
+    "bayes_beta_update", "brier_score_decomposed", "pearson_spearman_corr",
+    "kde_density",
+    # Distance (5)
+    "wasserstein_distance", "dtw_distance", "cosine_similarity_batch",
+    "euclidean_distance_matrix", "symmetric_kl_divergence",
+    # Numerics (3)
+    "logsumexp_safe", "softmax_safe", "clip_with_warning",
+    # Regime (3)
+    "regime_filter_data", "regime_transition_matrix", "regime_label_align",
+    # Finance (4)
+    "drawdown_curve", "sharpe_ratio", "beta_alpha_ols", "value_at_risk",
+]
