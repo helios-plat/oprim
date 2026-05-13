@@ -44,7 +44,8 @@ def atr(
     lows: np.ndarray,
     closes: np.ndarray,
     period: int = 14,
-) -> float:
+    return_series: bool = False,
+) -> float | np.ndarray:
     """Average True Range with Wilder smoothing.
 
     Parameters
@@ -53,16 +54,20 @@ def atr(
         OHLC arrays (same length, at least period+1 bars).
     period : int
         Smoothing period (default 14).
+    return_series : bool
+        If True, return full ATR series (length n-1, first period-1 values are NaN).
+        If False (default), return only the current (last) ATR value.
 
     Returns
     -------
-    float
-        Current ATR value.
+    float | np.ndarray
+        Current ATR value (scalar) or full ATR series.
 
     References
     ----------
     .. [1] Wilder, J.W. (1978). New Concepts in Technical Trading Systems.
     .. [2] Extraction source: Selene project, services/signal/regime/detector.py:_calc_atr
+    .. [3] Series mode added for Helixa qlib-v2 feature engineering.
     """
     n = len(closes)
     if n < period + 1:
@@ -75,10 +80,18 @@ def atr(
             abs(lows[i] - closes[i - 1]),
         )
     # Wilder smoothing: SMA seed then recursive
-    atr_val = float(trs[:period].mean())
-    for tr in trs[period:]:
-        atr_val = (atr_val * (period - 1) + tr) / period
-    return atr_val
+    if not return_series:
+        atr_val = float(trs[:period].mean())
+        for tr in trs[period:]:
+            atr_val = (atr_val * (period - 1) + tr) / period
+        return atr_val
+
+    # Series mode: compute full rolling ATR
+    atr_arr = np.full(n - 1, np.nan)
+    atr_arr[period - 1] = trs[:period].mean()
+    for i in range(period, len(trs)):
+        atr_arr[i] = (atr_arr[i - 1] * (period - 1) + trs[i]) / period
+    return atr_arr
 
 
 def hurst_exponent(
