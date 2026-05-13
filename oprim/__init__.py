@@ -8,7 +8,7 @@ from oprim.distance import (
     symmetric_kl_divergence,
     wasserstein_distance,
 )
-from oprim.finance import beta_alpha_ols, drawdown_curve, futures_curve_shape, nelson_siegel_yield_curve, sharpe_ratio, value_at_risk
+from oprim.finance import beta_alpha_ols, drawdown_curve, futures_curve_shape, linear_time_decay, nelson_siegel_yield_curve, sharpe_ratio, trade_metrics, value_at_risk
 from oprim.information import ordinal_pattern, phase_randomize, shannon_entropy
 from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
 from oprim.point_process import hawkes_nll

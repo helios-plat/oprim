@@ -417,3 +417,79 @@ def futures_curve_shape(
         "curvature": float(curvature),
         "roll_yield_pct": float(roll_yield_pct),
     }
+
+
+def trade_metrics(returns: np.ndarray) -> dict[str, float]:
+    """Compute profit factor, max drawdown, and Sharpe from a returns array.
+
+    Parameters
+    ----------
+    returns : np.ndarray
+        Array of per-trade or per-bar returns.
+
+    Returns
+    -------
+    dict
+        "profit_factor": sum(gains)/|sum(losses)|,
+        "max_drawdown": max peak-to-trough as fraction,
+        "sharpe": annualized Sharpe (assuming daily returns, 252 factor).
+
+    References
+    ----------
+    .. [1] Extraction source: Helixa services/qlib-v2/src/label_engine.py:WalkForward5MValidator._metrics()
+    """
+    arr = np.asarray(returns, dtype=float)
+    if len(arr) == 0:
+        return {"profit_factor": 0.0, "max_drawdown": 0.0, "sharpe": 0.0}
+
+    gains = arr[arr > 0]
+    losses = arr[arr < 0]
+
+    if len(losses) > 0 and abs(losses.sum()) > 1e-9:
+        pf = float(gains.sum() / abs(losses.sum()))
+    else:
+        pf = float("inf") if len(gains) > 0 else 0.0
+
+    cumret = np.cumsum(arr)
+    peak = np.maximum.accumulate(cumret)
+    dd_arr = (peak - cumret) / (np.abs(peak) + 1e-9)
+    max_dd = float(np.max(dd_arr)) if len(dd_arr) > 0 else 0.0
+
+    if len(arr) > 1 and arr.std() > 1e-9:
+        sharpe = float(arr.mean() / arr.std() * np.sqrt(252))
+    else:
+        sharpe = 0.0
+
+    return {"profit_factor": pf, "max_drawdown": max_dd, "sharpe": sharpe}
+
+
+def linear_time_decay(
+    age: float,
+    max_age: float,
+    expire: float,
+) -> float:
+    """Linear time decay between max_age and expire.
+
+    Parameters
+    ----------
+    age : float
+        Current age (e.g. seconds since signal).
+    max_age : float
+        Age below which weight is 1.0 (full strength).
+    expire : float
+        Age at or above which weight is 0.0 (fully expired).
+
+    Returns
+    -------
+    float
+        Decay weight in [0.0, 1.0].
+
+    References
+    ----------
+    .. [1] Extraction source: Helixa services/prob-engine/src/aggregator.py:_time_decay()
+    """
+    if age <= max_age:
+        return 1.0
+    if age >= expire:
+        return 0.0
+    return 1.0 - (age - max_age) / (expire - max_age)
