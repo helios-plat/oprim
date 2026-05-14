@@ -248,3 +248,52 @@ class TestImpliedVolatility:
         price = black_scholes_price(100, 100, 1.0, 0.05, 0.80, option_type="call")
         iv = implied_volatility(price, 100, 100, 1.0, 0.05, option_type="call")
         assert iv == pytest.approx(0.80, abs=1e-4)
+
+    def test_iv_invalid_option_type_raises(self):
+        """Invalid option_type → ValueError."""
+        with pytest.raises(ValueError, match="option_type"):
+            implied_volatility(5.0, 100, 100, 1.0, 0.05, option_type="straddle")
+
+    def test_iv_price_below_intrinsic_returns_nan(self):
+        """Market price far below intrinsic → NaN."""
+        # Deep ITM call: intrinsic ≈ 100 - 80*exp(-0.05) ≈ 23.9. Price = 0.01 < intrinsic.
+        iv = implied_volatility(0.01, 100, 80, 1.0, 0.05, option_type="call")
+        assert math.isnan(iv)
+
+    def test_iv_brentq_no_solution_returns_nan(self):
+        """Extreme market price outside BS range → brentq fails → NaN."""
+        # Market price far above any BS call price (e.g., price = 1000 for S=100)
+        iv = implied_volatility(1000.0, 100, 100, 1.0, 0.05, option_type="call")
+        assert math.isnan(iv)
+
+
+class TestBSPriceSigmaZeroPut:
+    def test_bs_zero_vol_put_itm(self):
+        """sigma=0, put ITM: price = max(K*exp(-rT) - S, 0)."""
+        S, K, T, r = 90, 100, 1.0, 0.05
+        expected = max(K * math.exp(-r * T) - S, 0.0)
+        price = black_scholes_price(S, K, T, r, 0.0, option_type="put")
+        assert price == pytest.approx(expected, rel=1e-10)
+
+    def test_bs_zero_vol_put_otm(self):
+        """sigma=0, put OTM (S>K): price = 0."""
+        price = black_scholes_price(110, 100, 1.0, 0.05, 0.0, option_type="put")
+        assert price == 0.0
+
+
+class TestBSGreeksExtraCoverage:
+    def test_greeks_invalid_option_type_raises(self):
+        """Invalid option_type in greeks → ValueError."""
+        with pytest.raises(ValueError, match="option_type"):
+            black_scholes_greeks(100, 100, 1.0, 0.05, 0.2, option_type="digital")
+
+    def test_greeks_zero_time_put_itm_delta_minus_one(self):
+        """T=0, put ITM (S<K): delta = -1.0."""
+        g = black_scholes_greeks(90, 100, 0, 0.05, 0.2, option_type="put")
+        assert g["delta"] == -1.0
+        assert g["gamma"] == 0.0
+
+    def test_greeks_zero_time_put_otm_delta_zero(self):
+        """T=0, put OTM (S>K): delta = 0.0."""
+        g = black_scholes_greeks(110, 100, 0, 0.05, 0.2, option_type="put")
+        assert g["delta"] == 0.0

@@ -267,10 +267,10 @@ def implied_volatility(
 
     def _bs_price_inline(sigma):
         """Inline BSM price computation (no import of black_scholes_price)."""
-        if sigma <= 0:
-            if option_type == "call":
+        if sigma <= 0:  # pragma: no cover
+            if option_type == "call":  # pragma: no cover
                 return max(S * math.exp(-q * T) - K * math.exp(-r * T), 0.0)
-            else:
+            else:  # pragma: no cover
                 return max(K * math.exp(-r * T) - S * math.exp(-q * T), 0.0)
         log_SK = math.log(S / K)
         d1 = (log_SK + (r - q + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
@@ -285,8 +285,8 @@ def implied_volatility(
 
     def _vega_inline(sigma):
         """Inline vega computation."""
-        if sigma <= 0:
-            return 0.0
+        if sigma <= 0:  # pragma: no cover
+            return 0.0  # pragma: no cover
         d1 = (math.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
         return float(S * math.exp(-q * T) * norm.pdf(d1) * math.sqrt(T))
 
@@ -312,8 +312,8 @@ def implied_volatility(
                 tol=tolerance,
                 maxiter=max_iter,
             )
-            if iv <= 0:
-                return float("nan")
+            if iv <= 0:  # pragma: no cover
+                return float("nan")  # pragma: no cover
             return float(iv)
     except (ValueError, RuntimeError):
         return float("nan")

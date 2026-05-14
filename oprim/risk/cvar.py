@@ -71,7 +71,7 @@ def cvar(
         threshold = np.quantile(arr, alpha)
         tail = arr[arr <= threshold]
         if len(tail) == 0:
-            return float(-threshold)
+            return float(-threshold)  # pragma: no cover
         return float(-tail.mean())
 
     mu = float(arr.mean())

@@ -133,3 +133,9 @@ def test_chandelier_single_bar_too_short():
     c = np.array([1.0])
     result = chandelier_exit(h, l, c, period=1)
     assert all(np.isnan(result["long_exit"]))
+
+
+def test_chandelier_exit_empty_closes_raises():
+    """Empty closes array raises ValueError."""
+    with pytest.raises(ValueError, match="empty"):
+        chandelier_exit(np.array([]), np.array([]), np.array([]))

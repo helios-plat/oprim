@@ -118,3 +118,9 @@ def test_bollinger_matches_textbook():
         expected_middle[mask].to_numpy(),
         rtol=1e-10,
     )
+
+
+def test_bollinger_empty_prices_raises():
+    """Empty prices array raises ValueError."""
+    with pytest.raises(ValueError, match="empty"):
+        bollinger_bands(np.array([]))

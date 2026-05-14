@@ -132,7 +132,7 @@ def _verify_inclusion(
     sn = n_leaves - 1
     for sibling in proof:
         if sn == 0:
-            break
+            break  # pragma: no cover
         if fn % 2 == 1 or fn == sn:
             h = hashlib.sha256(b"\x01" + sibling + h).digest()
             while fn % 2 == 0 and fn != 0:

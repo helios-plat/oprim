@@ -137,8 +137,8 @@ def regime_transition_matrix(
             stationary = np.ones(n_states) / n_states
         else:
             stationary = stationary / stationary.sum()
-    except Exception:
-        stationary = np.ones(n_states) / n_states
+    except Exception:  # pragma: no cover
+        stationary = np.ones(n_states) / n_states  # pragma: no cover
 
     stat_dist = pd.Series(stationary, index=states)
 

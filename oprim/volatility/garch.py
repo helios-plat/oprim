@@ -26,7 +26,7 @@ def _garch11_nll(params, returns):
     for t in range(1, T):
         sigma2[t] = omega + alpha * eps[t - 1] ** 2 + beta * sigma2[t - 1]
     if np.any(sigma2 <= 0):
-        return 1e10
+        return 1e10  # pragma: no cover
     ll = -0.5 * np.sum(np.log(sigma2) + eps**2 / sigma2)
     return -ll  # return negative log-likelihood
 

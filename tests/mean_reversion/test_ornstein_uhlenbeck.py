@@ -154,3 +154,57 @@ class TestOUHalfLife:
         if theta > 0:
             expected_hl = math.log(2.0) / theta
             assert hl == pytest.approx(expected_hl, rel=1e-10)
+
+
+# ============================================================
+# Additional gap-filling tests (Phase 2)
+# ============================================================
+
+class TestOUFitExtraGaps:
+    def test_ou_fit_theta_nonpositive_returns_nan(self):
+        """Strongly trending series where theta <= 0 -> NaN dict."""
+        # Linear trend: rho > 0 but after computing theta = -log(rho)/dt
+        # We need rho to produce theta <= 0.
+        # Use series where successive correlation is exactly 1 (pure random walk)
+        rng = np.random.default_rng(0)
+        # Random walk: X_t = X_{t-1} + eps -> rho close to 1 but theta very small
+        # For theta <= 0, we force a strictly increasing monotone series
+        X = np.linspace(0, 100, 100)  # perfect trend, rho = 1.0, theta = -log(1)/dt = 0
+        result = ornstein_uhlenbeck_fit(X, dt=1.0)
+        # theta should be NaN (theta = 0.0 triggers the theta <= 0 guard)
+        assert np.isnan(result["theta"])
+
+
+class TestOUHalfLifeExtraGaps:
+    def test_ou_half_life_constant_series_var_zero(self):
+        """Constant input -> var=0 -> returns nan or inf (no valid half-life)."""
+        X = np.full(50, 3.14)
+        result = ornstein_uhlenbeck_half_life(X, method="regression")
+        assert np.isnan(result) or result == float("inf")
+
+    def test_ou_half_life_trending_series_returns_inf(self):
+        """Monotone increasing series -> theta near 0 -> returns inf or very large half-life."""
+        X = np.linspace(0, 100, 100)
+        result = ornstein_uhlenbeck_half_life(X, method="regression")
+        assert result == float("inf") or result > 1e10
+
+    def test_ou_half_life_zeros_series_var_exactly_zero(self):
+        """All-zero series -> var(X_lag, ddof=1)=0 exactly -> returns nan."""
+        X = np.zeros(30)
+        result = ornstein_uhlenbeck_half_life(X, method="regression")
+        assert np.isnan(result) or result == float("inf")
+
+    def test_ou_half_life_mle_negative_rho_returns_inf(self):
+        """Strongly anti-correlated series -> rho <= 0 -> mle returns inf."""
+        rng = np.random.default_rng(0)
+        # Anti-correlated: alternating -1, +1
+        X = np.tile([-1.0, 1.0], 50)
+        result = ornstein_uhlenbeck_half_life(X, method="mle")
+        assert result == float("inf")
+
+    def test_ou_half_life_mle_perfect_trend_theta_zero(self):
+        """Perfect trend -> rho near 1, theta near 0 -> mle returns inf or very large."""
+        X = np.arange(100, dtype=float)
+        result = ornstein_uhlenbeck_half_life(X, method="mle")
+        # rho may be 1.0 exactly (inf) or 0.9999... (very large finite) depending on float arithmetic
+        assert result == float("inf") or result > 1e5
