@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "1.8.0"
+VERSION = "1.10.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -38,6 +38,8 @@ ELEMENTS: list[str] = [
     "cosine_similarity_batch",
     "euclidean_distance_matrix",
     "symmetric_kl_divergence",
+    # Phase 7A:
+    "distributional_distance",
     # Numerics (3)
     "logsumexp_safe",
     "softmax_safe",
@@ -165,6 +167,7 @@ CATEGORIES: dict[str, list[str]] = {
     "distance": [
         "wasserstein_distance", "dtw_distance", "cosine_similarity_batch",
         "euclidean_distance_matrix", "symmetric_kl_divergence",
+        "distributional_distance",
     ],
     "numerics": ["logsumexp_safe", "softmax_safe", "clip_with_warning"],
     "regime": ["regime_filter_data", "regime_transition_matrix", "regime_label_align"],

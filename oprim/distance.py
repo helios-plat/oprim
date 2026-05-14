@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 import numpy as np
+import pandas as pd
 from scipy import stats
 from scipy.spatial.distance import cdist
 
@@ -324,3 +325,163 @@ def symmetric_kl_divergence(
         kl_pq = np.sum(p * log_fn(p / q))
         kl_qp = np.sum(q * log_fn(q / p))
         return float(0.5 * (kl_pq + kl_qp))
+
+
+def distributional_distance(
+    sample_a: np.ndarray | pd.Series,
+    sample_b: np.ndarray | pd.Series,
+    *,
+    metric: Literal["wasserstein_1", "kolmogorov_smirnov", "cramer_von_mises", "energy"] = "wasserstein_1",
+    weights_a: np.ndarray | None = None,
+    weights_b: np.ndarray | None = None,
+) -> float:
+    """Compute distributional distance between two 1-D samples.
+
+    Parameters
+    ----------
+    sample_a, sample_b : np.ndarray or pd.Series
+        1-D samples.
+    metric : {"wasserstein_1", "kolmogorov_smirnov", "cramer_von_mises", "energy"}
+        Distance metric to use.
+    weights_a, weights_b : np.ndarray or None
+        Optional non-negative sample weights. Must have the same length as the
+        corresponding sample.
+
+    Returns
+    -------
+    float
+        Non-negative distance value.
+
+    Raises
+    ------
+    ValueError
+        If either sample is empty, weights length mismatches, or unknown metric.
+    """
+    # Convert to numpy arrays
+    a = np.asarray(sample_a, dtype=np.float64).ravel()
+    b = np.asarray(sample_b, dtype=np.float64).ravel()
+
+    # Validate sizes
+    if a.size < 1:
+        raise ValueError("sample_a must have at least 1 element")
+    if b.size < 1:
+        raise ValueError("sample_b must have at least 1 element")
+
+    # Validate weights
+    if weights_a is not None:
+        weights_a = np.asarray(weights_a, dtype=np.float64).ravel()
+        if weights_a.size != a.size:
+            raise ValueError(
+                f"weights_a length {weights_a.size} does not match sample_a length {a.size}"
+            )
+    if weights_b is not None:
+        weights_b = np.asarray(weights_b, dtype=np.float64).ravel()
+        if weights_b.size != b.size:
+            raise ValueError(
+                f"weights_b length {weights_b.size} does not match sample_b length {b.size}"
+            )
+
+    if metric == "wasserstein_1":
+        return float(stats.wasserstein_distance(a, b, weights_a, weights_b))
+
+    elif metric == "kolmogorov_smirnov":
+        return _ks_distance(a, b, weights_a, weights_b)
+
+    elif metric == "cramer_von_mises":
+        return _cvm_distance(a, b, weights_a, weights_b)
+
+    elif metric == "energy":
+        return _energy_distance(a, b, weights_a, weights_b)
+
+    else:
+        raise ValueError(
+            f"Unknown metric {metric!r}. Choose from "
+            "'wasserstein_1', 'kolmogorov_smirnov', 'cramer_von_mises', 'energy'."
+        )
+
+
+def _weighted_ecdf(values: np.ndarray, weights: np.ndarray | None, eval_points: np.ndarray) -> np.ndarray:
+    """Evaluate weighted ECDF at eval_points (sorted unique values)."""
+    n = values.size
+    sort_idx = np.argsort(values)
+    sorted_vals = values[sort_idx]
+
+    if weights is not None:
+        w = weights[sort_idx]
+        w = w / w.sum()
+        cum_w = np.cumsum(w)
+    else:
+        cum_w = np.arange(1, n + 1) / n
+
+    # For each eval point, ECDF = sum of weights of values <= eval_point
+    ecdf = np.zeros(eval_points.size)
+    for i, x in enumerate(eval_points):
+        idx = np.searchsorted(sorted_vals, x, side="right") - 1
+        ecdf[i] = cum_w[idx] if idx >= 0 else 0.0
+    return ecdf
+
+
+def _ks_distance(
+    a: np.ndarray,
+    b: np.ndarray,
+    weights_a: np.ndarray | None,
+    weights_b: np.ndarray | None,
+) -> float:
+    """Kolmogorov-Smirnov statistic: sup|F_a(x) - F_b(x)|."""
+    all_vals = np.unique(np.concatenate([a, b]))
+    fa = _weighted_ecdf(a, weights_a, all_vals)
+    fb = _weighted_ecdf(b, weights_b, all_vals)
+    return float(np.max(np.abs(fa - fb)))
+
+
+def _cvm_distance(
+    a: np.ndarray,
+    b: np.ndarray,
+    weights_a: np.ndarray | None,
+    weights_b: np.ndarray | None,
+) -> float:
+    """Cramér-von Mises distance: integral of (F_a - F_b)^2 d((F_a + F_b)/2)."""
+    all_vals = np.unique(np.concatenate([a, b]))
+    fa = _weighted_ecdf(a, weights_a, all_vals)
+    fb = _weighted_ecdf(b, weights_b, all_vals)
+
+    diff_sq = (fa - fb) ** 2
+    combined = 0.5 * (fa + fb)
+    # Approximate integral: sum of diff_sq * d(combined) at each grid point
+    # d(combined) = differences in combined CDF
+    d_combined = np.diff(combined, prepend=0.0)
+    return float(np.sum(diff_sq * d_combined))
+
+
+def _energy_distance(
+    a: np.ndarray,
+    b: np.ndarray,
+    weights_a: np.ndarray | None,
+    weights_b: np.ndarray | None,
+) -> float:
+    """Energy distance: 2*E[|X-Y|] - E[|X-X'|] - E[|Y-Y'|]."""
+    if weights_a is not None:
+        wa = weights_a / weights_a.sum()
+    else:
+        wa = np.ones(a.size) / a.size
+
+    if weights_b is not None:
+        wb = weights_b / weights_b.sum()
+    else:
+        wb = np.ones(b.size) / b.size
+
+    # E[|X-Y|]: weighted mean of |a_i - b_j|
+    cross_diffs = np.abs(a[:, None] - b[None, :])
+    e_cross = float(np.sum(cross_diffs * (wa[:, None] * wb[None, :])))
+
+    # E[|X-X'|]: weighted mean of |a_i - a_j|
+    aa_diffs = np.abs(a[:, None] - a[None, :])
+    e_aa = float(np.sum(aa_diffs * (wa[:, None] * wa[None, :])))
+
+    # E[|Y-Y'|]: weighted mean of |b_i - b_j|
+    bb_diffs = np.abs(b[:, None] - b[None, :])
+    e_bb = float(np.sum(bb_diffs * (wb[:, None] * wb[None, :])))
+
+    result = 2.0 * e_cross - e_aa - e_bb
+    # Clamp to zero to handle floating-point noise for identical distributions
+    return float(max(0.0, result))

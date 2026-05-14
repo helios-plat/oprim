@@ -3,6 +3,7 @@
 from oprim._version import __version__
 from oprim.distance import (
     cosine_similarity_batch,
+    distributional_distance,
     dtw_distance,
     euclidean_distance_matrix,
     symmetric_kl_divergence,
@@ -123,9 +124,10 @@ __all__ = [
     "distribution_summary", "skew_kurt_robust", "kolmogorov_smirnov_test",
     "mann_kendall_trend", "bayes_beta_update", "brier_score_decomposed",
     "pearson_spearman_corr", "kde_density", "correlation_batch",
-    # Distance (5)
+    # Distance (6)
     "wasserstein_distance", "dtw_distance", "cosine_similarity_batch",
     "euclidean_distance_matrix", "symmetric_kl_divergence",
+    "distributional_distance",
     # Numerics (3)
     "logsumexp_safe", "softmax_safe", "clip_with_warning",
     # Regime (3)
