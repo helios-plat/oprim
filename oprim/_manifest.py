@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "1.6.0"
+VERSION = "1.9.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -106,6 +106,50 @@ ELEMENTS: list[str] = [
     # --- Phase 3 additions (v1.6.0) ---
     # Similarity (1)
     "vector_similarity",
+    # --- Phase 5A additions (v1.8.0) ---
+    # Derivatives (8)
+    "binomial_tree_price",
+    "mc_european_price",
+    "mc_asian_price",
+    "barrier_option_price",
+    "lookback_option_price",
+    "lsm_american_price",
+    "svensson_yield_curve",
+    "cubic_spline_yield_curve",
+    # --- Phase 4 additions (v1.7.0) ---
+    # Risk (1)
+    "mean_deviation",
+    # Timeseries (9)
+    "adf_test",
+    "kpss_test",
+    "engle_granger_cointegration",
+    "johansen_cointegration",
+    "ljung_box_test",
+    "durbin_watson",
+    "granger_causality_test",
+    "jarque_bera_test",
+    "breusch_pagan_test",
+    # Volatility (8)
+    "egarch_fit",
+    "egarch_forecast",
+    "gjr_garch_fit",
+    "gjr_garch_forecast",
+    "realized_variance",
+    "parkinson_volatility",
+    "garman_klass_volatility",
+    "yang_zhang_volatility",
+    # Technical (7)
+    "kama",
+    "stochastic_oscillator",
+    "cci",
+    "williams_r",
+    "keltner_channels",
+    "obv",
+    "mfi",
+    # --- Phase 6A additions (v1.9.0) ---
+    "ed25519_keypair_generate",
+    "ed25519_sign",
+    "ed25519_verify",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -142,20 +186,47 @@ CATEGORIES: dict[str, list[str]] = {
     "technical": [
         "sma", "ema", "vwap", "macd", "rsi_normalized",
         "bollinger_bands", "donchian_channel", "chandelier_exit",
+        "stochastic_oscillator", "cci", "williams_r",
+        "keltner_channels",
+        "kama",
+        "obv", "mfi",
     ],
     "crypto": [
         "sha256_hash", "hmac_sha256",
         "rfc6962_merkle_root", "rfc6962_inclusion_proof",
+        "ed25519_keypair_generate", "ed25519_sign", "ed25519_verify",
     ],
     "serialization": ["canonical_json"],
-    "risk": ["cvar"],
+    "risk": ["cvar", "mean_deviation"],
     # Phase 2 categories
     "performance": ["cumulative_returns_perf", "cagr"],
     "mean_reversion": ["ornstein_uhlenbeck_fit", "ornstein_uhlenbeck_half_life"],
-    "volatility": ["garch_fit", "garch_forecast", "ewma_volatility"],
-    "derivatives": ["black_scholes_price", "black_scholes_greeks", "implied_volatility"],
+    "volatility": [
+        "garch_fit", "garch_forecast", "ewma_volatility",
+        "egarch_fit", "egarch_forecast",
+        "gjr_garch_fit", "gjr_garch_forecast",
+        "realized_variance",
+        "parkinson_volatility", "garman_klass_volatility", "yang_zhang_volatility",
+    ],
+    "derivatives": [
+        "black_scholes_price", "black_scholes_greeks", "implied_volatility",
+        "binomial_tree_price",
+        "mc_european_price", "mc_asian_price",
+        "barrier_option_price", "lookback_option_price",
+        "lsm_american_price",
+        "svensson_yield_curve", "cubic_spline_yield_curve",
+    ],
     # Phase 3 categories
     "similarity": ["vector_similarity"],
+    # Phase 4 categories
+    "timeseries": [
+        "adf_test", "kpss_test",
+        "engle_granger_cointegration", "johansen_cointegration",
+        "ljung_box_test", "durbin_watson",
+        "granger_causality_test",
+        "jarque_bera_test",
+        "breusch_pagan_test",
+    ],
 }
 
 STABILITY: dict[str, str] = {e: "stable" for e in ELEMENTS}

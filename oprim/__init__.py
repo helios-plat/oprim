@@ -80,6 +80,37 @@ from oprim.derivatives.black_scholes import black_scholes_price, black_scholes_g
 # Phase 3 additions (v1.6.0)
 from oprim.similarity.vector import vector_similarity
 
+# Phase 6A additions (v1.9.0)
+from oprim.crypto.ed25519 import ed25519_keypair_generate, ed25519_sign, ed25519_verify
+
+# Phase 5A additions (v1.8.0)
+from oprim.derivatives.binomial_tree import binomial_tree_price
+from oprim.derivatives.monte_carlo import mc_european_price, mc_asian_price
+from oprim.derivatives.exotic import barrier_option_price, lookback_option_price
+from oprim.derivatives.american import lsm_american_price
+from oprim.derivatives.rates import svensson_yield_curve, cubic_spline_yield_curve
+
+# Phase 4 additions (v1.7.0)
+from oprim.risk.dispersion import mean_deviation
+from oprim.timeseries.stationarity import adf_test, kpss_test
+from oprim.timeseries.cointegration import engle_granger_cointegration, johansen_cointegration
+from oprim.timeseries.autocorrelation import ljung_box_test, durbin_watson
+from oprim.timeseries.causality import granger_causality_test
+from oprim.timeseries.distribution_tests import jarque_bera_test
+from oprim.timeseries.heteroskedasticity import breusch_pagan_test
+from oprim.volatility.egarch import egarch_fit, egarch_forecast
+from oprim.volatility.gjr_garch import gjr_garch_fit, gjr_garch_forecast
+from oprim.volatility.realized import realized_variance
+from oprim.volatility.range_based import (
+    parkinson_volatility,
+    garman_klass_volatility,
+    yang_zhang_volatility,
+)
+from oprim.technical.adaptive import kama
+from oprim.technical.oscillators import stochastic_oscillator, cci, williams_r
+from oprim.technical.bands import keltner_channels
+from oprim.technical.volume import obv, mfi
+
 __all__ = [
     "__version__",
     # Time Series (11)
@@ -119,6 +150,8 @@ __all__ = [
     # Crypto (4) — Phase 1
     "sha256_hash", "hmac_sha256",
     "rfc6962_merkle_root", "rfc6962_inclusion_proof",
+    # Crypto (3) — Phase 6A
+    "ed25519_keypair_generate", "ed25519_sign", "ed25519_verify",
     # Serialization (1) — Phase 1
     "canonical_json",
     # Risk (1) — Phase 1
@@ -131,6 +164,44 @@ __all__ = [
     "garch_fit", "garch_forecast", "ewma_volatility",
     # Derivatives (3) — Phase 2
     "black_scholes_price", "black_scholes_greeks", "implied_volatility",
+    # Derivatives (8) — Phase 5A
+    "binomial_tree_price",
+    "mc_european_price",
+    "mc_asian_price",
+    "barrier_option_price",
+    "lookback_option_price",
+    "lsm_american_price",
+    "svensson_yield_curve",
+    "cubic_spline_yield_curve",
     # Similarity (1) — Phase 3
     "vector_similarity",
+    # Risk (Phase 4)
+    "mean_deviation",
+    # Timeseries (Phase 4)
+    "adf_test",
+    "kpss_test",
+    "engle_granger_cointegration",
+    "johansen_cointegration",
+    "ljung_box_test",
+    "durbin_watson",
+    "granger_causality_test",
+    "jarque_bera_test",
+    "breusch_pagan_test",
+    # Volatility (Phase 4)
+    "egarch_fit",
+    "egarch_forecast",
+    "gjr_garch_fit",
+    "gjr_garch_forecast",
+    "realized_variance",
+    "parkinson_volatility",
+    "garman_klass_volatility",
+    "yang_zhang_volatility",
+    # Technical (Phase 4)
+    "kama",
+    "stochastic_oscillator",
+    "cci",
+    "williams_r",
+    "keltner_channels",
+    "obv",
+    "mfi",
 ]
