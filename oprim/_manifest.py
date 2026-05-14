@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "1.9.0"
+VERSION = "1.8.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -146,10 +146,6 @@ ELEMENTS: list[str] = [
     "keltner_channels",
     "obv",
     "mfi",
-    # --- Phase 6A additions (v1.9.0) ---
-    "ed25519_keypair_generate",
-    "ed25519_sign",
-    "ed25519_verify",
 ]
 
 CATEGORIES: dict[str, list[str]] = {

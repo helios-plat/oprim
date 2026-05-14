@@ -1,11 +1,11 @@
-"""Band technical indicators (Bollinger Bands, Donchian Channel)."""
+"""Band technical indicators (Bollinger Bands, Donchian Channel, Keltner Channels)."""
 
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
-from oprim.technical._base import _to_array, _wrap
+from oprim.technical._base import _ema_recursive, _to_array, _wilder_atr, _wrap
 
 
 def bollinger_bands(
@@ -140,3 +140,72 @@ def donchian_channel(
         return _wrap(a, is_series, idx)
 
     return {"upper": _w(upper), "middle": _w(middle), "lower": _w(lower)}
+
+
+def keltner_channels(
+    highs: np.ndarray | pd.Series,
+    lows: np.ndarray | pd.Series,
+    closes: np.ndarray | pd.Series,
+    *,
+    ema_period: int = 20,
+    atr_period: int = 10,
+    multiplier: float = 2.0,
+) -> dict[str, np.ndarray | pd.Series]:
+    """Keltner Channels volatility-based envelope.
+
+    Mathematical definition:
+        middle_t = EMA(close, ema_period)
+        atr_t    = Wilder ATR(high, low, close, atr_period)
+        upper_t  = middle_t + multiplier * atr_t
+        lower_t  = middle_t - multiplier * atr_t
+
+    Parameters
+    ----------
+    highs, lows, closes : array-like
+        OHLC series of equal length.
+    ema_period : int
+        EMA period for middle band. Default 20.
+    atr_period : int
+        ATR period for channel width. Default 10.
+    multiplier : float
+        ATR multiplier. Default 2.0.
+
+    Returns
+    -------
+    dict with keys: 'upper', 'middle', 'lower'. Each same type as closes.
+
+    Raises
+    ------
+    ValueError
+        If arrays have different lengths or parameters are invalid.
+
+    References
+    ----------
+    Keltner, C.W. (1960). How to Make Money in Commodities.
+    Chester, L. (updated): modern EMA-ATR version.
+    """
+    h_arr, is_series, idx = _to_array(highs)
+    l_arr, _, _ = _to_array(lows)
+    c_arr, _, _ = _to_array(closes)
+
+    n = len(c_arr)
+    if n == 0:
+        raise ValueError("Input arrays must not be empty")
+    if len(h_arr) != n or len(l_arr) != n:
+        raise ValueError("highs, lows, closes must have same length")
+    for name, val in [("ema_period", ema_period), ("atr_period", atr_period)]:
+        if not isinstance(val, int) or val <= 0:
+            raise ValueError(f"{name} must be a positive integer, got {val!r}")
+    if multiplier <= 0:
+        raise ValueError(f"multiplier must be positive, got {multiplier!r}")
+
+    middle = _ema_recursive(c_arr, ema_period)
+    atr = _wilder_atr(h_arr, l_arr, c_arr, atr_period)
+
+    upper = middle + multiplier * atr
+    lower = middle - multiplier * atr
+
+    def _w(a: np.ndarray) -> np.ndarray | pd.Series:
+        return _wrap(a, is_series, idx)
+
+    return {"middle": _w(middle), "upper": _w(upper), "lower": _w(lower)}
