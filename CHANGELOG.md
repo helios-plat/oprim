@@ -1,8 +1,23 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [2.0.0] - 2026-05-14
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+### Added — Phase 10 (10 new elements)
+- `behavioral/cpt.py`: `cpt_value_function`, `probability_weighting_function` (Tversky-Kahneman 1992)
+- `behavioral/llad.py`: `large_loss_aversion_degree` (Bernard-Ghossoub 2010)
+- `behavioral/salience.py`: `salience_function`, `salience_ranking_weights` (BGS 2013)
+- `spectral/marchenko_pastur.py`: `marchenko_pastur_threshold` (Random Matrix Theory)
+- `spectral/rie.py`: `rotationally_invariant_estimator` (Bouchaud-Potters)
+- `spectral/ledoit_wolf.py`: `ledoit_wolf_shrinkage`
+- `spectral/eigengap.py`: `spectral_eigengap_detect`
+- `recursive_utility/epstein_zin.py`: `epstein_zin_aggregator` (Epstein-Zin 1989)
+
+### Changed
+- Version bump: 1.11.0 → 2.0.0 (major: new submodule structure for behavioral/spectral/recursive_utility)
+
+## [1.11.0] - 2026-05-09
+### Added — Phase 9A
+- path_signature_compute, fisher_rao_distance, rough_volatility_simulate, sabr_implied_volatility, ed25519_keypair_generate, ed25519_sign, ed25519_verify
 
 ## [1.5.0] - 2026-05-14
 
