@@ -4,6 +4,46 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.0] - 2026-05-14
+
+### Added (Phase 1: 14 new elements)
+
+#### Technical Indicators (`oprim/technical/`)
+- `sma`: Simple Moving Average — SMA_t = (1/N) * sum(P_{t-N+1}..P_t)
+- `ema`: Exponential Moving Average (adjust=False/True) — matches pandas ewm exactly
+- `vwap`: Volume Weighted Average Price (cumulative and rolling)
+- `macd`: MACD line, signal line, histogram — Appel (1979)
+- `rsi_normalized`: RSI normalized to [0,1] — Wilder (1978) SMA-seeded smoothing
+- `bollinger_bands`: Upper/middle/lower/bandwidth/%B — population std (ddof=0)
+- `donchian_channel`: Upper/middle/lower rolling extrema
+- `chandelier_exit`: Long/short trailing stop — Le Beau ATR-based
+
+#### Cryptographic Primitives (`oprim/crypto/`)
+- `sha256_hash`: NIST FIPS 180-4 SHA-256, returns 64-char hex string, accepts bytes/str
+- `hmac_sha256`: RFC 2104 HMAC-SHA-256, returns 64-char hex string
+- `rfc6962_merkle_root`: RFC 6962 MTH with arbitrary-bytes leaves (not pre-hashed)
+- `rfc6962_inclusion_proof`: RFC 6962 §2.1.1 audit path
+
+#### Serialization (`oprim/serialization/`)
+- `canonical_json`: RFC 8785 JCS — deterministic, UTF-16 sorted keys, no whitespace
+
+#### Risk (`oprim/risk/`)
+- `cvar`: Conditional Value at Risk (historical & Gaussian closed-form methods)
+
+### Infrastructure
+- New subdirectory structure: `technical/`, `crypto/`, `serialization/`, `risk/`
+- `oprim/_manifest.py`: authoritative element list with categories and stability tags
+- JSON schemas in `oprim/schemas/<category>/<element>.schema.json`
+- Private helpers in `oprim/technical/_base.py` (H2 exempt from H1)
+- `pyproject.toml`: restored `academic_reference` pytest marker
+
+### Notes
+- 433 total tests (144 new Phase 1 tests), 80% coverage
+- All Phase 1 elements have `@pytest.mark.academic_reference` tests
+- Crypto elements verified against NIST FIPS 180-4, RFC 4231, RFC 6962, RFC 8785
+- Technical indicators verified against pandas rolling/ewm reference implementations
+- No new third-party dependencies (crypto uses Python stdlib only)
+
 ## [1.0.0] - 2026-05-10
 
 ### Added

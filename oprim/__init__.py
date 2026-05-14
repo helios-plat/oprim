@@ -8,7 +8,14 @@ from oprim.distance import (
     symmetric_kl_divergence,
     wasserstein_distance,
 )
-from oprim.finance import beta_alpha_ols, drawdown_curve, futures_curve_shape, nelson_siegel_yield_curve, sharpe_ratio, value_at_risk
+from oprim.finance import (
+    beta_alpha_ols,
+    drawdown_curve,
+    futures_curve_shape,
+    nelson_siegel_yield_curve,
+    sharpe_ratio,
+    value_at_risk,
+)
 from oprim.information import ordinal_pattern, phase_randomize, shannon_entropy
 from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
 from oprim.point_process import hawkes_nll
@@ -50,6 +57,16 @@ from oprim.time_series import (
 )
 from oprim.topology import persistence_landscape, takens_embed
 
+# Phase 1 additions (v1.4.0)
+from oprim.technical.moving_averages import ema, macd, sma, vwap
+from oprim.technical.oscillators import rsi_normalized
+from oprim.technical.bands import bollinger_bands, donchian_channel
+from oprim.technical.exits import chandelier_exit
+from oprim.crypto.hashing import hmac_sha256, sha256_hash
+from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
+from oprim.serialization.canonical import canonical_json
+from oprim.risk.cvar import cvar
+
 __all__ = [
     "__version__",
     # Time Series (11)
@@ -57,12 +74,11 @@ __all__ = [
     "lag_forward_fill", "percentile_rank", "ewma_smooth",
     "realized_vol", "zscore_normalize", "gap_detect",
     "resample_align", "purge_embargo_split",
-    # Statistics (11)
+    # Statistics (12)
     "bootstrap_ci", "percentile_ci", "percentile_value",
-    "distribution_summary",
-    "skew_kurt_robust", "kolmogorov_smirnov_test", "mann_kendall_trend",
-    "bayes_beta_update", "brier_score_decomposed", "pearson_spearman_corr",
-    "kde_density", "correlation_batch",
+    "distribution_summary", "skew_kurt_robust", "kolmogorov_smirnov_test",
+    "mann_kendall_trend", "bayes_beta_update", "brier_score_decomposed",
+    "pearson_spearman_corr", "kde_density", "correlation_batch",
     # Distance (5)
     "wasserstein_distance", "dtw_distance", "cosine_similarity_batch",
     "euclidean_distance_matrix", "symmetric_kl_divergence",
@@ -70,7 +86,7 @@ __all__ = [
     "logsumexp_safe", "softmax_safe", "clip_with_warning",
     # Regime (3)
     "regime_filter_data", "regime_transition_matrix", "regime_label_align",
-    # Finance (4)
+    # Finance (6)
     "drawdown_curve", "sharpe_ratio", "beta_alpha_ols", "value_at_risk",
     "nelson_siegel_yield_curve", "futures_curve_shape",
     # Information (3)
@@ -82,4 +98,16 @@ __all__ = [
     "takens_embed", "persistence_landscape",
     # Point Process (1)
     "hawkes_nll",
+    # Technical (8) — Phase 1
+    "sma", "ema", "vwap", "macd",
+    "rsi_normalized",
+    "bollinger_bands", "donchian_channel",
+    "chandelier_exit",
+    # Crypto (4) — Phase 1
+    "sha256_hash", "hmac_sha256",
+    "rfc6962_merkle_root", "rfc6962_inclusion_proof",
+    # Serialization (1) — Phase 1
+    "canonical_json",
+    # Risk (1) — Phase 1
+    "cvar",
 ]
