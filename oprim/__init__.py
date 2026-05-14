@@ -2,6 +2,15 @@
 
 from oprim._version import __version__
 
+# Phase 10 additions (v2.0.0)
+from oprim.behavioral import (
+    cpt_value_function,
+    large_loss_aversion_degree,
+    probability_weighting_function,
+    salience_function,
+    salience_ranking_weights,
+)
+
 # Phase 6A additions (v1.9.0)
 from oprim.crypto.ed25519 import ed25519_keypair_generate, ed25519_sign, ed25519_verify
 from oprim.crypto.hashing import hmac_sha256, sha256_hash
@@ -49,6 +58,7 @@ from oprim.performance.annualization import cagr
 # the time_series version remains accessible via oprim.time_series directly.
 from oprim.performance.cumulative import cumulative_returns
 from oprim.point_process import hawkes_nll
+from oprim.recursive_utility import epstein_zin_aggregator
 from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
 from oprim.risk.cvar import cvar
 
@@ -67,24 +77,14 @@ from oprim.signal_processing import (
 # Phase 9A additions (v1.11.0)
 from oprim.signature.compute import path_signature_compute
 
-# Phase 10 additions (v2.0.0)
-from oprim.behavioral import (
-    cpt_value_function,
-    large_loss_aversion_degree,
-    probability_weighting_function,
-    salience_function,
-    salience_ranking_weights,
-)
-from oprim.recursive_utility import epstein_zin_aggregator
+# Phase 3 additions (v1.6.0)
+from oprim.similarity.vector import vector_similarity
 from oprim.spectral import (
     ledoit_wolf_shrinkage,
     marchenko_pastur_threshold,
     rotationally_invariant_estimator,
     spectral_eigengap_detect,
 )
-
-# Phase 3 additions (v1.6.0)
-from oprim.similarity.vector import vector_similarity
 from oprim.statistics import (
     bayes_beta_update,
     bootstrap_ci,
