@@ -67,6 +67,22 @@ from oprim.signal_processing import (
 # Phase 9A additions (v1.11.0)
 from oprim.signature.compute import path_signature_compute
 
+# Phase 10 additions (v2.0.0)
+from oprim.behavioral import (
+    cpt_value_function,
+    large_loss_aversion_degree,
+    probability_weighting_function,
+    salience_function,
+    salience_ranking_weights,
+)
+from oprim.recursive_utility import epstein_zin_aggregator
+from oprim.spectral import (
+    ledoit_wolf_shrinkage,
+    marchenko_pastur_threshold,
+    rotationally_invariant_estimator,
+    spectral_eigengap_detect,
+)
+
 # Phase 3 additions (v1.6.0)
 from oprim.similarity.vector import vector_similarity
 from oprim.statistics import (
@@ -221,4 +237,17 @@ __all__ = [
     "fisher_rao_distance",
     "rough_volatility_simulate",
     "sabr_implied_volatility",
+    # Phase 10 Behavioral (v2.0.0)
+    "cpt_value_function",
+    "probability_weighting_function",
+    "salience_function",
+    "large_loss_aversion_degree",
+    "salience_ranking_weights",
+    # Phase 10 Spectral (v2.0.0)
+    "marchenko_pastur_threshold",
+    "rotationally_invariant_estimator",
+    "ledoit_wolf_shrinkage",
+    "spectral_eigengap_detect",
+    # Phase 10 Recursive Utility (v2.0.0)
+    "epstein_zin_aggregator",
 ]

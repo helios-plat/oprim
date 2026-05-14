@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "1.11.0"
+VERSION = "2.0.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -153,6 +153,20 @@ ELEMENTS: list[str] = [
     "fisher_rao_distance",
     "rough_volatility_simulate",
     "sabr_implied_volatility",
+    # Phase 10 additions (v2.0.0)
+    # Behavioral (5)
+    "cpt_value_function",
+    "probability_weighting_function",
+    "salience_function",
+    "large_loss_aversion_degree",
+    "salience_ranking_weights",
+    # Spectral / RMT (4)
+    "marchenko_pastur_threshold",
+    "rotationally_invariant_estimator",
+    "ledoit_wolf_shrinkage",
+    "spectral_eigengap_detect",
+    # Recursive Utility (1)
+    "epstein_zin_aggregator",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -227,6 +241,21 @@ CATEGORIES: dict[str, list[str]] = {
     # Phase 9A categories
     "signature": ["path_signature_compute"],
     "info_geometry": ["fisher_rao_distance"],
+    # Phase 10 categories
+    "behavioral": [
+        "cpt_value_function",
+        "probability_weighting_function",
+        "salience_function",
+        "large_loss_aversion_degree",
+        "salience_ranking_weights",
+    ],
+    "spectral": [
+        "marchenko_pastur_threshold",
+        "rotationally_invariant_estimator",
+        "ledoit_wolf_shrinkage",
+        "spectral_eigengap_detect",
+    ],
+    "recursive_utility": ["epstein_zin_aggregator"],
     # Phase 4 categories
     "timeseries": [
         "adf_test", "kpss_test",
