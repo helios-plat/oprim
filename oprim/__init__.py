@@ -1,6 +1,24 @@
 """Oprim — atomic operations library (Layer 1 meta-primitives)."""
 
 from oprim._version import __version__
+
+# Phase 6A additions (v1.9.0)
+from oprim.crypto.ed25519 import ed25519_keypair_generate, ed25519_sign, ed25519_verify
+from oprim.crypto.hashing import hmac_sha256, sha256_hash
+from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
+from oprim.derivatives.american import lsm_american_price
+
+# Phase 5A additions (v1.8.0)
+from oprim.derivatives.binomial_tree import binomial_tree_price
+from oprim.derivatives.black_scholes import (
+    black_scholes_greeks,
+    black_scholes_price,
+    implied_volatility,
+)
+from oprim.derivatives.exotic import barrier_option_price, lookback_option_price
+from oprim.derivatives.monte_carlo import mc_asian_price, mc_european_price
+from oprim.derivatives.rates import cubic_spline_yield_curve, svensson_yield_curve
+from oprim.derivatives.sabr import sabr_implied_volatility
 from oprim.distance import (
     cosine_similarity_batch,
     distributional_distance,
@@ -17,10 +35,26 @@ from oprim.finance import (
     sharpe_ratio,
     value_at_risk,
 )
+from oprim.info_geometry.fisher_rao import fisher_rao_distance
 from oprim.information import ordinal_pattern, phase_randomize, shannon_entropy
+from oprim.mean_reversion.ornstein_uhlenbeck import (
+    ornstein_uhlenbeck_fit,
+    ornstein_uhlenbeck_half_life,
+)
 from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
+from oprim.performance.annualization import cagr
+
+# Phase 2 additions (v1.5.0)
+# Note: cumulative_returns below shadows the time_series one;
+# the time_series version remains accessible via oprim.time_series directly.
+from oprim.performance.cumulative import cumulative_returns
 from oprim.point_process import hawkes_nll
 from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
+from oprim.risk.cvar import cvar
+
+# Phase 4 additions (v1.7.0)
+from oprim.risk.dispersion import mean_deviation
+from oprim.serialization.canonical import canonical_json
 from oprim.signal_processing import (
     H_change_rate_std,
     atr,
@@ -29,6 +63,12 @@ from oprim.signal_processing import (
     linear_slope,
     orderbook_entropy,
 )
+
+# Phase 9A additions (v1.11.0)
+from oprim.signature.compute import path_signature_compute
+
+# Phase 3 additions (v1.6.0)
+from oprim.similarity.vector import vector_similarity
 from oprim.statistics import (
     bayes_beta_update,
     bootstrap_ci,
@@ -43,8 +83,15 @@ from oprim.statistics import (
     percentile_value,
     skew_kurt_robust,
 )
+from oprim.technical.adaptive import kama
+from oprim.technical.bands import bollinger_bands, donchian_channel, keltner_channels
+from oprim.technical.exits import chandelier_exit
+
+# Phase 1 additions (v1.4.0)
+from oprim.technical.moving_averages import ema, macd, sma, vwap
+from oprim.technical.oscillators import cci, rsi_normalized, stochastic_oscillator, williams_r
+from oprim.technical.volume import mfi, obv
 from oprim.time_series import (
-    cumulative_returns,
     ewma_smooth,
     gap_detect,
     lag_forward_fill,
@@ -56,61 +103,24 @@ from oprim.time_series import (
     rolling_window_split,
     zscore_normalize,
 )
-from oprim.topology import persistence_landscape, takens_embed
-
-# Phase 1 additions (v1.4.0)
-from oprim.technical.moving_averages import ema, macd, sma, vwap
-from oprim.technical.oscillators import rsi_normalized
-from oprim.technical.bands import bollinger_bands, donchian_channel
-from oprim.technical.exits import chandelier_exit
-from oprim.crypto.hashing import hmac_sha256, sha256_hash
-from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
-from oprim.serialization.canonical import canonical_json
-from oprim.risk.cvar import cvar
-
-# Phase 2 additions (v1.5.0)
-# Note: cumulative_returns below shadows the time_series one;
-# the time_series version remains accessible via oprim.time_series directly.
-from oprim.performance.cumulative import cumulative_returns
-from oprim.performance.annualization import cagr
-from oprim.mean_reversion.ornstein_uhlenbeck import ornstein_uhlenbeck_fit, ornstein_uhlenbeck_half_life
-from oprim.volatility.garch import garch_fit, garch_forecast
-from oprim.volatility.ewma import ewma_volatility
-from oprim.derivatives.black_scholes import black_scholes_price, black_scholes_greeks, implied_volatility
-
-# Phase 3 additions (v1.6.0)
-from oprim.similarity.vector import vector_similarity
-
-# Phase 6A additions (v1.9.0)
-from oprim.crypto.ed25519 import ed25519_keypair_generate, ed25519_sign, ed25519_verify
-
-# Phase 5A additions (v1.8.0)
-from oprim.derivatives.binomial_tree import binomial_tree_price
-from oprim.derivatives.monte_carlo import mc_european_price, mc_asian_price
-from oprim.derivatives.exotic import barrier_option_price, lookback_option_price
-from oprim.derivatives.american import lsm_american_price
-from oprim.derivatives.rates import svensson_yield_curve, cubic_spline_yield_curve
-
-# Phase 4 additions (v1.7.0)
-from oprim.risk.dispersion import mean_deviation
-from oprim.timeseries.stationarity import adf_test, kpss_test
-from oprim.timeseries.cointegration import engle_granger_cointegration, johansen_cointegration
-from oprim.timeseries.autocorrelation import ljung_box_test, durbin_watson
+from oprim.timeseries.autocorrelation import durbin_watson, ljung_box_test
 from oprim.timeseries.causality import granger_causality_test
+from oprim.timeseries.cointegration import engle_granger_cointegration, johansen_cointegration
 from oprim.timeseries.distribution_tests import jarque_bera_test
 from oprim.timeseries.heteroskedasticity import breusch_pagan_test
+from oprim.timeseries.stationarity import adf_test, kpss_test
+from oprim.topology import persistence_landscape, takens_embed
 from oprim.volatility.egarch import egarch_fit, egarch_forecast
+from oprim.volatility.ewma import ewma_volatility
+from oprim.volatility.garch import garch_fit, garch_forecast
 from oprim.volatility.gjr_garch import gjr_garch_fit, gjr_garch_forecast
-from oprim.volatility.realized import realized_variance
 from oprim.volatility.range_based import (
-    parkinson_volatility,
     garman_klass_volatility,
+    parkinson_volatility,
     yang_zhang_volatility,
 )
-from oprim.technical.adaptive import kama
-from oprim.technical.oscillators import stochastic_oscillator, cci, williams_r
-from oprim.technical.bands import keltner_channels
-from oprim.technical.volume import obv, mfi
+from oprim.volatility.realized import realized_variance
+from oprim.volatility.rough import rough_volatility_simulate
 
 __all__ = [
     "__version__",
@@ -206,4 +216,9 @@ __all__ = [
     "keltner_channels",
     "obv",
     "mfi",
+    # Phase 9A (v1.11.0)
+    "path_signature_compute",
+    "fisher_rao_distance",
+    "rough_volatility_simulate",
+    "sabr_implied_volatility",
 ]

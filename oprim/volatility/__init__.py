@@ -8,6 +8,7 @@ from oprim.volatility.range_based import (
     garman_klass_volatility,
     yang_zhang_volatility,
 )
+from oprim.volatility.rough import rough_volatility_simulate
 
 __all__ = [
     "garch_fit",
@@ -21,4 +22,5 @@ __all__ = [
     "parkinson_volatility",
     "garman_klass_volatility",
     "yang_zhang_volatility",
+    "rough_volatility_simulate",
 ]

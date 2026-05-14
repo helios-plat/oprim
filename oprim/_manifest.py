@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "1.10.0"
+VERSION = "1.11.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -148,6 +148,11 @@ ELEMENTS: list[str] = [
     "keltner_channels",
     "obv",
     "mfi",
+    # Phase 9A additions (v1.11.0)
+    "path_signature_compute",
+    "fisher_rao_distance",
+    "rough_volatility_simulate",
+    "sabr_implied_volatility",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -206,6 +211,7 @@ CATEGORIES: dict[str, list[str]] = {
         "gjr_garch_fit", "gjr_garch_forecast",
         "realized_variance",
         "parkinson_volatility", "garman_klass_volatility", "yang_zhang_volatility",
+        "rough_volatility_simulate",
     ],
     "derivatives": [
         "black_scholes_price", "black_scholes_greeks", "implied_volatility",
@@ -214,9 +220,13 @@ CATEGORIES: dict[str, list[str]] = {
         "barrier_option_price", "lookback_option_price",
         "lsm_american_price",
         "svensson_yield_curve", "cubic_spline_yield_curve",
+        "sabr_implied_volatility",
     ],
     # Phase 3 categories
     "similarity": ["vector_similarity"],
+    # Phase 9A categories
+    "signature": ["path_signature_compute"],
+    "info_geometry": ["fisher_rao_distance"],
     # Phase 4 categories
     "timeseries": [
         "adf_test", "kpss_test",
@@ -229,3 +239,4 @@ CATEGORIES: dict[str, list[str]] = {
 }
 
 STABILITY: dict[str, str] = {e: "stable" for e in ELEMENTS}
+
