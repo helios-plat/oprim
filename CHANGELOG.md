@@ -116,3 +116,20 @@
 - 289 tests with 91% code coverage
 - Academic validation tests vs scipy, statsmodels, hmmlearn
 - Performance benchmarks for critical paths
+
+---
+
+## Release Governance Note (2026-05-14)
+
+During the Phase 10 release process, we discovered that Phases 4-10 had been
+accumulated on a single long-running feature branch (feat/v1.7.0-phase4) without
+intermediate merges to main. The main branch was stale at v1.2.0 while the
+actual code was at v2.0.0 on the feature branch.
+
+**Resolution**: fast-forward merged main to feat HEAD, retagged on main, deleted
+feat branch. See `RELEASE_POLICY.md` for the corrected workflow.
+
+All future Phase releases must:
+1. Use independent feat branches (not accumulate Phases on one branch)
+2. Merge to main via PR before tagging
+3. Tag on main (never on feat branches)
