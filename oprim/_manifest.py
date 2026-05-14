@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -88,6 +88,21 @@ ELEMENTS: list[str] = [
     "canonical_json",
     # Risk (1)
     "cvar",
+    # --- Phase 2 additions (v1.5.0) ---
+    # Performance (2)
+    "cumulative_returns_perf",
+    "cagr",
+    # Mean Reversion (2)
+    "ornstein_uhlenbeck_fit",
+    "ornstein_uhlenbeck_half_life",
+    # Volatility (3)
+    "garch_fit",
+    "garch_forecast",
+    "ewma_volatility",
+    # Derivatives (3)
+    "black_scholes_price",
+    "black_scholes_greeks",
+    "implied_volatility",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -131,6 +146,11 @@ CATEGORIES: dict[str, list[str]] = {
     ],
     "serialization": ["canonical_json"],
     "risk": ["cvar"],
+    # Phase 2 categories
+    "performance": ["cumulative_returns_perf", "cagr"],
+    "mean_reversion": ["ornstein_uhlenbeck_fit", "ornstein_uhlenbeck_half_life"],
+    "volatility": ["garch_fit", "garch_forecast", "ewma_volatility"],
+    "derivatives": ["black_scholes_price", "black_scholes_greeks", "implied_volatility"],
 }
 
 STABILITY: dict[str, str] = {e: "stable" for e in ELEMENTS}

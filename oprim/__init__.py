@@ -67,6 +67,16 @@ from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
 from oprim.serialization.canonical import canonical_json
 from oprim.risk.cvar import cvar
 
+# Phase 2 additions (v1.5.0)
+# Note: cumulative_returns below shadows the time_series one;
+# the time_series version remains accessible via oprim.time_series directly.
+from oprim.performance.cumulative import cumulative_returns
+from oprim.performance.annualization import cagr
+from oprim.mean_reversion.ornstein_uhlenbeck import ornstein_uhlenbeck_fit, ornstein_uhlenbeck_half_life
+from oprim.volatility.garch import garch_fit, garch_forecast
+from oprim.volatility.ewma import ewma_volatility
+from oprim.derivatives.black_scholes import black_scholes_price, black_scholes_greeks, implied_volatility
+
 __all__ = [
     "__version__",
     # Time Series (11)
@@ -110,4 +120,12 @@ __all__ = [
     "canonical_json",
     # Risk (1) — Phase 1
     "cvar",
+    # Performance (2) — Phase 2
+    "cagr",
+    # Mean Reversion (2) — Phase 2
+    "ornstein_uhlenbeck_fit", "ornstein_uhlenbeck_half_life",
+    # Volatility (3) — Phase 2
+    "garch_fit", "garch_forecast", "ewma_volatility",
+    # Derivatives (3) — Phase 2
+    "black_scholes_price", "black_scholes_greeks", "implied_volatility",
 ]
