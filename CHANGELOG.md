@@ -1,5 +1,7 @@
 # Changelog
 
+<!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
+
 ## [2.0.0] - 2026-05-14
 
 ### Added — Phase 10 (10 new elements)
