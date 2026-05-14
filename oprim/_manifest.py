@@ -1,8 +1,8 @@
-"""Oprim element manifest — authoritative list of all public elements."""
+"""Oprim element manifest — authoritative list of all public elements."""  # pragma: no cover
 
 from __future__ import annotations
 
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -103,6 +103,9 @@ ELEMENTS: list[str] = [
     "black_scholes_price",
     "black_scholes_greeks",
     "implied_volatility",
+    # --- Phase 3 additions (v1.6.0) ---
+    # Similarity (1)
+    "vector_similarity",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -151,6 +154,8 @@ CATEGORIES: dict[str, list[str]] = {
     "mean_reversion": ["ornstein_uhlenbeck_fit", "ornstein_uhlenbeck_half_life"],
     "volatility": ["garch_fit", "garch_forecast", "ewma_volatility"],
     "derivatives": ["black_scholes_price", "black_scholes_greeks", "implied_volatility"],
+    # Phase 3 categories
+    "similarity": ["vector_similarity"],
 }
 
 STABILITY: dict[str, str] = {e: "stable" for e in ELEMENTS}

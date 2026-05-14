@@ -77,6 +77,9 @@ from oprim.volatility.garch import garch_fit, garch_forecast
 from oprim.volatility.ewma import ewma_volatility
 from oprim.derivatives.black_scholes import black_scholes_price, black_scholes_greeks, implied_volatility
 
+# Phase 3 additions (v1.6.0)
+from oprim.similarity.vector import vector_similarity
+
 __all__ = [
     "__version__",
     # Time Series (11)
@@ -128,4 +131,6 @@ __all__ = [
     "garch_fit", "garch_forecast", "ewma_volatility",
     # Derivatives (3) — Phase 2
     "black_scholes_price", "black_scholes_greeks", "implied_volatility",
+    # Similarity (1) — Phase 3
+    "vector_similarity",
 ]
