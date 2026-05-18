@@ -269,17 +269,20 @@ def save_keypair_pem(
     pub_path.chmod(0o644)
 
 
-def _load_pem_hex(path: Path) -> bytes:
-    lines = Path(path).read_text().strip().splitlines()
-    hex_data = "".join(l for l in lines if not l.startswith("---"))
+def _parse_pem_text(text: str) -> bytes:
+    hex_data = "".join(l for l in text.strip().splitlines() if not l.startswith("---"))
     return bytes.fromhex(hex_data)
 
 
-def load_private_key_pem(path: Path) -> bytes:
-    """Load Ed25519 private key from PEM file. Returns 32 bytes."""
-    return _load_pem_hex(path)
+def load_private_key_pem(path: Path | None = None, *, text: str | None = None) -> bytes:
+    """Load Ed25519 private key from PEM file or PEM string. Returns 32 bytes."""
+    if text is not None:
+        return _parse_pem_text(text)
+    return _parse_pem_text(Path(path).read_text())
 
 
-def load_public_key_pem(path: Path) -> bytes:
-    """Load Ed25519 public key from PEM file. Returns 32 bytes."""
-    return _load_pem_hex(path)
+def load_public_key_pem(path: Path | None = None, *, text: str | None = None) -> bytes:
+    """Load Ed25519 public key from PEM file or PEM string. Returns 32 bytes."""
+    if text is not None:
+        return _parse_pem_text(text)
+    return _parse_pem_text(Path(path).read_text())
