@@ -4,7 +4,17 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.crypto.ed25519 import ed25519_keypair_generate, ed25519_sign, ed25519_verify
+from oprim.crypto.ed25519 import (
+    ed25519_keypair_generate,
+    ed25519_sign,
+    ed25519_verify,
+    generate_keypair,
+    sign,
+    verify,
+    save_keypair_pem,
+    load_private_key_pem,
+    load_public_key_pem,
+)
 
 # ────────────────────────────────────────────────
 # RFC 8032 Appendix A.1 test vector
@@ -186,3 +196,111 @@ def test_ed25519_verify_rfc8032_test_vectors():
     tampered = bytearray(_TV1_SIG_EMPTY)
     tampered[0] ^= 0x01
     assert ed25519_verify(_TV1_PUBKEY, b"", bytes(tampered)) is False
+
+
+# ── Phase 3 v2.1.0: generate_keypair / sign / verify wrappers ────────────────
+
+
+def test_generate_keypair_returns_tuple():
+    result = generate_keypair()
+    assert isinstance(result, tuple) and len(result) == 2
+    priv, pub = result
+    assert len(priv) == 32 and len(pub) == 32
+
+
+def test_generate_keypair_is_random():
+    priv1, pub1 = generate_keypair()
+    priv2, pub2 = generate_keypair()
+    assert priv1 != priv2 and pub1 != pub2
+
+
+def test_sign_returns_64_bytes():
+    priv, _ = generate_keypair()
+    sig = sign(priv, b"hello world")
+    assert len(sig) == 64
+
+
+def test_verify_valid_signature():
+    priv, pub = generate_keypair()
+    msg = b"test message"
+    sig = sign(priv, msg)
+    assert verify(pub, msg, sig) is True
+
+
+def test_verify_tampered_message():
+    priv, pub = generate_keypair()
+    sig = sign(priv, b"original")
+    assert verify(pub, b"tampered", sig) is False
+
+
+def test_verify_wrong_key():
+    priv1, _ = generate_keypair()
+    _, pub2 = generate_keypair()
+    sig = sign(priv1, b"hello")
+    assert verify(pub2, b"hello", sig) is False
+
+
+# ── Phase 3 v2.1.0: PEM key I/O ──────────────────────────────────────────────
+
+
+def test_save_load_keypair_roundtrip(tmp_path):
+    priv, pub = generate_keypair()
+    save_keypair_pem(priv, pub, tmp_path, "test_service")
+
+    priv_loaded = load_private_key_pem(tmp_path / "test_service.private.pem")
+    pub_loaded = load_public_key_pem(tmp_path / "test_service.public.pem")
+
+    assert priv_loaded == priv
+    assert pub_loaded == pub
+
+
+def test_pem_file_permissions(tmp_path):
+    priv, pub = generate_keypair()
+    save_keypair_pem(priv, pub, tmp_path, "test_service")
+
+    priv_path = tmp_path / "test_service.private.pem"
+    pub_path = tmp_path / "test_service.public.pem"
+
+    assert oct(priv_path.stat().st_mode)[-3:] == "600"
+    assert oct(pub_path.stat().st_mode)[-3:] == "644"
+
+
+def test_pem_sign_verify_roundtrip(tmp_path):
+    priv, pub = generate_keypair()
+    save_keypair_pem(priv, pub, tmp_path, "svc")
+
+    priv_loaded = load_private_key_pem(tmp_path / "svc.private.pem")
+    pub_loaded = load_public_key_pem(tmp_path / "svc.public.pem")
+
+    msg = b"helivex audit event payload"
+    sig = sign(priv_loaded, msg)
+    assert verify(pub_loaded, msg, sig) is True
+    assert verify(pub_loaded, b"tampered", sig) is False
+
+
+def test_pem_idempotent_separate_services(tmp_path):
+    """Each of 4 Helivex services gets distinct keys."""
+    services = ["strategy_runner", "risk_gate", "execution_engine", "decision_audit"]
+    pub_keys = {}
+    for svc in services:
+        priv, pub = generate_keypair()
+        save_keypair_pem(priv, pub, tmp_path, svc)
+        pub_keys[svc] = pub
+
+    assert len(set(k.hex() for k in pub_keys.values())) == 4
+
+
+def test_e2e_helivex_audit_use_case(tmp_path):
+    """Simulate full audit event sign + persist + reload + verify cycle."""
+    priv, pub = generate_keypair()
+    save_keypair_pem(priv, pub, tmp_path, "decision_audit")
+
+    event_body = b'{"event_id":"abc-123","decision":{"side":"buy","symbol":"BTC-USDT"}}'
+    sig = sign(load_private_key_pem(tmp_path / "decision_audit.private.pem"), event_body)
+
+    assert verify(load_public_key_pem(tmp_path / "decision_audit.public.pem"), event_body, sig)
+    assert not verify(
+        load_public_key_pem(tmp_path / "decision_audit.public.pem"),
+        b'{"event_id":"abc-123","decision":{"side":"sell","symbol":"BTC-USDT"}}',
+        sig,
+    )

@@ -1,9 +1,14 @@
-"""Ed25519 digital signatures — pure Python stdlib implementation (RFC 8032 §5.1)."""
+"""Ed25519 digital signatures — pure Python stdlib implementation (RFC 8032 §5.1).
+
+Phase 3 additions (v2.1.0): PEM key I/O utilities + simplified wrappers
+(generate_keypair / sign / verify) for Helivex GOLD signing infrastructure.
+"""
 
 from __future__ import annotations
 
 import hashlib
 import secrets
+from pathlib import Path
 
 _P = 2**255 - 19
 _L = 2**252 + 27742317777372353535851937790883648493
@@ -205,3 +210,76 @@ def ed25519_verify(
         return lhs == rhs
     except Exception:
         return False
+
+
+# ── Phase 3 v2.1.0: simplified wrappers + PEM key I/O ────────────────────────
+
+
+def generate_keypair() -> tuple[bytes, bytes]:
+    """Generate a random Ed25519 keypair.
+
+    Returns
+    -------
+    (private_key, public_key) — 32 bytes each
+    """
+    kp = ed25519_keypair_generate()
+    return kp["private_key"], kp["public_key"]
+
+
+def sign(private_key: bytes, message: bytes) -> bytes:
+    """Sign *message* with Ed25519 private key. Returns 64-byte signature."""
+    return ed25519_sign(private_key, message)
+
+
+def verify(public_key: bytes, message: bytes, signature: bytes) -> bool:
+    """Verify Ed25519 signature. Returns True if valid, False otherwise."""
+    return ed25519_verify(public_key, message, signature)
+
+
+def save_keypair_pem(
+    private_key: bytes,
+    public_key: bytes,
+    key_dir: Path,
+    service_name: str,
+) -> None:
+    """Write private + public key PEM files.
+
+    Files written:
+        {key_dir}/{service_name}.private.pem  — permissions 0600
+        {key_dir}/{service_name}.public.pem   — permissions 0644
+    """
+    key_dir = Path(key_dir)
+    key_dir.mkdir(parents=True, exist_ok=True)
+
+    priv_path = key_dir / f"{service_name}.private.pem"
+    pub_path = key_dir / f"{service_name}.public.pem"
+
+    priv_path.write_text(
+        f"-----BEGIN ED25519 PRIVATE KEY-----\n"
+        f"{private_key.hex()}\n"
+        f"-----END ED25519 PRIVATE KEY-----\n"
+    )
+    priv_path.chmod(0o600)
+
+    pub_path.write_text(
+        f"-----BEGIN ED25519 PUBLIC KEY-----\n"
+        f"{public_key.hex()}\n"
+        f"-----END ED25519 PUBLIC KEY-----\n"
+    )
+    pub_path.chmod(0o644)
+
+
+def _load_pem_hex(path: Path) -> bytes:
+    lines = Path(path).read_text().strip().splitlines()
+    hex_data = "".join(l for l in lines if not l.startswith("---"))
+    return bytes.fromhex(hex_data)
+
+
+def load_private_key_pem(path: Path) -> bytes:
+    """Load Ed25519 private key from PEM file. Returns 32 bytes."""
+    return _load_pem_hex(path)
+
+
+def load_public_key_pem(path: Path) -> bytes:
+    """Load Ed25519 public key from PEM file. Returns 32 bytes."""
+    return _load_pem_hex(path)

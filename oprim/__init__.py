@@ -12,7 +12,17 @@ from oprim.behavioral import (
 )
 
 # Phase 6A additions (v1.9.0)
-from oprim.crypto.ed25519 import ed25519_keypair_generate, ed25519_sign, ed25519_verify
+from oprim.crypto.ed25519 import (
+    ed25519_keypair_generate,
+    ed25519_sign,
+    ed25519_verify,
+    generate_keypair,
+    sign,
+    verify,
+    save_keypair_pem,
+    load_private_key_pem,
+    load_public_key_pem,
+)
 from oprim.crypto.hashing import hmac_sha256, sha256_hash
 from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
 from oprim.derivatives.american import lsm_american_price
@@ -178,8 +188,10 @@ __all__ = [
     # Crypto (4) — Phase 1
     "sha256_hash", "hmac_sha256",
     "rfc6962_merkle_root", "rfc6962_inclusion_proof",
-    # Crypto (3) — Phase 6A
+    # Crypto (3→9) — Phase 6A + Phase 3 v2.1.0
     "ed25519_keypair_generate", "ed25519_sign", "ed25519_verify",
+    "generate_keypair", "sign", "verify",
+    "save_keypair_pem", "load_private_key_pem", "load_public_key_pem",
     # Serialization (1) — Phase 1
     "canonical_json",
     # Risk (1) — Phase 1
