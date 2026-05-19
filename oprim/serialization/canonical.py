@@ -59,7 +59,7 @@ def _encode(obj) -> str:
             return "0"
         if obj == int(obj) and abs(obj) < 2**53:
             return str(int(obj))
-        return repr(obj)
+        return repr(float(obj))
     if isinstance(obj, str):
         return json.dumps(obj, ensure_ascii=False)
     if isinstance(obj, dict):
@@ -76,4 +76,7 @@ def _encode(obj) -> str:
         )
     if isinstance(obj, list):
         return "[" + ",".join(_encode(x) for x in obj) + "]"
+    # numpy scalars (float64, int64, bool_, etc.) → native Python via .item()
+    if hasattr(obj, "item") and callable(obj.item):
+        return _encode(obj.item())
     raise TypeError(f"Type {type(obj).__name__} is not JSON-serializable (RFC 8785)")
