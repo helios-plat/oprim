@@ -85,3 +85,62 @@ class TerminologyGlossary:
 
     def __len__(self) -> int:
         return len(self._entries)
+
+
+class TerminologyExtractor:
+    """Parses LLM output that contains ===术语=== and ===人名地名=== sections.
+
+    The translation prompt (see _prompts.py) asks the model to append terminology
+    and proper noun mappings at the end of each response.  This extractor strips
+    those sections and accumulates the mappings for use in subsequent chunks.
+    """
+
+    @staticmethod
+    def extract_from_response(
+        raw_translation: str,
+    ) -> tuple[dict[str, str], dict[str, str]]:
+        """Return (terminology, proper_nouns) extracted from LLM output.
+
+        Example LLM output::
+
+            译文正文
+
+            ===术语===
+            Sharpe ratio → 夏普比率
+
+            ===人名地名===
+            Bailey → 贝利
+        """
+        terminology: dict[str, str] = {}
+        proper_nouns: dict[str, str] = {}
+
+        term_match = re.search(
+            r"===术语===\s*\n(.*?)(?=\n===|\Z)", raw_translation, re.DOTALL
+        )
+        if term_match:
+            for line in term_match.group(1).strip().splitlines():
+                if "→" in line:
+                    en, zh = line.split("→", 1)
+                    terminology[en.strip()] = zh.strip()
+
+        proper_match = re.search(
+            r"===人名地名===\s*\n(.*?)(?=\n===|\Z)", raw_translation, re.DOTALL
+        )
+        if proper_match:
+            for line in proper_match.group(1).strip().splitlines():
+                if "→" in line:
+                    en, zh = line.split("→", 1)
+                    proper_nouns[en.strip()] = zh.strip()
+
+        return terminology, proper_nouns
+
+    @staticmethod
+    def strip_sections(translation: str) -> str:
+        """Remove ===术语=== and ===人名地名=== sections from LLM output."""
+        cleaned = re.sub(
+            r"\n*===术语===\s*\n.*?(?=\n===|\Z)", "", translation, flags=re.DOTALL
+        )
+        cleaned = re.sub(
+            r"\n*===人名地名===\s*\n.*?(?=\n===|\Z)", "", cleaned, flags=re.DOTALL
+        )
+        return cleaned.strip()

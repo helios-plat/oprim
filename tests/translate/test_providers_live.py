@@ -1,4 +1,4 @@
-"""Tests for provider translate() paths — mocked API calls."""
+"""Tests for provider translate() paths — mocked API calls (no Gemini, Phase 10)."""
 from __future__ import annotations
 
 import pytest
@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 from oprim.translate.providers.deepseek import DeepSeekProvider
 from oprim.translate.providers.claude import ClaudeProvider
 from oprim.translate.providers.qwen3 import Qwen3Provider
-from oprim.translate.providers.gemini import GeminiProvider
 from oprim.translate.protocol import TranslationRequest
 from oprim.errors import LLMError, LLMRateLimitError
 
@@ -153,40 +152,4 @@ class TestQwen3Provider:
             MockOpenAI.return_value = mock_client
             mock_client.chat.completions.create.side_effect = Exception("429 quota exceeded")
             with pytest.raises(LLMRateLimitError):
-                prov.translate(_req())
-
-
-# ── Gemini ────────────────────────────────────────────────────────────────────
-
-class TestGeminiProvider:
-    def test_translate_success(self):
-        prov = GeminiProvider()
-        with patch("oprim.translate.providers.gemini.cfg.get", return_value="fake-key"), \
-             patch("openai.OpenAI") as MockOpenAI:
-            mock_client = MagicMock()
-            MockOpenAI.return_value = mock_client
-            mock_client.chat.completions.create.return_value = _openai_resp("双子座")
-            result = prov.translate(_req())
-        assert result.text == "双子座"
-        assert result.provider == "gemini"
-
-    def test_translate_quota_rate_limit(self):
-        prov = GeminiProvider()
-        with patch("oprim.translate.providers.gemini.cfg.get", return_value="fake-key"), \
-             patch("openai.OpenAI") as MockOpenAI:
-            mock_client = MagicMock()
-            MockOpenAI.return_value = mock_client
-            mock_client.chat.completions.create.side_effect = Exception("quota exceeded")
-            with pytest.raises(LLMRateLimitError):
-                prov.translate(_req())
-
-    def test_translate_retries_then_fails(self):
-        prov = GeminiProvider()
-        with patch("oprim.translate.providers.gemini.cfg.get", return_value="fake-key"), \
-             patch("openai.OpenAI") as MockOpenAI, \
-             patch("oprim.translate.providers.gemini.time.sleep"):
-            mock_client = MagicMock()
-            MockOpenAI.return_value = mock_client
-            mock_client.chat.completions.create.side_effect = Exception("server error")
-            with pytest.raises(LLMError, match="3 retries"):
                 prov.translate(_req())

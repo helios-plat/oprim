@@ -1,7 +1,9 @@
-"""Tests for TerminologyGlossary."""
+"""Tests for TerminologyGlossary and TerminologyExtractor."""
 import pytest
-from oprim.translate.terminology import TerminologyGlossary
+from oprim.translate.terminology import TerminologyGlossary, TerminologyExtractor
 
+
+# ── TerminologyGlossary ───────────────────────────────────────────────────────
 
 def test_add_and_retrieve():
     g = TerminologyGlossary()
@@ -57,3 +59,50 @@ def test_wrong_lang_not_matched():
     g.add("substrate", "底层文档", "en", "zh")
     _, token_map = g.protect("substrate here", "zh", "en")
     assert token_map == {}
+
+
+# ── TerminologyExtractor ──────────────────────────────────────────────────────
+
+_SAMPLE_LLM_OUTPUT = """\
+夏普比率尽管被广泛采用，但在应用于非正态分布的金融收益时存在若干局限性。
+
+贝利、博维和洛佩斯·德·普拉多（2014）提出了通缩夏普比率（DSR）。
+
+===术语===
+Sharpe ratio → 夏普比率
+Deflated Sharpe Ratio (DSR) → 通缩夏普比率
+
+===人名地名===
+Bailey → 贝利
+Lopez de Prado → 洛佩斯·德·普拉多
+"""
+
+
+def test_extractor_finds_terminology():
+    terms, proper = TerminologyExtractor.extract_from_response(_SAMPLE_LLM_OUTPUT)
+    assert terms["Sharpe ratio"] == "夏普比率"
+    assert terms["Deflated Sharpe Ratio (DSR)"] == "通缩夏普比率"
+
+
+def test_extractor_finds_proper_nouns():
+    terms, proper = TerminologyExtractor.extract_from_response(_SAMPLE_LLM_OUTPUT)
+    assert proper["Bailey"] == "贝利"
+    assert proper["Lopez de Prado"] == "洛佩斯·德·普拉多"
+
+
+def test_extractor_empty_output():
+    terms, proper = TerminologyExtractor.extract_from_response("Just translation text.")
+    assert terms == {}
+    assert proper == {}
+
+
+def test_extractor_strips_sections():
+    cleaned = TerminologyExtractor.strip_sections(_SAMPLE_LLM_OUTPUT)
+    assert "===术语===" not in cleaned
+    assert "===人名地名===" not in cleaned
+    assert "夏普比率尽管" in cleaned
+
+
+def test_extractor_strip_noop_without_sections():
+    text = "Simple translation without sections."
+    assert TerminologyExtractor.strip_sections(text) == text

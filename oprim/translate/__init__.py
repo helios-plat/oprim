@@ -1,17 +1,31 @@
-"""oprim.translate — multi-provider translation pipeline."""
+"""oprim.translate — multi-provider translation pipeline (Phase 10)."""
 from __future__ import annotations
 
 from pathlib import Path
 
 from oprim._logging import log
+from oprim.translate._prompts import SIMPLE_SYSTEM_PROMPT, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
 from oprim.translate.checkpoint import TranslationCheckpoint
 from oprim.translate.chunker import TextChunk, TranslationChunker
+from oprim.translate.errors import (
+    ChunkingError,
+    CheckpointCorruptedError,
+    FormatPreservationError,
+    ProviderUnavailableError,
+    TokenLimitExceededError,
+    TranslationError,
+)
 from oprim.translate.format_epub import translate_epub
 from oprim.translate.format_md import translate_markdown
-from oprim.translate.format_srt import translate_srt
-from oprim.translate.protocol import TranslationProvider, TranslationRequest, TranslationResult
-from oprim.translate.providers import get_provider
-from oprim.translate.terminology import GlossaryEntry, TerminologyGlossary
+from oprim.translate.protocol import (
+    TranslationContext,
+    TranslationProvider,
+    TranslationRequest,
+    TranslationResult,
+)
+from oprim.translate.providers import build_all_providers, get_provider
+from oprim.translate.router import TranslationRouter
+from oprim.translate.terminology import GlossaryEntry, TerminologyExtractor, TerminologyGlossary
 
 
 def translate_document(
@@ -28,8 +42,8 @@ def translate_document(
 ) -> tuple[str, list[TranslationResult]]:
     """Translate a markdown document using the specified provider.
 
-    This is the primary entry point for oprim.translate. Internally uses
-    TranslationChunker + TranslationCheckpoint for reliable long-document handling.
+    Primary entry point for oprim.translate.  Uses TranslationChunker +
+    TranslationCheckpoint for reliable long-document handling.
 
     Args:
         text: Source markdown text.
@@ -86,17 +100,38 @@ def translate_document(
 
 
 __all__ = [
+    # entry points
     "translate_document",
     "translate_markdown",
     "translate_epub",
-    "translate_srt",
+    # router
+    "TranslationRouter",
+    "build_all_providers",
+    # protocol types
     "TranslationRequest",
     "TranslationResult",
+    "TranslationContext",
     "TranslationProvider",
+    # chunker
     "TranslationChunker",
     "TextChunk",
+    # checkpoint
     "TranslationCheckpoint",
+    # terminology
     "TerminologyGlossary",
+    "TerminologyExtractor",
     "GlossaryEntry",
+    # errors
+    "TranslationError",
+    "ProviderUnavailableError",
+    "TokenLimitExceededError",
+    "CheckpointCorruptedError",
+    "FormatPreservationError",
+    "ChunkingError",
+    # prompts
+    "SYSTEM_PROMPT",
+    "SIMPLE_SYSTEM_PROMPT",
+    "USER_PROMPT_TEMPLATE",
+    # provider access
     "get_provider",
 ]

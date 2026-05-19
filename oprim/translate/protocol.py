@@ -1,8 +1,8 @@
 """TranslationProvider Protocol + shared dataclasses."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from dataclasses import dataclass, field
+from typing import Literal, Protocol, runtime_checkable
 
 SYSTEM_PROMPT_TRANSLATE = (
     "你是专业翻译，严格遵守以下规则：\n"
@@ -15,17 +15,31 @@ SYSTEM_PROMPT_TRANSLATE = (
 
 
 @dataclass
+class TranslationContext:
+    """Cross-chunk context passed to each translation call for coherence."""
+    previous_chunks_summary: str | None = None
+    next_chunk_preview: str | None = None      # first ~100 chars of next chunk
+    document_metadata: dict = field(default_factory=dict)
+    established_proper_nouns: dict[str, str] = field(default_factory=dict)
+    chunk_index: int = 0
+    total_chunks: int = 1
+
+
+@dataclass
 class TranslationRequest:
     text: str
     source_lang: str  # e.g. "en", "zh"
     target_lang: str  # e.g. "zh", "en"
     domain: str | None = None  # "academic", "literary", "technical"
-    model: str | None = None  # provider-specific model override
+    model: str | None = None   # provider-specific model override
+    quality: Literal["fast", "balanced", "premium"] = "balanced"
+    user_preference: Literal["default", "domestic", "international"] = "default"
+    context: TranslationContext | None = None
 
 
 @dataclass
 class TranslationResult:
-    text: str
+    text: str           # translated text (cleaned of terminology sections)
     provider: str
     model: str
     input_tokens: int
@@ -33,6 +47,9 @@ class TranslationResult:
     cost_usd: float
     source_lang: str
     target_lang: str
+    elapsed_seconds: float = 0.0
+    extracted_terminology: dict[str, str] = field(default_factory=dict)
+    detected_proper_nouns: dict[str, str] = field(default_factory=dict)
 
 
 @runtime_checkable
