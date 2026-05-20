@@ -31,6 +31,9 @@ dependencies = [
     "mcp>=1.0",
     "pydantic>=2.0",
     "pyyaml>=6.0",
+    "google-api-python-client>=2.100",
+    "google-auth-oauthlib>=1.2",
+    "google-auth-httplib2>=0.2",
 ]
 
 [project.optional-dependencies]
@@ -55,6 +58,7 @@ addopts = "--strict-markers -v"
 asyncio_mode = "auto"
 markers = [
     "academic_reference: test verifies against published academic/RFC/FIPS reference vectors",
+    "integration: requires live external service (GDrive OAuth, network) — skip by default",
 ]
 
 [tool.coverage.run]
