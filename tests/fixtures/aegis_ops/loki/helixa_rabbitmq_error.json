@@ -1,0 +1,16 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {"service": "helixa-prob", "level": "error"},
+        "values": [
+          ["1715763600000000000", "{\"msg\": \"RabbitMQ heartbeat timeout\", \"errno\": 104}"],
+          ["1715763605000000000", "{\"msg\": \"connection reset\", \"exception\": \"pika.exceptions.ConnectionResetError\"}"],
+          ["1715763610000000000", "{\"msg\": \"reconnect failed\", \"attempt\": 3}"]
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {"service": "helixa-risk-spot", "level": "error"},
+        "values": [
+          ["1715763600000000000", "{\"msg\": \"psycopg2.OperationalError: connection pool exhausted\"}"],
+          ["1715763605000000000", "{\"msg\": \"failed to acquire connection from pool\", \"timeout\": 30}"]
+        ]
+      }
+    ]
+  }
+}

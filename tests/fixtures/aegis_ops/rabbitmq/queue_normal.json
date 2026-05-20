@@ -1,0 +1,13 @@
+{
+  "name": "signals",
+  "vhost": "/",
+  "messages_ready": 12,
+  "messages_unacknowledged": 3,
+  "consumers": 4,
+  "state": "running",
+  "memory": 1048576,
+  "message_stats": {
+    "publish_details": {"rate": 250.5},
+    "deliver_get_details": {"rate": 248.0}
+  }
+}

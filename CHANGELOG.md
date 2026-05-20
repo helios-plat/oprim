@@ -2,6 +2,26 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.5.0] - 2026-05-20
+
+### Added — Aegis-Ops Batch 1 (5 infrastructure-ops elements)
+- `aegis_ops/rabbitmq_queue_status.py`: `rabbitmq_queue_status` — live queue stats via RabbitMQ Management API (messages_ready, consumers, state, rates)
+- `aegis_ops/docker_logs.py`: `docker_logs` — tail container logs with optional `since_seconds` window and timestamp stripping
+- `aegis_ops/postgres_pool_status.py`: `postgres_pool_status` — pg_stat_activity snapshot (active/idle/idle-in-transaction per app_name)
+- `aegis_ops/prometheus_instant_query.py`: `prometheus_instant_query` — PromQL instant query with bearer-token auth
+- `aegis_ops/loki_query.py`: `loki_query` — LogQL range query returning `LokiLogLine` list with labels
+
+### Infrastructure
+- `_exceptions.py`: `OprimError(OBaseError)` base — shared across all ops tools; `retryable = True`
+- `mypy.ini`: strict mode; `follow_imports = skip` for `obase.*`, `docker.*`, `asyncpg.*`
+- `tests/fixtures/aegis_ops/`: 25 real-data fixture files (rabbitmq, docker, postgres, prometheus, loki)
+- `sitecustomize.py` in venv: pre-loads numpy+scipy before coverage attaches sys.settrace (resolves numpy 2.4.4 + pytest-cov C-ext conflict)
+- Coverage: 42 tests, 99.57% statement coverage across 6 new modules
+
+### Dependencies added
+- `httpx>=0.27`, `docker>=7.0`, `asyncpg>=0.29` (runtime)
+- `respx>=0.23` (dev — httpx mock transport)
+
 ## [2.0.0] - 2026-05-14
 
 ### Added — Phase 10 (10 new elements)

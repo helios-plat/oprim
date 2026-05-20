@@ -1,6 +1,7 @@
 """Oprim — atomic operations library (Layer 1 meta-primitives)."""
 
 from oprim._version import __version__
+from oprim._exceptions import OprimError
 
 # Phase 10 additions (v2.0.0)
 from oprim.behavioral import (

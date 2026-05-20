@@ -1,0 +1,8 @@
+{
+  "rows": [
+    {"state": "active", "count": 95, "application_name": "helixa-prob"},
+    {"state": "idle", "count": 3, "application_name": "helixa-prob"},
+    {"state": "active", "count": 2, "application_name": "helixa-risk"}
+  ],
+  "max_connections": 100
+}

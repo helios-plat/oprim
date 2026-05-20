@@ -2,14 +2,91 @@
 from __future__ import annotations
 
 from pathlib import Path
+from unittest import mock
 
-import numpy as np
 import pytest
+import respx
+from obase.tool_registry import ToolRegistry
+
+
+@pytest.fixture(autouse=True)
+def _clean_tool_registry() -> None:
+    """Reset ToolRegistry between tests."""
+    ToolRegistry.clear()
+    yield  # type: ignore[misc]
+    ToolRegistry.clear()
+
+
+@pytest.fixture
+def aegis_ops_fixtures_dir() -> Path:
+    return Path(__file__).parent / "fixtures" / "aegis_ops"
+
+
+@pytest.fixture
+def rabbitmq_fixtures_dir(aegis_ops_fixtures_dir: Path) -> Path:
+    return aegis_ops_fixtures_dir / "rabbitmq"
+
+
+@pytest.fixture
+def docker_fixtures_dir(aegis_ops_fixtures_dir: Path) -> Path:
+    return aegis_ops_fixtures_dir / "docker"
+
+
+@pytest.fixture
+def postgres_fixtures_dir(aegis_ops_fixtures_dir: Path) -> Path:
+    return aegis_ops_fixtures_dir / "postgres"
+
+
+@pytest.fixture
+def prometheus_fixtures_dir(aegis_ops_fixtures_dir: Path) -> Path:
+    return aegis_ops_fixtures_dir / "prometheus"
+
+
+@pytest.fixture
+def loki_fixtures_dir(aegis_ops_fixtures_dir: Path) -> Path:
+    return aegis_ops_fixtures_dir / "loki"
+
+
+@pytest.fixture
+def mock_rabbitmq_mgmt():
+    """Mock httpx routes for RabbitMQ Management API."""
+    with respx.mock(assert_all_mocked=False) as router:
+        yield router
+
+
+@pytest.fixture
+def mock_docker_client():
+    """Mock docker.DockerClient."""
+    with mock.patch("docker.DockerClient") as mock_client:
+        yield mock_client
+
+
+@pytest.fixture
+def mock_prometheus():
+    """Mock httpx routes for Prometheus API."""
+    with respx.mock(assert_all_mocked=False) as router:
+        yield router
+
+
+@pytest.fixture
+def mock_loki():
+    """Mock httpx routes for Loki API."""
+    with respx.mock(assert_all_mocked=False) as router:
+        yield router
+
+
+@pytest.fixture
+def mock_asyncpg():
+    """Mock asyncpg.connect."""
+    with mock.patch("asyncpg.connect") as mock_connect:
+        yield mock_connect
 
 
 @pytest.fixture
 def rng():
     """Reproducible random number generator."""
+    import numpy as np
+
     return np.random.default_rng(42)
 
 

@@ -1,0 +1,16 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "__name__": "helixa_signal_latency_seconds_p99",
+          "service": "helixa-prob",
+          "instance": "prob-1:8080"
+        },
+        "value": [1715763600.123, "0.85"]
+      }
+    ]
+  }
+}

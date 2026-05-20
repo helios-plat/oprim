@@ -1,0 +1,6 @@
+2026-04-15T10:00:00.123Z [INFO] prob-engine processing
+2026-04-15T10:00:01.456Z [WARN] memory usage 85% of limit
+2026-04-15T10:00:02.789Z [WARN] memory usage 92% of limit
+2026-04-15T10:00:03.123Z [ERROR] memory allocation failed
+2026-04-15T10:00:03.456Z [FATAL] OOM detected, killing worker
+Killed

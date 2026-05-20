@@ -1,0 +1,16 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "streams",
+    "result": [
+      {
+        "stream": {"service": "helixa-prob", "level": "info"},
+        "values": [
+          ["1715763600000000000", "{\"msg\": \"processing batch\", \"count\": 50}"],
+          ["1715763605000000000", "{\"msg\": \"processing batch\", \"count\": 48}"],
+          ["1715763610000000000", "{\"msg\": \"processing batch\", \"count\": 51}"]
+        ]
+      }
+    ]
+  }
+}

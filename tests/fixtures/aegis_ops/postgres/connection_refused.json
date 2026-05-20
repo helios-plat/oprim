@@ -1,0 +1,5 @@
+{
+  "error": "connection refused",
+  "errno": 111,
+  "host": "pg.test"
+}
