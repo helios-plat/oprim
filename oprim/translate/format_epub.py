@@ -1,15 +1,17 @@
-"""EPUB translation pipeline."""
+"""EPUB translation pipeline (async primary, sync deprecated)."""
 from __future__ import annotations
 
+import asyncio
+import warnings
 from pathlib import Path
 
 from oprim._logging import log
 from oprim.errors import StratumError
-from oprim.translate.format_md import translate_markdown
+from oprim.translate.format_md import translate_markdown_async
 from oprim.translate.protocol import TranslationProvider, TranslationResult
 
 
-def translate_epub(
+async def translate_epub_async(
     epub_path: Path,
     output_path: Path,
     provider: TranslationProvider,
@@ -20,10 +22,7 @@ def translate_epub(
     model: str | None = None,
     max_chars: int = 2000,
 ) -> tuple[Path, list[TranslationResult]]:
-    """Translate an EPUB file chapter by chapter.
-
-    Reads the EPUB, translates each HTML chapter's text content,
-    and writes a new EPUB to output_path.
+    """Translate an EPUB file chapter by chapter (async).
 
     Returns:
         Tuple of (output_path, list[TranslationResult]).
@@ -52,7 +51,7 @@ def translate_epub(
         if not original_text.strip():
             continue
 
-        translated_text, results = translate_markdown(
+        translated_text, results = await translate_markdown_async(
             original_text,
             provider=provider,
             source_lang=source_lang,
@@ -79,3 +78,35 @@ def translate_epub(
     epub.write_epub(str(output_path), book)
     log.info("translate.epub_done", output=str(output_path), total_results=len(all_results))
     return output_path, all_results
+
+
+def translate_epub(
+    epub_path: Path,
+    output_path: Path,
+    provider: TranslationProvider,
+    source_lang: str,
+    target_lang: str,
+    *,
+    domain: str | None = None,
+    model: str | None = None,
+    max_chars: int = 2000,
+) -> tuple[Path, list[TranslationResult]]:
+    """Deprecated sync wrapper — use translate_epub_async."""
+    warnings.warn(
+        "translate_epub (sync) is deprecated; use translate_epub_async instead. "
+        "Will be removed in oprim 3.0.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return asyncio.run(
+        translate_epub_async(
+            epub_path,
+            output_path,
+            provider,
+            source_lang,
+            target_lang,
+            domain=domain,
+            model=model,
+            max_chars=max_chars,
+        )
+    )

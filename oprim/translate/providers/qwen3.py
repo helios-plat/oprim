@@ -1,6 +1,7 @@
-"""Qwen3 translation provider (DashScope OpenAI-compatible API)."""
+"""Qwen3 translation provider (DashScope OpenAI-compatible API, async)."""
 from __future__ import annotations
 
+import asyncio
 import time
 
 from oprim._config import cfg
@@ -19,15 +20,15 @@ _OUTPUT_COST_PER_1K = 0.00010  # $0.10 / 1M tokens
 
 
 class Qwen3Provider:
-    """TranslationProvider backed by DashScope (OpenAI-compatible endpoint)."""
+    """TranslationProvider backed by DashScope OpenAI-compatible endpoint (async AsyncOpenAI)."""
 
     @property
     def name(self) -> str:
         return "qwen3"
 
-    def translate(self, request: TranslationRequest) -> TranslationResult:
+    async def translate(self, request: TranslationRequest) -> TranslationResult:
         try:
-            from openai import OpenAI
+            from openai import AsyncOpenAI
         except ImportError as e:
             raise LLMError("openai package not installed") from e
 
@@ -35,7 +36,7 @@ class Qwen3Provider:
         if not api_key:
             raise LLMError("DASHSCOPE_API_KEY (or QWEN_API_KEY) not configured")
 
-        client = OpenAI(api_key=str(api_key), base_url=_BASE_URL)
+        client = AsyncOpenAI(api_key=str(api_key), base_url=_BASE_URL)
         model_id = request.model or _DEFAULT_MODEL
         user_msg = (
             f"将以下 {request.source_lang} 文本翻译为 {request.target_lang}：\n\n{request.text}"
@@ -44,7 +45,8 @@ class Qwen3Provider:
         last_err: Exception | None = None
         for attempt in range(3):
             try:
-                resp = client.chat.completions.create(
+                t0 = time.monotonic()
+                resp = await client.chat.completions.create(
                     model=model_id,
                     messages=[
                         {"role": "system", "content": SYSTEM_PROMPT_TRANSLATE},
@@ -53,6 +55,7 @@ class Qwen3Provider:
                     temperature=0.3,
                     max_tokens=4096,
                 )
+                elapsed = time.monotonic() - t0
                 translated = resp.choices[0].message.content or ""
                 usage = resp.usage
                 in_tok = usage.prompt_tokens if usage else 0
@@ -67,6 +70,7 @@ class Qwen3Provider:
                     cost_usd=cost,
                     source_lang=request.source_lang,
                     target_lang=request.target_lang,
+                    elapsed_seconds=elapsed,
                 )
             except Exception as e:
                 last_err = e
@@ -75,8 +79,25 @@ class Qwen3Provider:
                     raise LLMRateLimitError(f"Qwen3 rate limit: {e}") from e
                 if attempt < 2:
                     log.warning("qwen3.translate_retry", attempt=attempt, error=str(e))
-                    time.sleep(2**attempt)
+                    await asyncio.sleep(2**attempt)
         raise LLMError(f"Qwen3 translate failed after 3 retries: {last_err}") from last_err
+
+    async def health_check(self) -> bool:
+        try:
+            from openai import AsyncOpenAI
+            api_key = cfg.get("DASHSCOPE_API_KEY") or cfg.get("QWEN_API_KEY")
+            if not api_key:
+                return False
+            client = AsyncOpenAI(api_key=str(api_key), base_url=_BASE_URL)
+            resp = await client.chat.completions.create(
+                model=_DEFAULT_MODEL,
+                messages=[{"role": "user", "content": "ping"}],
+                max_tokens=5,
+            )
+            return bool(resp.choices)
+        except Exception as e:
+            log.warning("qwen3.health_check_failed", error=str(e))
+            return False
 
     def estimate_cost(self, char_count: int) -> float:
         approx_tokens = char_count / 3

@@ -1,6 +1,7 @@
-"""Claude translation provider (Anthropic API)."""
+"""Claude translation provider (Anthropic API, async)."""
 from __future__ import annotations
 
+import asyncio
 import time
 
 from oprim._config import cfg
@@ -18,20 +19,20 @@ _OUTPUT_COST_PER_1K = 0.015  # $15 / 1M tokens
 
 
 class ClaudeProvider:
-    """TranslationProvider backed by Anthropic API."""
+    """TranslationProvider backed by Anthropic API (async AsyncAnthropic)."""
 
     @property
     def name(self) -> str:
         return "claude"
 
-    def translate(self, request: TranslationRequest) -> TranslationResult:
+    async def translate(self, request: TranslationRequest) -> TranslationResult:
         try:
             import anthropic
         except ImportError as e:
             raise LLMError("anthropic package not installed") from e
 
         api_key = cfg.get("ANTHROPIC_API_KEY")
-        client = anthropic.Anthropic(api_key=str(api_key) if api_key else None)
+        client = anthropic.AsyncAnthropic(api_key=str(api_key) if api_key else None)
         model_id = request.model or _DEFAULT_MODEL
         user_msg = (
             f"将以下 {request.source_lang} 文本翻译为 {request.target_lang}：\n\n{request.text}"
@@ -40,12 +41,14 @@ class ClaudeProvider:
         last_err: Exception | None = None
         for attempt in range(3):
             try:
-                resp = client.messages.create(
+                t0 = time.monotonic()
+                resp = await client.messages.create(
                     model=model_id,
                     max_tokens=4096,
                     system=SYSTEM_PROMPT_TRANSLATE,
                     messages=[{"role": "user", "content": user_msg}],
                 )
+                elapsed = time.monotonic() - t0
                 translated = resp.content[0].text
                 in_tok = resp.usage.input_tokens
                 out_tok = resp.usage.output_tokens
@@ -59,13 +62,29 @@ class ClaudeProvider:
                     cost_usd=cost,
                     source_lang=request.source_lang,
                     target_lang=request.target_lang,
+                    elapsed_seconds=elapsed,
                 )
             except Exception as e:
                 last_err = e
                 if attempt < 2:
                     log.warning("claude.translate_retry", attempt=attempt, error=str(e))
-                    time.sleep(2**attempt)
+                    await asyncio.sleep(2**attempt)
         raise LLMError(f"Claude translate failed after 3 retries: {last_err}") from last_err
+
+    async def health_check(self) -> bool:
+        try:
+            import anthropic
+            api_key = cfg.get("ANTHROPIC_API_KEY")
+            client = anthropic.AsyncAnthropic(api_key=str(api_key) if api_key else None)
+            resp = await client.messages.create(
+                model=_DEFAULT_MODEL,
+                max_tokens=5,
+                messages=[{"role": "user", "content": "ping"}],
+            )
+            return bool(resp.content)
+        except Exception as e:
+            log.warning("claude.health_check_failed", error=str(e))
+            return False
 
     def estimate_cost(self, char_count: int) -> float:
         approx_tokens = char_count / 3

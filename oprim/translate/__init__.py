@@ -1,6 +1,8 @@
-"""oprim.translate — multi-provider translation pipeline (Phase 10)."""
+"""oprim.translate — multi-provider async translation pipeline (Phase 10 / ADR-020)."""
 from __future__ import annotations
 
+import asyncio
+import warnings
 from pathlib import Path
 
 from oprim._logging import log
@@ -15,8 +17,8 @@ from oprim.translate.errors import (
     TokenLimitExceededError,
     TranslationError,
 )
-from oprim.translate.format_epub import translate_epub
-from oprim.translate.format_md import translate_markdown
+from oprim.translate.format_epub import translate_epub, translate_epub_async
+from oprim.translate.format_md import translate_markdown, translate_markdown_async
 from oprim.translate.protocol import (
     TranslationContext,
     TranslationProvider,
@@ -28,7 +30,7 @@ from oprim.translate.router import TranslationRouter
 from oprim.translate.terminology import GlossaryEntry, TerminologyExtractor, TerminologyGlossary
 
 
-def translate_document(
+async def translate_document_async(
     text: str,
     source_lang: str,
     target_lang: str,
@@ -40,10 +42,7 @@ def translate_document(
     model: str | None = None,
     glossary: TerminologyGlossary | None = None,
 ) -> tuple[str, list[TranslationResult]]:
-    """Translate a markdown document using the specified provider.
-
-    Primary entry point for oprim.translate.  Uses TranslationChunker +
-    TranslationCheckpoint for reliable long-document handling.
+    """Async primary entry point — translate a markdown document.
 
     Args:
         text: Source markdown text.
@@ -57,8 +56,7 @@ def translate_document(
         glossary: Optional TerminologyGlossary for domain-specific terms.
 
     Returns:
-        Tuple of (translated_text, list[TranslationResult]) — one result per
-        translated chunk (untranslatable code blocks are passed through as-is).
+        Tuple of (translated_text, list[TranslationResult]).
     """
     if isinstance(provider, str):
         prov = get_provider(provider)
@@ -70,7 +68,7 @@ def translate_document(
     else:
         token_map = {}
 
-    translated, results = translate_markdown(
+    translated, results = await translate_markdown_async(
         text,
         provider=prov,
         source_lang=source_lang,
@@ -99,8 +97,50 @@ def translate_document(
     return translated, results
 
 
+def translate_document(
+    text: str,
+    source_lang: str,
+    target_lang: str,
+    provider: TranslationProvider | str = "deepseek",
+    *,
+    checkpoint_path: Path | None = None,
+    max_chars: int = 2000,
+    domain: str | None = None,
+    model: str | None = None,
+    glossary: TerminologyGlossary | None = None,
+) -> tuple[str, list[TranslationResult]]:
+    """Deprecated sync wrapper — use translate_document_async.
+
+    Wraps translate_document_async in asyncio.run(). Do not call from inside
+    an async context (use translate_document_async directly instead).
+    """
+    warnings.warn(
+        "translate_document (sync) is deprecated; use translate_document_async instead. "
+        "Will be removed in oprim 3.0.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return asyncio.run(
+        translate_document_async(
+            text,
+            source_lang,
+            target_lang,
+            provider,
+            checkpoint_path=checkpoint_path,
+            max_chars=max_chars,
+            domain=domain,
+            model=model,
+            glossary=glossary,
+        )
+    )
+
+
 __all__ = [
-    # entry points
+    # async entry points (primary)
+    "translate_document_async",
+    "translate_markdown_async",
+    "translate_epub_async",
+    # sync wrappers (deprecated)
     "translate_document",
     "translate_markdown",
     "translate_epub",

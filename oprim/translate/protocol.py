@@ -54,12 +54,14 @@ class TranslationResult:
 
 @runtime_checkable
 class TranslationProvider(Protocol):
-    """Protocol all translation providers must implement."""
+    """Protocol all translation providers must implement (async interface)."""
 
     @property
     def name(self) -> str: ...
 
-    def translate(self, request: TranslationRequest) -> TranslationResult: ...
+    async def translate(self, request: TranslationRequest) -> TranslationResult: ...
+
+    async def health_check(self) -> bool: ...
 
     def estimate_cost(self, char_count: int) -> float:
         """Estimate cost in USD for translating char_count characters."""
