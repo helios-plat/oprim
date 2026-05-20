@@ -56,3 +56,7 @@ class IngestError(StratumError):
 
 class DuplicateSubstrateError(IngestError):
     """Substrate already exists (duplicate detected)."""
+
+
+class SubstrateNotFoundError(MetaDBError):
+    """Substrate does not exist in the metadata database."""
