@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "2.0.0"
+VERSION = "2.4.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -167,6 +167,24 @@ ELEMENTS: list[str] = [
     "spectral_eigengap_detect",
     # Recursive Utility (1)
     "epstein_zin_aggregator",
+    # Sprint 0 additions (v2.4.0) — 17 new elements from Tide v2 rebuild
+    "detect_ma_cross",
+    "detect_price_breakout",
+    "detect_volume_breakout",
+    "detect_ma_support_bounce",
+    "detect_volume_stagnation",
+    "detect_bullish_divergence",
+    "consecutive_event_count",
+    "is_business_day",
+    "prev_business_day",
+    "evaluate_threshold_condition",
+    "markov_next_state_distribution",
+    "detect_daily_limit_up",
+    "detect_daily_limit_down",
+    "seal_strength",
+    "stamp_tax",
+    "t_plus_n_blocked",
+    "commission",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -256,6 +274,16 @@ CATEGORIES: dict[str, list[str]] = {
         "spectral_eigengap_detect",
     ],
     "recursive_utility": ["epstein_zin_aggregator"],
+    # Sprint 0 categories (v2.4.0)
+    "technical_signals": [
+        "detect_ma_cross", "detect_price_breakout", "detect_volume_breakout",
+        "detect_ma_support_bounce", "detect_volume_stagnation",
+        "detect_bullish_divergence", "consecutive_event_count",
+    ],
+    "calendar": ["is_business_day", "prev_business_day"],
+    "predicate": ["evaluate_threshold_condition"],
+    "markets_limits": ["detect_daily_limit_up", "detect_daily_limit_down", "seal_strength"],
+    "markets_rules": ["stamp_tax", "t_plus_n_blocked", "commission"],
     # Phase 4 categories
     "timeseries": [
         "adf_test", "kpss_test",
@@ -267,5 +295,15 @@ CATEGORIES: dict[str, list[str]] = {
     ],
 }
 
-STABILITY: dict[str, str] = {e: "stable" for e in ELEMENTS}
+_SPRINT0_ELEMENTS = {
+    "detect_ma_cross", "detect_price_breakout", "detect_volume_breakout",
+    "detect_ma_support_bounce", "detect_volume_stagnation", "detect_bullish_divergence",
+    "consecutive_event_count", "is_business_day", "prev_business_day",
+    "evaluate_threshold_condition", "markov_next_state_distribution",
+    "detect_daily_limit_up", "detect_daily_limit_down", "seal_strength",
+    "stamp_tax", "t_plus_n_blocked", "commission",
+}
+STABILITY: dict[str, str] = {
+    e: ("experimental" if e in _SPRINT0_ELEMENTS else "stable") for e in ELEMENTS
+}
 

@@ -69,7 +69,12 @@ from oprim.performance.annualization import cagr
 from oprim.performance.cumulative import cumulative_returns
 from oprim.point_process import hawkes_nll
 from oprim.recursive_utility import epstein_zin_aggregator
-from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
+from oprim.regime import (
+    regime_filter_data,
+    regime_label_align,
+    regime_transition_matrix,
+    markov_next_state_distribution,
+)
 from oprim.risk.cvar import cvar
 
 # Phase 4 additions (v1.7.0)
@@ -117,6 +122,21 @@ from oprim.technical.exits import chandelier_exit
 from oprim.technical.moving_averages import ema, macd, sma, vwap
 from oprim.technical.oscillators import cci, rsi_normalized, stochastic_oscillator, williams_r
 from oprim.technical.volume import mfi, obv
+
+# Sprint 0 additions (v2.4.0)
+from oprim.technical.signals import (
+    consecutive_event_count,
+    detect_bullish_divergence,
+    detect_ma_cross,
+    detect_ma_support_bounce,
+    detect_price_breakout,
+    detect_volume_breakout,
+    detect_volume_stagnation,
+)
+from oprim.calendar import is_business_day, prev_business_day
+from oprim.predicate import evaluate_threshold_condition
+from oprim.markets.limits import detect_daily_limit_down, detect_daily_limit_up, seal_strength
+from oprim.markets.rules import commission, stamp_tax, t_plus_n_blocked
 from oprim.time_series import (
     ewma_smooth,
     gap_detect,
@@ -262,4 +282,22 @@ __all__ = [
     "spectral_eigengap_detect",
     # Phase 10 Recursive Utility (v2.0.0)
     "epstein_zin_aggregator",
+    # Sprint 0 additions (v2.4.0)
+    "detect_ma_cross",
+    "detect_price_breakout",
+    "detect_volume_breakout",
+    "detect_ma_support_bounce",
+    "detect_volume_stagnation",
+    "detect_bullish_divergence",
+    "consecutive_event_count",
+    "is_business_day",
+    "prev_business_day",
+    "evaluate_threshold_condition",
+    "markov_next_state_distribution",
+    "detect_daily_limit_up",
+    "detect_daily_limit_down",
+    "seal_strength",
+    "stamp_tax",
+    "t_plus_n_blocked",
+    "commission",
 ]

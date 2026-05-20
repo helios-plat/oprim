@@ -4,7 +4,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
+from oprim.regime import (
+    markov_next_state_distribution,
+    regime_filter_data,
+    regime_label_align,
+    regime_transition_matrix,
+)
 
 
 # ============================================================
@@ -327,3 +332,106 @@ class TestRegimeLabelAlignEdgeCases:
         target = ["2024-01-01", "2024-01-02"]
         result = regime_label_align(target, labels, method="asof")
         assert len(result) == 2
+
+
+# ============================================================
+# markov_next_state_distribution (Sprint 0)
+# ============================================================
+
+class TestMarkovNextStateDistribution:
+    @staticmethod
+    def _simple_matrix() -> dict:
+        return {
+            "bull": {"bull": 0.7, "bear": 0.3},
+            "bear": {"bull": 0.4, "bear": 0.6},
+        }
+
+    def test_one_step_sums_to_one(self):
+        tm = self._simple_matrix()
+        result = markov_next_state_distribution("bull", tm, n_steps=1)
+        assert abs(sum(result.values()) - 1.0) < 1e-9
+
+    def test_one_step_matches_row(self):
+        tm = self._simple_matrix()
+        result = markov_next_state_distribution("bull", tm, n_steps=1)
+        assert abs(result["bull"] - 0.7) < 1e-9
+        assert abs(result["bear"] - 0.3) < 1e-9
+
+    def test_two_steps_sums_to_one(self):
+        tm = self._simple_matrix()
+        result = markov_next_state_distribution("bull", tm, n_steps=2)
+        assert abs(sum(result.values()) - 1.0) < 1e-9
+
+    def test_two_steps_matches_matrix_power(self):
+        import numpy as np
+        tm = self._simple_matrix()
+        # M = [[0.7, 0.3], [0.4, 0.6]] (states sorted: bear, bull)
+        # sorted order: bear, bull
+        M = np.array([[0.6, 0.4], [0.3, 0.7]])  # [bear→bear, bear→bull; bull→bear, bull→bull]
+        # v for "bull" = [0, 1] in (bear, bull) order
+        v = np.array([0.0, 1.0])
+        M2 = np.linalg.matrix_power(M, 2)
+        expected = v @ M2
+        result = markov_next_state_distribution("bull", tm, n_steps=2)
+        assert abs(result["bear"] - expected[0]) < 1e-9
+        assert abs(result["bull"] - expected[1]) < 1e-9
+
+    def test_raises_unknown_current_state(self):
+        tm = self._simple_matrix()
+        with pytest.raises(ValueError, match="not found"):
+            markov_next_state_distribution("neutral", tm, n_steps=1)
+
+    def test_raises_row_not_summing_to_one(self):
+        tm = {
+            "bull": {"bull": 0.5, "bear": 0.3},  # sums to 0.8, not 1.0
+            "bear": {"bull": 0.4, "bear": 0.6},
+        }
+        with pytest.raises(ValueError, match="sums to"):
+            markov_next_state_distribution("bull", tm, n_steps=1)
+
+    def test_raises_invalid_n_steps(self):
+        tm = self._simple_matrix()
+        with pytest.raises(ValueError, match="n_steps"):
+            markov_next_state_distribution("bull", tm, n_steps=0)
+
+    def test_trend_up_shifts_distribution(self):
+        tm = self._simple_matrix()
+        no_trend = markov_next_state_distribution("bear", tm, n_steps=1)
+        with_trend = markov_next_state_distribution("bear", tm, n_steps=1, trend="up")
+        # "up" should increase probability of higher-indexed state (bull > bear alphabetically)
+        assert with_trend["bull"] >= no_trend["bull"]
+
+    def test_trend_down_shifts_distribution(self):
+        tm = self._simple_matrix()
+        no_trend = markov_next_state_distribution("bull", tm, n_steps=1)
+        with_trend = markov_next_state_distribution("bull", tm, n_steps=1, trend="down")
+        # "down" should increase probability of lower-indexed state (bear < bull alphabetically)
+        assert with_trend["bear"] >= no_trend["bear"]
+
+    def test_stationary_distribution_convergence(self):
+        """After many steps from any state, distributions converge."""
+        tm = self._simple_matrix()
+        long_bull = markov_next_state_distribution("bull", tm, n_steps=100)
+        long_bear = markov_next_state_distribution("bear", tm, n_steps=100)
+        # Ergodic chain converges to same stationary distribution
+        assert abs(long_bull["bull"] - long_bear["bull"]) < 0.01
+
+    @pytest.mark.academic_reference
+    def test_academic_markov_chain_matrix_power(self):
+        """Verify n-step distribution via matrix power rule P^n * v.
+
+        Reference: Norris, J. R. (1997). Markov Chains. Cambridge University Press.
+        """
+        import numpy as np
+        tm = {
+            "A": {"A": 0.8, "B": 0.2},
+            "B": {"A": 0.3, "B": 0.7},
+        }
+        # sorted states: A, B
+        M = np.array([[0.8, 0.2], [0.3, 0.7]])
+        v_A = np.array([1.0, 0.0])
+        for n in [1, 2, 5]:
+            result = markov_next_state_distribution("A", tm, n_steps=n)
+            expected = v_A @ np.linalg.matrix_power(M, n)
+            assert abs(result["A"] - expected[0]) < 1e-9
+            assert abs(result["B"] - expected[1]) < 1e-9

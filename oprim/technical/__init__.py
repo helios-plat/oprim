@@ -11,6 +11,15 @@ from oprim.technical.oscillators import (
 )
 from oprim.technical.adaptive import kama
 from oprim.technical.volume import obv, mfi
+from oprim.technical.signals import (
+    detect_ma_cross,
+    detect_price_breakout,
+    detect_volume_breakout,
+    detect_ma_support_bounce,
+    detect_volume_stagnation,
+    detect_bullish_divergence,
+    consecutive_event_count,
+)
 
 __all__ = [
     "sma",
@@ -28,4 +37,11 @@ __all__ = [
     "kama",
     "obv",
     "mfi",
+    "detect_ma_cross",
+    "detect_price_breakout",
+    "detect_volume_breakout",
+    "detect_ma_support_bounce",
+    "detect_volume_stagnation",
+    "detect_bullish_divergence",
+    "consecutive_event_count",
 ]
