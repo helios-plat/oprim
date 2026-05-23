@@ -22,6 +22,10 @@ def _get_provider(name: str) -> TextEmbedder:
         from oprim.embedding.qwen3_dashscope import Qwen3DashscopeEmbedder
 
         return Qwen3DashscopeEmbedder()
+    elif name == "qwen3_local":
+        from oprim.embedding.qwen3_local import Qwen3LocalEmbedder
+
+        return Qwen3LocalEmbedder()
     elif name == "bge_m3":
         from oprim.embedding.bge_m3 import BgeM3Embedder
 

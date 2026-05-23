@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "oprim"
-version = "2.2.0"
+version = "2.8.1"
 description = "Atomic operations library — Layer 1 meta-primitives for financial analysis"
 readme = "README.md"
 license = "MIT"
@@ -31,6 +31,13 @@ dependencies = [
     "mcp>=1.0",
     "pydantic>=2.0",
     "pyyaml>=6.0",
+    "google-api-python-client>=2.100",
+    "google-auth-oauthlib>=1.2",
+    "google-auth-httplib2>=0.2",
+    "httpx>=0.27",
+    "redis>=7.0",
+    "docker>=7.0",
+    "asyncpg>=0.29",
 ]
 
 [project.optional-dependencies]
@@ -40,6 +47,7 @@ dev = [
     "pytest-mock>=3.0",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.4.0",
+    "respx>=0.23",
 ]
 
 [tool.ruff]
@@ -52,8 +60,10 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers -v"
+asyncio_mode = "auto"
 markers = [
     "academic_reference: test verifies against published academic/RFC/FIPS reference vectors",
+    "integration: requires live external service (GDrive OAuth, network) — skip by default",
 ]
 
 [tool.coverage.run]
@@ -68,3 +78,8 @@ omit = [
 [tool.coverage.report]
 fail_under = 95
 show_missing = true
+
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=1.3.0",
+]
