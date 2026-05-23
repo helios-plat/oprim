@@ -2,6 +2,60 @@
 
 from oprim._version import __version__
 
+# Aegis Batch 1 — infrastructure / ops primitives (v2.9.0)
+from oprim._docker import (
+    docker_container_inspect,
+    docker_container_logs,
+    docker_container_restart,
+    docker_container_start,
+    docker_container_stats,
+    docker_container_stop,
+    docker_image_pull,
+)
+from oprim._postgres import (
+    postgres_locks_status,
+    postgres_pool_status,
+    postgres_replication_lag,
+    postgres_slow_queries,
+    postgres_table_size,
+)
+from oprim._rabbitmq import (
+    rabbitmq_connection_status,
+    rabbitmq_consumer_status,
+    rabbitmq_node_status,
+    rabbitmq_queue_status,
+)
+from oprim._caddy import (
+    caddy_admin_reload,
+    caddy_certificates_status,
+    caddy_routes_list,
+)
+from oprim._network import (
+    dns_resolve,
+    http_health_probe,
+    http_request_once,
+    tcp_port_check,
+)
+from oprim._filesystem import (
+    dir_archive_to_targz,
+    disk_usage,
+    file_checksum,
+)
+from oprim._metrics_logs import (
+    loki_log_query,
+    prometheus_instant_query,
+    prometheus_range_query,
+    structlog_parse,
+)
+from oprim._system import (
+    cpu_memory_snapshot,
+    process_list_top,
+)
+from oprim._s3 import (
+    s3_object_metadata,
+    s3_upload_file,
+)
+
 # Phase 10 additions (v2.0.0)
 from oprim.behavioral import (
     cpt_value_function,
@@ -262,4 +316,47 @@ __all__ = [
     "spectral_eigengap_detect",
     # Phase 10 Recursive Utility (v2.0.0)
     "epstein_zin_aggregator",
+    # Aegis Batch 1 — Docker (v2.9.0)
+    "docker_container_inspect",
+    "docker_container_logs",
+    "docker_container_start",
+    "docker_container_stop",
+    "docker_container_restart",
+    "docker_image_pull",
+    "docker_container_stats",
+    # Aegis Batch 1 — PostgreSQL (v2.9.0)
+    "postgres_pool_status",
+    "postgres_slow_queries",
+    "postgres_locks_status",
+    "postgres_table_size",
+    "postgres_replication_lag",
+    # Aegis Batch 1 — RabbitMQ (v2.9.0)
+    "rabbitmq_queue_status",
+    "rabbitmq_connection_status",
+    "rabbitmq_consumer_status",
+    "rabbitmq_node_status",
+    # Aegis Batch 1 — Caddy (v2.9.0)
+    "caddy_admin_reload",
+    "caddy_routes_list",
+    "caddy_certificates_status",
+    # Aegis Batch 1 — Network (v2.9.0)
+    "tcp_port_check",
+    "http_health_probe",
+    "dns_resolve",
+    "http_request_once",
+    # Aegis Batch 1 — Filesystem (v2.9.0)
+    "disk_usage",
+    "dir_archive_to_targz",
+    "file_checksum",
+    # Aegis Batch 1 — Metrics/Logs (v2.9.0)
+    "prometheus_instant_query",
+    "prometheus_range_query",
+    "loki_log_query",
+    "structlog_parse",
+    # Aegis Batch 1 — System (v2.9.0)
+    "cpu_memory_snapshot",
+    "process_list_top",
+    # Aegis Batch 1 — S3 (v2.9.0)
+    "s3_upload_file",
+    "s3_object_metadata",
 ]

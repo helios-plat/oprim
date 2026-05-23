@@ -2,6 +2,66 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.9.0] - 2026-05-24
+
+### Added — Aegis Batch 1: Infrastructure / Ops Primitives (32 new elements)
+
+#### Docker (7): `_docker.py`
+- `docker_container_inspect` — 查容器完整状态 (state / health / ports / mounts)
+- `docker_container_logs` — 读容器日志 (支持 tail / since / until)
+- `docker_container_start` — 启动容器, 返回 state 变化
+- `docker_container_stop` — 停止容器 (SIGTERM + timeout SIGKILL)
+- `docker_container_restart` — 重启容器
+- `docker_image_pull` — 拉取镜像 (含 auth_config 私有仓库支持)
+- `docker_container_stats` — 容器资源快照 (CPU / mem / net / blkio / pids)
+
+#### PostgreSQL (5): `_postgres.py`
+- `postgres_pool_status` — 连接池状态 (active/idle/idle-in-tx/waiting/usage%)
+- `postgres_slow_queries` — 慢查询 top N (依赖 pg_stat_statements)
+- `postgres_locks_status` — 锁状态 (默认只返 waiting 锁)
+- `postgres_table_size` — 表大小 top N (含索引 + toast)
+- `postgres_replication_lag` — 主从复制延迟
+
+#### RabbitMQ (4): `_rabbitmq.py`
+- `rabbitmq_queue_status` — 队列状态 (messages / consumers / state / memory)
+- `rabbitmq_connection_status` — 所有连接状态 (blocked / running)
+- `rabbitmq_consumer_status` — 指定队列的 consumer 列表
+- `rabbitmq_node_status` — 节点状态 (mem / disk / fd / sockets / proc)
+
+#### Caddy (3): `_caddy.py`
+- `caddy_admin_reload` — 原子替换 Caddy 配置 (/load)
+- `caddy_routes_list` — 列出当前路由 (从 config tree 提取)
+- `caddy_certificates_status` — 域名证书状态 (issued / expiry)
+
+#### Network (4): `_network.py`
+- `tcp_port_check` — TCP 端口连通性探测 (永不 raise 网络错误)
+- `http_health_probe` — HTTP 健康探测 (永不 raise 网络错误)
+- `dns_resolve` — DNS 解析 (A/AAAA/CNAME/MX/TXT, 支持指定 nameserver)
+- `http_request_once` — 通用 HTTP 单次调用
+
+#### Filesystem (3): `_filesystem.py`
+- `disk_usage` — 文件系统使用情况
+- `dir_archive_to_targz` — 目录打包 tar.gz (单次流式含 SHA-256 checksum)
+- `file_checksum` — 文件 checksum (sha256/md5/sha1)
+
+#### Metrics & Logs (4): `_metrics_logs.py`
+- `prometheus_instant_query` — Prometheus 即时查询
+- `prometheus_range_query` — Prometheus 范围查询
+- `loki_log_query` — Loki LogQL 查询
+- `structlog_parse` — structlog 输出解析 (json / logfmt)
+
+#### System (2): `_system.py`
+- `cpu_memory_snapshot` — CPU + 内存系统快照
+- `process_list_top` — 进程 top N (按 CPU 或内存)
+
+#### S3 (2): `_s3.py`
+- `s3_upload_file` — 上传本地文件到 S3
+- `s3_object_metadata` — 查 S3 对象元数据 (HEAD)
+
+#### Infrastructure
+- `_exceptions.py`: `OprimError` / `OprimConnectionError` / `OprimTimeoutError` / `OprimNotFoundError` / `OprimAuthError` / `OprimValidationError`
+- 新增依赖: `psycopg[binary]>=3.1`, `psutil>=5.9`, `boto3>=1.34`, `dnspython>=2.6`
+
 ## [2.0.0] - 2026-05-14
 
 ### Added — Phase 10 (10 new elements)
