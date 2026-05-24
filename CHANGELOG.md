@@ -2,6 +2,29 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [Unreleased]
+
+### Added — P6-B2 — Video Generation + Audience Analytics primitives
+
+- `oprim.image_to_video` — Image-to-video via provider injection (wan22_local/cloud/veo/runway).
+- `oprim.face_animation` — Face animation via provider injection (wav2lip/sadtalker/musetalk).
+- `oprim.motion_prompt_translate` — LLM translation of motion description to video prompt.
+- `oprim.audience_sentiment_analyze` — LLM-based comment sentiment analysis.
+- `oprim.audience_feedback_extract` — LLM-based structured feedback extraction.
+- `oprim.youtube_video_stats` — YouTube video statistics fetch.
+- `oprim.youtube_comments_fetch` — YouTube comments with auto-pagination.
+- `oprim.bilibili_video_stats` — Bilibili video statistics fetch.
+- `oprim.bilibili_comments_fetch` — Bilibili comments with pagination.
+- `oprim.video_quality_metrics` — ffprobe-based technical video metrics.
+- `oprim.vlm_video_analyze` — VLM-based video frame analysis.
+- `oprim._providers.wan22` — Wan2.2 local subprocess + DashScope cloud (private).
+- `oprim._providers.sadtalker` — SadTalker subprocess wrapper (private).
+- `oprim._providers.musetalk` — MuseTalk subprocess wrapper (private).
+- `oprim._providers.youtube_api` — YouTube Data API v3 wrapper (private).
+- `oprim._providers.bilibili_api` — Bilibili API wrapper (private).
+
+---
+
 ## [2.13.0] - 2026-05-24
 
 ### Added — Sprint 12 — Sector Strength + Within-Group Percentile (A5 + A6)

@@ -70,6 +70,19 @@ from oprim._system import (
 )
 from oprim._version import __version__
 
+# P6-B2 — Video Generation + Audience Analytics
+from oprim.audience_feedback_extract import audience_feedback_extract
+from oprim.audience_sentiment_analyze import audience_sentiment_analyze
+from oprim.bilibili_comments_fetch import bilibili_comments_fetch
+from oprim.bilibili_video_stats import bilibili_video_stats
+from oprim.face_animation import face_animation
+from oprim.image_to_video import image_to_video
+from oprim.motion_prompt_translate import motion_prompt_translate
+from oprim.video_quality_metrics import video_quality_metrics
+from oprim.vlm_video_analyze import vlm_video_analyze
+from oprim.youtube_comments_fetch import youtube_comments_fetch
+from oprim.youtube_video_stats import youtube_video_stats
+
 # Phase 10 additions (v2.0.0)
 from oprim.behavioral import (
     cpt_value_function,
@@ -402,4 +415,16 @@ __all__ = [
     "within_group_percentile",
     # Sprint 14 — Timeseries (v2.14.0)
     "rolling_window_aggregate",
+    # P6-B2 — Video Generation + Audience Analytics
+    "image_to_video",
+    "face_animation",
+    "motion_prompt_translate",
+    "audience_sentiment_analyze",
+    "audience_feedback_extract",
+    "youtube_video_stats",
+    "youtube_comments_fetch",
+    "bilibili_video_stats",
+    "bilibili_comments_fetch",
+    "video_quality_metrics",
+    "vlm_video_analyze",
 ]
