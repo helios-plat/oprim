@@ -205,6 +205,7 @@ from oprim.timeseries.heteroskedasticity import breusch_pagan_test
 from oprim.timeseries.stationarity import adf_test, kpss_test
 from oprim.timeseries.time_series_split import time_series_split
 from oprim.timeseries.equity_curve_segment_label import equity_curve_segment_label
+from oprim.timeseries.rolling_window_aggregate import rolling_window_aggregate
 from oprim.markets.sector_strength_proxy import sector_strength_proxy
 from oprim.stats.within_group_percentile import within_group_percentile
 from oprim.topology import persistence_landscape, takens_embed
@@ -399,4 +400,6 @@ __all__ = [
     # Sprint 12 — Markets + Stats (v2.13.0)
     "sector_strength_proxy",
     "within_group_percentile",
+    # Sprint 14 — Timeseries (v2.14.0)
+    "rolling_window_aggregate",
 ]
