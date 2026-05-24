@@ -9,6 +9,7 @@ Nelson, D.B. (1991). Conditional Heteroskedasticity in Asset Returns:
 from __future__ import annotations
 
 import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize

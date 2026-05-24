@@ -18,7 +18,6 @@ import pandas as pd
 
 from oprim.timeseries._base import _adf_statistic, _ols_fit
 
-
 # ---------------------------------------------------------------------------
 # MacKinnon (1996) approximate critical values for ADF t-statistic
 # ---------------------------------------------------------------------------

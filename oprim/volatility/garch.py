@@ -9,6 +9,7 @@ Hamilton, J.D. (1994). Time Series Analysis. Princeton University Press.
 from __future__ import annotations
 
 import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize

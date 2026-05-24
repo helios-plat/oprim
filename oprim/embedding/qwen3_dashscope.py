@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import time
-from typing import Sequence
+from collections.abc import Sequence
 
 import dashscope
 from dashscope import TextEmbedding

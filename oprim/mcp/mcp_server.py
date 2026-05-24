@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 # Per spec: use official mcp.server.fastmcp.FastMCP (NOT the fastmcp community package)
 from mcp.server.fastmcp import FastMCP

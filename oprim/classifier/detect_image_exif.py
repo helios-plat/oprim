@@ -9,6 +9,7 @@ from PIL import ExifTags, Image, UnidentifiedImageError
 from oprim._logging import log as olog
 from oprim.errors import UnsupportedImageError
 
+
 @dataclass
 class ImageExif:
     has_exif: bool

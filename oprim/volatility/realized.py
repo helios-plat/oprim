@@ -53,9 +53,7 @@ def realized_variance(
     ----------
     Andersen & Bollerslev (1998). International Economic Review, 39(4), 885-905.
     """
-    if isinstance(high_freq_returns, pd.DataFrame):
-        arr = high_freq_returns.to_numpy(dtype=float)
-    elif isinstance(high_freq_returns, pd.Series):
+    if isinstance(high_freq_returns, pd.DataFrame) or isinstance(high_freq_returns, pd.Series):
         arr = high_freq_returns.to_numpy(dtype=float)
     else:
         arr = np.asarray(high_freq_returns, dtype=float)

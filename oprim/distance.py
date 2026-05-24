@@ -122,11 +122,11 @@ def dtw_distance(
 
 def _dtw_1d(x, y, window, metric):
     import warnings
-    
+
     n, m = len(x), len(y)
     if n > 500 or m > 500:
         warnings.warn(f"DTW with n={n}, m={m} may be slow (O(n×m))", stacklevel=3)
-    
+
     w = window if window is not None else max(n, m)
 
     # For euclidean: use squared distance in DP, sqrt at end
@@ -153,7 +153,7 @@ def _dtw_1d(x, y, window, metric):
                       (cost[i, j - 1], i, j - 1)]
         _, i, j = min(candidates, key=lambda c: c[0])
     path.reverse()
-    
+
     # Euclidean: sqrt the final cost
     final_cost = cost[n, m]
     if metric == "euclidean":
@@ -206,7 +206,7 @@ def cosine_similarity_batch(
         Similarity scores, or (scores, indices) if top_k is set.
     """
     import warnings
-    
+
     query = np.asarray(query, dtype=np.float64)
     database = np.asarray(database, dtype=np.float64)
 
@@ -306,7 +306,7 @@ def symmetric_kl_divergence(
     """
     p = np.asarray(p, dtype=np.float64)
     q = np.asarray(q, dtype=np.float64)
-    
+
     # Only add epsilon where zero
     p = np.where(p == 0, epsilon, p)
     q = np.where(q == 0, epsilon, q)

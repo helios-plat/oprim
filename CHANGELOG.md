@@ -2,6 +2,29 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.10.0] - 2026-05-24
+
+### Added — BATCH 19 — Infrastructure & Ops Primitives Expansion
+
+#### Docker (7 new): `_docker.py`
+- `docker_image_list` — List docker images with id, tags, size, created_at.
+- `docker_image_delete` — Delete docker image (force support).
+- `docker_volume_list` — List docker volumes.
+- `docker_volume_delete` — Delete docker volume.
+- `docker_network_list` — List docker networks.
+- `compose_up` — Docker Compose up (supports project_name, detach, pull).
+- `compose_down` — Docker Compose down (supports volumes, remove_orphans).
+
+#### Caddy (1 new): `_caddy.py`
+- `caddy_admin_post` — Generic POST/PATCH/PUT/DELETE for Caddy Admin API.
+
+#### Filesystem (1 extended): `_filesystem.py`
+- `archive_to_targz` — Multi-source support for archiving (replaces dir_archive_to_targz).
+- `dir_archive_to_targz` — Deprecated in favor of `archive_to_targz`.
+
+### Changed
+- `ArchiveResult` model updated: `src_dir` (str) -> `sources` (list[str]).
+
 ## [2.9.0] - 2026-05-24
 
 ### Added — Aegis Batch 1: Infrastructure / Ops Primitives (32 new elements)

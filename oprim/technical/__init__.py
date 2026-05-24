@@ -1,16 +1,16 @@
 """Technical indicator submodule."""
 
+from oprim.technical.adaptive import kama
 from oprim.technical.bands import bollinger_bands, donchian_channel, keltner_channels
 from oprim.technical.exits import chandelier_exit
 from oprim.technical.moving_averages import ema, macd, sma, vwap
 from oprim.technical.oscillators import (
+    cci,
     rsi_normalized,
     stochastic_oscillator,
-    cci,
     williams_r,
 )
-from oprim.technical.adaptive import kama
-from oprim.technical.volume import obv, mfi
+from oprim.technical.volume import mfi, obv
 
 __all__ = [
     "sma",

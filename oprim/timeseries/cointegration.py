@@ -21,7 +21,6 @@ import pandas as pd
 
 from oprim.timeseries._base import _adf_statistic, _ols_fit
 
-
 # ---------------------------------------------------------------------------
 # Engle-Granger critical values (MacKinnon 1991, Table III, 2-variable case)
 # ---------------------------------------------------------------------------
@@ -318,7 +317,7 @@ def johansen_cointegration(
     # Effective sample starts at index p (in dY indexing)
     T = n - 1 - p  # effective sample size
 
-    if T <= k:
+    if k >= T:
         raise ValueError(f"Too few effective observations: T={T}, k={k}")
 
     # Lagged levels: Y_{t-1} at time t (for t=p+1..n-1 in dY indexing: dY[p:])

@@ -14,11 +14,11 @@ Manaster, S. & Koehler, G. (1982). The Calculation of Implied Variances from
 from __future__ import annotations
 
 import math
-import numpy as np
-from scipy.stats import norm
-from scipy.optimize import brentq, newton
 
-from oprim.derivatives._base import _d1_d2, _bs_price_from_d1d2
+from scipy.optimize import brentq, newton
+from scipy.stats import norm
+
+from oprim.derivatives._base import _bs_price_from_d1d2, _d1_d2
 
 
 def black_scholes_price(

@@ -1,16 +1,46 @@
 """Oprim — atomic operations library (Layer 1 meta-primitives)."""
 
-from oprim._version import __version__
+from oprim._caddy import (
+    caddy_admin_post,
+    caddy_admin_reload,
+    caddy_certificates_status,
+    caddy_routes_list,
+)
 
 # Aegis Batch 1 — infrastructure / ops primitives (v2.9.0)
 from oprim._docker import (
+    compose_down,
+    compose_up,
     docker_container_inspect,
     docker_container_logs,
     docker_container_restart,
     docker_container_start,
     docker_container_stats,
     docker_container_stop,
+    docker_image_delete,
+    docker_image_list,
     docker_image_pull,
+    docker_network_list,
+    docker_volume_delete,
+    docker_volume_list,
+)
+from oprim._filesystem import (
+    archive_to_targz,
+    dir_archive_to_targz,
+    disk_usage,
+    file_checksum,
+)
+from oprim._metrics_logs import (
+    loki_log_query,
+    prometheus_instant_query,
+    prometheus_range_query,
+    structlog_parse,
+)
+from oprim._network import (
+    dns_resolve,
+    http_health_probe,
+    http_request_once,
+    tcp_port_check,
 )
 from oprim._postgres import (
     postgres_locks_status,
@@ -25,36 +55,15 @@ from oprim._rabbitmq import (
     rabbitmq_node_status,
     rabbitmq_queue_status,
 )
-from oprim._caddy import (
-    caddy_admin_reload,
-    caddy_certificates_status,
-    caddy_routes_list,
-)
-from oprim._network import (
-    dns_resolve,
-    http_health_probe,
-    http_request_once,
-    tcp_port_check,
-)
-from oprim._filesystem import (
-    dir_archive_to_targz,
-    disk_usage,
-    file_checksum,
-)
-from oprim._metrics_logs import (
-    loki_log_query,
-    prometheus_instant_query,
-    prometheus_range_query,
-    structlog_parse,
+from oprim._s3 import (
+    s3_object_metadata,
+    s3_upload_file,
 )
 from oprim._system import (
     cpu_memory_snapshot,
     process_list_top,
 )
-from oprim._s3 import (
-    s3_object_metadata,
-    s3_upload_file,
-)
+from oprim._version import __version__
 
 # Phase 10 additions (v2.0.0)
 from oprim.behavioral import (
@@ -71,11 +80,11 @@ from oprim.crypto.ed25519 import (
     ed25519_sign,
     ed25519_verify,
     generate_keypair,
-    sign,
-    verify,
-    save_keypair_pem,
     load_private_key_pem,
     load_public_key_pem,
+    save_keypair_pem,
+    sign,
+    verify,
 )
 from oprim.crypto.hashing import hmac_sha256, sha256_hash
 from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
@@ -317,13 +326,20 @@ __all__ = [
     # Phase 10 Recursive Utility (v2.0.0)
     "epstein_zin_aggregator",
     # Aegis Batch 1 — Docker (v2.9.0)
+    "compose_down",
+    "compose_up",
     "docker_container_inspect",
     "docker_container_logs",
     "docker_container_start",
     "docker_container_stop",
     "docker_container_restart",
+    "docker_image_delete",
+    "docker_image_list",
     "docker_image_pull",
     "docker_container_stats",
+    "docker_network_list",
+    "docker_volume_delete",
+    "docker_volume_list",
     # Aegis Batch 1 — PostgreSQL (v2.9.0)
     "postgres_pool_status",
     "postgres_slow_queries",
@@ -336,6 +352,7 @@ __all__ = [
     "rabbitmq_consumer_status",
     "rabbitmq_node_status",
     # Aegis Batch 1 — Caddy (v2.9.0)
+    "caddy_admin_post",
     "caddy_admin_reload",
     "caddy_routes_list",
     "caddy_certificates_status",
@@ -346,6 +363,7 @@ __all__ = [
     "http_request_once",
     # Aegis Batch 1 — Filesystem (v2.9.0)
     "disk_usage",
+    "archive_to_targz",
     "dir_archive_to_targz",
     "file_checksum",
     # Aegis Batch 1 — Metrics/Logs (v2.9.0)

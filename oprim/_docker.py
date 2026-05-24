@@ -539,3 +539,276 @@ def docker_container_stats(
         pids=pids,
         timestamp=datetime.now(UTC).isoformat(),
     )
+
+
+# ---------------------------------------------------------------------------
+# 2.8 docker_image_list
+# ---------------------------------------------------------------------------
+
+def docker_image_list(
+    *,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> list[dict[str, Any]]:
+    """列出 docker 镜像.
+
+    Returns:
+        镜像列表, 每个含 id, tags, size_bytes, created_at
+
+    Raises:
+        OprimConnectionError
+    """
+    client = _make_client(docker_host)
+    try:
+        images = client.images.list()
+        return [
+            {
+                "id": img.id,
+                "tags": img.tags,
+                "size_bytes": img.attrs.get("Size", 0),
+                "created_at": img.attrs.get("Created", ""),
+            }
+            for img in images
+        ]
+    except docker.errors.DockerException as exc:
+        raise OprimConnectionError(f"Docker error listing images: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.9 docker_image_delete
+# ---------------------------------------------------------------------------
+
+def docker_image_delete(
+    *,
+    image: str,
+    force: bool = False,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> dict[str, Any]:
+    """删除 docker 镜像.
+
+    Returns:
+        {"deleted": [...], "untagged": [...]}
+
+    Raises:
+        OprimNotFoundError / OprimConnectionError
+    """
+    client = _make_client(docker_host)
+    try:
+        # returns list of dicts, but let's wrap it for consistency if needed
+        # Actually docker-py returns exactly what the API returns
+        res = client.images.remove(image, force=force)
+        return {"result": res}
+    except docker.errors.ImageNotFound as exc:
+        raise OprimNotFoundError(f"Image not found: {image}") from exc
+    except docker.errors.DockerException as exc:
+        raise OprimConnectionError(f"Docker error deleting image: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.10 docker_volume_list
+# ---------------------------------------------------------------------------
+
+def docker_volume_list(
+    *,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> list[dict[str, Any]]:
+    """列出 docker 数据卷.
+
+    Raises:
+        OprimConnectionError
+    """
+    client = _make_client(docker_host)
+    try:
+        volumes = client.volumes.list()
+        return [
+            {
+                "name": vol.name,
+                "driver": vol.attrs.get("Driver", ""),
+                "mountpoint": vol.attrs.get("Mountpoint", ""),
+                "created_at": vol.attrs.get("CreatedAt", ""),
+                "labels": vol.attrs.get("Labels") or {},
+            }
+            for vol in volumes
+        ]
+    except docker.errors.DockerException as exc:
+        raise OprimConnectionError(f"Docker error listing volumes: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.11 docker_volume_delete
+# ---------------------------------------------------------------------------
+
+def docker_volume_delete(
+    *,
+    name: str,
+    force: bool = False,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> dict[str, Any]:
+    """删除 docker 数据卷.
+
+    Raises:
+        OprimNotFoundError / OprimConnectionError
+    """
+    client = _make_client(docker_host)
+    try:
+        vol = client.volumes.get(name)
+        vol.remove(force=force)
+        return {"deleted": name}
+    except docker.errors.NotFound as exc:
+        raise OprimNotFoundError(f"Volume not found: {name}") from exc
+    except docker.errors.DockerException as exc:
+        raise OprimConnectionError(f"Docker error deleting volume: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.12 docker_network_list
+# ---------------------------------------------------------------------------
+
+def docker_network_list(
+    *,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> list[dict[str, Any]]:
+    """列出 docker 网络.
+
+    Raises:
+        OprimConnectionError
+    """
+    client = _make_client(docker_host)
+    try:
+        networks = client.networks.list()
+        return [
+            {
+                "id": net.id,
+                "name": net.name,
+                "driver": net.attrs.get("Driver", ""),
+                "scope": net.attrs.get("Scope", ""),
+                "internal": net.attrs.get("Internal", False),
+            }
+            for net in networks
+        ]
+    except docker.errors.DockerException as exc:
+        raise OprimConnectionError(f"Docker error listing networks: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.13 compose_up
+# ---------------------------------------------------------------------------
+
+def compose_up(
+    *,
+    compose_file: str,
+    project_name: str | None = None,
+    detach: bool = True,
+    pull: Literal["always", "missing", "never"] = "missing",
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> dict[str, Any]:
+    """docker-compose up.
+
+    Args:
+        compose_file: path to docker-compose.yml
+        project_name: project name (optional)
+        detach: run in background
+        pull: pull policy
+        docker_host: docker host address
+
+    Returns:
+        {"started_services": list[str], "stdout": str, "stderr": str}
+
+    Raises:
+        OprimNotFoundError: compose file not found
+        OprimConnectionError: docker compose command failed
+    """
+    import os
+    import subprocess
+
+    if not os.path.exists(compose_file):
+        raise OprimNotFoundError(f"Compose file not found: {compose_file}")
+
+    cmd = ["docker", "compose", "-f", compose_file]
+    if project_name:
+        cmd.extend(["-p", project_name])
+    cmd.extend(["up", "--pull", pull])
+    if detach:
+        cmd.append("-d")
+
+    env = os.environ.copy()
+    env["DOCKER_HOST"] = docker_host
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=True, env=env)
+        # Try to parse started services from stderr (docker compose output goes to stderr often)
+        started_services: list[str] = []
+        for line in proc.stderr.splitlines():
+            if "Started" in line or "Created" in line:
+                # Example: " Container project-service-1  Started"
+                parts = line.split()
+                if len(parts) >= 2:
+                    started_services.append(parts[1])
+
+        return {
+            "started_services": sorted(list(set(started_services))),
+            "stdout": proc.stdout,
+            "stderr": proc.stderr,
+        }
+    except subprocess.CalledProcessError as exc:
+        msg = f"Docker compose up failed (exit {exc.returncode}): {exc.stderr}"
+        raise OprimConnectionError(msg) from exc
+    except Exception as exc:
+        raise OprimConnectionError(f"Failed to execute docker compose: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.14 compose_down
+# ---------------------------------------------------------------------------
+
+def compose_down(
+    *,
+    compose_file: str,
+    project_name: str | None = None,
+    volumes: bool = False,
+    remove_orphans: bool = True,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> dict[str, Any]:
+    """docker-compose down.
+
+    Args:
+        compose_file: path to docker-compose.yml
+        project_name: project name
+        volumes: remove volumes
+        remove_orphans: remove orphan containers
+        docker_host: docker host address
+
+    Returns:
+        {"stdout": str, "stderr": str}
+
+    Raises:
+        OprimNotFoundError / OprimConnectionError
+    """
+    import os
+    import subprocess
+
+    if not os.path.exists(compose_file):
+        raise OprimNotFoundError(f"Compose file not found: {compose_file}")
+
+    cmd = ["docker", "compose", "-f", compose_file]
+    if project_name:
+        cmd.extend(["-p", project_name])
+    cmd.append("down")
+    if volumes:
+        cmd.append("-v")
+    if remove_orphans:
+        cmd.append("--remove-orphans")
+
+    env = os.environ.copy()
+    env["DOCKER_HOST"] = docker_host
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=True, env=env)
+        return {
+            "stdout": proc.stdout,
+            "stderr": proc.stderr,
+        }
+    except subprocess.CalledProcessError as exc:
+        msg = f"Docker compose down failed (exit {exc.returncode}): {exc.stderr}"
+        raise OprimConnectionError(msg) from exc
+    except Exception as exc:
+        raise OprimConnectionError(f"Failed to execute docker compose: {exc}") from exc

@@ -1,7 +1,7 @@
 """BGE-M3 local embedder (FlagEmbedding or sentence-transformers)."""
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from oprim._logging import log as olog
 from oprim.errors import EmbeddingError

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from datetime import UTC
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 from pydantic import BaseModel
@@ -250,3 +250,46 @@ def caddy_certificates_status(
         not_after=None,
         days_until_expiry=None,
     )
+
+
+# ---------------------------------------------------------------------------
+# 5.5 caddy_admin_post
+# ---------------------------------------------------------------------------
+
+def caddy_admin_post(
+    *,
+    admin_url: str,
+    path: str,
+    body: dict[str, Any] | None = None,
+    method: Literal["POST", "PATCH", "PUT", "DELETE"] = "POST",
+    timeout_sec: int = 10,
+) -> dict[str, Any]:
+    """向 Caddy Admin API 发送 POST/PATCH/PUT/DELETE 请求.
+
+    Args:
+        admin_url: Caddy admin API URL
+        path: API 路径 (e.g. "/config/...")
+        body: 请求体
+        method: HTTP 方法
+        timeout_sec: 超时
+
+    Returns:
+        JSON 响应体 (若有) 或 {"status": "ok"}
+
+    Raises:
+        OprimValidationError: 4xx 错误
+        OprimConnectionError: 5xx 或 连接错误
+    """
+    from typing import cast
+
+    resp = _admin_request(method, admin_url, path, json_body=body, timeout_sec=timeout_sec)
+
+    if resp.status_code >= 400 and resp.status_code < 500:
+        raise OprimValidationError(f"Caddy API error (HTTP {resp.status_code}): {resp.text[:500]}")
+    if not resp.is_success:
+        raise OprimConnectionError(f"Caddy API failed (HTTP {resp.status_code}): {resp.text[:500]}")
+
+    try:
+        return cast(dict[str, Any], resp.json())
+    except Exception:
+        return {"status": "ok", "http_code": resp.status_code}

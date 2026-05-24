@@ -9,7 +9,7 @@ Nelson, C.R. & Siegel, A.F. (1987). Parsimonious Modeling of Yield Curves.
 """
 from __future__ import annotations
 
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -228,7 +228,7 @@ def cubic_spline_yield_curve(
     }
     bc = bc_map.get(boundary_type)
     if bc is None:
-        raise ValueError(f"boundary_type must be 'natural', 'clamped', or 'not_a_knot'")
+        raise ValueError("boundary_type must be 'natural', 'clamped', or 'not_a_knot'")
 
     cs = CubicSpline(t_sorted, y_sorted, bc_type=bc)
     fitted_yields = cs(t_sorted)

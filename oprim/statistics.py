@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, Literal
+from collections.abc import Callable
+from typing import Any, Literal
 
 import numpy as np
 import pandas as pd
@@ -333,11 +334,11 @@ def mann_kendall_trend(
         for lag in range(1, n - 1):
             cov = ((ranks[:-lag] - mean_rank) * (ranks[lag:] - mean_rank)).sum()
             acf[lag] = cov / var_rank
-        
+
         # Significance test: |ACF| > 1.96/sqrt(n) at alpha=0.05
         acf_threshold = 1.96 / np.sqrt(n)
         significant_lags = np.where(np.abs(acf) > acf_threshold)[0]
-        
+
         if len(significant_lags) > 0:
             correction = 0.0
             for lag in significant_lags:

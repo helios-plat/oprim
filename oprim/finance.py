@@ -37,7 +37,7 @@ def drawdown_curve(
     equity_or_returns = equity_or_returns.dropna()
     if len(equity_or_returns) == 0:
         raise ValueError("No valid (non-NaN) data points")
-    
+
     if input_type == "returns":
         if compound:
             equity = (1 + equity_or_returns).cumprod()
@@ -260,13 +260,13 @@ def value_at_risk(
 
     returns_clean = returns.dropna()
     n = len(returns_clean)
-    
+
     # Sample size checks
     if n < 10:
         raise ValueError(f"Insufficient samples: {n} < 10")
     if n < 30:
         warnings.warn(f"Small sample ({n} < 30): historical VaR may be unstable", stacklevel=2)
-    
+
     alpha = 1 - confidence_level
 
     if method == "historical":

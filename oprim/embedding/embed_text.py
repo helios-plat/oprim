@@ -1,7 +1,8 @@
 """Provider-dispatched text embedding."""
 from __future__ import annotations
 
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol
 
 from oprim._logging import log as olog
 from oprim.errors import EmbeddingError

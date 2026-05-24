@@ -141,7 +141,7 @@ def lsm_american_price(
     if option_type not in ("call", "put"):
         raise ValueError(f"option_type must be 'call' or 'put', got {option_type!r}")
     if basis_functions not in ("polynomial", "laguerre", "hermite"):
-        raise ValueError(f"basis_functions must be 'polynomial', 'laguerre', or 'hermite'")
+        raise ValueError("basis_functions must be 'polynomial', 'laguerre', or 'hermite'")
 
     S, K, T, r, sigma, q = spot, strike, time_to_expiry, risk_free_rate, volatility, dividend_yield
 

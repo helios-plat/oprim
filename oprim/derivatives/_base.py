@@ -13,8 +13,8 @@ def _d1_d2(S, K, T, r, sigma, q=0.0):
 
 def _bs_price_from_d1d2(S, K, T, r, sigma, q, d1, d2, option_type):
     """Compute BS price given d1, d2."""
-    from scipy.stats import norm
     import numpy as np
+    from scipy.stats import norm
     call = S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
     if option_type == "call":
         return call

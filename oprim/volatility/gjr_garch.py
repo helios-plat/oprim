@@ -10,6 +10,7 @@ Glosten, L.R., Jagannathan, R. & Runkle, D.E. (1993). On the Relation between
 from __future__ import annotations
 
 import warnings
+
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
