@@ -4,6 +4,36 @@
 
 ## [2.11.0] - 2026-05-24
 
+### Added — Hevi Batch 2 — External API Primitives
+
+- `image_generate(provider, prompt, width, height, output_path, seed, timeout_s, extra)` — Image generation via provider injection.
+  - Example: `await image_generate(provider="siliconflow", prompt="sunset", output_path=Path("img.png"))`
+- `image_understand(provider, image_path, prompt, timeout_s)` — VLM image understanding (image → text).
+  - Example: `text = await image_understand(provider="qwen_vl", image_path=Path("img.jpg"), prompt="Describe")`
+- `tts_synthesize(provider, text, voice, output_path, rate, pitch, timeout_s)` — TTS speech synthesis via provider injection.
+  - Example: `await tts_synthesize(provider="edge_tts", text="Hello", voice="zh-CN-XiaoxiaoNeural", output_path=Path("out.mp3"))`
+- `srt_translate(src_srt_path, target_lang, llm, output_path, batch_size)` — SRT subtitle translation via LLMCaller Protocol.
+  - Example: `await srt_translate(src_srt_path=Path("zh.srt"), target_lang="en", llm=llm, output_path=Path("en.srt"))`
+- `avatar_generate(provider, portrait_image, audio_path, output_path, fps, timeout_s)` — Digital avatar generation via subprocess provider.
+  - Example: `await avatar_generate(provider="wav2lip", portrait_image=Path("face.png"), audio_path=Path("audio.wav"), output_path=Path("avatar.mp4"))`
+
+### Added — Hevi Batch 1 — FFmpeg Media Primitives
+
+- `audio_mix(inputs, weights, output_path, sample_rate, timeout_s)` — Multi-track audio mixing via FFmpeg amix filter.
+  - Example: `await audio_mix(inputs=[Path("narration.wav"), Path("bgm.wav")], weights=[1.0, 0.3], output_path=Path("mixed.wav"))`
+- `audio_normalize(input_path, output_path, target_lufs, timeout_s)` — EBU R128 loudness normalization via FFmpeg loudnorm.
+  - Example: `await audio_normalize(input_path=Path("raw.wav"), output_path=Path("norm.wav"), target_lufs=-14.0)`
+- `audio_video_merge(video_path, audio_path, output_path, audio_codec, timeout_s)` — Merge audio into video (replacing original track).
+  - Example: `await audio_video_merge(video_path=Path("v.mp4"), audio_path=Path("a.wav"), output_path=Path("out.mp4"))`
+- `video_concat(inputs, output_path, method, timeout_s)` — Concatenate multiple videos (demuxer or filter).
+  - Example: `await video_concat(inputs=[Path("p1.mp4"), Path("p2.mp4")], output_path=Path("full.mp4"))`
+- `video_recompose(input_path, output_path, target_width, target_height, method, timeout_s)` — Recompose video aspect ratio (landscape → portrait).
+  - Example: `await video_recompose(input_path=Path("wide.mp4"), output_path=Path("vertical.mp4"))`
+- `subtitle_burn(video_path, srt_paths, output_path, primary_alignment, secondary_alignment, timeout_s)` — Burn subtitles (single/dual language).
+  - Example: `await subtitle_burn(video_path=Path("v.mp4"), srt_paths=[Path("zh.srt"), Path("en.srt")], output_path=Path("burned.mp4"))`
+- `video_generate(provider, prompt, reference_image, duration_s, width, height, output_path, timeout_s)` — Video generation via provider injection (stub).
+  - Example: `await video_generate(provider="stub", prompt="A cat on the moon", output_path=Path("gen.mp4"))`
+
 ### Added — Phase 11C
 - `parse_obsidian_tasks`: parse Obsidian tasks from markdown.
 - `llm_judge_rerank`: use LLM to rerank documents.
