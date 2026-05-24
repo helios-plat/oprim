@@ -177,3 +177,18 @@ def test_docker_network_list_error(mock_client_class):
     mock_client.networks.list.side_effect = docker.errors.DockerException("error")
     with pytest.raises(OprimConnectionError):
         docker_network_list()
+
+@patch("docker.DockerClient")
+def test_docker_container_list(mock_client_class):
+    mock_client = mock_client_class.return_value
+    mock_c = MagicMock()
+    mock_c.id = "c1"
+    mock_c.name = "con1"
+    mock_c.image.tags = ["img:1"]
+    mock_c.status = "running"
+    mock_c.attrs = {"State": {"Status": "running"}, "Config": {"Labels": {}}}
+    mock_client.containers.list.return_value = [mock_c]
+    
+    res = docker_container_list()
+    assert len(res) == 1
+    assert res[0].container_id == "c1"

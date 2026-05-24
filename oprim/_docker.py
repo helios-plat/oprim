@@ -812,3 +812,51 @@ def compose_down(
         raise OprimConnectionError(msg) from exc
     except Exception as exc:
         raise OprimConnectionError(f"Failed to execute docker compose: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.15 docker_container_list
+# ---------------------------------------------------------------------------
+
+def docker_container_list(
+    *,
+    all: bool = False,
+    filters: dict[str, Any] | None = None,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> list[ContainerInfo]:
+    """列出 docker 容器.
+
+    Args:
+        all: 是否列出所有容器 (默认仅运行中)
+        filters: 过滤器 (e.g. {"label": ["foo=bar"]})
+        docker_host: docker host
+
+    Returns:
+        ContainerInfo 列表
+
+    Raises:
+        OprimConnectionError
+    """
+    client = _make_client(docker_host)
+    try:
+        containers = client.containers.list(all=all, filters=filters)
+        return [
+            ContainerInfo(
+                container_id=c.id,
+                name=c.name,
+                image=c.image.tags[0] if c.image.tags else c.image.id,
+                state=_parse_state(c.attrs),
+                status=c.status,
+                started_at=c.attrs.get("State", {}).get("StartedAt"),
+                finished_at=c.attrs.get("State", {}).get("FinishedAt"),
+                exit_code=c.attrs.get("State", {}).get("ExitCode"),
+                health=_parse_health(c.attrs),
+                restart_count=c.attrs.get("RestartCount", 0),
+                labels=c.attrs.get("Config", {}).get("Labels") or {},
+                ports=_parse_ports(c.attrs),
+                mounts=_parse_mounts(c.attrs),
+            )
+            for c in containers
+        ]
+    except docker.errors.DockerException as exc:
+        raise OprimConnectionError(f"Docker error listing containers: {exc}") from exc
