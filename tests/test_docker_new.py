@@ -7,6 +7,7 @@ from oprim import (
     docker_volume_list,
     docker_volume_delete,
     docker_network_list,
+    docker_container_list,
 )
 from oprim._exceptions import OprimNotFoundError, OprimConnectionError
 

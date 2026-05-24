@@ -7,6 +7,10 @@ from oprim._caddy import (
     caddy_routes_list,
 )
 
+from oprim.llm_judge_rerank import LLMCaller, RerankResult, llm_judge_rerank
+from oprim.llm_query_expand import llm_query_expand
+from oprim.parse_obsidian_tasks import ObsidianTask, parse_obsidian_tasks
+
 # Aegis Batch 1 — infrastructure / ops primitives (v2.9.0)
 from oprim._docker import (
     compose_down,
@@ -324,7 +328,13 @@ __all__ = [
     "rotationally_invariant_estimator",
     "ledoit_wolf_shrinkage",
     "spectral_eigengap_detect",
-    # Phase 10 Recursive Utility (v2.0.0)
+    "llm_judge_rerank",
+    "RerankResult",
+    "LLMCaller",
+    "llm_query_expand",
+    "parse_obsidian_tasks",
+    "ObsidianTask",
+    # Phase 10 Recursive Utility (v2.8.0)
     "epstein_zin_aggregator",
     # Aegis Batch 1 — Docker (v2.9.0)
     "compose_down",

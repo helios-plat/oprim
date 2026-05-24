@@ -2,6 +2,13 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.11.0] - 2026-05-24
+
+### Added — Phase 11C
+- `parse_obsidian_tasks`: parse Obsidian tasks from markdown.
+- `llm_judge_rerank`: use LLM to rerank documents.
+- `llm_query_expand`: use LLM to expand queries with synonyms and variants.
+
 ## [2.10.0] - 2026-05-24
 
 ### Added — BATCH 19 — Infrastructure & Ops Primitives Expansion
