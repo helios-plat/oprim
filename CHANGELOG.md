@@ -2,6 +2,13 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.13.0] - 2026-05-24
+
+### Added — Sprint 12 — Sector Strength + Within-Group Percentile (A5 + A6)
+
+- `sector_strength_proxy(returns, volumes, scoring, lookback)` — 0-100 normalized sector strength.
+- `within_group_percentile(values, target_idx, method)` — Percentile of target within group.
+
 ## [2.12.0] - 2026-05-24
 
 ### Added — Sprint 11 — Timeseries Split & Segment Label (A7 + A8)
