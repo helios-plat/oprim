@@ -203,6 +203,8 @@ from oprim.timeseries.cointegration import engle_granger_cointegration, johansen
 from oprim.timeseries.distribution_tests import jarque_bera_test
 from oprim.timeseries.heteroskedasticity import breusch_pagan_test
 from oprim.timeseries.stationarity import adf_test, kpss_test
+from oprim.timeseries.time_series_split import time_series_split
+from oprim.timeseries.equity_curve_segment_label import equity_curve_segment_label
 from oprim.topology import persistence_landscape, takens_embed
 from oprim.volatility.egarch import egarch_fit, egarch_forecast
 from oprim.volatility.ewma import ewma_volatility
@@ -389,4 +391,7 @@ __all__ = [
     # Aegis Batch 1 — S3 (v2.9.0)
     "s3_upload_file",
     "s3_object_metadata",
+    # Sprint 11 — Timeseries (v2.12.0)
+    "time_series_split",
+    "equity_curve_segment_label",
 ]

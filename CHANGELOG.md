@@ -2,6 +2,15 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.12.0] - 2026-05-24
+
+### Added — Sprint 11 — Timeseries Split & Segment Label (A7 + A8)
+
+- `time_series_split(dates, train_pct, val_pct, gap_days)` — Split date sequence into train/val/oos with optional gap exclusion.
+  - Example: `splits = time_series_split(dates=dates, train_pct=0.6, val_pct=0.2, gap_days=15)`
+- `equity_curve_segment_label(equity_curve, split_dates)` — Label equity curve rows with segment (train/gap/val/oos).
+  - Example: `labeled = equity_curve_segment_label(equity_curve=df, split_dates=splits["split_dates"])`
+
 ## [2.11.0] - 2026-05-24
 
 ### Added — Hevi Batch 2 — External API Primitives
