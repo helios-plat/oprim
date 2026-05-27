@@ -4,6 +4,22 @@
 
 ## [Unreleased]
 
+### Added — P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
+
+- `oprim.style_marker_prompt` — 风格关键词注入 (7 styles: 科普/严肃/搞笑/治愈/悬疑/热血/温暖). Pure function, no I/O.
+- `oprim.lighting_control_prompt` — 灯光描述注入 (6 lightings: 暖/冷/戏剧/自然/高对比/柔和). Pure function.
+- `oprim.camera_motion_prompt` — 镜头运动 prompt 生成 (8 motions + intensity [0,1] → slow/medium/fast). Pure function.
+- `oprim.first_last_frame_transition` — 首尾帧过渡视频生成 via `ProviderRegistry.get(category='image_to_video')`.
+  - `FrameTransitionError` / `FrameTransitionProviderNotFoundError` — Error hierarchy.
+- `oprim.video_edit_element_remove` — 视频精准编辑去除元素 via `ProviderRegistry.get(category='video_inpaint')`.
+  - `VideoEditError` / `VideoEditProviderNotFoundError` — Error hierarchy.
+- `oprim.story_predict` — 单 LLM 调用基于参考图推演剧情. `LLMCaller` Protocol + Pydantic `StoryPrediction`.
+  - `StoryPrediction`, `TimePrediction`, `StoryPredictError` — Models and error.
+- `oprim._providers.longcat_avatar` — LongCat-Video-Avatar 1.5 subprocess wrapper (private).
+  - `invoke_local`: subprocess call to `vendor_dir/inference.py`.
+  - `invoke_cloud`: TECHNICAL_DEBT stub (no official Meituan cloud API as of 2026-05-27).
+- Tests: ≥43 total (7+6+8+6+6+7+6), 100% coverage.
+
 ### Added — P6-B2 — Video Generation + Audience Analytics primitives
 
 - `oprim.image_to_video` — Image-to-video via provider injection (wan22_local/cloud/veo/runway).

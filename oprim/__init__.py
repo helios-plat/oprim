@@ -70,6 +70,27 @@ from oprim._system import (
 )
 from oprim._version import __version__
 
+# P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
+from oprim.style_marker_prompt import StyleType, style_marker_prompt
+from oprim.lighting_control_prompt import LightingType, lighting_control_prompt
+from oprim.camera_motion_prompt import MotionType, camera_motion_prompt
+from oprim.first_last_frame_transition import (
+    FrameTransitionError,
+    FrameTransitionProviderNotFoundError,
+    first_last_frame_transition,
+)
+from oprim.video_edit_element_remove import (
+    VideoEditError,
+    VideoEditProviderNotFoundError,
+    video_edit_element_remove,
+)
+from oprim.story_predict import (
+    StoryPredictError,
+    StoryPrediction,
+    TimePrediction,
+    story_predict,
+)
+
 # P6-B2 — Video Generation + Audience Analytics
 from oprim.audience_feedback_extract import audience_feedback_extract
 from oprim.audience_sentiment_analyze import audience_sentiment_analyze
@@ -237,47 +258,92 @@ from oprim.volatility.rough import rough_volatility_simulate
 __all__ = [
     "__version__",
     # Time Series (11)
-    "log_returns", "cumulative_returns", "rolling_window_split",
-    "lag_forward_fill", "percentile_rank", "ewma_smooth",
-    "realized_vol", "zscore_normalize", "gap_detect",
-    "resample_align", "purge_embargo_split",
+    "log_returns",
+    "cumulative_returns",
+    "rolling_window_split",
+    "lag_forward_fill",
+    "percentile_rank",
+    "ewma_smooth",
+    "realized_vol",
+    "zscore_normalize",
+    "gap_detect",
+    "resample_align",
+    "purge_embargo_split",
     # Statistics (12)
-    "bootstrap_ci", "percentile_ci", "percentile_value",
-    "distribution_summary", "skew_kurt_robust", "kolmogorov_smirnov_test",
-    "mann_kendall_trend", "bayes_beta_update", "brier_score_decomposed",
-    "pearson_spearman_corr", "kde_density", "correlation_batch",
+    "bootstrap_ci",
+    "percentile_ci",
+    "percentile_value",
+    "distribution_summary",
+    "skew_kurt_robust",
+    "kolmogorov_smirnov_test",
+    "mann_kendall_trend",
+    "bayes_beta_update",
+    "brier_score_decomposed",
+    "pearson_spearman_corr",
+    "kde_density",
+    "correlation_batch",
     # Distance (6)
-    "wasserstein_distance", "dtw_distance", "cosine_similarity_batch",
-    "euclidean_distance_matrix", "symmetric_kl_divergence",
+    "wasserstein_distance",
+    "dtw_distance",
+    "cosine_similarity_batch",
+    "euclidean_distance_matrix",
+    "symmetric_kl_divergence",
     "distributional_distance",
     # Numerics (3)
-    "logsumexp_safe", "softmax_safe", "clip_with_warning",
+    "logsumexp_safe",
+    "softmax_safe",
+    "clip_with_warning",
     # Regime (3)
-    "regime_filter_data", "regime_transition_matrix", "regime_label_align",
+    "regime_filter_data",
+    "regime_transition_matrix",
+    "regime_label_align",
     # Finance (6)
-    "drawdown_curve", "sharpe_ratio", "beta_alpha_ols", "value_at_risk",
-    "nelson_siegel_yield_curve", "futures_curve_shape",
+    "drawdown_curve",
+    "sharpe_ratio",
+    "beta_alpha_ols",
+    "value_at_risk",
+    "nelson_siegel_yield_curve",
+    "futures_curve_shape",
     # Information (3)
-    "shannon_entropy", "ordinal_pattern", "phase_randomize",
+    "shannon_entropy",
+    "ordinal_pattern",
+    "phase_randomize",
     # Signal Processing (6)
-    "linear_slope", "atr", "hurst_exponent", "compute_dwt",
-    "H_change_rate_std", "orderbook_entropy",
+    "linear_slope",
+    "atr",
+    "hurst_exponent",
+    "compute_dwt",
+    "H_change_rate_std",
+    "orderbook_entropy",
     # Topology (2)
-    "takens_embed", "persistence_landscape",
+    "takens_embed",
+    "persistence_landscape",
     # Point Process (1)
     "hawkes_nll",
     # Technical (8) — Phase 1
-    "sma", "ema", "vwap", "macd",
+    "sma",
+    "ema",
+    "vwap",
+    "macd",
     "rsi_normalized",
-    "bollinger_bands", "donchian_channel",
+    "bollinger_bands",
+    "donchian_channel",
     "chandelier_exit",
     # Crypto (4) — Phase 1
-    "sha256_hash", "hmac_sha256",
-    "rfc6962_merkle_root", "rfc6962_inclusion_proof",
+    "sha256_hash",
+    "hmac_sha256",
+    "rfc6962_merkle_root",
+    "rfc6962_inclusion_proof",
     # Crypto (3→9) — Phase 6A + Phase 3 v2.1.0
-    "ed25519_keypair_generate", "ed25519_sign", "ed25519_verify",
-    "generate_keypair", "sign", "verify",
-    "save_keypair_pem", "load_private_key_pem", "load_public_key_pem",
+    "ed25519_keypair_generate",
+    "ed25519_sign",
+    "ed25519_verify",
+    "generate_keypair",
+    "sign",
+    "verify",
+    "save_keypair_pem",
+    "load_private_key_pem",
+    "load_public_key_pem",
     # Serialization (1) — Phase 1
     "canonical_json",
     # Risk (1) — Phase 1
@@ -285,11 +351,16 @@ __all__ = [
     # Performance (2) — Phase 2
     "cagr",
     # Mean Reversion (2) — Phase 2
-    "ornstein_uhlenbeck_fit", "ornstein_uhlenbeck_half_life",
+    "ornstein_uhlenbeck_fit",
+    "ornstein_uhlenbeck_half_life",
     # Volatility (3) — Phase 2
-    "garch_fit", "garch_forecast", "ewma_volatility",
+    "garch_fit",
+    "garch_forecast",
+    "ewma_volatility",
     # Derivatives (3) — Phase 2
-    "black_scholes_price", "black_scholes_greeks", "implied_volatility",
+    "black_scholes_price",
+    "black_scholes_greeks",
+    "implied_volatility",
     # Derivatives (8) — Phase 5A
     "binomial_tree_price",
     "mc_european_price",
@@ -427,4 +498,21 @@ __all__ = [
     "bilibili_comments_fetch",
     "video_quality_metrics",
     "vlm_video_analyze",
+    # P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
+    "style_marker_prompt",
+    "StyleType",
+    "lighting_control_prompt",
+    "LightingType",
+    "camera_motion_prompt",
+    "MotionType",
+    "first_last_frame_transition",
+    "FrameTransitionError",
+    "FrameTransitionProviderNotFoundError",
+    "video_edit_element_remove",
+    "VideoEditError",
+    "VideoEditProviderNotFoundError",
+    "story_predict",
+    "StoryPrediction",
+    "TimePrediction",
+    "StoryPredictError",
 ]
