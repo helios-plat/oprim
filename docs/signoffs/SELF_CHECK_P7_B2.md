@@ -166,7 +166,95 @@ All checks passed!
 
 ---
 
-## 7. 关键设计决策备注
+## 7. 3 prompt 类元素 docstring Example 真实运行输出
+
+以下为实机运行（`uv run python -c "..."`），非测试 mock。
+
+### style_marker_prompt
+
+```
+$ python -c "
+from oprim.style_marker_prompt import style_marker_prompt
+print(repr(style_marker_prompt(base_prompt='一只猫', style='治愈')))
+print(repr(style_marker_prompt(base_prompt='城市夜景', style='悬疑')))
+print(repr(style_marker_prompt(base_prompt='running', style='热血')))
+"
+'一只猫, 治愈风格, 温暖柔和'
+'城市夜景, 悬疑风格, 紧张神秘'
+'running, 热血风格, 激昂澎湃'
+```
+
+### lighting_control_prompt
+
+```
+$ python -c "
+from oprim.lighting_control_prompt import lighting_control_prompt
+print(repr(lighting_control_prompt(base_prompt='室内场景', lighting='暖')))
+print(repr(lighting_control_prompt(base_prompt='night alley', lighting='戏剧')))
+print(repr(lighting_control_prompt(base_prompt='forest', lighting='自然')))
+"
+'室内场景, lighting: warm and cozy light'
+'night alley, lighting: dramatic chiaroscuro lighting'
+'forest, lighting: soft natural daylight'
+```
+
+### camera_motion_prompt
+
+```
+$ python -c "
+from oprim.camera_motion_prompt import camera_motion_prompt
+print(repr(camera_motion_prompt(base_motion=None, motion_type='pan_left', intensity=0.2)))
+print(repr(camera_motion_prompt(base_motion='forest scene', motion_type='dolly_in', intensity=0.5)))
+print(repr(camera_motion_prompt(base_motion=None, motion_type='rotate', intensity=0.9)))
+print(repr(camera_motion_prompt(base_motion='office interior', motion_type='static', intensity=0.0)))
+"
+'camera pans left, slow motion'
+'forest scene, camera moves forward (dolly in), medium motion'
+'camera rotates around subject, fast motion'
+'office interior, static locked-off shot, slow motion'
+```
+
+---
+
+## 8. LongCat Cloud API 调查结论 + invoke_cloud 实施状态（R-4）
+
+### 调查时间
+
+2026-05-27（P7-B2 实施前，R-4 研究阶段）
+
+### 调查结论
+
+| 维度 | 结论 |
+|---|---|
+| 官方云 API | **不存在**。LongCat-Video-Avatar 1.5 由美团（Meituan）于 2024 年开源（GitHub: meituan/LongCat-Video-Avatar），仅提供本地 inference 脚本，无官方 REST / gRPC 云端接口。|
+| 第三方托管 | fal.ai 和 WaveSpeed 等平台有托管部署，但非美团官方；API 协议不稳定，随平台策略变更。|
+| 官方文档 | README 仅含本地部署指引（`python inference.py --portrait ... --audio ...`），无云端接入章节。|
+| 社区动态 | 截至调查日无公开 issue 提及官方 API 路线图。|
+
+### invoke_cloud 实施状态
+
+`invoke_cloud` 当前实施为 **TECHNICAL_DEBT stub**，主动抛 `NotImplementedError`：
+
+```python
+async def invoke_cloud(...) -> Path:
+    raise NotImplementedError(
+        "TECHNICAL_DEBT: No official Meituan cloud API as of 2026-05-27. "
+        "Third-party fal.ai/WaveSpeed wrappers exist but are not official. "
+        "Implement when an official API is available."
+    )
+```
+
+**设计决策**：选用 `NotImplementedError`（非静默 fallback / 非空函数）原因：
+
+1. **失败不静默**（obase SPEC §1.7）：调用者明确感知到该路径不可用，不会产生无声的错误结果
+2. **TECHNICAL_DEBT 标注**：错误信息内嵌调查日期 + 原因，便于未来接任人快速定位
+3. **测试覆盖**：`test_invoke_cloud_raises_not_implemented` 验证该 stub 行为，防止意外实施
+
+**解除条件**：当美团发布官方 LongCat Cloud API，或项目决定采用第三方托管（需评估 SLA + 数据合规），再正式实施并替换 stub。
+
+---
+
+## 9. 关键设计决策备注
 
 | 决策 | 理由 |
 |---|---|
@@ -179,7 +267,7 @@ All checks passed!
 
 ---
 
-## 8. 边界确认
+## 10. 边界确认
 
 - 修改范围：`/home/soffy/projects/platform/oprim/` 仅
 - 不涉及 hevi / obase / stratum
