@@ -669,3 +669,4 @@ from oprim.financial_metric_extraction import financial_metric_extraction, NewsI
 from oprim.policy_event_extraction import policy_event_extraction, PolicyNews, PolicyEvent
 from oprim.industry_attribution import industry_attribution, IndustryImpact
 from oprim.pattern_detection import pattern_detection, OHLCVInput, PatternMatch
+from oprim.predicate import evaluate_threshold_condition, OperatorType
