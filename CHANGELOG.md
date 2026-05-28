@@ -2,6 +2,27 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.15.0] - 2026-05-28 — Tide v4 B1-B3 extraction (11 oprims)
+
+### Added — Tide v4 B1-B3 — A股技术/基本面/选股 oprim
+
+- `oprim.kdj` — KDJ 随机指标 (K/D/J 三序列). Pure function, keyword-only.
+- `oprim.limit_status_calc` — A股涨跌停状态判定 (lookback N 日). Parameterized by `limit_pct` (10%/20%/30%).
+- `oprim.beneish_m_score` — Beneish M-Score 财务造假风险 8 因子. `BeneishInput`/`BeneishResult`.
+- `oprim.dupont_decomposition` — 杜邦分解 ROE = NPM × asset_turnover × equity_multiplier. `DuPontResult`.
+- `oprim.dcf_valuation` — 两阶段 DCF 内在价值. `DCFResult`. Raises `OprimError` when `discount_rate <= terminal_growth_rate`.
+- `oprim.financial_metric_extraction` — 中文财经新闻财务指标抽取 + 情感分 (V1 规则). `NewsItem`/`FinancialMetric`.
+- `oprim.policy_event_extraction` — 政策新闻结构化事件抽取 (severity/direction). `PolicyNews`/`PolicyEvent`.
+- `oprim.industry_attribution` — 政策事件 → 受影响行业归因 (纯映射). `IndustryImpact`.
+- `oprim.pattern_detection` — K线形态识别 (hammer/engulfing 等). `OHLCVInput`/`PatternMatch`.
+- `oprim.volume_ratio` — 量比 = 最新量 / 前 N 日均量. Returns 1.0 on insufficient data.
+- `oprim.apply_screen_filter` — 配置驱动选股过滤 (gt/lt/gte/lte/eq/between/flag). `ScreenRule`/`ScreenResult`.
+
+NOTE (§2.3): `symbol_dim_score` / `regime_inference` / `candidate_pool` omoduls use ThreadPoolExecutor
+without manual `copy_context()` wrapping — Python 3.12+ ThreadPoolExecutor propagates contextvars
+automatically. Cost pillar not enabled on these omoduls so `cost_tracker` ContextVar is unused.
+Awaiting Owner confirmation per SPEC §2.3.
+
 ## [Unreleased]
 
 ### Added — P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict

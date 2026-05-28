@@ -656,3 +656,16 @@ __all__ = [
     "refresh_view",
     "send_alert",
 ]
+
+# --- Tide v4 extraction: B1-B3 (11 oprims) ---
+from oprim.kdj import kdj, KDJResult
+from oprim.limit_status_calc import limit_status_calc, LimitStatusResult
+from oprim.beneish_m_score import beneish_m_score, BeneishInput, BeneishResult
+from oprim.dupont_decomposition import dupont_decomposition, DuPontResult
+from oprim.dcf_valuation import dcf_valuation, DCFResult
+from oprim.volume_ratio import volume_ratio
+from oprim.apply_screen_filter import apply_screen_filter, ScreenRule, ScreenResult
+from oprim.financial_metric_extraction import financial_metric_extraction, NewsItem, FinancialMetric
+from oprim.policy_event_extraction import policy_event_extraction, PolicyNews, PolicyEvent
+from oprim.industry_attribution import industry_attribution, IndustryImpact
+from oprim.pattern_detection import pattern_detection, OHLCVInput, PatternMatch
