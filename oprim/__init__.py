@@ -1,5 +1,41 @@
 """Oprim — atomic operations library (Layer 1 meta-primitives)."""
 
+from oprim.crypto_scoring import (
+    CryptoScoringError,
+    score_active_addresses_change,
+    score_basis,
+    score_cex_balance_change,
+    score_etf_inflow,
+    score_funding_rate,
+    score_lth_change,
+    score_ma200_position,
+    score_ma50_slope,
+    score_ma_arrangement,
+    score_max_pain_distance,
+    score_mvrv_zscore,
+    score_oi_change,
+    score_options_skew,
+    score_resistance_distance,
+    score_stablecoin_inflow,
+    score_support_distance,
+    score_vpvr_position,
+)
+
+from oprim.crypto_lookup import (
+    CryptoLookupError,
+    regime_score,
+    seasonality_score,
+    sector_rotation_score,
+)
+
+from oprim.crypto_technical import (
+    CryptoTechnicalError,
+    compute_cross_asset_divergence_revert,
+    compute_stablecoin_event_revert,
+    compute_vpvr,
+    detect_pivots,
+)
+
 from oprim._caddy import (
     caddy_admin_post,
     caddy_admin_reload,
@@ -515,4 +551,34 @@ __all__ = [
     "StoryPrediction",
     "TimePrediction",
     "StoryPredictError",
+    # Helios Wave 01 — Crypto Scoring (17 oprim)
+    "score_ma200_position",
+    "score_ma50_slope",
+    "score_ma_arrangement",
+    "score_stablecoin_inflow",
+    "score_etf_inflow",
+    "score_cex_balance_change",
+    "score_funding_rate",
+    "score_basis",
+    "score_mvrv_zscore",
+    "score_active_addresses_change",
+    "score_lth_change",
+    "score_options_skew",
+    "score_max_pain_distance",
+    "score_oi_change",
+    "score_resistance_distance",
+    "score_support_distance",
+    "score_vpvr_position",
+    "CryptoScoringError",
+    # --- Helios Wave 01: Crypto Lookup (3) ---
+    "regime_score",
+    "seasonality_score",
+    "sector_rotation_score",
+    "CryptoLookupError",
+    # --- Helios Wave 01: Crypto Technical (4) ---
+    "compute_vpvr",
+    "detect_pivots",
+    "compute_cross_asset_divergence_revert",
+    "compute_stablecoin_event_revert",
+    "CryptoTechnicalError",
 ]

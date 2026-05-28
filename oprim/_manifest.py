@@ -167,6 +167,33 @@ ELEMENTS: list[str] = [
     "spectral_eigengap_detect",
     # Recursive Utility (1)
     "epstein_zin_aggregator",
+    # --- Helios Wave 01: Crypto Scoring (17) ---
+    "score_ma200_position",
+    "score_ma50_slope",
+    "score_ma_arrangement",
+    "score_stablecoin_inflow",
+    "score_etf_inflow",
+    "score_cex_balance_change",
+    "score_funding_rate",
+    "score_basis",
+    "score_mvrv_zscore",
+    "score_active_addresses_change",
+    "score_lth_change",
+    "score_options_skew",
+    "score_max_pain_distance",
+    "score_oi_change",
+    "score_resistance_distance",
+    "score_support_distance",
+    "score_vpvr_position",
+    # --- Helios Wave 01: Crypto Lookup (3) ---
+    "regime_score",
+    "seasonality_score",
+    "sector_rotation_score",
+    # --- Helios Wave 01: Crypto Technical (4) ---
+    "compute_vpvr",
+    "detect_pivots",
+    "compute_cross_asset_divergence_revert",
+    "compute_stablecoin_event_revert",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -256,6 +283,26 @@ CATEGORIES: dict[str, list[str]] = {
         "spectral_eigengap_detect",
     ],
     "recursive_utility": ["epstein_zin_aggregator"],
+    # Helios Wave 01
+    "crypto_scoring": [
+        "score_ma200_position",
+        "score_ma50_slope",
+        "score_ma_arrangement",
+        "score_stablecoin_inflow",
+        "score_etf_inflow",
+        "score_cex_balance_change",
+        "score_funding_rate",
+        "score_basis",
+        "score_mvrv_zscore",
+        "score_active_addresses_change",
+        "score_lth_change",
+        "score_options_skew",
+        "score_max_pain_distance",
+        "score_oi_change",
+        "score_resistance_distance",
+        "score_support_distance",
+        "score_vpvr_position",
+    ],
     # Phase 4 categories
     "timeseries": [
         "adf_test", "kpss_test",
