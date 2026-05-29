@@ -241,6 +241,15 @@ ELEMENTS: list[str] = [
     "apply_screen_filter",
     # --- Aegis Step 15 B2 --- Security (1)
     "url_safety_check",
+    # --- B7 --- Macro data fetch (8)
+    "fetch_macro_m2",
+    "fetch_macro_pboc",
+    "fetch_macro_cpi_ppi_pmi",
+    "fetch_macro_lpr",
+    "fetch_macro_rrr",
+    "fetch_macro_yield_spread",
+    "fetch_macro_calendar",
+    "fetch_macro_policy_news",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -429,6 +438,17 @@ CATEGORIES: dict[str, list[str]] = {
     ],
     # Aegis Step 15 B2
     "security": ["url_safety_check"],
+    # B7 — macro data fetch (8)
+    "macro": [
+        "fetch_macro_m2",
+        "fetch_macro_pboc",
+        "fetch_macro_cpi_ppi_pmi",
+        "fetch_macro_lpr",
+        "fetch_macro_rrr",
+        "fetch_macro_yield_spread",
+        "fetch_macro_calendar",
+        "fetch_macro_policy_news",
+    ],
 }
 
 STABILITY: dict[str, str] = {e: "stable" for e in ELEMENTS}

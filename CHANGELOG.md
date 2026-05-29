@@ -2,6 +2,24 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.17.0] - 2026-05-29 — B7 macro data fetch oprims (8 oprims)
+
+### Added — B7 macro data fetch
+
+- `oprim.fetch_macro_m2` — PBoC M2 monthly money supply; indicators `m2_yoy` (%) + `m2_abs` (亿元).
+- `oprim.fetch_macro_pboc` — PBoC open market ops (reverse repo / MLF / SLF); indicators `pboc_reverse_repo_rate`, `pboc_mlf_rate`, `pboc_slf_rate`.
+- `oprim.fetch_macro_cpi_ppi_pmi` — NBS monthly CPI/PPI/PMI (3 parallel fetches); indicators `cpi_yoy`, `ppi_yoy`, `pmi_mfg`.
+- `oprim.fetch_macro_lpr` — LPR 1y / 5y+ irregular; indicators `lpr_1y`, `lpr_5y`.
+- `oprim.fetch_macro_rrr` — PBoC RRR irregular; indicators `rrr_large`, `rrr_small`.
+- `oprim.fetch_macro_yield_spread` — Daily China–US 10y yield spread; indicator `cn_us_yield_spread_10y`; raw yields in `metadata`.
+- `oprim.fetch_macro_calendar` — China econ calendar events with actual + forecast; `indicator` = event name; `metadata["forecast"]` / `metadata["prev"]`.
+- `oprim.fetch_macro_policy_news` — Policy-relevant headlines (央行/财政部/发改委/证监会/商务部); `indicator="policy_news"`, `value=0.0`, text in `metadata`.
+- `oprim._macro_types.MacroDataPoint` — Shared Pydantic model (indicator, date, value, metadata).
+- `oprim._macro_types.MacroFetchError` — Inherits `OprimError`; raised on network error, licensed source, or bad response.
+- All 8 use `source: Literal["wind","akshare","tushare"]="akshare"`; wind/tushare raise immediately.
+- `akshare>=1.14` added to `pyproject.toml` as optional dep `[macro]` — `pip install oprim[macro]`.
+- 44 tests total (≥5 per oprim); akshare calls fully mocked — no network required.
+
 ## [2.15.0] - 2026-05-28 — Tide v4 B1-B3 extraction (11 oprims)
 
 ### Added — Tide v4 B1-B3 — A股技术/基本面/选股 oprim

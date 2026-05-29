@@ -677,3 +677,14 @@ from oprim.predicate import evaluate_threshold_condition, OperatorType
 
 # --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
 from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
+
+# --- B7 — 8 macro data fetch oprims (oprim 2.17.0) ---
+from oprim._macro_types import MacroDataPoint, MacroFetchError
+from oprim.fetch_macro_m2 import fetch_macro_m2
+from oprim.fetch_macro_pboc import fetch_macro_pboc
+from oprim.fetch_macro_cpi_ppi_pmi import fetch_macro_cpi_ppi_pmi
+from oprim.fetch_macro_lpr import fetch_macro_lpr
+from oprim.fetch_macro_rrr import fetch_macro_rrr
+from oprim.fetch_macro_yield_spread import fetch_macro_yield_spread
+from oprim.fetch_macro_calendar import fetch_macro_calendar
+from oprim.fetch_macro_policy_news import fetch_macro_policy_news
