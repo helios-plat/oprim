@@ -10,12 +10,14 @@ from oprim.statistics import (
     bayes_beta_update,
     bootstrap_ci,
     brier_score_decomposed,
+    correlation_batch,
     distribution_summary,
     kde_density,
     kolmogorov_smirnov_test,
     mann_kendall_trend,
     pearson_spearman_corr,
     percentile_ci,
+    percentile_value,
     skew_kurt_robust,
 )
 
@@ -455,3 +457,131 @@ class TestKdeDensity:
         kde_ref = sp_stats.gaussian_kde(data, bw_method="scott")
         expected = kde_ref(pts)
         np.testing.assert_allclose(result["density"], expected, rtol=1e-9)
+
+
+# ============================================================
+# Additional gap-filling tests (Phase 2)
+# ============================================================
+
+class TestBootstrapCIExtraGaps:
+    def test_bootstrap_ci_50pct_nan_raises(self):
+        """statistic_fn returning NaN for >50% samples raises ValueError."""
+        call_count = [0]
+
+        def always_nan(x):
+            call_count[0] += 1
+            return float("nan")
+
+        with pytest.raises(ValueError, match="50%"):
+            bootstrap_ci(np.arange(50.0), always_nan, n_bootstrap=200, random_state=0)
+
+    def test_bootstrap_ci_unknown_method_raises(self):
+        """Unknown bootstrap method raises ValueError."""
+        with pytest.raises(ValueError, match="Unknown method"):
+            bootstrap_ci(np.arange(50.0), np.mean, method="jackknife", random_state=0)
+
+
+class TestNanPolicyOmit:
+    def test_skew_kurt_nan_policy_omit(self):
+        """nan_policy='omit' removes NaN before computation."""
+        data_with_nan = np.array([1.0, 2.0, np.nan, 3.0, 4.0, 5.0, 6.0])
+        result = skew_kurt_robust(data_with_nan, nan_policy="omit")
+        data_clean = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        expected = skew_kurt_robust(data_clean, nan_policy="omit")
+        assert result["skewness"] == pytest.approx(expected["skewness"], rel=1e-9)
+
+    def test_pearson_spearman_nan_policy_omit(self):
+        """nan_policy='omit' removes paired NaN before correlation."""
+        x = np.array([1.0, 2.0, np.nan, 4.0, 5.0] * 10)
+        y = np.array([2.0, 4.0, np.nan, 8.0, 10.0] * 10)
+        result = pearson_spearman_corr(x, y, min_samples=10, nan_policy="omit")
+        assert result["pearson_r"] == pytest.approx(1.0, abs=1e-6)
+
+
+class TestMannKendallExtraGaps:
+    def test_mann_kendall_s_negative(self):
+        """Strictly decreasing series -> s < 0, trend='decreasing'."""
+        data = np.arange(50.0)[::-1]
+        result = mann_kendall_trend(data)
+        assert result["z_score"] < 0
+        assert result["trend"] == "decreasing"
+
+    def test_mann_kendall_s_zero(self):
+        """Constant series -> z=0, trend='no_trend'."""
+        data = np.full(20, 5.0)
+        result = mann_kendall_trend(data)
+        assert result["z_score"] == pytest.approx(0.0, abs=1e-9)
+        assert result["trend"] == "no_trend"
+
+
+class TestBrierScoreExtraGaps:
+    def test_brier_score_binless(self):
+        """method='binless' uses brier_score - uncertainty as reliability."""
+        forecasts = np.array([0.8, 0.2, 0.7, 0.3])
+        outcomes = np.array([1, 0, 1, 0])
+        result = brier_score_decomposed(forecasts, outcomes, method="binless")
+        assert "brier_score" in result
+        assert result["resolution"] == pytest.approx(0.0, abs=1e-12)
+        # reliability = brier_score - uncertainty
+        expected_reliability = result["brier_score"] - result["uncertainty"]
+        assert result["reliability"] == pytest.approx(expected_reliability, abs=1e-10)
+
+
+class TestCorrelationBatch:
+    def test_correlation_batch_pearson(self):
+        """correlation_batch with pearson returns m x m DataFrame."""
+        import pandas as pd
+        rng = np.random.default_rng(42)
+        df = pd.DataFrame(rng.normal(size=(100, 4)), columns=list("abcd"))
+        result = correlation_batch(df, method="pearson")
+        assert result.shape == (4, 4)
+        # Diagonal should be 1
+        np.testing.assert_allclose(np.diag(result.values), np.ones(4), rtol=1e-9)
+
+    def test_correlation_batch_spearman(self):
+        """correlation_batch with spearman returns m x m DataFrame."""
+        import pandas as pd
+        rng = np.random.default_rng(42)
+        df = pd.DataFrame(rng.normal(size=(50, 3)), columns=list("abc"))
+        result = correlation_batch(df, method="spearman")
+        assert result.shape == (3, 3)
+
+    def test_correlation_batch_invalid_method_raises(self):
+        """Unknown method raises ValueError."""
+        import pandas as pd
+        df = pd.DataFrame({"a": [1.0, 2.0, 3.0]})
+        with pytest.raises(ValueError, match="method"):
+            correlation_batch(df, method="kendall")
+
+    def test_correlation_batch_non_dataframe_raises(self):
+        """Non-DataFrame input raises ValueError."""
+        with pytest.raises(ValueError, match="DataFrame"):
+            correlation_batch(np.eye(3), method="pearson")
+
+
+class TestPercentileValue:
+    def test_rolling_quantile_basic(self):
+        """Rolling quantile with window returns array of correct shape."""
+        data = np.arange(20, dtype=float)
+        result = percentile_value(data, q=0.5, window=10)
+        assert len(result) == len(data)
+        # Values before window should be NaN
+        assert np.isnan(result[:10]).all()
+
+    def test_rolling_quantile_values(self):
+        """Check rolling median matches numpy."""
+        data = np.arange(20, dtype=float)
+        result = percentile_value(data, q=0.5, window=10)
+        # At index 19 (last): window is [9..18] (backward-exclusive), median = 13.5
+        assert result[19] == pytest.approx(13.5, abs=0.1)
+
+    def test_scalar_quantile(self):
+        """No window -> scalar quantile over all data."""
+        data = np.arange(100, dtype=float)
+        result = percentile_value(data, q=0.5)
+        assert result == pytest.approx(np.median(data), rel=1e-9)
+
+    def test_invalid_q_raises(self):
+        """q outside [0, 1] raises ValueError."""
+        with pytest.raises(ValueError, match="q must be in"):
+            percentile_value(np.arange(10.0), q=1.5)

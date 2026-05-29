@@ -766,3 +766,58 @@ class TestPurgeEmbargoSplitExtra:
         splits_purge = purge_embargo_split(times, n_splits=5, label_horizon=5)
         # With purge, train should be smaller
         assert len(splits_purge[1]["train"]) <= len(splits_no_purge[1]["train"])
+
+
+# ============================================================
+# Additional gap-filling tests (Phase 2)
+# ============================================================
+
+class TestLagForwardFillDataFrame:
+    def test_forward_fill_dataframe_input(self):
+        """DataFrame input is handled correctly."""
+        df = pd.DataFrame({
+            "a": [1.0, np.nan, np.nan, 4.0],
+            "b": [10.0, 20.0, np.nan, 40.0],
+        })
+        result = lag_forward_fill(df, max_gap=5)
+        assert isinstance(result, pd.DataFrame)
+        assert result["a"].iloc[1] == pytest.approx(1.0)
+        assert result["a"].iloc[2] == pytest.approx(1.0)
+        assert result["b"].iloc[2] == pytest.approx(20.0)
+
+
+class TestPurgeEmbargoSplitExtraGaps:
+    def test_purge_embargo_split_invalid_embargo_pct(self):
+        """embargo_pct > 0.1 raises ValueError."""
+        times = pd.date_range("2024-01-01", periods=100, freq="D")
+        with pytest.raises(ValueError, match="embargo_pct"):
+            purge_embargo_split(times, n_splits=5, embargo_pct=0.5)
+
+    def test_purge_embargo_n_splits_less_than_2_raises(self):
+        """n_splits < 2 raises ValueError."""
+        times = pd.date_range("2024-01-01", periods=100, freq="D")
+        with pytest.raises(ValueError, match="n_splits"):
+            purge_embargo_split(times, n_splits=1)
+
+
+class TestGapDetectExtraGaps:
+    def test_detect_data_gaps_short_series(self):
+        """len < 2 returns empty DataFrame."""
+        times = pd.DatetimeIndex(["2024-01-01"])
+        result = gap_detect(times)
+        assert len(result) == 0
+        assert list(result.columns) == ["start_time", "end_time", "gap_duration", "severity"]
+
+    def test_detect_data_gaps_empty(self):
+        """Empty index returns empty DataFrame."""
+        times = pd.DatetimeIndex([])
+        result = gap_detect(times)
+        assert len(result) == 0
+
+
+class TestRealizedVolEstimators:
+    def test_historical_volatility_unknown_estimator_raises(self):
+        """Unknown estimator raises ValueError."""
+        returns = pd.Series(np.random.default_rng(0).normal(0, 0.01, 100))
+        with pytest.raises(ValueError, match="Unknown estimator"):
+            realized_vol(returns, estimator="unknown_est")

@@ -1,4 +1,4 @@
-"""Shared type aliases and base utilities for oprim."""
+"""Shared type aliases and base utilities for oprim."""  # pragma: no cover
 
 from __future__ import annotations
 

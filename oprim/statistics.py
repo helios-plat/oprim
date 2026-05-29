@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, Callable, Literal
+from collections.abc import Callable
+from typing import Any, Literal
 
 import numpy as np
+import pandas as pd
 from scipy import stats
 
 
@@ -332,11 +334,11 @@ def mann_kendall_trend(
         for lag in range(1, n - 1):
             cov = ((ranks[:-lag] - mean_rank) * (ranks[lag:] - mean_rank)).sum()
             acf[lag] = cov / var_rank
-        
+
         # Significance test: |ACF| > 1.96/sqrt(n) at alpha=0.05
         acf_threshold = 1.96 / np.sqrt(n)
         significant_lags = np.where(np.abs(acf) > acf_threshold)[0]
-        
+
         if len(significant_lags) > 0:
             correction = 0.0
             for lag in significant_lags:
@@ -586,3 +588,84 @@ def kde_density(
     density = kde(eval_points)
 
     return {"x": eval_points, "density": density}
+
+
+def correlation_batch(
+    data: pd.DataFrame,
+    method: Literal["pearson", "spearman"] = "pearson",
+) -> pd.DataFrame:
+    """Compute full correlation matrix for a DataFrame.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Input data (n_samples × m_features).
+    method : {"pearson", "spearman"}
+        Correlation method.
+
+    Returns
+    -------
+    pd.DataFrame
+        m × m correlation matrix.
+    """
+    if not isinstance(data, pd.DataFrame):
+        raise ValueError("data must be a pandas DataFrame")
+    if data.empty:
+        raise ValueError("data must not be empty")
+    if method not in ("pearson", "spearman"):
+        raise ValueError(f"method must be 'pearson' or 'spearman', got '{method}'")
+
+    return data.corr(method=method)
+
+
+def percentile_value(
+    data: np.ndarray,
+    q: float,
+    window: int | None = None,
+    method: str = "linear",
+) -> float | np.ndarray:
+    """Compute the q-th percentile value from data.
+
+    Unlike percentile_rank (which returns "where does this value rank"),
+    this returns "what is the value at quantile q".
+
+    Parameters
+    ----------
+    data : np.ndarray
+        1-D array of values.
+    q : float
+        Quantile in [0, 1].
+    window : int, optional
+        If provided, compute rolling quantile and return array.
+        If None, compute single quantile over entire data.
+    method : str
+        Interpolation method (passed to np.quantile).
+
+    Returns
+    -------
+    float | np.ndarray
+        Single quantile value, or rolling quantile array.
+
+    References
+    ----------
+    .. [1] Hyndman, R.J. & Fan, Y. (1996). Sample Quantiles in Statistical Packages.
+    """
+    data = np.asarray(data, dtype=float)
+    if not 0 <= q <= 1:
+        raise ValueError(f"q must be in [0, 1], got {q}")
+
+    if window is None:
+        valid = data[np.isfinite(data)]
+        if len(valid) == 0:
+            return float("nan")
+        return float(np.quantile(valid, q, method=method))
+
+    # Rolling quantile
+    n = len(data)
+    result = np.full(n, np.nan)
+    for i in range(window, n):
+        seg = data[i - window: i]
+        valid = seg[np.isfinite(seg)]
+        if len(valid) >= 10:
+            result[i] = float(np.quantile(valid, q, method=method))
+    return result

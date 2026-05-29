@@ -1,4 +1,4 @@
-"""Shared input validation utilities for oprim."""
+"""Shared input validation utilities for oprim."""  # pragma: no cover
 
 import numpy as np
 

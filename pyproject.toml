@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "oprim"
-dynamic = ["version"]
+version = "2.16.0"
 description = "Atomic operations library — Layer 1 meta-primitives for financial analysis"
 readme = "README.md"
 license = "MIT"
@@ -16,18 +16,45 @@ dependencies = [
     "pandas>=2.2.0",
     "scikit-learn>=1.4.0",
     "statsmodels>=0.14.0",
+    "python-magic>=0.4",
+    "pymupdf>=1.27",
+    "pymupdf4llm>=0.3",
+    "Pillow>=10.0",
+    "lancedb>=0.17",
+    "tantivy>=0.22",
+    "duckdb>=0.10",
+    "dashscope>=1.14",
+    "ebooklib>=0.18",
+    "beautifulsoup4>=4.12",
+    "chardet>=5.0",
+    "python-ulid>=3.0",
+    "mcp>=1.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "google-api-python-client>=2.100",
+    "google-auth-oauthlib>=1.2",
+    "google-auth-httplib2>=0.2",
+    "httpx>=0.27",
+    "redis>=4.2",
+    "docker>=7.0",
+    "asyncpg>=0.29",
+    "psycopg[binary]>=3.1",
+    "psutil>=5.9",
+    "boto3>=1.34",
+    "dnspython>=2.6",
+    "trafilatura>=1.8.0",
+    "readability-lxml>=0.8.1",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=5.0.0",
+    "pytest-mock>=3.0",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.4.0",
+    "respx>=0.23",
 ]
-
-[tool.hatch.version]
-path = "oprim/_version.py"
 
 [tool.ruff]
 target-version = "py311"
@@ -39,11 +66,38 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers -v"
+asyncio_mode = "auto"
+markers = [
+    "academic_reference: test verifies against published academic/RFC/FIPS reference vectors",
+    "integration: requires live external service (GDrive OAuth, network) — skip by default",
+]
 
 [tool.coverage.run]
 source = ["oprim"]
 branch = true
+omit = [
+    "oprim/_base.py",
+    "oprim/_manifest.py",
+    "oprim/_validation.py",
+]
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 95
 show_missing = true
+
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=1.3.0",
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["oprim._s3", "oprim._postgres", "oprim._system"]
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+module = ["psutil"]
+ignore_missing_imports = true

@@ -222,7 +222,7 @@ def _check_gap(series: pd.Series, max_gap: int | pd.Timedelta) -> None:
     if nan_groups.empty:
         return
     max_consecutive = nan_groups.value_counts().max()
-    
+
     if isinstance(max_gap, int):
         limit = max_gap
     elif isinstance(max_gap, pd.Timedelta):
@@ -236,7 +236,7 @@ def _check_gap(series: pd.Series, max_gap: int | pd.Timedelta) -> None:
             limit = max_consecutive + 1
     else:
         limit = max_consecutive + 1
-    
+
     if max_consecutive > limit:
         raise ValueError(f"Gap of {max_consecutive} exceeds max_gap={max_gap}")
 
@@ -421,27 +421,27 @@ def realized_vol(
         else:  # yang_zhang
             # Yang & Zhang 2000: σ²_yz = σ²_o + k·σ²_c + (1-k)·σ²_rs
             # σ²_o = overnight variance, σ²_c = close-to-close, σ²_rs = Rogers-Satchell
-            
+
             # Overnight: log(O_t / C_{t-1})
             log_oc = o - c.shift(1)
             ov_mean = log_oc.rolling(window).mean()
             ov_var = ((log_oc - ov_mean) ** 2).rolling(window).mean()
-            
+
             # Rogers-Satchell intraday variance
             log_ho = h - o
             log_lo = l - o
             log_co = c - o
             rs_var = log_ho * (log_ho - log_co) + log_lo * (log_lo - log_co)
             rs_var = rs_var.rolling(window).mean()
-            
+
             # Close-to-close variance with mean subtraction
             log_cc = c - c.shift(1)
             cc_mean = log_cc.rolling(window).mean()
             cc_var = ((log_cc - cc_mean) ** 2).rolling(window).mean()
-            
+
             # Optimal k per Yang-Zhang
             k = 0.34 / (1.34 + (window + 1) / (window - 1))
-            
+
             var = ov_var + k * cc_var + (1 - k) * rs_var
 
         vol = np.sqrt(var.rolling(window).mean() * annualization_factor)
@@ -698,7 +698,7 @@ def purge_embargo_split(
         excluded = set(test_idx) | set(embargo_idx) | set(indices[purge_mask])
         # Only include train samples that come before test_start (no look-ahead)
         train_idx = np.array([i for i in indices[:test_start] if i not in excluded])
-        
+
         # Skip any fold with empty train (per López de Prado, need min train samples)
         if len(train_idx) == 0:
             warnings.warn(f"Fold {fold_idx} skipped: empty train set", stacklevel=2)

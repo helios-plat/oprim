@@ -31,4 +31,4 @@ Layer 1: oprim (this library) — atomic ops, mutually independent
 Layer 0: numpy / scipy / pandas / sklearn / statsmodels
 ```
 
-See [ADR-061](https://github.com/helios-plat/oprim) for full specification.
+See [ADR-061](https://github.com/soffy88/oprim) for full specification.

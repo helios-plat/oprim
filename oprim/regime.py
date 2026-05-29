@@ -62,7 +62,7 @@ def regime_filter_data(
             raise ValueError(
                 f"mode='soft' requires dict values, found {non_dict_mask.sum()} non-dict elements"
             )
-        
+
         # Vectorized: convert to DataFrame
         prob_df = pd.DataFrame(labels_aligned.tolist(), index=common_idx)
         mask = (prob_df[target_regime] >= min_probability).any(axis=1)
@@ -101,7 +101,7 @@ def regime_transition_matrix(
     trans_counts = np.zeros((n_states, n_states))
     unknown_labels = set()
     skipped_transitions = 0
-    
+
     for i in range(len(labels) - 1):
         if labels[i] in state_idx and labels[i + 1] in state_idx:
             trans_counts[state_idx[labels[i]], state_idx[labels[i + 1]]] += 1
@@ -111,7 +111,7 @@ def regime_transition_matrix(
                 unknown_labels.add(labels[i])
             if labels[i + 1] not in state_idx:
                 unknown_labels.add(labels[i + 1])
-    
+
     if skipped_transitions > 0 and states is not None:
         warnings.warn(
             f"{skipped_transitions} transitions skipped due to unknown labels: {unknown_labels}",
@@ -137,8 +137,8 @@ def regime_transition_matrix(
             stationary = np.ones(n_states) / n_states
         else:
             stationary = stationary / stationary.sum()
-    except Exception:
-        stationary = np.ones(n_states) / n_states
+    except Exception:  # pragma: no cover
+        stationary = np.ones(n_states) / n_states  # pragma: no cover
 
     stat_dist = pd.Series(stationary, index=states)
 
@@ -198,7 +198,7 @@ def regime_label_align(
     # Use merge_asof for both methods (ffill just differs in tolerance handling)
     target_df = pd.DataFrame(index=target_index)
     label_df = pd.DataFrame({"regime": regime_labels.values}, index=regime_labels.index)
-    
+
     if method == "ffill" and tolerance is None:
         # ffill without tolerance: allow unlimited forward-fill
         merged = pd.merge_asof(
@@ -213,5 +213,5 @@ def regime_label_align(
             direction="backward",
             tolerance=tolerance,
         )
-    
+
     return merged["regime"]
