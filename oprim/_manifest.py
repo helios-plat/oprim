@@ -239,6 +239,8 @@ ELEMENTS: list[str] = [
     "pattern_detection",
     "volume_ratio",
     "apply_screen_filter",
+    # --- Aegis Step 15 B2 --- Security (1)
+    "url_safety_check",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -425,6 +427,8 @@ CATEGORIES: dict[str, list[str]] = {
         "volume_ratio",
         "apply_screen_filter",
     ],
+    # Aegis Step 15 B2
+    "security": ["url_safety_check"],
 }
 
 STABILITY: dict[str, str] = {e: "stable" for e in ELEMENTS}

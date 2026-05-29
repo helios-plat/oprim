@@ -25,6 +25,12 @@ Awaiting Owner confirmation per SPEC §2.3.
 
 ## [Unreleased]
 
+### Added — Aegis Step 15 B2 — SSRF URL Safety Check
+
+- `oprim.url_safety_check(*, url, allowed_schemes, block_loopback, block_private, block_link_local, block_reserved, block_multicast)` → `URLSafetyResult` — SSRF pre-flight URL safety check. Validates scheme whitelist, resolves all A/AAAA records via `socket.getaddrinfo` (prevents multi-homed bypass), and blocks loopback/private/link-local/reserved/multicast addresses. Returns `URLSafetyResult(is_safe, reason, resolved_ips, failed_check)`; never raises on business rejection. `URLSafetyError` raised only for technical failures (DNS library crash, URL parse exception). Explicit CGN (`100.64/10`, RFC 6598) check added for Python 3.11+ compatibility where `is_reserved` no longer covers that range. Link-local checked before private so `169.254/16` reports the more specific `is_link_local` label. DNS-rebinding residual risk documented in docstring. 16 tests.
+- `URLSafetyResult` — Pydantic model: `is_safe`, `reason`, `resolved_ips`, `failed_check`.
+- `URLSafetyError` — Technical-failure exception (distinct from business rejection).
+
 ### Added — P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
 
 - `oprim.style_marker_prompt` — 风格关键词注入 (7 styles: 科普/严肃/搞笑/治愈/悬疑/热血/温暖). Pure function, no I/O.

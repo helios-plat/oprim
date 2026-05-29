@@ -655,6 +655,10 @@ __all__ = [
     "is_deduped",
     "refresh_view",
     "send_alert",
+    # --- Aegis Step 15 B2 — SSRF prevention ---
+    "url_safety_check",
+    "URLSafetyResult",
+    "URLSafetyError",
 ]
 
 # --- Tide v4 extraction: B1-B3 (11 oprims) ---
@@ -670,3 +674,6 @@ from oprim.policy_event_extraction import policy_event_extraction, PolicyNews, P
 from oprim.industry_attribution import industry_attribution, IndustryImpact
 from oprim.pattern_detection import pattern_detection, OHLCVInput, PatternMatch
 from oprim.predicate import evaluate_threshold_condition, OperatorType
+
+# --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
+from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
