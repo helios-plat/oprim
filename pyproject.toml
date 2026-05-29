@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "oprim"
-version = "2.17.0"
+version = "2.18.0"
 description = "Atomic operations library — Layer 1 meta-primitives for financial analysis"
 readme = "README.md"
 license = "MIT"
@@ -44,6 +44,7 @@ dependencies = [
     "dnspython>=2.6",
     "trafilatura>=1.8.0",
     "readability-lxml>=0.8.1",
+    "jinja2>=3.0",
 ]
 
 [project.optional-dependencies]

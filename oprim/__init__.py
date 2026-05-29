@@ -678,6 +678,25 @@ from oprim.predicate import evaluate_threshold_condition, OperatorType
 # --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
 from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
 
+# --- B8 — 13 utility/compute oprims (oprim 2.18.0) ---
+from oprim.compute_seat_t3_return import SeatT3ReturnResult, compute_seat_t3_return
+from oprim.fetch_themes_daily import ThemeEntry, ThemesFetchError, fetch_themes_daily
+from oprim.theme_to_sw_industry_mapping import ThemeSWMapping, theme_to_sw_industry_mapping
+from oprim.fetch_sector_returns import SectorReturn, SectorFetchError, fetch_sector_returns
+from oprim.pe_ttm_lookback_safe import PETTMResult, pe_ttm_lookback_safe
+from oprim.stop_loss_compliance_check import StopLossResult, stop_loss_compliance_check
+from oprim.realtime_quote_redis_fetch import (
+    QuoteResult,
+    QuoteFetchError,
+    realtime_quote_redis_fetch,
+)
+from oprim.stamp_tax_rate_by_date import StampTaxResult, stamp_tax_rate_by_date
+from oprim.broker_export_render import BrokerExportResult, broker_export_render
+from oprim.compliance_disclaimer_inject import compliance_disclaimer_inject
+from oprim.monthly_review_jinja2_render import RenderedReport, monthly_review_jinja2_render
+from oprim.train_val_oos_splitter import TrainValOOSSplit, train_val_oos_splitter
+from oprim.detect_volume_dryup_breakout import VolumeBreakoutResult, detect_volume_dryup_breakout
+
 # --- B7 — 8 macro data fetch oprims (oprim 2.17.0) ---
 from oprim._macro_types import MacroDataPoint, MacroFetchError
 from oprim.fetch_macro_m2 import fetch_macro_m2

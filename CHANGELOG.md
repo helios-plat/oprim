@@ -2,6 +2,26 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.18.0] - 2026-05-29 — B8 utility/compute oprims (13 oprims)
+
+### Added — B8 utility/compute
+
+- `compute_seat_t3_return` — 席位 T+3 收益率计算; `SeatT3ReturnResult(return_pct, is_profit)`.
+- `fetch_themes_daily` — async 每日概念主题行情 (akshare); `list[ThemeEntry]` 按涨跌幅降序.
+- `theme_to_sw_industry_mapping` — 概念→申万行业查表映射 (mapping_table 注入); `list[ThemeSWMapping]`.
+- `fetch_sector_returns` — async 申万板块涨幅 (akshare); `top_n` 截断.
+- `pe_ttm_lookback_safe` — 消除前视偏差 TTM PE; `lag_days=45`; `PETTMResult(pe_ttm, eps_ttm, warning)`.
+- `stop_loss_compliance_check` — 止损合规判定; `StopLossResult(triggered, action)`.
+- `realtime_quote_redis_fetch` — async Redis 实时行情 + EOD 兜底; 使用既有 `CacheClient` Protocol.
+- `stamp_tax_rate_by_date` — A股印花税率; 2023-08-28 精确切换 1‰→0.5‰; 仅卖方.
+- `broker_export_render` — 配置驱动券商导出 (csv/tsv/json); `template_config` 注入.
+- `compliance_disclaimer_inject` — 注入"信息参考, 不构成投资建议"; prefix/suffix/both.
+- `monthly_review_jinja2_render` — Jinja2 月度复盘模板渲染; `template_dir` 注入; `RenderedReport`.
+- `train_val_oos_splitter` — 60/20/20 时序切分; 严格时序, 无 shuffle; `TrainValOOSSplit`.
+- `detect_volume_dryup_breakout` — 缩量调整后放量突破 (华安规律 ①); `VolumeBreakoutResult`.
+- `jinja2>=3.0` 加入 `pyproject.toml` 主依赖.
+- 84 tests total across 13 oprims (≥5 each); 2.17.0 → 2.18.0.
+
 ## [2.17.0] - 2026-05-29 — B7 macro data fetch oprims (8 oprims)
 
 ### Added — B7 macro data fetch

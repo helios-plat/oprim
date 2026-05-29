@@ -241,6 +241,20 @@ ELEMENTS: list[str] = [
     "apply_screen_filter",
     # --- Aegis Step 15 B2 --- Security (1)
     "url_safety_check",
+    # --- B8 --- Utility/compute (13)
+    "compute_seat_t3_return",
+    "fetch_themes_daily",
+    "theme_to_sw_industry_mapping",
+    "fetch_sector_returns",
+    "pe_ttm_lookback_safe",
+    "stop_loss_compliance_check",
+    "realtime_quote_redis_fetch",
+    "stamp_tax_rate_by_date",
+    "broker_export_render",
+    "compliance_disclaimer_inject",
+    "monthly_review_jinja2_render",
+    "train_val_oos_splitter",
+    "detect_volume_dryup_breakout",
     # --- B7 --- Macro data fetch (8)
     "fetch_macro_m2",
     "fetch_macro_pboc",
@@ -438,6 +452,22 @@ CATEGORIES: dict[str, list[str]] = {
     ],
     # Aegis Step 15 B2
     "security": ["url_safety_check"],
+    # B8 — utility/compute (13)
+    "utility": [
+        "compute_seat_t3_return",
+        "fetch_themes_daily",
+        "theme_to_sw_industry_mapping",
+        "fetch_sector_returns",
+        "pe_ttm_lookback_safe",
+        "stop_loss_compliance_check",
+        "realtime_quote_redis_fetch",
+        "stamp_tax_rate_by_date",
+        "broker_export_render",
+        "compliance_disclaimer_inject",
+        "monthly_review_jinja2_render",
+        "train_val_oos_splitter",
+        "detect_volume_dryup_breakout",
+    ],
     # B7 — macro data fetch (8)
     "macro": [
         "fetch_macro_m2",
