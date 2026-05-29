@@ -2,6 +2,22 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.19.0] - 2026-05-30 — B9 realtime detector oprims (7 detectors)
+
+### Added — B9 realtime detectors
+
+- `detect_sector_collapse` — 板块塌方: 1H 跌幅 > T1 AND 内部分化 std > T2; `SectorCollapseConfig`.
+- `detect_dragon_switch` — 龙头切换: 原 Top1 滞涨 AND 新候补量比放大; `DragonSwitchConfig`.
+- `detect_hot_money_converge` — 游资集中: 知名席位命中数 ≥ T1 AND 净买入 ≥ T2; 席位表注入; `HotMoneyConvergeConfig`.
+- `detect_limit_board_explosion` — 涨停炸板: 调 `limit_status_calc` 判状态切换 + 放量验证; `LimitBoardExplosionConfig`.
+- `detect_volume_spike` — 异常放量: 调 `volume_ratio` + MA20 价格确认 + 5min 涨幅; `VolumeSpikeConfig`.
+- `detect_northbound_reversal` — 北向逆转: 连续 N min 净流入后突现净流出 ≥ T1 亿; `NorthboundReversalConfig`.
+- `detect_news_shock` — 新闻冲击: `financial_metric_extraction` 情感命中 + inline 5min 波动率; 确认为 oprim (单 oprim 调用 + inline 计算); `NewsShockConfig`.
+- `DetectorSignal(detector_name, severity, triggered_at, evidence)` — 统一信号模型, 定义于 `_detector_types.py`.
+- 所有检测器: 同步函数, keyword-only, hit→`DetectorSignal | None`, 数据注入, 阈值 `ConfigModel` 参数化.
+- `detect_limit_board_explosion` / `detect_volume_spike` 各调用 1 个既有 oprim (符合单一调用约定).
+- 49 tests total (≥5 per detector, 7 additional structural tests); 2.18.0 → 2.19.0.
+
 ## [2.18.0] - 2026-05-29 — B8 utility/compute oprims (13 oprims)
 
 ### Added — B8 utility/compute

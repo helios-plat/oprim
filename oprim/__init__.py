@@ -678,6 +678,19 @@ from oprim.predicate import evaluate_threshold_condition, OperatorType
 # --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
 from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
 
+# --- B9 — 7 realtime detector oprims (oprim 2.19.0) ---
+from oprim._detector_types import DetectorSignal
+from oprim.detect_sector_collapse import SectorCollapseConfig, detect_sector_collapse
+from oprim.detect_dragon_switch import DragonSwitchConfig, detect_dragon_switch
+from oprim.detect_hot_money_converge import HotMoneyConvergeConfig, detect_hot_money_converge
+from oprim.detect_limit_board_explosion import (
+    LimitBoardExplosionConfig,
+    detect_limit_board_explosion,
+)
+from oprim.detect_volume_spike import VolumeSpikeConfig, detect_volume_spike
+from oprim.detect_northbound_reversal import NorthboundReversalConfig, detect_northbound_reversal
+from oprim.detect_news_shock import NewsShockConfig, detect_news_shock
+
 # --- B8 — 13 utility/compute oprims (oprim 2.18.0) ---
 from oprim.compute_seat_t3_return import SeatT3ReturnResult, compute_seat_t3_return
 from oprim.fetch_themes_daily import ThemeEntry, ThemesFetchError, fetch_themes_daily

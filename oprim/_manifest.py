@@ -241,6 +241,14 @@ ELEMENTS: list[str] = [
     "apply_screen_filter",
     # --- Aegis Step 15 B2 --- Security (1)
     "url_safety_check",
+    # --- B9 --- Realtime detectors (7)
+    "detect_sector_collapse",
+    "detect_dragon_switch",
+    "detect_hot_money_converge",
+    "detect_limit_board_explosion",
+    "detect_volume_spike",
+    "detect_northbound_reversal",
+    "detect_news_shock",
     # --- B8 --- Utility/compute (13)
     "compute_seat_t3_return",
     "fetch_themes_daily",
@@ -452,6 +460,16 @@ CATEGORIES: dict[str, list[str]] = {
     ],
     # Aegis Step 15 B2
     "security": ["url_safety_check"],
+    # B9 — realtime detectors (7)
+    "detectors": [
+        "detect_sector_collapse",
+        "detect_dragon_switch",
+        "detect_hot_money_converge",
+        "detect_limit_board_explosion",
+        "detect_volume_spike",
+        "detect_northbound_reversal",
+        "detect_news_shock",
+    ],
     # B8 — utility/compute (13)
     "utility": [
         "compute_seat_t3_return",
