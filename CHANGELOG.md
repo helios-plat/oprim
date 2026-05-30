@@ -20,6 +20,13 @@
 - Supports four operators: `>=`, `>` (higher = more severe) and `<=`, `<` (lower = more severe); semantic order validated per direction.
 - 27 tests; ruff clean; mypy --strict clean.
 
+### Added — B4 time-window throttle decision
+
+- `should_throttle` — keyword-only time-window throttle gate; returns `True` (skip) when still within window, `False` (allow) when window expired or never fired.
+- `last_fired_at=None` → always allow (False); `throttle_seconds <= 0` → `ValueError`; naive datetimes → `ValueError`.
+- `now` kwarg for deterministic testing; defaults to `datetime.now(UTC)`.
+- 9 tests; ruff clean; mypy --strict clean.
+
 ## [2.19.0] - 2026-05-30 — B9 realtime detector oprims (7 detectors)
 
 ### Added — B9 realtime detectors

@@ -662,6 +662,8 @@ __all__ = [
     "ThresholdResult",
     "ThresholdRuleError",
     "evaluate_threshold_rule",
+    # --- Aegis C2 B4 — throttle decision (oprim 2.20.0) ---
+    "should_throttle",
     # --- Aegis Step 15 B2 — SSRF prevention ---
     "url_safety_check",
     "URLSafetyResult",
@@ -779,6 +781,9 @@ from oprim.evaluate_threshold_rule import (
     ThresholdRuleError,
     evaluate_threshold_rule,
 )
+
+# --- Aegis C2 B4 — throttle decision (oprim 2.20.0) ---
+from oprim.should_throttle import should_throttle
 
 # --- B9 — 7 realtime detector oprims (oprim 2.19.0) ---
 from oprim._detector_types import DetectorSignal
