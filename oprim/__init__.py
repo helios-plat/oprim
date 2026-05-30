@@ -664,6 +664,8 @@ __all__ = [
     "evaluate_threshold_rule",
     # --- Aegis C2 B4 — throttle decision (oprim 2.20.0) ---
     "should_throttle",
+    # --- Aegis C2 B5 — dedup key (oprim 2.20.0) ---
+    "compute_dedup_key",
     # --- Aegis Step 15 B2 — SSRF prevention ---
     "url_safety_check",
     "URLSafetyResult",
@@ -784,6 +786,9 @@ from oprim.evaluate_threshold_rule import (
 
 # --- Aegis C2 B4 — throttle decision (oprim 2.20.0) ---
 from oprim.should_throttle import should_throttle
+
+# --- Aegis C2 B5 — dedup key (oprim 2.20.0) ---
+from oprim.compute_dedup_key import compute_dedup_key
 
 # --- B9 — 7 realtime detector oprims (oprim 2.19.0) ---
 from oprim._detector_types import DetectorSignal

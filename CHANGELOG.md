@@ -27,6 +27,13 @@
 - `now` kwarg for deterministic testing; defaults to `datetime.now(UTC)`.
 - 9 tests; ruff clean; mypy --strict clean.
 
+### Added — B5 time-bucket dedup key
+
+- `compute_dedup_key` — keyword-only SHA-256 time-bucket dedup key; NOT omodul fingerprint (content identity); this is time-window identity (same inputs in different buckets → different key).
+- `rule_id` + `entity_id` + `bucket_start` + `bucket_seconds` → SHA-256 hex (64 chars).
+- `bucket_seconds <= 0` → `ValueError`; naive `bucket_anchor` → `ValueError("timezone-aware")`; `bucket_anchor=None` → `datetime.now(UTC)`.
+- 12 tests; ruff clean; mypy --strict clean.
+
 ## [2.19.0] - 2026-05-30 — B9 realtime detector oprims (7 detectors)
 
 ### Added — B9 realtime detectors
