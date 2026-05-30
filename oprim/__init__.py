@@ -658,6 +658,10 @@ __all__ = [
     # --- Aegis C2 B2 — webhook delivery (oprim 2.20.0) ---
     "WebhookResult",
     "http_post_webhook",
+    # --- Aegis C2 B3 — threshold evaluator (oprim 2.20.0) ---
+    "ThresholdResult",
+    "ThresholdRuleError",
+    "evaluate_threshold_rule",
     # --- Aegis Step 15 B2 — SSRF prevention ---
     "url_safety_check",
     "URLSafetyResult",
@@ -768,6 +772,13 @@ from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_c
 
 # --- Aegis C2 B2 — webhook delivery (oprim 2.20.0) ---
 from oprim.http_post_webhook import WebhookResult, http_post_webhook
+
+# --- Aegis C2 B3 — threshold evaluator (oprim 2.20.0) ---
+from oprim.evaluate_threshold_rule import (
+    ThresholdResult,
+    ThresholdRuleError,
+    evaluate_threshold_rule,
+)
 
 # --- B9 — 7 realtime detector oprims (oprim 2.19.0) ---
 from oprim._detector_types import DetectorSignal

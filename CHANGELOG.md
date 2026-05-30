@@ -12,6 +12,14 @@
 - `follow_redirects=False` by default (SSRF prevention); `signature` / `signature_header` kwargs for HMAC delivery.
 - 18 tests; ruff clean; mypy --strict clean.
 
+### Added — B3 triple-tier threshold severity evaluator
+
+- `evaluate_threshold_rule` — keyword-only single-value vs dual-threshold triple-tier evaluator for alert engines; never silently passes misconfigured rules.
+- `ThresholdResult(triggered, severity, reason, metric, current_value, threshold_breached)` — result model; `severity` ∈ `{"ok","warn","critical"}`; `threshold_breached=None` when ok.
+- `ThresholdRuleError` — raised immediately on any misconfiguration: missing fields, unsupported operator, inverted warn/critical thresholds, threshold not a dict.
+- Supports four operators: `>=`, `>` (higher = more severe) and `<=`, `<` (lower = more severe); semantic order validated per direction.
+- 27 tests; ruff clean; mypy --strict clean.
+
 ## [2.19.0] - 2026-05-30 — B9 realtime detector oprims (7 detectors)
 
 ### Added — B9 realtime detectors
