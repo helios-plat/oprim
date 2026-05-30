@@ -2,6 +2,16 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.20.0] - 2026-05-30 (planned) — Aegis C2 B2-B5 webhook pipeline
+
+### Added — B2 single-shot webhook delivery
+
+- `http_post_webhook` — keyword-only HTTP POST webhook delivery; never raises; all errors returned via `WebhookResult.success=False`.
+- `WebhookResult(success, status_code, elapsed_ms, response_body, error)` — result model; `status_code=None` on network error; `response_body` truncated to 4 096 chars.
+- Error taxonomy: `"timeout"`, `"connect_failed: ..."`, `"http_4xx"`, `"http_5xx"`, `"payload_not_serializable: ..."`, `"unexpected: ..."`.
+- `follow_redirects=False` by default (SSRF prevention); `signature` / `signature_header` kwargs for HMAC delivery.
+- 18 tests; ruff clean; mypy --strict clean.
+
 ## [2.19.0] - 2026-05-30 — B9 realtime detector oprims (7 detectors)
 
 ### Added — B9 realtime detectors

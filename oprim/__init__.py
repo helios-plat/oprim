@@ -655,6 +655,9 @@ __all__ = [
     "is_deduped",
     "refresh_view",
     "send_alert",
+    # --- Aegis C2 B2 — webhook delivery (oprim 2.20.0) ---
+    "WebhookResult",
+    "http_post_webhook",
     # --- Aegis Step 15 B2 — SSRF prevention ---
     "url_safety_check",
     "URLSafetyResult",
@@ -762,6 +765,9 @@ from oprim.predicate import evaluate_threshold_condition, OperatorType
 
 # --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
 from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
+
+# --- Aegis C2 B2 — webhook delivery (oprim 2.20.0) ---
+from oprim.http_post_webhook import WebhookResult, http_post_webhook
 
 # --- B9 — 7 realtime detector oprims (oprim 2.19.0) ---
 from oprim._detector_types import DetectorSignal
