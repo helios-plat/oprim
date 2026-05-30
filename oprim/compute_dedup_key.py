@@ -43,5 +43,5 @@ def compute_dedup_key(
     timestamp = int(bucket_anchor.timestamp())
     bucket_start = (timestamp // bucket_seconds) * bucket_seconds
 
-    composite = f"{rule_id}|{entity_id}|{bucket_start}|{bucket_seconds}"
+    composite = f"{rule_id}\x00{entity_id}\x00{bucket_start}\x00{bucket_seconds}"
     return hashlib.sha256(composite.encode("utf-8")).hexdigest()

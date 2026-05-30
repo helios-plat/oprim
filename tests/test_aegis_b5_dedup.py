@@ -182,3 +182,15 @@ def test_custom_bucket_seconds_minute_granularity():
         rule_id="r1", entity_id="host-a", bucket_seconds=60, bucket_anchor=anchor_t1
     )
     assert key1 != key2
+
+
+# ---------------------------------------------------------------------------
+# Test 13: pipe in rule_id / entity_id does NOT cause collision (null-byte sep)
+# ---------------------------------------------------------------------------
+
+
+def test_pipe_in_fields_no_collision():
+    # "a|b" + "c"  vs  "a" + "b|c" — would collide with "|" separator
+    key1 = compute_dedup_key(rule_id="a|b", entity_id="c", bucket_anchor=FIXED_ANCHOR)
+    key2 = compute_dedup_key(rule_id="a", entity_id="b|c", bucket_anchor=FIXED_ANCHOR)
+    assert key1 != key2
