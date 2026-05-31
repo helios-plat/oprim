@@ -2,6 +2,28 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.21.0] - 2026-05-31 — P9-B2+B3 payment oprims — Alipay (4) + Stripe (4)
+
+### Added — Alipay payment oprims
+
+- `alipay_create_qr_order` — async face-to-face QR code order via `api_alipay_trade_precreate`; returns `AlipayQRCode(qr_code_url, out_trade_no)`; `sub_code` present → `AlipayAPIError`.
+- `alipay_query_order` — async trade status query via `api_alipay_trade_query`; returns `AlipayTradeStatus(trade_status, trade_no, out_trade_no, total_amount)`; `sub_code` → `AlipayAPIError`.
+- `alipay_refund_order` — async refund via `api_alipay_trade_refund`; full or partial; optional `refund_reason`; returns `True` on success; `sub_code` → `AlipayAPIError`.
+- `alipay_verify_notify_signature` — **sync** RSA2 notification signature verification via python-alipay-sdk `client.verify`; strips `sign`/`sign_type` before verification; missing `sign` → `AlipayInvalidSignatureError`; SDK exception → `AlipayInvalidSignatureError`.
+- `AlipayConfig(app_id, app_private_key, alipay_public_key, notify_url, sandbox)` — shared config model; `sandbox=True` passes `debug=True` to AliPay constructor.
+- `AlipayError` / `AlipayAPIError` / `AlipayInvalidSignatureError` — error taxonomy.
+
+### Added — Stripe payment oprims
+
+- `stripe_create_payment_intent` — async `stripe.PaymentIntent.create` wrapper; returns `StripePaymentIntent`; `StripeError` → `StripeAPIError`.
+- `stripe_retrieve_payment_intent` — async `stripe.PaymentIntent.retrieve` by `intent_id`; returns `StripePaymentIntent`; not found/API error → `StripeAPIError`.
+- `stripe_refund_payment` — async `stripe.Refund.create`; full or partial (`amount` optional); `reason` ∈ `{"duplicate","fraudulent","requested_by_customer"}`; returns `True`; `StripeError` → `StripeAPIError`.
+- `stripe_verify_webhook_signature` — **sync** `stripe.Webhook.construct_event` wrapper; missing `webhook_secret` → `ValueError`; `SignatureVerificationError` → `StripeInvalidSignatureError`; returns `dict[str, object]` event.
+- `StripeConfig(api_key, webhook_secret)` — shared config model.
+- `StripePaymentIntent(intent_id, client_secret, amount, currency, status, metadata)` — result model; `currency` ∈ `{"usd","eur","cny","gbp","hkd"}`; `status` full Stripe lifecycle Literal.
+- `StripeError` / `StripeAPIError` / `StripeInvalidSignatureError` — error taxonomy.
+- 26 tests (6 alipay-verify + 5 stripe-create + 5 stripe-retrieve + 5 stripe-refund + 5 stripe-webhook); ruff clean; mypy --strict clean.
+
 ## [2.20.0] - 2026-05-30 (planned) — Aegis C2 B2-B5 webhook pipeline
 
 ### Added — B2 single-shot webhook delivery
