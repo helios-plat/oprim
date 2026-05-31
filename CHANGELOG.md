@@ -2,6 +2,21 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.22.0] - 2026-05-31 — Step-12 markets-related oprims (5) for paper_trading_session deps
+
+### Added — 5 markets-related oprims (消除 omodul.paper_trading_session 28 fail 中的 9 fail)
+
+- `detect_daily_limit_up` — A 股日线涨停判定,1e-9 浮点容差,回测日线撮合用
+- `detect_daily_limit_down` — A 股日线跌停判定,对称 detect_daily_limit_up
+- `t_plus_n_blocked` — A 股 T+N 持仓锁定判定(days_held < t_plus_n)
+- `compute_commission` — 券商佣金计算 max(amount × rate, min_fee)
+- `compute_stamp_tax` — 印花税额计算,税率由 caller 从 stamp_tax_rate_by_date 取得
+
+### Notes
+- 5 元素平铺顶层 `oprim/<name>.py`,不放 `oprim/markets/`
+- `_version.py` 同步修复(stale 2.20.0 → 2.22.0)
+- Spec: Tide v4 经理人 Step-12 IMPL SPEC 2026-05-28
+
 ## [2.21.0] - 2026-05-31 — P9-B2+B3 payment oprims — Alipay (4) + Stripe (4)
 
 ### Added — Alipay payment oprims

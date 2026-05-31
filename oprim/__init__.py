@@ -755,6 +755,12 @@ __all__ = [
     "detect_northbound_reversal",
     "NewsShockConfig",
     "detect_news_shock",
+    # Step-12 — markets-related (oprim 2.22.0)
+    "detect_daily_limit_up",
+    "detect_daily_limit_down",
+    "t_plus_n_blocked",
+    "compute_commission",
+    "compute_stamp_tax",
 ]
 
 # --- Tide v4 extraction: B1-B3 (11 oprims) ---
@@ -832,3 +838,10 @@ from oprim.fetch_macro_rrr import fetch_macro_rrr
 from oprim.fetch_macro_yield_spread import fetch_macro_yield_spread
 from oprim.fetch_macro_calendar import fetch_macro_calendar
 from oprim.fetch_macro_policy_news import fetch_macro_policy_news
+
+# --- Step-12 — 5 markets-related oprims (oprim 2.22.0) ---
+from oprim.detect_daily_limit_up import detect_daily_limit_up
+from oprim.detect_daily_limit_down import detect_daily_limit_down
+from oprim.t_plus_n_blocked import t_plus_n_blocked
+from oprim.compute_commission import compute_commission
+from oprim.compute_stamp_tax import compute_stamp_tax

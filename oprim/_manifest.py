@@ -272,6 +272,12 @@ ELEMENTS: list[str] = [
     "fetch_macro_yield_spread",
     "fetch_macro_calendar",
     "fetch_macro_policy_news",
+    # --- Step-12 --- markets-related (5)
+    "detect_daily_limit_up",
+    "detect_daily_limit_down",
+    "t_plus_n_blocked",
+    "compute_commission",
+    "compute_stamp_tax",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
