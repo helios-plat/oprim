@@ -2,6 +2,56 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.23.0] - 2026-06-01 — Stratum Batch 1: 24 P0 oprims
+
+### Added — Stratum B1 P0 — ghost dependency clearance + file/DB/LLM/upload primitives
+
+**File parsers (6)**
+- `file_parser_pdf` — PDF → ParsedDocument via pymupdf4llm; DRM detection
+- `file_parser_epub` — EPUB → ParsedDocument via ebooklib; per-chapter pages
+- `file_parser_html` — HTML → ParsedDocument via trafilatura main-content extraction
+- `file_parser_markdown` — Markdown + YAML frontmatter → ParsedMarkdown via python-frontmatter
+- `file_parser_plaintext` — Plain text → ParsedPlaintext with chardet encoding detection
+- `document_structure_extractor` — ParsedDocument → DocumentStructure (headings, TOC, word count)
+
+**DB operations (7)**
+- `db_insert` — Single row INSERT, returns RETURNING column value
+- `db_query` — Parameterized SELECT, returns list[dict]
+- `db_write` — INSERT with optional ON CONFLICT DO UPDATE (upsert)
+- `db_read` — SELECT by ID with deleted_at IS NULL filter
+- `db_soft_delete` — UPDATE set deleted_at = NOW()
+- `db_update` — UPDATE single row by ID
+- `migration_runner` — Alembic upgrade/downgrade/history/current/stamp
+
+**Utility (5)**
+- `template_render` — Jinja2 string template rendering; strict/non-strict undefined handling
+- `crypto_token_generate` — secrets.token_urlsafe() wrapper; URL-safe or hex output
+- `http_post` — Generic single HTTP POST (distinct from webhook-specific http_post_webhook)
+- `file_size_limiter` — Client-type-aware upload size validation
+- `file_type_detector` — Magic-byte MIME detection + category classification
+
+**LLM (1)**
+- `llm_summarize` — Single LLM call summary via obase.ProviderRegistry; concise/detailed/bullet styles
+
+**Cache (1)**
+- `cache_invalidate` — Redis DEL or in-memory pop; returns True if key existed
+
+**Upload/temp (2)**
+- `file_upload_handler` — Chunked BinaryIO → disk write with SHA-256 checksum
+- `temp_file_manager` — TTL-based temp file registry; create/get/cleanup_expired/cleanup_user
+
+**Push (1)**
+- `push_email` — Single SMTP email send; STARTTLS; plain + HTML multipart
+
+**Auth (1, REUSE★)**
+- `otp_generate` / `otp_verify` — TOTP wrapper (obase.auth.totp equivalent; pyotp)
+
+### Notes
+- oprim-081 otp_generate: REUSE path — pyotp directly used (obase.auth unavailable in oprim venv due to missing argon2-cffi)
+- oprim-078 http_post: NEW (obase has no generic POST; http_post_webhook is webhook-specific)
+- obase dependency: spec requires v0.8.0; current v0.7.0 used — no v0.8.0-specific features required for P0
+- Total new tests: 41 + 37 + 36 + 38 = 152 tests for this batch
+
 ## [2.22.0] - 2026-05-31 — Step-12 markets-related oprims (5) for paper_trading_session deps
 
 ### Added — 5 markets-related oprims (消除 omodul.paper_trading_session 28 fail 中的 9 fail)

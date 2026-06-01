@@ -761,6 +761,50 @@ __all__ = [
     "t_plus_n_blocked",
     "compute_commission",
     "compute_stamp_tax",
+    # Stratum B1 P0 (oprim 2.23.0)
+    "template_render",
+    "crypto_token_generate",
+    "SizeLimitResult",
+    "file_size_limiter",
+    "FileTypeInfo",
+    "file_type_detector",
+    "HTTPResponse",
+    "http_post",
+    "db_insert",
+    "db_query",
+    "WriteResult",
+    "db_write",
+    "db_read",
+    "db_soft_delete",
+    "db_update",
+    "MigrationResult",
+    "migration_runner",
+    "ParsedDocument",
+    "ParsedMarkdown",
+    "ParsedPlaintext",
+    "DocumentStructure",
+    "Page",
+    "Table",
+    "ImageRef",
+    "Section",
+    "file_parser_pdf",
+    "file_parser_epub",
+    "file_parser_html",
+    "file_parser_markdown",
+    "file_parser_plaintext",
+    "document_structure_extractor",
+    "SummarizeResult",
+    "llm_summarize",
+    "cache_invalidate",
+    "UploadResult",
+    "file_upload_handler",
+    "TempFileResult",
+    "temp_file_manager",
+    "EmailResult",
+    "push_email",
+    "OTPResult",
+    "otp_generate",
+    "otp_verify",
 ]
 
 # --- Tide v4 extraction: B1-B3 (11 oprims) ---
@@ -845,3 +889,39 @@ from oprim.detect_daily_limit_down import detect_daily_limit_down
 from oprim.t_plus_n_blocked import t_plus_n_blocked
 from oprim.compute_commission import compute_commission
 from oprim.compute_stamp_tax import compute_stamp_tax
+
+# --- Stratum B1 P0 — 24 elements (oprim 2.23.0) ---
+from oprim.template_render import template_render
+from oprim.crypto_token_generate import crypto_token_generate
+from oprim.file_size_limiter import SizeLimitResult, file_size_limiter
+from oprim.file_type_detector import FileTypeInfo, file_type_detector
+from oprim.http_post import HTTPResponse, http_post
+from oprim.db_insert import db_insert
+from oprim.db_query import db_query
+from oprim.db_write import WriteResult, db_write
+from oprim.db_read import db_read
+from oprim.db_soft_delete import db_soft_delete
+from oprim.db_update import db_update
+from oprim.migration_runner import MigrationResult, migration_runner
+from oprim._document_types import (
+    DocumentStructure,
+    ImageRef,
+    Page,
+    ParsedDocument,
+    ParsedMarkdown,
+    ParsedPlaintext,
+    Section,
+    Table,
+)
+from oprim.file_parser_pdf import file_parser_pdf
+from oprim.file_parser_epub import file_parser_epub
+from oprim.file_parser_html import file_parser_html
+from oprim.file_parser_markdown import file_parser_markdown
+from oprim.file_parser_plaintext import file_parser_plaintext
+from oprim.document_structure_extractor import document_structure_extractor
+from oprim.llm_summarize import SummarizeResult, llm_summarize
+from oprim.cache_invalidate import cache_invalidate
+from oprim.file_upload_handler import UploadResult, file_upload_handler
+from oprim.temp_file_manager import TempFileResult, temp_file_manager
+from oprim.push_email import EmailResult, push_email
+from oprim.otp_generate import OTPResult, otp_generate, otp_verify
