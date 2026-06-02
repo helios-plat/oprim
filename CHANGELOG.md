@@ -2,6 +2,13 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.24.1] - 2026-06-03 — fix: re-export tts_synthesize / image_generate / image_understand
+
+### Fixed
+
+- `oprim/__init__.py`: added missing top-level re-exports for `tts_synthesize`, `image_generate`, `image_understand` (resolves AttributeError from consumers calling `oprim.tts_synthesize` etc.)
+- `__all__` updated with all three symbols
+
 ## [2.24.0] - 2026-06-02 — Aegis C3-4 ErrorAggregator primitives
 
 ### Added

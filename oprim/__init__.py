@@ -179,6 +179,11 @@ from oprim.vlm_video_analyze import vlm_video_analyze
 from oprim.youtube_comments_fetch import youtube_comments_fetch
 from oprim.youtube_video_stats import youtube_video_stats
 
+# v2.24.1 — export fix (tts / image_generate / image_understand were missing)
+from oprim.image_generate import image_generate
+from oprim.image_understand import image_understand
+from oprim.tts_synthesize import tts_synthesize
+
 # Phase 10 additions (v2.0.0)
 from oprim.behavioral import (
     cpt_value_function,
@@ -573,6 +578,10 @@ __all__ = [
     "bilibili_comments_fetch",
     "video_quality_metrics",
     "vlm_video_analyze",
+    # v2.24.1 — export fix
+    "image_generate",
+    "image_understand",
+    "tts_synthesize",
     # P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
     "style_marker_prompt",
     "StyleType",
