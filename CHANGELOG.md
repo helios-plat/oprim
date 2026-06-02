@@ -2,6 +2,12 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.24.0] - 2026-06-02 — Aegis C3-4 ErrorAggregator primitives
+
+### Added
+
+- `compute_event_fingerprint` — Sentry-style error aggregation key: SHA-256(exception_type|exception_value|top_frame_function|top_frame_filename, null-byte separated). Custom fingerprint override supported. NOT omodul fingerprint (business transaction identity); NOT compute_dedup_key (time-bucket dedup). Stable across time; same error → same fingerprint → same issue.
+
 ## [2.23.0] - 2026-06-01 — Stratum Batch 1: 24 P0 oprims
 
 ### Added — Stratum B1 P0 — ghost dependency clearance + file/DB/LLM/upload primitives

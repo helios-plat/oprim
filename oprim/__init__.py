@@ -805,6 +805,8 @@ __all__ = [
     "OTPResult",
     "otp_generate",
     "otp_verify",
+    # Aegis C3-C4 (oprim 2.24.0)
+    "compute_event_fingerprint",
 ]
 
 # --- Tide v4 extraction: B1-B3 (11 oprims) ---
@@ -925,3 +927,6 @@ from oprim.file_upload_handler import UploadResult, file_upload_handler
 from oprim.temp_file_manager import TempFileResult, temp_file_manager
 from oprim.push_email import EmailResult, push_email
 from oprim.otp_generate import OTPResult, otp_generate, otp_verify
+
+# --- Aegis C3-C4 — error aggregation (oprim 2.24.0) ---
+from oprim.compute_event_fingerprint import compute_event_fingerprint
