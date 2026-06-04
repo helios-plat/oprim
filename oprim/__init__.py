@@ -852,6 +852,8 @@ __all__ = [
     "timeline_aggregator",
     "backlink_resolver",
     "graph_traversal",
+    # B2 — search (oprim 2.30.0)
+    "searxng_search",
 ]
 
 # --- Tide v4 extraction: B1-B3 (11 oprims) ---
@@ -1022,3 +1024,6 @@ from oprim.citation_formatter import citation_formatter
 from oprim.timeline_aggregator import timeline_aggregator
 from oprim.backlink_resolver import backlink_resolver
 from oprim.graph_traversal import graph_traversal
+
+# --- B2 — search (oprim 2.30.0) ---
+from oprim.searxng_search import searxng_search

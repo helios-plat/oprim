@@ -2,6 +2,11 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.30.0] — 2026-06-05
+
+### Added (Stratum B2)
+- `searxng_search` — single searxng instance query; SSRF-safe transport for public URLs, direct urllib for Docker-internal (172.17.x.x); structured results with title/url/content/engine/score
+
 ## [2.29.1] — 2026-06-04
 
 ### Fixed
