@@ -7,7 +7,10 @@ Produces default unverified KU candidate (A19: LLM proposes, never certifies).
 from __future__ import annotations
 
 import json
+import logging
 import uuid
+
+_log = logging.getLogger(__name__)
 
 _EXTRACT_PROMPT = """Extract a knowledge unit from the following text chunk.
 
@@ -32,24 +35,42 @@ def llm_extract_ku(
 ) -> dict:
     """Extract a KU candidate from text via single LLM call.
 
+    Calls obase.ProviderRegistry.get("llm", provider). On ProviderNotFoundError
+    logs a warning and falls back to a deterministic stub. Any other exception
+    (code error) is re-raised — not silently swallowed.
+
     Returns KU dict with epistemic_status.verified=False (A19: default unverified).
-    Falls back to stub extraction if LLM unavailable.
+
+    Args:
+        text: Source text chunk to extract from.
+        project_id: Project this KU belongs to.
+        knowledge_type_hint: Fallback knowledge_type for stub path.
+        provider: LLM provider name in ProviderRegistry.
     """
+    _stub = False
+
     try:
         from obase import ProviderRegistry
+        from obase.exceptions import ProviderNotFoundError
 
-        reg = ProviderRegistry.get_instance()
-        llm = reg.get("llm", provider)
+        llm = ProviderRegistry.get("llm", provider)
         prompt = _EXTRACT_PROMPT.format(text=text[:3000])
         response = llm(prompt)
-        # Parse JSON from response
         raw = json.loads(response.strip())
         knowledge_type = raw.get("knowledge_type", "proposition")
         natural_text = raw.get("natural_text", text[:200])
         symbolic_form = raw.get("symbolic_form")
         tags = raw.get("tags", [])
-    except Exception:
-        # Deterministic stub: extract first sentence as proposition
+    except ProviderNotFoundError:
+        _log.warning(
+            "llm_extract_ku: LLM provider %r not registered — falling back to stub", provider
+        )
+        _stub = True
+    except ImportError:
+        _stub = True  # obase not installed
+
+    if _stub:
+        # Deterministic stub: first sentence as a proposition
         natural_text = text.split(".")[0].strip()[:200] or text[:200]
         knowledge_type = knowledge_type_hint or "proposition"
         symbolic_form = None

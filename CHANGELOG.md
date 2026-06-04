@@ -2,6 +2,16 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.29.1] — 2026-06-04
+
+### Fixed
+- `vector_encode`: `ProviderRegistry.get_instance()` → `ProviderRegistry.get("embedding", provider)` (classmethod, 3-arg form). `except Exception` split: `ProviderNotFoundError` → log.warning + stub; other exceptions re-raise.
+- `llm_extract_ku`: same `get_instance()` fix + `ProviderNotFoundError` vs code-error distinction.
+- `llm_distill_strategy`: same fix. All three were silently falling to stub on every call due to `get_instance()` not existing.
+
+### Tests added
+- 3 tests per element (9 total): provider-not-registered → stub + warning; provider-registered → real call with messages passthrough; code-error → re-raise.
+
 ## [2.29.0] — 2026-06-04
 
 ### Added (Stratum B2 — 13 new elements)

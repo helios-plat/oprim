@@ -7,7 +7,11 @@ Test/stub: deterministic hash-based pseudo-vectors (no model needed).
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
+
+_log = logging.getLogger(__name__)
 
 
 def vector_encode(
@@ -18,29 +22,45 @@ def vector_encode(
 ) -> np.ndarray:
     """Encode list of texts to dense float32 vectors. Returns (n, dim) array.
 
-    Attempts obase.ProviderRegistry first; falls back to deterministic stub.
-    Stub produces hash-seeded vectors — consistent per text, usable in tests.
+    Calls obase.ProviderRegistry.get("embedding", provider) to obtain the
+    embedding function. Falls back to a deterministic stub when the provider
+    is not registered (ProviderNotFoundError → warning + stub). Any other
+    exception (code error) is re-raised — not silently swallowed.
+
+    Args:
+        texts: List of strings to encode.
+        provider: Provider name registered in ProviderRegistry (e.g. "bge-m3").
+        normalize: If True, L2-normalise each vector.
+
+    Returns:
+        Float32 ndarray of shape (len(texts), dim).
     """
     try:
         from obase import ProviderRegistry
+        from obase.exceptions import ProviderNotFoundError
 
-        reg = ProviderRegistry.get_instance()
-        embed_fn = reg.get("embedding", provider)
+        embed_fn = ProviderRegistry.get("embedding", provider)
         vecs = np.array(embed_fn(texts), dtype=np.float32)
         if normalize:
             norms = np.linalg.norm(vecs, axis=1, keepdims=True)
             norms[norms == 0] = 1.0
             vecs = vecs / norms
         return vecs
-    except Exception:
-        # deterministic stub: hash-based pseudo-vectors
-        dim = 128
-        result = np.zeros((len(texts), dim), dtype=np.float32)
-        for i, t in enumerate(texts):
-            h = abs(hash(t)) % (2**31)
-            rng = np.random.default_rng(h)
-            v = rng.standard_normal(dim).astype(np.float32)
-            if normalize:
-                v = v / (np.linalg.norm(v) + 1e-8)
-            result[i] = v
-        return result
+    except ProviderNotFoundError:
+        _log.warning(
+            "vector_encode: embedding provider %r not registered — falling back to stub", provider
+        )
+    except ImportError:
+        pass  # obase not installed in this environment
+
+    # Deterministic stub: hash-seeded pseudo-vectors (consistent per text)
+    dim = 128
+    result = np.zeros((len(texts), dim), dtype=np.float32)
+    for i, t in enumerate(texts):
+        h = abs(hash(t)) % (2**31)
+        rng = np.random.default_rng(h)
+        v = rng.standard_normal(dim).astype(np.float32)
+        if normalize:
+            v = v / (np.linalg.norm(v) + 1e-8)
+        result[i] = v
+    return result

@@ -106,3 +106,51 @@ def test_vector_frozen_is_false():
 def test_epistemic_status_has_defeaters_list():
     result = llm_distill_strategy(episode=_episode())
     assert isinstance(result["epistemic_status"]["defeaters"], list)
+
+
+# ---------------------------------------------------------------------------
+# ProviderRegistry fix tests (v2.29.1)
+# ---------------------------------------------------------------------------
+
+
+class TestProviderRegistryPath:
+    def test_provider_not_registered_falls_back_to_stub_with_warning(self):
+        """ProviderNotFoundError → stub + log.warning, no raise."""
+        from unittest.mock import patch
+        from obase.exceptions import ProviderNotFoundError
+
+        ep = {"event": "deploy failed", "outcome": "rollback", "context": {}}
+        with patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("llm", "x")):
+            with patch("oprim.llm_distill_strategy._log") as mock_log:
+                result = llm_distill_strategy(episode=ep)
+        assert result["knowledge_type"] == "solution_strategy"
+        assert result["epistemic_status"]["verified"] is False
+        mock_log.warning.assert_called_once()
+
+    def test_provider_registered_calls_llm_messages_passthrough(self):
+        """Registered provider called; episode fields appear in prompt."""
+        from unittest.mock import patch, MagicMock
+        import json
+
+        fake_response = json.dumps({
+            "title": "Rollback strategy",
+            "description": "Use rollback on failure.",
+            "content": "Steps: 1. detect 2. rollback",
+        })
+        mock_llm = MagicMock(return_value=fake_response)
+        ep = {"event": "prod deploy", "outcome": "success", "context": {"env": "prod"}}
+        with patch("obase.ProviderRegistry.get", return_value=mock_llm) as mock_get:
+            result = llm_distill_strategy(episode=ep, provider="deepseek")
+        mock_get.assert_called_once_with("llm", "deepseek")
+        prompt = mock_llm.call_args[0][0]
+        assert "prod deploy" in prompt
+        assert result["symbolic_form"]["title"] == "Rollback strategy"
+
+    def test_code_error_reraises(self):
+        """Non-ProviderNotFoundError must propagate."""
+        import pytest
+        from unittest.mock import patch
+
+        with patch("obase.ProviderRegistry.get", side_effect=ValueError("bad")):
+            with pytest.raises(ValueError):
+                llm_distill_strategy(episode={})

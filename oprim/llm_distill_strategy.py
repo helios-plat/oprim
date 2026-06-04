@@ -8,7 +8,10 @@ Produces default unverified strategy (A19: LLM proposes, never certifies).
 from __future__ import annotations
 
 import json
+import logging
 import uuid
+
+_log = logging.getLogger(__name__)
 
 _DISTILL_PROMPT = """Distill a reusable solution strategy from this problem-solving episode.
 
@@ -33,18 +36,29 @@ def llm_distill_strategy(
 ) -> dict:
     """Distill a solution_strategy KU from an Episode via single LLM call.
 
-    episode: {event, outcome, context, ...}
-    Returns KU dict with knowledge_type="solution_strategy", epistemic_status.verified=False (A19).
+    Calls obase.ProviderRegistry.get("llm", provider). On ProviderNotFoundError
+    logs a warning and falls back to a deterministic stub. Any other exception
+    (code error) is re-raised — not silently swallowed.
+
+    Returns KU dict with knowledge_type="solution_strategy",
+    epistemic_status.verified=False (A19: default unverified).
+
+    Args:
+        episode: Episode dict with event, outcome, context keys.
+        project_id: Project this strategy belongs to.
+        provider: LLM provider name in ProviderRegistry.
     """
     event = episode.get("event", "")
     outcome = episode.get("outcome", "")
     context = str(episode.get("context", ""))
 
+    _stub = False
+
     try:
         from obase import ProviderRegistry
+        from obase.exceptions import ProviderNotFoundError
 
-        reg = ProviderRegistry.get_instance()
-        llm = reg.get("llm", provider)
+        llm = ProviderRegistry.get("llm", provider)
         prompt = _DISTILL_PROMPT.format(
             event=event[:500], outcome=outcome[:200], context=context[:500]
         )
@@ -53,8 +67,15 @@ def llm_distill_strategy(
         title = raw.get("title", f"Strategy from: {event[:40]}")
         description = raw.get("description", "")
         content = raw.get("content", "")
-    except Exception:
-        # Deterministic stub
+    except ProviderNotFoundError:
+        _log.warning(
+            "llm_distill_strategy: LLM provider %r not registered — falling back to stub", provider
+        )
+        _stub = True
+    except ImportError:
+        _stub = True  # obase not installed
+
+    if _stub:
         title = f"Strategy: {outcome[:40]}" if outcome else "Strategy from episode"
         description = f"Approach used when: {event[:80]}"
         content = f"Outcome: {outcome}"

@@ -100,3 +100,40 @@ def test_row_order_matches_input():
     for i, t in enumerate(texts):
         single = vector_encode(texts=[t])
         np.testing.assert_array_equal(result[i], single[0])
+
+
+# ---------------------------------------------------------------------------
+# ProviderRegistry fix tests (v2.29.1)
+# ---------------------------------------------------------------------------
+
+
+class TestProviderRegistryPath:
+    def test_provider_not_registered_falls_back_to_stub(self):
+        """ProviderNotFoundError → deterministic stub + log.warning (no raise)."""
+        from unittest.mock import patch
+        from obase.exceptions import ProviderNotFoundError
+
+        with patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("embedding", "missing")):
+            result = vector_encode(texts=["hello"])
+        assert isinstance(result, np.ndarray)
+        assert result.shape[0] == 1
+
+    def test_provider_registered_calls_provider(self):
+        """Registered provider is called; its return value used (not stub)."""
+        from unittest.mock import patch, MagicMock
+
+        fake_vecs = [[1.0] * 128]
+        mock_embed = MagicMock(return_value=fake_vecs)
+        with patch("obase.ProviderRegistry.get", return_value=mock_embed) as mock_get:
+            result = vector_encode(texts=["test"], provider="bge-m3", normalize=False)
+        mock_get.assert_called_once_with("embedding", "bge-m3")
+        mock_embed.assert_called_once_with(["test"])
+        np.testing.assert_allclose(result[0, 0], 1.0)
+
+    def test_code_error_reraises(self):
+        """Non-ProviderNotFoundError (e.g. AttributeError) must propagate, not fall to stub."""
+        from unittest.mock import patch
+
+        with patch("obase.ProviderRegistry.get", side_effect=AttributeError("bad attr")):
+            with pytest.raises(AttributeError):
+                vector_encode(texts=["hello"])
