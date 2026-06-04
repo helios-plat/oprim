@@ -110,3 +110,69 @@ def test_feed_url_preserved():
         xml_string=VALID_RSS, feed_url="http://example.com/feed.rss", max_items=100
     )
     assert result["feed_url"] == "http://example.com/feed.rss"
+
+
+# ---------------------------------------------------------------------------
+# SSRF protection tests (fetch_rss_feed, not _parse_rss_xml)
+# ---------------------------------------------------------------------------
+
+
+class TestFetchRssFeedSSRF:
+    """Verify that fetch_rss_feed uses SSRF-safe transport."""
+
+    def test_file_scheme_rejected(self):
+        from oprim.fetch_rss_feed import fetch_rss_feed
+
+        result = fetch_rss_feed(url="file:///etc/passwd")
+        assert result["error"] is not None
+        assert "unsupported_scheme" in result["error"]
+
+    def test_ftp_scheme_rejected(self):
+        from oprim.fetch_rss_feed import fetch_rss_feed
+
+        result = fetch_rss_feed(url="ftp://internal.corp/feed.rss")
+        assert result["error"] is not None
+        assert "unsupported_scheme" in result["error"]
+
+    def test_ssrf_blocked_private_ip(self):
+        from unittest.mock import patch
+        import socket
+        from oprim.fetch_rss_feed import fetch_rss_feed
+
+        # Simulate private-IP DNS resolution for a URL with http scheme
+        private_addrinfo = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("192.168.1.1", 0))]
+        with patch("socket.getaddrinfo", return_value=private_addrinfo):
+            result = fetch_rss_feed(url="http://internal.corp/feed.rss")
+        assert result["error"] is not None
+        assert "ssrf_blocked" in result["error"]
+
+    def test_uses_ssrf_safe_opener(self):
+        """fetch_rss_feed must import make_ssrf_safe_opener (not raw urlopen)."""
+        import inspect
+        from oprim import fetch_rss_feed as _mod
+        import oprim.fetch_rss_feed as rss_mod
+
+        source = inspect.getsource(rss_mod)
+        assert "make_ssrf_safe_opener" in source
+        assert "urlopen(url" not in source  # raw urlopen call must be gone
+
+    def test_http_scheme_accepted_with_mocked_fetch(self):
+        from unittest.mock import MagicMock, patch
+        from oprim.fetch_rss_feed import fetch_rss_feed
+
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = VALID_RSS.encode()
+        mock_resp.__enter__ = lambda s: s
+        mock_resp.__exit__ = MagicMock(return_value=False)
+
+        mock_opener = MagicMock()
+        mock_opener.open.return_value = mock_resp
+
+        with patch(
+            "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
+            return_value=mock_opener,
+        ):
+            result = fetch_rss_feed(url="http://example.com/feed.rss")
+
+        assert result["error"] is None
+        assert result["feed_title"] is not None
