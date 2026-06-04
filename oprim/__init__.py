@@ -816,6 +816,42 @@ __all__ = [
     "otp_verify",
     # Aegis C3-C4 (oprim 2.24.0)
     "compute_event_fingerprint",
+    # AII 3O Batch 3a (oprim 2.25.0)
+    "coherence_compute",
+    "INDEPENDENT_SOURCES",
+    "GRADE_LADDER",
+    "entity_graph_search",
+    "vector_encode",
+    # AII 3O Batch 3b — supporting oprim
+    "bm25_search",
+    # AII 3O Batch 4a — P2 knowledge layer (oprim 2.26.0)
+    "structural_chunk",
+    "ku_gate_validate",
+    "REASONING_TYPES",
+    "VALID_KNOWLEDGE_TYPES",
+    "VALID_GRADES",
+    "llm_extract_ku",
+    "llm_distill_strategy",
+    # AII 3O Batch 5a — P3 Q-matrix (oprim 2.27.0)
+    "build_q_matrix",
+    # AII 3O Batch 5b — P5 causal + backtest (oprim 2.28.0)
+    "cmi_verify",
+    "backtest_stat",
+    # B2a — feed/content group (oprim 2.29.0)
+    "url_fetch_ssrf_safe",
+    "fetch_rss_feed",
+    "parse_atom_feed",
+    "detect_feed_url",
+    "podcast_episode_parser",
+    "feed_diff_detector",
+    "ocr_detect_text",
+    # B2b — utility group (oprim 2.29.0)
+    "concept_extractor",
+    "keyword_alert_checker",
+    "citation_formatter",
+    "timeline_aggregator",
+    "backlink_resolver",
+    "graph_traversal",
 ]
 
 # --- Tide v4 extraction: B1-B3 (11 oprims) ---
@@ -939,3 +975,50 @@ from oprim.otp_generate import OTPResult, otp_generate, otp_verify
 
 # --- Aegis C3-C4 — error aggregation (oprim 2.24.0) ---
 from oprim.compute_event_fingerprint import compute_event_fingerprint
+
+# --- AII 3O Batch 3a (oprim 2.25.0) ---
+from oprim.coherence_compute import (
+    GRADE_LADDER,
+    INDEPENDENT_SOURCES,
+    coherence_compute,
+)
+from oprim.entity_graph_search import entity_graph_search
+from oprim.vector_encode import vector_encode
+
+# --- AII 3O Batch 3b — supporting oprim (oprim 2.25.0) ---
+from oprim.bm25_search import bm25_search
+
+# --- AII 3O Batch 4a — P2 knowledge layer (oprim 2.26.0) ---
+from oprim.structural_chunk import structural_chunk
+from oprim.ku_gate_validate import (
+    ku_gate_validate,
+    REASONING_TYPES,
+    VALID_KNOWLEDGE_TYPES,
+    VALID_GRADES,
+)
+from oprim.llm_extract_ku import llm_extract_ku
+from oprim.llm_distill_strategy import llm_distill_strategy
+
+# --- AII 3O Batch 5a — P3 Q-matrix (oprim 2.27.0) ---
+from oprim.build_q_matrix import build_q_matrix
+
+# --- AII 3O Batch 5b — P5 causal + backtest (oprim 2.28.0) ---
+from oprim.cmi_verify import cmi_verify
+from oprim.backtest_stat import backtest_stat
+
+# --- B2a — feed/content group (oprim 2.29.0) ---
+from oprim.url_fetch_ssrf_safe import url_fetch_ssrf_safe
+from oprim.fetch_rss_feed import fetch_rss_feed
+from oprim.parse_atom_feed import parse_atom_feed
+from oprim.detect_feed_url import detect_feed_url
+from oprim.podcast_episode_parser import podcast_episode_parser
+from oprim.feed_diff_detector import feed_diff_detector
+from oprim.ocr_detect_text import ocr_detect_text
+
+# --- B2b — utility group (oprim 2.29.0) ---
+from oprim.concept_extractor import concept_extractor
+from oprim.keyword_alert_checker import keyword_alert_checker
+from oprim.citation_formatter import citation_formatter
+from oprim.timeline_aggregator import timeline_aggregator
+from oprim.backlink_resolver import backlink_resolver
+from oprim.graph_traversal import graph_traversal

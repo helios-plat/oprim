@@ -2,6 +2,52 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.29.0] — 2026-06-04
+
+### Added (Stratum B2 — 13 new elements)
+**Feed/Content group (B2a):**
+- `url_fetch_ssrf_safe` — SSRF-safe URL fetch via obase.http.dns_pinned_transport
+- `fetch_rss_feed` — RSS 2.0 feed fetch + parse
+- `parse_atom_feed` — Atom 1.0 feed parse from XML string
+- `detect_feed_url` — Auto-detect RSS/Atom URL from HTML <link> tags
+- `podcast_episode_parser` — Podcast RSS with iTunes enclosure/duration
+- `feed_diff_detector` — New/removed items between two feed snapshots
+- `ocr_detect_text` — OCR text extraction via provider (stub fallback)
+
+**Utility group (B2b):**
+- `concept_extractor` — LLM concept extraction (stub: capitalized phrase regex)
+- `keyword_alert_checker` — Exact/regex/fuzzy keyword match with positions
+- `citation_formatter` — APA/MLA/Chicago citation formatting, pure logic
+- `timeline_aggregator` — Items bucketed by day/week/month from timestamps
+- `backlink_resolver` — [[wikilink]] resolution + bidirectional index
+- `graph_traversal` — Generic BFS/DFS traversal, cross-business reusable
+
+## [2.28.0] — 2026-06-04
+
+### Added (AII-3O Batch 5b — P5 causal + backtest)
+- `cmi_verify` — deterministic CMI causal verification: Cohen's d + Welch's t-test p-value, causal_confidence classification (strong/moderate/weak/none); A11/A17 reproducible
+- `backtest_stat` — deterministic backtest statistics from returns series: total_return, annualized_return, annualized_volatility, sharpe_ratio, max_drawdown, win_rate; A17 reproducible
+
+## [2.27.0] — 2026-06-04
+
+### Added (AII-3O Batch 5a — P3 Q-matrix)
+- `build_q_matrix` — build IRT/CDM Q-matrix from knowledge graph `assesses` edges; pure logic, no LLM; used by cognitive_diagnosis DINA model
+
+## [2.26.0] — 2026-06-04
+
+### Added (AII-3O Batch 4a — P2 knowledge layer)
+- `structural_chunk` — MD semantic chunking, pure logic, no LLM
+- `ku_gate_validate` — HOS-001 three-face-unity gate validation, pure logic
+- `llm_extract_ku` — single LLM call: text → unverified KU candidate (A19)
+- `llm_distill_strategy` — single LLM call: Episode → unverified solution_strategy (A19)
+
+## [2.25.0] — 2026-06-04
+
+### Added (AII-3O Batch 3a)
+- `coherence_compute` — deterministic KU coherence evidence from confirmed knowledge (A20 compliant, extracted from omodul.knowledge_reflux)
+- `entity_graph_search` — single graph BFS traversal from seed nodes, cross-business reusable
+- `vector_encode` — single-call text encoding via obase.ProviderRegistry with deterministic stub fallback
+
 ## [2.24.1] - 2026-06-03 — fix: re-export tts_synthesize / image_generate / image_understand
 
 ### Fixed
