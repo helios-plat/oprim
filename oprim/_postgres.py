@@ -23,6 +23,7 @@ except ImportError:
 # Models
 # ---------------------------------------------------------------------------
 
+
 class PoolStatus(BaseModel):
     total_connections: int
     active_connections: int
@@ -74,6 +75,7 @@ class ReplicationLag(BaseModel):
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _connect(dsn: str, timeout_sec: int) -> Any:
     """Return a psycopg connection; raise oprim-typed errors on failure."""
     if psycopg is None:
@@ -98,6 +100,7 @@ def _connect(dsn: str, timeout_sec: int) -> Any:
 # 3.2 postgres_pool_status
 # ---------------------------------------------------------------------------
 
+
 def postgres_pool_status(
     *,
     dsn: str,
@@ -118,9 +121,7 @@ def postgres_pool_status(
     conn = _connect(dsn, timeout_sec)
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT state, COUNT(*) FROM pg_stat_activity GROUP BY state;"
-            )
+            cur.execute("SELECT state, COUNT(*) FROM pg_stat_activity GROUP BY state;")
             rows = cur.fetchall()
             state_counts: dict[str, int] = {}
             for state, count in rows:
@@ -130,9 +131,7 @@ def postgres_pool_status(
             max_conn_row = cur.fetchone()
             max_connections = int(max_conn_row[0]) if max_conn_row else 0
 
-            cur.execute(
-                "SELECT COUNT(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock';"
-            )
+            cur.execute("SELECT COUNT(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock';")
             wait_row = cur.fetchone()
             waiting = int(wait_row[0]) if wait_row else 0
     finally:
@@ -158,6 +157,7 @@ def postgres_pool_status(
 # ---------------------------------------------------------------------------
 # 3.3 postgres_slow_queries
 # ---------------------------------------------------------------------------
+
 
 def postgres_slow_queries(
     *,
@@ -185,9 +185,7 @@ def postgres_slow_queries(
     try:
         with conn.cursor() as cur:
             # Verify pg_stat_statements is available
-            cur.execute(
-                "SELECT 1 FROM pg_extension WHERE extname = 'pg_stat_statements';"
-            )
+            cur.execute("SELECT 1 FROM pg_extension WHERE extname = 'pg_stat_statements';")
             if cur.fetchone() is None:
                 raise OprimError(
                     "pg_stat_statements extension is not installed. "
@@ -226,6 +224,7 @@ def postgres_slow_queries(
 # ---------------------------------------------------------------------------
 # 3.4 postgres_locks_status
 # ---------------------------------------------------------------------------
+
 
 def postgres_locks_status(
     *,
@@ -291,6 +290,7 @@ def postgres_locks_status(
 # ---------------------------------------------------------------------------
 # 3.5 postgres_table_size
 # ---------------------------------------------------------------------------
+
 
 def postgres_table_size(
     *,
@@ -363,6 +363,7 @@ def postgres_table_size(
 # 3.6 postgres_replication_lag
 # ---------------------------------------------------------------------------
 
+
 def postgres_replication_lag(
     *,
     dsn: str,
@@ -406,13 +407,15 @@ def postgres_replication_lag(
                     """
                 )
                 for r in cur.fetchall():
-                    replicas.append({
-                        "client_addr": r[0],
-                        "state": r[1],
-                        "sync_state": r[2],
-                        "lag_seconds": float(r[3]),
-                        "lag_bytes": int(r[4]),
-                    })
+                    replicas.append(
+                        {
+                            "client_addr": r[0],
+                            "state": r[1],
+                            "sync_state": r[2],
+                            "lag_seconds": float(r[3]),
+                            "lag_bytes": int(r[4]),
+                        }
+                    )
     finally:
         conn.close()
 
@@ -423,3 +426,11 @@ def postgres_replication_lag(
         replicas=replicas,
         max_lag_seconds=max_lag,
     )
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — short-name aliases (B2)
+# ---------------------------------------------------------------------------
+
+postgres_long_running_queries = postgres_slow_queries
+postgres_locks = postgres_locks_status

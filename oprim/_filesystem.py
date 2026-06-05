@@ -20,6 +20,7 @@ from oprim._exceptions import (
 # Models
 # ---------------------------------------------------------------------------
 
+
 class DiskUsage(BaseModel):
     path: str
     total_bytes: int
@@ -39,6 +40,7 @@ class ArchiveResult(BaseModel):
     @property
     def src_dir(self) -> str:
         import warnings
+
         msg = "ArchiveResult.src_dir is deprecated, use .sources"
         warnings.warn(msg, DeprecationWarning, stacklevel=2)
         return self.sources[0] if self.sources else ""
@@ -47,6 +49,7 @@ class ArchiveResult(BaseModel):
 # ---------------------------------------------------------------------------
 # 7.1 disk_usage
 # ---------------------------------------------------------------------------
+
 
 def disk_usage(
     *,
@@ -83,8 +86,10 @@ def disk_usage(
 # 7.2 archive_to_targz
 # ---------------------------------------------------------------------------
 
+
 def _matches_any(name: str, patterns: list[str]) -> bool:
     import fnmatch
+
     return any(fnmatch.fnmatch(name, pat) for pat in patterns)
 
 
@@ -188,6 +193,7 @@ def dir_archive_to_targz(
 ) -> ArchiveResult:
     """(Deprecated) use archive_to_targz."""
     import warnings
+
     msg = "dir_archive_to_targz is deprecated, use archive_to_targz"
     warnings.warn(msg, DeprecationWarning, stacklevel=2)
     return archive_to_targz(
@@ -201,6 +207,7 @@ def dir_archive_to_targz(
 # ---------------------------------------------------------------------------
 # 7.3 file_checksum
 # ---------------------------------------------------------------------------
+
 
 def file_checksum(
     *,
@@ -230,3 +237,61 @@ def file_checksum(
         for chunk in iter(lambda: f.read(chunk_size), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — short-name alias + fs_inode_check (B2)
+# ---------------------------------------------------------------------------
+
+fs_disk_usage = disk_usage
+
+
+def fs_inode_check(
+    *,
+    path: str,
+) -> dict[str, int | float | str]:
+    """检查文件系统 inode 使用情况.
+
+    Args:
+        path: 目标路径 (任意挂载点内的路径即可)
+
+    Returns:
+        {
+          "path": str,
+          "inodes_total": int,
+          "inodes_used": int,
+          "inodes_free": int,
+          "inodes_used_percent": float,
+        }
+
+    Raises:
+        OprimNotFoundError: path 不存在
+        OprimError: 平台不支持 inode 统计
+    """
+    p = Path(path)
+    if not p.exists():
+        raise OprimNotFoundError(f"Path not found: {path}")
+
+    try:
+        st = shutil.disk_usage(str(p))  # total/used/free bytes
+    except Exception as exc:
+        raise OprimError(f"Failed to stat path: {exc}") from exc
+
+    try:
+        import os
+
+        stat_vfs = os.statvfs(str(p))
+        total = stat_vfs.f_files
+        free = stat_vfs.f_ffree
+        used = total - free
+        pct = round(used / total * 100, 2) if total > 0 else 0.0
+    except AttributeError:
+        raise OprimError("fs_inode_check is not supported on this platform (no os.statvfs)")
+
+    return {
+        "path": str(p),
+        "inodes_total": total,
+        "inodes_used": used,
+        "inodes_free": free,
+        "inodes_used_percent": pct,
+    }

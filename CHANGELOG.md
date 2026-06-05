@@ -2,6 +2,20 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.31.0] — 2026-06-05
+
+### Added (Aegis 3O Element IMPL SPEC v1.0 — B2: 25 new elements)
+- **Docker short-names**: `docker_logs`, `docker_ps`, `docker_restart`, `docker_stats`, `docker_inspect`, `docker_compose_up`, `docker_compose_down` (aliases over existing `docker_container_*`/`compose_*`)
+- **`docker_compose_pull`**: new — `docker compose pull` subprocess wrapper; raises `OprimNotFoundError` if compose file missing, `OprimConnectionError` on non-zero exit
+- **PostgreSQL aliases**: `postgres_long_running_queries` → `postgres_slow_queries`, `postgres_locks` → `postgres_locks_status`
+- **RabbitMQ focused wrappers**: `rabbitmq_queue_depth` (ready+unacked int), `rabbitmq_consumer_count` (consumers int)
+- **Network aliases**: `network_port_check` → `tcp_port_check`, `network_http_health` → `http_health_probe`, `network_dns_resolve` → `dns_resolve`
+- **Filesystem**: `fs_disk_usage` → `disk_usage` alias; `fs_inode_check` — new inode stat via `os.statvfs`
+- **System focused wrappers**: `system_cpu_usage` (float 0–100), `system_ram_usage` (dict), `system_load_avg` (dict with 1m/5m/15m)
+- **Caddy new ops**: `caddy_admin_config` (GET full config), `caddy_admin_routes` → `caddy_routes_list` alias, `caddy_route_add_atomic` (GET→insert→PUT), `caddy_route_remove_atomic` (GET→filter→PUT)
+- **`appstore_catalog_fetch`** (new module `appstore_catalog_fetch.py`): httpx GET catalog endpoint → `AppCatalogEntry` Pydantic model
+- 80 new tests (B2), all green. Pre-existing `postgres_pool_status` and `caddy_admin_reload` count as part of the 27-element surface.
+
 ## [2.30.0] — 2026-06-05
 
 ### Added (Stratum B2)

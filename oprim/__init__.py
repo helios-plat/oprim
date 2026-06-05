@@ -76,9 +76,13 @@ from oprim.io_write import (
 )
 
 from oprim._caddy import (
+    caddy_admin_config,
     caddy_admin_post,
     caddy_admin_reload,
+    caddy_admin_routes,
     caddy_certificates_status,
+    caddy_route_add_atomic,
+    caddy_route_remove_atomic,
     caddy_routes_list,
 )
 
@@ -90,6 +94,9 @@ from oprim.parse_obsidian_tasks import ObsidianTask, parse_obsidian_tasks
 from oprim._docker import (
     compose_down,
     compose_up,
+    docker_compose_down,
+    docker_compose_pull,
+    docker_compose_up,
     docker_container_inspect,
     docker_container_list,
     docker_container_logs,
@@ -100,7 +107,12 @@ from oprim._docker import (
     docker_image_delete,
     docker_image_list,
     docker_image_pull,
+    docker_inspect,
+    docker_logs,
     docker_network_list,
+    docker_ps,
+    docker_restart,
+    docker_stats,
     docker_volume_delete,
     docker_volume_list,
 )
@@ -109,6 +121,8 @@ from oprim._filesystem import (
     dir_archive_to_targz,
     disk_usage,
     file_checksum,
+    fs_disk_usage,
+    fs_inode_check,
 )
 from oprim._metrics_logs import (
     loki_log_query,
@@ -120,10 +134,15 @@ from oprim._network import (
     dns_resolve,
     http_health_probe,
     http_request_once,
+    network_dns_resolve,
+    network_http_health,
+    network_port_check,
     tcp_port_check,
 )
 from oprim._postgres import (
+    postgres_locks,
     postgres_locks_status,
+    postgres_long_running_queries,
     postgres_pool_status,
     postgres_replication_lag,
     postgres_slow_queries,
@@ -131,8 +150,10 @@ from oprim._postgres import (
 )
 from oprim._rabbitmq import (
     rabbitmq_connection_status,
+    rabbitmq_consumer_count,
     rabbitmq_consumer_status,
     rabbitmq_node_status,
+    rabbitmq_queue_depth,
     rabbitmq_queue_status,
 )
 from oprim._s3 import (
@@ -142,7 +163,11 @@ from oprim._s3 import (
 from oprim._system import (
     cpu_memory_snapshot,
     process_list_top,
+    system_cpu_usage,
+    system_load_avg,
+    system_ram_usage,
 )
+from oprim.appstore_catalog_fetch import AppCatalogEntry, appstore_catalog_fetch
 from oprim._version import __version__
 
 # P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
@@ -521,32 +546,59 @@ __all__ = [
     "docker_network_list",
     "docker_volume_delete",
     "docker_volume_list",
+    # Aegis IMPL SPEC v1.0 — Docker short-names + compose_pull (v2.31.0)
+    "docker_logs",
+    "docker_ps",
+    "docker_restart",
+    "docker_stats",
+    "docker_inspect",
+    "docker_compose_up",
+    "docker_compose_down",
+    "docker_compose_pull",
     # Aegis Batch 1 — PostgreSQL (v2.9.0)
     "postgres_pool_status",
     "postgres_slow_queries",
     "postgres_locks_status",
     "postgres_table_size",
     "postgres_replication_lag",
+    # Aegis IMPL SPEC v1.0 — PostgreSQL aliases (v2.31.0)
+    "postgres_long_running_queries",
+    "postgres_locks",
     # Aegis Batch 1 — RabbitMQ (v2.9.0)
     "rabbitmq_queue_status",
     "rabbitmq_connection_status",
     "rabbitmq_consumer_status",
     "rabbitmq_node_status",
+    # Aegis IMPL SPEC v1.0 — RabbitMQ focused wrappers (v2.31.0)
+    "rabbitmq_queue_depth",
+    "rabbitmq_consumer_count",
     # Aegis Batch 1 — Caddy (v2.9.0)
     "caddy_admin_post",
     "caddy_admin_reload",
     "caddy_routes_list",
     "caddy_certificates_status",
+    # Aegis IMPL SPEC v1.0 — Caddy new ops (v2.31.0)
+    "caddy_admin_config",
+    "caddy_admin_routes",
+    "caddy_route_add_atomic",
+    "caddy_route_remove_atomic",
     # Aegis Batch 1 — Network (v2.9.0)
     "tcp_port_check",
     "http_health_probe",
     "dns_resolve",
     "http_request_once",
+    # Aegis IMPL SPEC v1.0 — Network aliases (v2.31.0)
+    "network_port_check",
+    "network_http_health",
+    "network_dns_resolve",
     # Aegis Batch 1 — Filesystem (v2.9.0)
     "disk_usage",
     "archive_to_targz",
     "dir_archive_to_targz",
     "file_checksum",
+    # Aegis IMPL SPEC v1.0 — Filesystem new ops (v2.31.0)
+    "fs_disk_usage",
+    "fs_inode_check",
     # Aegis Batch 1 — Metrics/Logs (v2.9.0)
     "prometheus_instant_query",
     "prometheus_range_query",
@@ -555,6 +607,13 @@ __all__ = [
     # Aegis Batch 1 — System (v2.9.0)
     "cpu_memory_snapshot",
     "process_list_top",
+    # Aegis IMPL SPEC v1.0 — System focused wrappers (v2.31.0)
+    "system_cpu_usage",
+    "system_ram_usage",
+    "system_load_avg",
+    # Aegis IMPL SPEC v1.0 — AppStore (v2.31.0)
+    "appstore_catalog_fetch",
+    "AppCatalogEntry",
     # Aegis Batch 1 — S3 (v2.9.0)
     "s3_upload_file",
     "s3_object_metadata",

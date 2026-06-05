@@ -1,4 +1,4 @@
-"""Docker oprim — 7 atomic Docker container/image operations."""
+"""Docker oprim — Docker container/image/compose operations."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ from oprim._exceptions import (
 # ---------------------------------------------------------------------------
 # Shared models
 # ---------------------------------------------------------------------------
+
 
 class ContainerInfo(BaseModel):
     container_id: str
@@ -78,6 +79,7 @@ class ContainerStats(BaseModel):
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_client(docker_host: str) -> docker.DockerClient:
     try:
         return docker.DockerClient(base_url=docker_host)
@@ -104,7 +106,9 @@ def _parse_state(
     return raw if raw in valid else "exited"
 
 
-def _parse_health(attrs: dict[str, Any]) -> Literal["healthy", "unhealthy", "starting", "none"] | None:
+def _parse_health(
+    attrs: dict[str, Any],
+) -> Literal["healthy", "unhealthy", "starting", "none"] | None:
     health = attrs.get("State", {}).get("Health")
     if health is None:
         return None
@@ -121,12 +125,14 @@ def _parse_ports(attrs: dict[str, Any]) -> list[dict[str, Any]]:
         cp = container_port
         if "/" in container_port:
             cp, proto = container_port.split("/", 1)
-        for hb in (host_bindings or []):
-            ports.append({
-                "host_port": hb.get("HostPort"),
-                "container_port": cp,
-                "protocol": proto,
-            })
+        for hb in host_bindings or []:
+            ports.append(
+                {
+                    "host_port": hb.get("HostPort"),
+                    "container_port": cp,
+                    "protocol": proto,
+                }
+            )
     return ports
 
 
@@ -146,6 +152,7 @@ def _parse_mounts(attrs: dict[str, Any]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # 2.1 docker_container_inspect
 # ---------------------------------------------------------------------------
+
 
 def docker_container_inspect(
     *,
@@ -202,6 +209,7 @@ def docker_container_inspect(
 # 2.2 docker_container_logs
 # ---------------------------------------------------------------------------
 
+
 def docker_container_logs(
     *,
     container_id: str,
@@ -251,17 +259,20 @@ def docker_container_logs(
             ts, msg = parts
         else:
             ts, msg = "", line
-        result.append(LogLine(
-            timestamp=ts,
-            stream="stdout",  # Docker multiplexed stream detection requires binary parsing
-            message=msg,
-        ))
+        result.append(
+            LogLine(
+                timestamp=ts,
+                stream="stdout",  # Docker multiplexed stream detection requires binary parsing
+                message=msg,
+            )
+        )
     return result
 
 
 # ---------------------------------------------------------------------------
 # 2.3 docker_container_start
 # ---------------------------------------------------------------------------
+
 
 def docker_container_start(
     *,
@@ -306,6 +317,7 @@ def docker_container_start(
 # ---------------------------------------------------------------------------
 # 2.4 docker_container_stop
 # ---------------------------------------------------------------------------
+
 
 def docker_container_stop(
     *,
@@ -353,6 +365,7 @@ def docker_container_stop(
 # 2.5 docker_container_restart
 # ---------------------------------------------------------------------------
 
+
 def docker_container_restart(
     *,
     container_id: str,
@@ -398,6 +411,7 @@ def docker_container_restart(
 # ---------------------------------------------------------------------------
 # 2.6 docker_image_pull
 # ---------------------------------------------------------------------------
+
 
 def docker_image_pull(
     *,
@@ -466,6 +480,7 @@ def docker_image_pull(
 # 2.7 docker_container_stats
 # ---------------------------------------------------------------------------
 
+
 def docker_container_stats(
     *,
     container_id: str,
@@ -490,14 +505,12 @@ def docker_container_stats(
         raise OprimConnectionError(f"Failed to get container stats: {exc}") from exc
 
     # CPU %
-    cpu_delta = (
-        raw.get("cpu_stats", {}).get("cpu_usage", {}).get("total_usage", 0)
-        - raw.get("precpu_stats", {}).get("cpu_usage", {}).get("total_usage", 0)
-    )
-    system_delta = (
-        raw.get("cpu_stats", {}).get("system_cpu_usage", 0)
-        - raw.get("precpu_stats", {}).get("system_cpu_usage", 0)
-    )
+    cpu_delta = raw.get("cpu_stats", {}).get("cpu_usage", {}).get("total_usage", 0) - raw.get(
+        "precpu_stats", {}
+    ).get("cpu_usage", {}).get("total_usage", 0)
+    system_delta = raw.get("cpu_stats", {}).get("system_cpu_usage", 0) - raw.get(
+        "precpu_stats", {}
+    ).get("system_cpu_usage", 0)
     percpu = raw.get("cpu_stats", {}).get("cpu_usage", {}).get("percpu_usage") or [0]
     num_cpus = len(percpu)
     cpu_percent = (cpu_delta / system_delta * num_cpus * 100.0) if system_delta > 0 else 0.0
@@ -545,6 +558,7 @@ def docker_container_stats(
 # 2.8 docker_image_list
 # ---------------------------------------------------------------------------
 
+
 def docker_image_list(
     *,
     docker_host: str = "unix:///var/run/docker.sock",
@@ -577,6 +591,7 @@ def docker_image_list(
 # 2.9 docker_image_delete
 # ---------------------------------------------------------------------------
 
+
 def docker_image_delete(
     *,
     image: str,
@@ -606,6 +621,7 @@ def docker_image_delete(
 # ---------------------------------------------------------------------------
 # 2.10 docker_volume_list
 # ---------------------------------------------------------------------------
+
 
 def docker_volume_list(
     *,
@@ -637,6 +653,7 @@ def docker_volume_list(
 # 2.11 docker_volume_delete
 # ---------------------------------------------------------------------------
 
+
 def docker_volume_delete(
     *,
     name: str,
@@ -662,6 +679,7 @@ def docker_volume_delete(
 # ---------------------------------------------------------------------------
 # 2.12 docker_network_list
 # ---------------------------------------------------------------------------
+
 
 def docker_network_list(
     *,
@@ -692,6 +710,7 @@ def docker_network_list(
 # ---------------------------------------------------------------------------
 # 2.13 compose_up
 # ---------------------------------------------------------------------------
+
 
 def compose_up(
     *,
@@ -760,6 +779,7 @@ def compose_up(
 # 2.14 compose_down
 # ---------------------------------------------------------------------------
 
+
 def compose_down(
     *,
     compose_file: str,
@@ -818,6 +838,7 @@ def compose_down(
 # 2.15 docker_container_list
 # ---------------------------------------------------------------------------
 
+
 def docker_container_list(
     *,
     all: bool = False,
@@ -860,3 +881,61 @@ def docker_container_list(
         ]
     except docker.errors.DockerException as exc:
         raise OprimConnectionError(f"Docker error listing containers: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — short-name aliases + docker_compose_pull
+# ---------------------------------------------------------------------------
+
+# Short-name aliases (B2 API surface — oskill elements reference these names)
+docker_logs = docker_container_logs
+docker_ps = docker_container_list
+docker_restart = docker_container_restart
+docker_stats = docker_container_stats
+docker_inspect = docker_container_inspect
+docker_compose_up = compose_up
+docker_compose_down = compose_down
+
+
+def docker_compose_pull(
+    *,
+    compose_file: str,
+    project_name: str | None = None,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> dict[str, Any]:
+    """docker compose pull — 预拉 compose 文件中所有服务镜像.
+
+    Args:
+        compose_file: path to docker-compose.yml
+        project_name: project name (optional)
+        docker_host: docker host address
+
+    Returns:
+        {"stdout": str, "stderr": str}
+
+    Raises:
+        OprimNotFoundError: compose file not found
+        OprimConnectionError: docker compose command failed
+    """
+    import os
+    import subprocess
+
+    if not os.path.exists(compose_file):
+        raise OprimNotFoundError(f"Compose file not found: {compose_file}")
+
+    cmd = ["docker", "compose", "-f", compose_file]
+    if project_name:
+        cmd.extend(["-p", project_name])
+    cmd.append("pull")
+
+    env = os.environ.copy()
+    env["DOCKER_HOST"] = docker_host
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=True, env=env)
+        return {"stdout": proc.stdout, "stderr": proc.stderr}
+    except subprocess.CalledProcessError as exc:
+        msg = f"Docker compose pull failed (exit {exc.returncode}): {exc.stderr}"
+        raise OprimConnectionError(msg) from exc
+    except Exception as exc:
+        raise OprimConnectionError(f"Failed to execute docker compose pull: {exc}") from exc
