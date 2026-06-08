@@ -1,80 +1,5 @@
 """Oprim — atomic operations library (Layer 1 meta-primitives)."""
 
-from oprim.crypto_scoring import (
-    CryptoScoringError,
-    score_active_addresses_change,
-    score_basis,
-    score_cex_balance_change,
-    score_etf_inflow,
-    score_funding_rate,
-    score_lth_change,
-    score_ma200_position,
-    score_ma50_slope,
-    score_ma_arrangement,
-    score_max_pain_distance,
-    score_mvrv_zscore,
-    score_oi_change,
-    score_options_skew,
-    score_resistance_distance,
-    score_stablecoin_inflow,
-    score_support_distance,
-    score_vpvr_position,
-)
-
-from oprim.crypto_lookup import (
-    CryptoLookupError,
-    regime_score,
-    seasonality_score,
-    sector_rotation_score,
-)
-
-from oprim.crypto_technical import (
-    CryptoTechnicalError,
-    compute_cross_asset_divergence_revert,
-    compute_stablecoin_event_revert,
-    compute_vpvr,
-    detect_pivots,
-)
-
-from oprim.io_fetch import (
-    FetchError,
-    fetch_btc_spy_corr,
-    fetch_coingecko_history,
-    fetch_crypto,
-    fetch_current_price,
-    fetch_decision_count,
-    fetch_equity_series,
-    fetch_prefs,
-    fetch_regime,
-    fetch_regime_crisis_flips,
-    fetch_rss,
-    fetch_stablecoin_mcap,
-    fetch_strategy_trades,
-    fetch_yahoo_history,
-    fetch_yahoo_quote,
-    get_active_event,
-    get_etf_weight_modifier,
-    get_previous_30d,
-    get_regime_by_date,
-    get_stablecoin_change_7d,
-    get_symbol_funding_rate,
-    get_symbol_oi_change_7d,
-)
-
-from oprim.io_write import (
-    WriteError,
-    clear_event,
-    is_deduped,
-    refresh_view,
-    send_alert,
-    store_news,
-    upsert_canonical_metric,
-    upsert_equity_series,
-    upsert_events,
-    write_event,
-    write_rows,
-)
-
 from oprim._caddy import (
     caddy_admin_config,
     caddy_admin_post,
@@ -86,20 +11,29 @@ from oprim._caddy import (
     caddy_routes_list,
 )
 
-from oprim.llm_judge_rerank import LLMCaller, RerankResult, llm_judge_rerank
-from oprim.llm_query_expand import llm_query_expand
-from oprim.parse_obsidian_tasks import ObsidianTask, parse_obsidian_tasks
-
 # Aegis Batch 1 — infrastructure / ops primitives (v2.9.0)
+# Aegis Batch 2 — multi-host + lifecycle (oprim v2.32.0)
+# Aegis Batch C (oprim v2.34.0)
 from oprim._docker import (
+    ContainerCreateResult,
+    ContainerExecResult,
+    ContainerRenameResult,
+    NetworkCreateResult,
+    NetworkDeleteResult,
+    NodeInfo,
+    PruneResult,
+    VolumeCreateResult,
     compose_down,
     compose_up,
     docker_compose_down,
     docker_compose_pull,
     docker_compose_up,
+    docker_container_create,
+    docker_container_exec,
     docker_container_inspect,
     docker_container_list,
     docker_container_logs,
+    docker_container_rename,
     docker_container_restart,
     docker_container_start,
     docker_container_stats,
@@ -109,10 +43,15 @@ from oprim._docker import (
     docker_image_pull,
     docker_inspect,
     docker_logs,
+    docker_network_create,
+    docker_network_delete,
     docker_network_list,
+    docker_node_info,
     docker_ps,
     docker_restart,
     docker_stats,
+    docker_system_prune,
+    docker_volume_create,
     docker_volume_delete,
     docker_volume_list,
 )
@@ -160,6 +99,16 @@ from oprim._s3 import (
     s3_object_metadata,
     s3_upload_file,
 )
+
+# Aegis Batch 2 — SSH (oprim v2.33.0)
+from oprim._ssh import (
+    SshExecResult,
+    SshPortCheckResult,
+    SshUploadResult,
+    ssh_exec,
+    ssh_file_upload,
+    ssh_port_forward_check,
+)
 from oprim._system import (
     cpu_memory_snapshot,
     process_list_top,
@@ -167,47 +116,12 @@ from oprim._system import (
     system_load_avg,
     system_ram_usage,
 )
-from oprim.appstore_catalog_fetch import AppCatalogEntry, appstore_catalog_fetch
 from oprim._version import __version__
-
-# P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
-from oprim.style_marker_prompt import StyleType, style_marker_prompt
-from oprim.lighting_control_prompt import LightingType, lighting_control_prompt
-from oprim.camera_motion_prompt import MotionType, camera_motion_prompt
-from oprim.first_last_frame_transition import (
-    FrameTransitionError,
-    FrameTransitionProviderNotFoundError,
-    first_last_frame_transition,
-)
-from oprim.video_edit_element_remove import (
-    VideoEditError,
-    VideoEditProviderNotFoundError,
-    video_edit_element_remove,
-)
-from oprim.story_predict import (
-    StoryPredictError,
-    StoryPrediction,
-    TimePrediction,
-    story_predict,
-)
+from oprim.appstore_catalog_fetch import AppCatalogEntry, appstore_catalog_fetch
 
 # P6-B2 — Video Generation + Audience Analytics
 from oprim.audience_feedback_extract import audience_feedback_extract
 from oprim.audience_sentiment_analyze import audience_sentiment_analyze
-from oprim.bilibili_comments_fetch import bilibili_comments_fetch
-from oprim.bilibili_video_stats import bilibili_video_stats
-from oprim.face_animation import face_animation
-from oprim.image_to_video import image_to_video
-from oprim.motion_prompt_translate import motion_prompt_translate
-from oprim.video_quality_metrics import video_quality_metrics
-from oprim.vlm_video_analyze import vlm_video_analyze
-from oprim.youtube_comments_fetch import youtube_comments_fetch
-from oprim.youtube_video_stats import youtube_video_stats
-
-# v2.24.1 — export fix (tts / image_generate / image_understand were missing)
-from oprim.image_generate import image_generate
-from oprim.image_understand import image_understand
-from oprim.tts_synthesize import tts_synthesize
 
 # Phase 10 additions (v2.0.0)
 from oprim.behavioral import (
@@ -217,6 +131,9 @@ from oprim.behavioral import (
     salience_function,
     salience_ranking_weights,
 )
+from oprim.bilibili_comments_fetch import bilibili_comments_fetch
+from oprim.bilibili_video_stats import bilibili_video_stats
+from oprim.camera_motion_prompt import MotionType, camera_motion_prompt
 
 # Phase 6A additions (v1.9.0)
 from oprim.crypto.ed25519 import (
@@ -232,6 +149,39 @@ from oprim.crypto.ed25519 import (
 )
 from oprim.crypto.hashing import hmac_sha256, sha256_hash
 from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
+from oprim.crypto_lookup import (
+    CryptoLookupError,
+    regime_score,
+    seasonality_score,
+    sector_rotation_score,
+)
+from oprim.crypto_scoring import (
+    CryptoScoringError,
+    score_active_addresses_change,
+    score_basis,
+    score_cex_balance_change,
+    score_etf_inflow,
+    score_funding_rate,
+    score_lth_change,
+    score_ma50_slope,
+    score_ma200_position,
+    score_ma_arrangement,
+    score_max_pain_distance,
+    score_mvrv_zscore,
+    score_oi_change,
+    score_options_skew,
+    score_resistance_distance,
+    score_stablecoin_inflow,
+    score_support_distance,
+    score_vpvr_position,
+)
+from oprim.crypto_technical import (
+    CryptoTechnicalError,
+    compute_cross_asset_divergence_revert,
+    compute_stablecoin_event_revert,
+    compute_vpvr,
+    detect_pivots,
+)
 from oprim.derivatives.american import lsm_american_price
 
 # Phase 5A additions (v1.8.0)
@@ -253,6 +203,7 @@ from oprim.distance import (
     symmetric_kl_divergence,
     wasserstein_distance,
 )
+from oprim.face_animation import face_animation
 from oprim.finance import (
     beta_alpha_ols,
     drawdown_curve,
@@ -261,13 +212,66 @@ from oprim.finance import (
     sharpe_ratio,
     value_at_risk,
 )
+from oprim.first_last_frame_transition import (
+    FrameTransitionError,
+    FrameTransitionProviderNotFoundError,
+    first_last_frame_transition,
+)
+
+# v2.24.1 — export fix (tts / image_generate / image_understand were missing)
+from oprim.image_generate import image_generate
+from oprim.image_to_video import image_to_video
+from oprim.image_understand import image_understand
 from oprim.info_geometry.fisher_rao import fisher_rao_distance
 from oprim.information import ordinal_pattern, phase_randomize, shannon_entropy
+from oprim.io_fetch import (
+    FetchError,
+    fetch_btc_spy_corr,
+    fetch_coingecko_history,
+    fetch_crypto,
+    fetch_current_price,
+    fetch_decision_count,
+    fetch_equity_series,
+    fetch_prefs,
+    fetch_regime,
+    fetch_regime_crisis_flips,
+    fetch_rss,
+    fetch_stablecoin_mcap,
+    fetch_strategy_trades,
+    fetch_yahoo_history,
+    fetch_yahoo_quote,
+    get_active_event,
+    get_etf_weight_modifier,
+    get_previous_30d,
+    get_regime_by_date,
+    get_stablecoin_change_7d,
+    get_symbol_funding_rate,
+    get_symbol_oi_change_7d,
+)
+from oprim.io_write import (
+    WriteError,
+    clear_event,
+    is_deduped,
+    refresh_view,
+    send_alert,
+    store_news,
+    upsert_canonical_metric,
+    upsert_equity_series,
+    upsert_events,
+    write_event,
+    write_rows,
+)
+from oprim.lighting_control_prompt import LightingType, lighting_control_prompt
+from oprim.llm_judge_rerank import LLMCaller, RerankResult, llm_judge_rerank
+from oprim.llm_query_expand import llm_query_expand
+from oprim.markets.sector_strength_proxy import sector_strength_proxy
 from oprim.mean_reversion.ornstein_uhlenbeck import (
     ornstein_uhlenbeck_fit,
     ornstein_uhlenbeck_half_life,
 )
+from oprim.motion_prompt_translate import motion_prompt_translate
 from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
+from oprim.parse_obsidian_tasks import ObsidianTask, parse_obsidian_tasks
 from oprim.performance.annualization import cagr
 
 # Phase 2 additions (v1.5.0)
@@ -316,6 +320,16 @@ from oprim.statistics import (
     percentile_value,
     skew_kurt_robust,
 )
+from oprim.stats.within_group_percentile import within_group_percentile
+from oprim.story_predict import (
+    StoryPredictError,
+    StoryPrediction,
+    TimePrediction,
+    story_predict,
+)
+
+# P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
+from oprim.style_marker_prompt import StyleType, style_marker_prompt
 from oprim.technical.adaptive import kama
 from oprim.technical.bands import bollinger_bands, donchian_channel, keltner_channels
 from oprim.technical.exits import chandelier_exit
@@ -340,14 +354,20 @@ from oprim.timeseries.autocorrelation import durbin_watson, ljung_box_test
 from oprim.timeseries.causality import granger_causality_test
 from oprim.timeseries.cointegration import engle_granger_cointegration, johansen_cointegration
 from oprim.timeseries.distribution_tests import jarque_bera_test
+from oprim.timeseries.equity_curve_segment_label import equity_curve_segment_label
 from oprim.timeseries.heteroskedasticity import breusch_pagan_test
+from oprim.timeseries.rolling_window_aggregate import rolling_window_aggregate
 from oprim.timeseries.stationarity import adf_test, kpss_test
 from oprim.timeseries.time_series_split import time_series_split
-from oprim.timeseries.equity_curve_segment_label import equity_curve_segment_label
-from oprim.timeseries.rolling_window_aggregate import rolling_window_aggregate
-from oprim.markets.sector_strength_proxy import sector_strength_proxy
-from oprim.stats.within_group_percentile import within_group_percentile
 from oprim.topology import persistence_landscape, takens_embed
+from oprim.tts_synthesize import tts_synthesize
+from oprim.video_edit_element_remove import (
+    VideoEditError,
+    VideoEditProviderNotFoundError,
+    video_edit_element_remove,
+)
+from oprim.video_quality_metrics import video_quality_metrics
+from oprim.vlm_video_analyze import vlm_video_analyze
 from oprim.volatility.egarch import egarch_fit, egarch_forecast
 from oprim.volatility.ewma import ewma_volatility
 from oprim.volatility.garch import garch_fit, garch_forecast
@@ -359,6 +379,8 @@ from oprim.volatility.range_based import (
 )
 from oprim.volatility.realized import realized_variance
 from oprim.volatility.rough import rough_volatility_simulate
+from oprim.youtube_comments_fetch import youtube_comments_fetch
+from oprim.youtube_video_stats import youtube_video_stats
 
 __all__ = [
     "__version__",
@@ -807,6 +829,13 @@ __all__ = [
     "train_val_oos_splitter",
     "VolumeBreakoutResult",
     "detect_volume_dryup_breakout",
+    # Exceptions
+    "OprimAuthError",
+    "OprimConnectionError",
+    "OprimError",
+    "OprimNotFoundError",
+    "OprimTimeoutError",
+    "OprimValidationError",
     # --- B9 — 7 realtime detector oprims ---
     "DetectorSignal",
     "SectorCollapseConfig",
@@ -913,104 +942,37 @@ __all__ = [
     "graph_traversal",
     # B2 — search (oprim 2.30.0)
     "searxng_search",
+    # Aegis Batch 2 — multi-host + lifecycle (v2.32.0)
+    "ContainerCreateResult",
+    "docker_container_create",
+    "PruneResult",
+    "docker_system_prune",
+    "NodeInfo",
+    "docker_node_info",
+    # Aegis Batch C (oprim v2.34.0)
+    "ContainerRenameResult",
+    "docker_container_rename",
+    # Aegis Batch D — Docker 补全 (oprim v2.35.0)
+    "ContainerExecResult",
+    "docker_container_exec",
+    "NetworkCreateResult",
+    "docker_network_create",
+    "NetworkDeleteResult",
+    "docker_network_delete",
+    "VolumeCreateResult",
+    "docker_volume_create",
+    # Aegis Batch 2 — SSH (v2.33.0)
+    "SshExecResult",
+    "ssh_exec",
+    "SshUploadResult",
+    "ssh_file_upload",
+    "SshPortCheckResult",
+    "ssh_port_forward_check",
 ]
 
 # --- Tide v4 extraction: B1-B3 (11 oprims) ---
-from oprim.kdj import kdj, KDJResult
-from oprim.limit_status_calc import limit_status_calc, LimitStatusResult
-from oprim.beneish_m_score import beneish_m_score, BeneishInput, BeneishResult
-from oprim.dupont_decomposition import dupont_decomposition, DuPontResult
-from oprim.dcf_valuation import dcf_valuation, DCFResult
-from oprim.volume_ratio import volume_ratio
-from oprim.apply_screen_filter import apply_screen_filter, ScreenRule, ScreenResult
-from oprim.financial_metric_extraction import financial_metric_extraction, NewsItem, FinancialMetric
-from oprim.policy_event_extraction import policy_event_extraction, PolicyNews, PolicyEvent
-from oprim.industry_attribution import industry_attribution, IndustryImpact
-from oprim.pattern_detection import pattern_detection, OHLCVInput, PatternMatch
-from oprim.predicate import evaluate_threshold_condition, OperatorType
-
-# --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
-from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
-
-# --- Aegis C2 B2 — webhook delivery (oprim 2.20.0) ---
-from oprim.http_post_webhook import WebhookResult, http_post_webhook
-
-# --- Aegis C2 B3 — threshold evaluator (oprim 2.20.0) ---
-from oprim.evaluate_threshold_rule import (
-    ThresholdResult,
-    ThresholdRuleError,
-    evaluate_threshold_rule,
-)
-
-# --- Aegis C2 B4 — throttle decision (oprim 2.20.0) ---
-from oprim.should_throttle import should_throttle
-
-# --- Aegis C2 B5 — dedup key (oprim 2.20.0) ---
-from oprim.compute_dedup_key import compute_dedup_key
-
 # --- B9 — 7 realtime detector oprims (oprim 2.19.0) ---
 from oprim._detector_types import DetectorSignal
-from oprim.detect_sector_collapse import SectorCollapseConfig, detect_sector_collapse
-from oprim.detect_dragon_switch import DragonSwitchConfig, detect_dragon_switch
-from oprim.detect_hot_money_converge import HotMoneyConvergeConfig, detect_hot_money_converge
-from oprim.detect_limit_board_explosion import (
-    LimitBoardExplosionConfig,
-    detect_limit_board_explosion,
-)
-from oprim.detect_volume_spike import VolumeSpikeConfig, detect_volume_spike
-from oprim.detect_northbound_reversal import NorthboundReversalConfig, detect_northbound_reversal
-from oprim.detect_news_shock import NewsShockConfig, detect_news_shock
-
-# --- B8 — 13 utility/compute oprims (oprim 2.18.0) ---
-from oprim.compute_seat_t3_return import SeatT3ReturnResult, compute_seat_t3_return
-from oprim.fetch_themes_daily import ThemeEntry, ThemesFetchError, fetch_themes_daily
-from oprim.theme_to_sw_industry_mapping import ThemeSWMapping, theme_to_sw_industry_mapping
-from oprim.fetch_sector_returns import SectorReturn, SectorFetchError, fetch_sector_returns
-from oprim.pe_ttm_lookback_safe import PETTMResult, pe_ttm_lookback_safe
-from oprim.stop_loss_compliance_check import StopLossResult, stop_loss_compliance_check
-from oprim.realtime_quote_redis_fetch import (
-    QuoteResult,
-    QuoteFetchError,
-    realtime_quote_redis_fetch,
-)
-from oprim.stamp_tax_rate_by_date import StampTaxResult, stamp_tax_rate_by_date
-from oprim.broker_export_render import BrokerExportResult, broker_export_render
-from oprim.compliance_disclaimer_inject import compliance_disclaimer_inject
-from oprim.monthly_review_jinja2_render import RenderedReport, monthly_review_jinja2_render
-from oprim.train_val_oos_splitter import TrainValOOSSplit, train_val_oos_splitter
-from oprim.detect_volume_dryup_breakout import VolumeBreakoutResult, detect_volume_dryup_breakout
-
-# --- B7 — 8 macro data fetch oprims (oprim 2.17.0) ---
-from oprim._macro_types import MacroDataPoint, MacroFetchError
-from oprim.fetch_macro_m2 import fetch_macro_m2
-from oprim.fetch_macro_pboc import fetch_macro_pboc
-from oprim.fetch_macro_cpi_ppi_pmi import fetch_macro_cpi_ppi_pmi
-from oprim.fetch_macro_lpr import fetch_macro_lpr
-from oprim.fetch_macro_rrr import fetch_macro_rrr
-from oprim.fetch_macro_yield_spread import fetch_macro_yield_spread
-from oprim.fetch_macro_calendar import fetch_macro_calendar
-from oprim.fetch_macro_policy_news import fetch_macro_policy_news
-
-# --- Step-12 — 5 markets-related oprims (oprim 2.22.0) ---
-from oprim.detect_daily_limit_up import detect_daily_limit_up
-from oprim.detect_daily_limit_down import detect_daily_limit_down
-from oprim.t_plus_n_blocked import t_plus_n_blocked
-from oprim.compute_commission import compute_commission
-from oprim.compute_stamp_tax import compute_stamp_tax
-
-# --- Stratum B1 P0 — 24 elements (oprim 2.23.0) ---
-from oprim.template_render import template_render
-from oprim.crypto_token_generate import crypto_token_generate
-from oprim.file_size_limiter import SizeLimitResult, file_size_limiter
-from oprim.file_type_detector import FileTypeInfo, file_type_detector
-from oprim.http_post import HTTPResponse, http_post
-from oprim.db_insert import db_insert
-from oprim.db_query import db_query
-from oprim.db_write import WriteResult, db_write
-from oprim.db_read import db_read
-from oprim.db_soft_delete import db_soft_delete
-from oprim.db_update import db_update
-from oprim.migration_runner import MigrationResult, migration_runner
 from oprim._document_types import (
     DocumentStructure,
     ImageRef,
@@ -1021,21 +983,33 @@ from oprim._document_types import (
     Section,
     Table,
 )
-from oprim.file_parser_pdf import file_parser_pdf
-from oprim.file_parser_epub import file_parser_epub
-from oprim.file_parser_html import file_parser_html
-from oprim.file_parser_markdown import file_parser_markdown
-from oprim.file_parser_plaintext import file_parser_plaintext
-from oprim.document_structure_extractor import document_structure_extractor
-from oprim.llm_summarize import SummarizeResult, llm_summarize
-from oprim.cache_invalidate import cache_invalidate
-from oprim.file_upload_handler import UploadResult, file_upload_handler
-from oprim.temp_file_manager import TempFileResult, temp_file_manager
-from oprim.push_email import EmailResult, push_email
-from oprim.otp_generate import OTPResult, otp_generate, otp_verify
+from oprim._exceptions import (
+    OprimAuthError,
+    OprimConnectionError,
+    OprimError,
+    OprimNotFoundError,
+    OprimTimeoutError,
+    OprimValidationError,
+)
 
-# --- Aegis C3-C4 — error aggregation (oprim 2.24.0) ---
-from oprim.compute_event_fingerprint import compute_event_fingerprint
+# --- B7 — 8 macro data fetch oprims (oprim 2.17.0) ---
+from oprim._macro_types import MacroDataPoint, MacroFetchError
+from oprim.apply_screen_filter import ScreenResult, ScreenRule, apply_screen_filter
+from oprim.backlink_resolver import backlink_resolver
+from oprim.backtest_stat import backtest_stat
+from oprim.beneish_m_score import BeneishInput, BeneishResult, beneish_m_score
+
+# --- AII 3O Batch 3b — supporting oprim (oprim 2.25.0) ---
+from oprim.bm25_search import bm25_search
+from oprim.broker_export_render import BrokerExportResult, broker_export_render
+
+# --- AII 3O Batch 5a — P3 Q-matrix (oprim 2.27.0) ---
+from oprim.build_q_matrix import build_q_matrix
+from oprim.cache_invalidate import cache_invalidate
+from oprim.citation_formatter import citation_formatter
+
+# --- AII 3O Batch 5b — P5 causal + backtest (oprim 2.28.0) ---
+from oprim.cmi_verify import cmi_verify
 
 # --- AII 3O Batch 3a (oprim 2.25.0) ---
 from oprim.coherence_compute import (
@@ -1043,46 +1017,134 @@ from oprim.coherence_compute import (
     INDEPENDENT_SOURCES,
     coherence_compute,
 )
-from oprim.entity_graph_search import entity_graph_search
-from oprim.vector_encode import vector_encode
+from oprim.compliance_disclaimer_inject import compliance_disclaimer_inject
+from oprim.compute_commission import compute_commission
 
-# --- AII 3O Batch 3b — supporting oprim (oprim 2.25.0) ---
-from oprim.bm25_search import bm25_search
+# --- Aegis C2 B5 — dedup key (oprim 2.20.0) ---
+from oprim.compute_dedup_key import compute_dedup_key
 
-# --- AII 3O Batch 4a — P2 knowledge layer (oprim 2.26.0) ---
-from oprim.structural_chunk import structural_chunk
-from oprim.ku_gate_validate import (
-    ku_gate_validate,
-    REASONING_TYPES,
-    VALID_KNOWLEDGE_TYPES,
-    VALID_GRADES,
-)
-from oprim.llm_extract_ku import llm_extract_ku
-from oprim.llm_distill_strategy import llm_distill_strategy
+# --- Aegis C3-C4 — error aggregation (oprim 2.24.0) ---
+from oprim.compute_event_fingerprint import compute_event_fingerprint
 
-# --- AII 3O Batch 5a — P3 Q-matrix (oprim 2.27.0) ---
-from oprim.build_q_matrix import build_q_matrix
-
-# --- AII 3O Batch 5b — P5 causal + backtest (oprim 2.28.0) ---
-from oprim.cmi_verify import cmi_verify
-from oprim.backtest_stat import backtest_stat
-
-# --- B2a — feed/content group (oprim 2.29.0) ---
-from oprim.url_fetch_ssrf_safe import url_fetch_ssrf_safe
-from oprim.fetch_rss_feed import fetch_rss_feed
-from oprim.parse_atom_feed import parse_atom_feed
-from oprim.detect_feed_url import detect_feed_url
-from oprim.podcast_episode_parser import podcast_episode_parser
-from oprim.feed_diff_detector import feed_diff_detector
-from oprim.ocr_detect_text import ocr_detect_text
+# --- B8 — 13 utility/compute oprims (oprim 2.18.0) ---
+from oprim.compute_seat_t3_return import SeatT3ReturnResult, compute_seat_t3_return
+from oprim.compute_stamp_tax import compute_stamp_tax
 
 # --- B2b — utility group (oprim 2.29.0) ---
 from oprim.concept_extractor import concept_extractor
-from oprim.keyword_alert_checker import keyword_alert_checker
-from oprim.citation_formatter import citation_formatter
-from oprim.timeline_aggregator import timeline_aggregator
-from oprim.backlink_resolver import backlink_resolver
+from oprim.crypto_token_generate import crypto_token_generate
+from oprim.db_insert import db_insert
+from oprim.db_query import db_query
+from oprim.db_read import db_read
+from oprim.db_soft_delete import db_soft_delete
+from oprim.db_update import db_update
+from oprim.db_write import WriteResult, db_write
+from oprim.dcf_valuation import DCFResult, dcf_valuation
+from oprim.detect_daily_limit_down import detect_daily_limit_down
+
+# --- Step-12 — 5 markets-related oprims (oprim 2.22.0) ---
+from oprim.detect_daily_limit_up import detect_daily_limit_up
+from oprim.detect_dragon_switch import DragonSwitchConfig, detect_dragon_switch
+from oprim.detect_feed_url import detect_feed_url
+from oprim.detect_hot_money_converge import HotMoneyConvergeConfig, detect_hot_money_converge
+from oprim.detect_limit_board_explosion import (
+    LimitBoardExplosionConfig,
+    detect_limit_board_explosion,
+)
+from oprim.detect_news_shock import NewsShockConfig, detect_news_shock
+from oprim.detect_northbound_reversal import NorthboundReversalConfig, detect_northbound_reversal
+from oprim.detect_sector_collapse import SectorCollapseConfig, detect_sector_collapse
+from oprim.detect_volume_dryup_breakout import VolumeBreakoutResult, detect_volume_dryup_breakout
+from oprim.detect_volume_spike import VolumeSpikeConfig, detect_volume_spike
+from oprim.document_structure_extractor import document_structure_extractor
+from oprim.dupont_decomposition import DuPontResult, dupont_decomposition
+from oprim.entity_graph_search import entity_graph_search
+
+# --- Aegis C2 B3 — threshold evaluator (oprim 2.20.0) ---
+from oprim.evaluate_threshold_rule import (
+    ThresholdResult,
+    ThresholdRuleError,
+    evaluate_threshold_rule,
+)
+from oprim.feed_diff_detector import feed_diff_detector
+from oprim.fetch_macro_calendar import fetch_macro_calendar
+from oprim.fetch_macro_cpi_ppi_pmi import fetch_macro_cpi_ppi_pmi
+from oprim.fetch_macro_lpr import fetch_macro_lpr
+from oprim.fetch_macro_m2 import fetch_macro_m2
+from oprim.fetch_macro_pboc import fetch_macro_pboc
+from oprim.fetch_macro_policy_news import fetch_macro_policy_news
+from oprim.fetch_macro_rrr import fetch_macro_rrr
+from oprim.fetch_macro_yield_spread import fetch_macro_yield_spread
+from oprim.fetch_rss_feed import fetch_rss_feed
+from oprim.fetch_sector_returns import SectorFetchError, SectorReturn, fetch_sector_returns
+from oprim.fetch_themes_daily import ThemeEntry, ThemesFetchError, fetch_themes_daily
+from oprim.file_parser_epub import file_parser_epub
+from oprim.file_parser_html import file_parser_html
+from oprim.file_parser_markdown import file_parser_markdown
+from oprim.file_parser_pdf import file_parser_pdf
+from oprim.file_parser_plaintext import file_parser_plaintext
+from oprim.file_size_limiter import SizeLimitResult, file_size_limiter
+from oprim.file_type_detector import FileTypeInfo, file_type_detector
+from oprim.file_upload_handler import UploadResult, file_upload_handler
+from oprim.financial_metric_extraction import FinancialMetric, NewsItem, financial_metric_extraction
 from oprim.graph_traversal import graph_traversal
+from oprim.http_post import HTTPResponse, http_post
+
+# --- Aegis C2 B2 — webhook delivery (oprim 2.20.0) ---
+from oprim.http_post_webhook import WebhookResult, http_post_webhook
+from oprim.industry_attribution import IndustryImpact, industry_attribution
+from oprim.kdj import KDJResult, kdj
+from oprim.keyword_alert_checker import keyword_alert_checker
+from oprim.ku_gate_validate import (
+    REASONING_TYPES,
+    VALID_GRADES,
+    VALID_KNOWLEDGE_TYPES,
+    ku_gate_validate,
+)
+from oprim.limit_status_calc import LimitStatusResult, limit_status_calc
+from oprim.llm_distill_strategy import llm_distill_strategy
+from oprim.llm_extract_ku import llm_extract_ku
+from oprim.llm_summarize import SummarizeResult, llm_summarize
+from oprim.migration_runner import MigrationResult, migration_runner
+from oprim.monthly_review_jinja2_render import RenderedReport, monthly_review_jinja2_render
+from oprim.ocr_detect_text import ocr_detect_text
+from oprim.otp_generate import OTPResult, otp_generate, otp_verify
+from oprim.parse_atom_feed import parse_atom_feed
+from oprim.pattern_detection import OHLCVInput, PatternMatch, pattern_detection
+from oprim.pe_ttm_lookback_safe import PETTMResult, pe_ttm_lookback_safe
+from oprim.podcast_episode_parser import podcast_episode_parser
+from oprim.policy_event_extraction import PolicyEvent, PolicyNews, policy_event_extraction
+from oprim.predicate import OperatorType, evaluate_threshold_condition
+from oprim.push_email import EmailResult, push_email
+from oprim.realtime_quote_redis_fetch import (
+    QuoteFetchError,
+    QuoteResult,
+    realtime_quote_redis_fetch,
+)
 
 # --- B2 — search (oprim 2.30.0) ---
 from oprim.searxng_search import searxng_search
+
+# --- Aegis C2 B4 — throttle decision (oprim 2.20.0) ---
+from oprim.should_throttle import should_throttle
+from oprim.stamp_tax_rate_by_date import StampTaxResult, stamp_tax_rate_by_date
+from oprim.stop_loss_compliance_check import StopLossResult, stop_loss_compliance_check
+
+# --- AII 3O Batch 4a — P2 knowledge layer (oprim 2.26.0) ---
+from oprim.structural_chunk import structural_chunk
+from oprim.t_plus_n_blocked import t_plus_n_blocked
+from oprim.temp_file_manager import TempFileResult, temp_file_manager
+
+# --- Stratum B1 P0 — 24 elements (oprim 2.23.0) ---
+from oprim.template_render import template_render
+from oprim.theme_to_sw_industry_mapping import ThemeSWMapping, theme_to_sw_industry_mapping
+from oprim.timeline_aggregator import timeline_aggregator
+from oprim.train_val_oos_splitter import TrainValOOSSplit, train_val_oos_splitter
+
+# --- B2a — feed/content group (oprim 2.29.0) ---
+from oprim.url_fetch_ssrf_safe import url_fetch_ssrf_safe
+
+# --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
+from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
+from oprim.vector_encode import vector_encode
+from oprim.volume_ratio import volume_ratio

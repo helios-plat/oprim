@@ -75,6 +75,65 @@ class ContainerStats(BaseModel):
     timestamp: str
 
 
+class ContainerCreateResult(BaseModel):
+    container_id: str
+    name: str
+    warnings: list[str]
+
+
+class PruneResult(BaseModel):
+    containers_removed: int
+    images_removed: int
+    volumes_removed: int
+    space_reclaimed_bytes: int
+
+
+class NodeInfo(BaseModel):
+    docker_host: str
+    reachable: bool
+    server_version: str | None
+    os: str | None
+    arch: str | None
+    cpus: int | None
+    memory_bytes: int | None
+    containers_running: int | None
+    error: str | None
+
+
+class ContainerRenameResult(BaseModel):
+    container_id: str
+    old_name: str
+    new_name: str
+
+
+class NetworkCreateResult(BaseModel):
+    network_id: str
+    name: str
+    driver: str
+
+
+class NetworkDeleteResult(BaseModel):
+    network_id: str
+    name: str
+    deleted: bool
+
+
+class VolumeCreateResult(BaseModel):
+    name: str
+    driver: str
+    mountpoint: str
+    created_at: str
+
+
+class ContainerExecResult(BaseModel):
+    container_id: str
+    command: list[str]
+    exit_code: int
+    stdout: str
+    stderr: str
+    elapsed_ms: int
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -884,6 +943,230 @@ def docker_container_list(
 
 
 # ---------------------------------------------------------------------------
+# 2.16 docker_container_create
+# ---------------------------------------------------------------------------
+
+
+def docker_container_create(
+    *,
+    image: str,
+    name: str,
+    command: list[str] | None = None,
+    env: dict[str, str] | None = None,
+    ports: dict[str, int | list[int] | None] | None = None,
+    volumes: dict[str, dict[str, str]] | None = None,
+    labels: dict[str, str] | None = None,
+    restart_policy: Literal["no", "always", "on-failure", "unless-stopped"] = "unless-stopped",
+    network: str | None = None,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> ContainerCreateResult:
+    """创建容器 (不启动).
+
+    Args:
+        image: 镜像名:tag
+        name: 容器名
+        command: 覆盖 CMD (可选)
+        env: 环境变量 dict
+        ports: 端口映射 {"80/tcp": 8080} 或 {"80/tcp": [8080, 8081]}
+        volumes: volume 挂载 {"/host/path": {"bind": "/container/path", "mode": "rw"}}
+        labels: 容器标签
+        restart_policy: 重启策略
+        network: 加入的 docker 网络名 (可选)
+        docker_host: docker daemon 地址
+
+    Returns:
+        ContainerCreateResult
+
+    Raises:
+        OprimNotFoundError: image 不存在
+        OprimConnectionError: daemon 不可达
+        OprimValidationError: 参数无效 (端口冲突等)
+    """
+    from oprim._exceptions import OprimValidationError
+
+    client = _make_client(docker_host)
+    kwargs: dict[str, Any] = {
+        "image": image,
+        "name": name,
+        "detach": True,
+        "restart_policy": {"Name": restart_policy},
+    }
+    if command:
+        kwargs["command"] = command
+    if env:
+        kwargs["environment"] = env
+    if ports:
+        kwargs["ports"] = ports
+    if volumes:
+        kwargs["volumes"] = volumes
+    if labels:
+        kwargs["labels"] = labels
+    if network:
+        kwargs["network"] = network
+
+    try:
+        container = client.containers.create(**kwargs)
+        return ContainerCreateResult(
+            container_id=container.id,
+            name=container.name,
+            warnings=container.attrs.get("Warnings") or [],
+        )
+    except docker.errors.ImageNotFound as exc:
+        raise OprimNotFoundError(f"Image not found: {image}") from exc
+    except docker.errors.APIError as exc:
+        msg = str(exc)
+        if "port is already allocated" in msg or "bind" in msg.lower():
+            raise OprimValidationError(
+                f"Container create failed (port conflict?): {msg[:300]}"
+            ) from exc
+        raise OprimConnectionError(f"Docker API error: {msg[:300]}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.17 docker_system_prune
+# ---------------------------------------------------------------------------
+
+
+def docker_system_prune(
+    *,
+    volumes: bool = False,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> PruneResult:
+    """清理停止的容器、悬空镜像、未使用网络 (可选: volumes).
+
+    Args:
+        volumes: 是否同时清理未使用 volume (危险! 默认 False)
+        docker_host: docker daemon 地址
+
+    Returns:
+        PruneResult
+
+    Raises:
+        OprimConnectionError
+    """
+    client = _make_client(docker_host)
+    try:
+        c_result = client.containers.prune()
+        i_result = client.images.prune(filters={"dangling": True})
+        v_removed = 0
+        if volumes:
+            v_result = client.volumes.prune()
+            v_removed = len(v_result.get("VolumesDeleted") or [])
+
+        containers_removed = len(c_result.get("ContainersDeleted") or [])
+        images_removed = len(i_result.get("ImagesDeleted") or [])
+        space = (c_result.get("SpaceReclaimed", 0) or 0) + (i_result.get("SpaceReclaimed", 0) or 0)
+
+        return PruneResult(
+            containers_removed=containers_removed,
+            images_removed=images_removed,
+            volumes_removed=v_removed,
+            space_reclaimed_bytes=space,
+        )
+    except docker.errors.DockerException as exc:
+        raise OprimConnectionError(f"Docker prune failed: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.18 docker_node_info
+# ---------------------------------------------------------------------------
+
+
+def docker_node_info(
+    *,
+    docker_host: str,
+    timeout_sec: int = 5,
+) -> NodeInfo:
+    """探测远程 Docker 节点基本信息 (多主机管理核心).
+
+    永不 raise 网络错误 (返 reachable=False).
+
+    Args:
+        docker_host: 远程 docker daemon 地址 (e.g. "tcp://192.168.1.10:2375")
+        timeout_sec: 连接超时
+
+    Returns:
+        NodeInfo
+    """
+    import docker as docker_lib
+
+    try:
+        client = docker_lib.DockerClient(base_url=docker_host, timeout=timeout_sec)
+        info = client.info()
+        return NodeInfo(
+            docker_host=docker_host,
+            reachable=True,
+            server_version=client.version().get("Version"),
+            os=info.get("OperatingSystem"),
+            arch=info.get("Architecture"),
+            cpus=info.get("NCPU"),
+            memory_bytes=info.get("MemTotal"),
+            containers_running=info.get("ContainersRunning"),
+            error=None,
+        )
+    except Exception as exc:
+        return NodeInfo(
+            docker_host=docker_host,
+            reachable=False,
+            server_version=None,
+            os=None,
+            arch=None,
+            cpus=None,
+            memory_bytes=None,
+            containers_running=None,
+            error=str(exc)[:200],
+        )
+
+
+# ---------------------------------------------------------------------------
+# 2.19 docker_container_rename
+# ---------------------------------------------------------------------------
+
+
+def docker_container_rename(
+    *,
+    container_id: str,
+    new_name: str,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> ContainerRenameResult:
+    """重命名容器.
+
+    Args:
+        container_id: 容器 ID 或当前 name
+        new_name: 新名称
+        docker_host: docker daemon 地址
+
+    Returns:
+        ContainerRenameResult
+
+    Raises:
+        OprimNotFoundError: 容器不存在
+        OprimValidationError: 名称冲突
+        OprimConnectionError: API 错误
+    """
+    from oprim._exceptions import OprimValidationError
+
+    client = _make_client(docker_host)
+    container = _get_container(client, container_id)
+    old_name = container.name.lstrip("/")
+
+    try:
+        container.rename(new_name)
+        return ContainerRenameResult(
+            container_id=container.id,
+            old_name=old_name,
+            new_name=new_name,
+        )
+    except docker.errors.APIError as exc:
+        msg = str(exc)
+        if "Conflict" in msg or "already in use" in msg.lower():
+            raise OprimValidationError(f"Rename failed (conflict): {msg[:300]}") from exc
+        raise OprimConnectionError(f"Docker API error renaming container: {msg[:300]}") from exc
+    except docker.errors.DockerException as exc:
+        raise OprimConnectionError(f"Docker error renaming container: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
 # Aegis IMPL SPEC v1.0 — short-name aliases + docker_compose_pull
 # ---------------------------------------------------------------------------
 
@@ -939,3 +1222,219 @@ def docker_compose_pull(
         raise OprimConnectionError(msg) from exc
     except Exception as exc:
         raise OprimConnectionError(f"Failed to execute docker compose pull: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.20 docker_network_create
+# ---------------------------------------------------------------------------
+
+
+def docker_network_create(
+    *,
+    name: str,
+    driver: Literal["bridge", "host", "overlay", "macvlan", "none"] = "bridge",
+    internal: bool = False,
+    labels: dict[str, str] | None = None,
+    options: dict[str, str] | None = None,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> NetworkCreateResult:
+    """创建 docker 网络.
+
+    Args:
+        name: 网络名称
+        driver: 网络驱动
+        internal: 是否内部网络
+        labels: 网络标签
+        options: 驱动选项
+        docker_host: docker daemon 地址
+
+    Returns:
+        NetworkCreateResult
+
+    Raises:
+        OprimValidationError: 网络已存在
+        OprimConnectionError: API 错误
+    """
+    from oprim._exceptions import OprimValidationError
+
+    client = _make_client(docker_host)
+    try:
+        net = client.networks.create(
+            name=name, driver=driver, internal=internal, labels=labels, options=options
+        )
+        return NetworkCreateResult(
+            network_id=net.id,
+            name=net.name,
+            driver=net.attrs.get("Driver", ""),
+        )
+    except docker.errors.APIError as exc:
+        if "already exists" in str(exc).lower():
+            raise OprimValidationError(f"Network already exists: {name}") from exc
+        raise OprimConnectionError(f"Docker API error creating network: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.21 docker_network_delete
+# ---------------------------------------------------------------------------
+
+
+def docker_network_delete(
+    *,
+    network_id: str,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> NetworkDeleteResult:
+    """删除 docker 网络.
+
+    Args:
+        network_id: 网络 ID 或 name
+        docker_host: docker daemon 地址
+
+    Returns:
+        NetworkDeleteResult
+
+    Raises:
+        OprimNotFoundError: 网络不存在
+        OprimValidationError: 网络有容器在使用, 不能删除
+        OprimConnectionError: API 错误
+    """
+    from oprim._exceptions import OprimValidationError
+
+    client = _make_client(docker_host)
+    try:
+        net = client.networks.get(network_id)
+        name = net.name
+        net.remove()
+        return NetworkDeleteResult(
+            network_id=network_id,
+            name=name,
+            deleted=True,
+        )
+    except docker.errors.NotFound as exc:
+        raise OprimNotFoundError(f"Network not found: {network_id}") from exc
+    except docker.errors.APIError as exc:
+        if "active endpoints" in str(exc).lower():
+            raise OprimValidationError(f"Network {network_id} has active endpoints") from exc
+        raise OprimConnectionError(f"Docker API error deleting network: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.22 docker_volume_create
+# ---------------------------------------------------------------------------
+
+
+def docker_volume_create(
+    *,
+    name: str,
+    driver: str = "local",
+    labels: dict[str, str] | None = None,
+    driver_opts: dict[str, str] | None = None,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> VolumeCreateResult:
+    """创建 docker 数据卷.
+
+    Args:
+        name: 卷名称
+        driver: 卷驱动, 默认 local
+        labels: 卷标签
+        driver_opts: 驱动选项
+        docker_host: docker daemon 地址
+
+    Returns:
+        VolumeCreateResult
+
+    Raises:
+        OprimValidationError: 数据卷已存在
+        OprimConnectionError: API 错误
+    """
+    from oprim._exceptions import OprimValidationError
+
+    client = _make_client(docker_host)
+    try:
+        vol = client.volumes.create(
+            name=name, driver=driver, labels=labels, driver_opts=driver_opts
+        )
+        return VolumeCreateResult(
+            name=vol.name,
+            driver=vol.attrs.get("Driver", ""),
+            mountpoint=vol.attrs.get("Mountpoint", ""),
+            created_at=vol.attrs.get("CreatedAt", ""),
+        )
+    except docker.errors.APIError as exc:
+        if "already exists" in str(exc).lower():
+            raise OprimValidationError(f"Volume already exists: {name}") from exc
+        raise OprimConnectionError(f"Docker API error creating volume: {exc}") from exc
+
+
+# ---------------------------------------------------------------------------
+# 2.23 docker_container_exec
+# ---------------------------------------------------------------------------
+
+
+def docker_container_exec(
+    *,
+    container_id: str,
+    command: list[str],
+    workdir: str | None = None,
+    env: dict[str, str] | None = None,
+    user: str | None = None,
+    timeout_sec: int = 30,
+    docker_host: str = "unix:///var/run/docker.sock",
+) -> ContainerExecResult:
+    """在容器内执行命令.
+
+    Args:
+        container_id: 容器 ID 或 name
+        command: 命令列表
+        workdir: 工作目录
+        env: 环境变量
+        user: 执行用户
+        timeout_sec: 超时秒数
+        docker_host: docker daemon 地址
+
+    Returns:
+        ContainerExecResult
+
+    Raises:
+        OprimNotFoundError: 容器不存在
+        OprimConnectionError: API 错误或执行超时
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import TimeoutError as FutureTimeoutError
+
+    client = _make_client(docker_host)
+    container = _get_container(client, container_id)
+
+    t0 = time.perf_counter()
+
+    def _do_exec() -> tuple[int, tuple[bytes | None, bytes | None]]:
+        return container.exec_run(
+            cmd=command,
+            workdir=workdir,
+            environment=env,
+            user=user,
+            demux=True,
+        )
+
+    try:
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_do_exec)
+            exit_code, (stdout_bytes, stderr_bytes) = future.result(timeout=timeout_sec)
+
+        stdout = stdout_bytes.decode("utf-8", errors="replace") if stdout_bytes else ""
+        stderr = stderr_bytes.decode("utf-8", errors="replace") if stderr_bytes else ""
+        elapsed = int((time.perf_counter() - t0) * 1000)
+
+        return ContainerExecResult(
+            container_id=container.id,
+            command=command,
+            exit_code=exit_code,
+            stdout=stdout,
+            stderr=stderr,
+            elapsed_ms=elapsed,
+        )
+    except FutureTimeoutError as exc:
+        raise OprimConnectionError(f"Exec timeout ({timeout_sec}s): {command}") from exc
+    except docker.errors.APIError as exc:
+        raise OprimConnectionError(f"Docker API error executing command: {exc}") from exc
+    except Exception as exc:
+        raise OprimConnectionError(f"Unexpected error executing command: {exc}") from exc
