@@ -32,6 +32,17 @@ ELEMENTS: list[str] = [
     "correlation_batch",
     "bayesian_changepoint",
     "posterior_run_length",
+    # Cognitive (10)
+    "bkt_new_state",
+    "bkt_update",
+    "bkt_classify_error",
+    "bkt_predict_correct",
+    "exp_forgetting",
+    "fsrs_new_card",
+    "fsrs_review",
+    "fsrs_retrievability",
+    "fsrs_map_rating",
+    "fsrs_due_date",
     # Distance (5)
     "wasserstein_distance",
     "dtw_distance",

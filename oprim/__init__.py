@@ -320,6 +320,19 @@ from oprim.statistics import (
     percentile_value,
     skew_kurt_robust,
 )
+from oprim.cognitive import (
+    KCState,
+    bkt_classify_error,
+    bkt_new_state,
+    bkt_predict_correct,
+    bkt_update,
+    exp_forgetting,
+    fsrs_due_date,
+    fsrs_map_rating,
+    fsrs_new_card,
+    fsrs_retrievability,
+    fsrs_review,
+)
 from oprim.stats.within_group_percentile import within_group_percentile
 from oprim.story_predict import (
     StoryPredictError,
@@ -409,6 +422,18 @@ __all__ = [
     "pearson_spearman_corr",
     "kde_density",
     "correlation_batch",
+    # Cognitive (10)
+    "KCState",
+    "bkt_new_state",
+    "bkt_update",
+    "bkt_classify_error",
+    "bkt_predict_correct",
+    "exp_forgetting",
+    "fsrs_new_card",
+    "fsrs_review",
+    "fsrs_retrievability",
+    "fsrs_map_rating",
+    "fsrs_due_date",
     # Distance (6)
     "wasserstein_distance",
     "dtw_distance",
