@@ -3,40 +3,25 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Literal, Optional
+from typing import Any, Literal, Optional, Dict
 
-import numpy as np
 from fsrs import Card, Rating, Scheduler
-
 
 @dataclass
 class KCState:
-    """Knowledge Component State for Bayesian Knowledge Tracing.
-
-    Attributes
-    ----------
-    kc_id : str
-        Unique identifier for the knowledge component.
-    p_init : float
-        Initial probability of mastery.
-    p_transit : float
-        Probability of transitioning from non-mastery to mastery after an attempt.
-    p_guess : float
-        Probability of guessing correctly despite not mastering.
-    p_slip : float
-        Probability of slipping (incorrectly responding) despite mastering.
-    p_mastery : float | None
-        Current estimated probability of mastery.
-    long_term_mastery : float | None
-        EMA-smoothed long-term mastery estimate.
-    last_interaction_ts : float | None
-        Timestamp of the last interaction.
-    n_attempts : int
-        Total number of attempts.
+    """贝叶斯知识追踪状态（知识组件级）。
+    kc_id: 知识组件标识符
+    p_init: 初始掌握概率先验
+    p_transit: 一次练习后从未掌握→掌握的转移概率
+    p_guess: 未掌握状态下答对的概率（猜对）
+    p_slip: 已掌握状态下答错的概率（失误）
+    p_mastery: 当前掌握概率 P(L)，None 表示使用先验
+    long_term_mastery: 去遗忘平滑的长期掌握度
+    last_interaction_ts: 上次交互 unix 时间戳
+    n_attempts: 累计交互次数
     """
-
     kc_id: str
     p_init: float = 0.20
     p_transit: float = 0.20
@@ -48,316 +33,149 @@ class KCState:
     n_attempts: int = 0
 
     def current(self) -> float:
-        """Return the current mastery probability, falling back to p_init."""
         return self.p_mastery if self.p_mastery is not None else self.p_init
-
-
-def bkt_new_state(
-    *,
-    kc_id: str,
-    p_init: float = 0.20,
-    p_transit: float = 0.20,
-    p_guess: float = 0.15,
-    p_slip: float = 0.12,
-) -> KCState:
-    """Create a new KCState with given prior parameters.
-
-    Parameters
-    ----------
-    kc_id : str
-        Knowledge component ID.
-    p_init : float
-        Initial mastery probability.
-    p_transit : float
-        Learning/transition probability.
-    p_guess : float
-        Guessing probability.
-    p_slip : float
-        Slipping probability.
-
-    Returns
-    -------
-    KCState
-        Initialized state.
-    """
-    if not all(0 <= p <= 1 for p in [p_init, p_transit, p_guess, p_slip]):
-        raise ValueError("Probabilities must be in [0, 1]")
-
-    return KCState(
-        kc_id=kc_id,
-        p_init=p_init,
-        p_transit=p_transit,
-        p_guess=p_guess,
-        p_slip=p_slip,
-    )
-
 
 def bkt_update(
     *,
     state: KCState,
-    correct: bool,
-    current_ts: float | None = None,
-    halflife: float | None = None,
-    ema_alpha: float = 0.1,
-    mastery_cap: float = 0.97,
+    is_correct: bool,
+    retrievability: float | None = None,
+    days_since: float | None = None,
 ) -> KCState:
-    """Forgetting-aware BKT state update.
-
-    Updates mastery probability based on a new observation (correct/incorrect).
-    Includes mastery capping and EMA smoothing for long-term mastery.
-
-    Parameters
-    ----------
-    state : KCState
-        Current KC state.
-    correct : bool
-        Whether the response was correct.
-    current_ts : float | None
-        Current timestamp. Required for forgetting.
-    halflife : float | None
-        Half-life in days for mastery decay. If None, no forgetting is applied.
-    ema_alpha : float
-        Smoothing factor for long_term_mastery (default 0.1).
-    mastery_cap : float
-        Maximum allowed mastery probability (default 0.97).
-
-    Returns
-    -------
-    KCState
-        Updated state (pure function).
+    """Forgetting-aware 贝叶斯知识追踪更新（in-place + return）。
+    掌握度封顶 0.97，long_term_mastery 用 EMA(α=0.4) 平滑。
     """
-    p_mastery = state.current()
+    # 0. 准备参数
+    p_l = state.current()
+    p_g = state.p_guess
+    p_s = state.p_slip
+    p_t = state.p_transit
+    alpha = 0.4
+    cap = 0.97
 
-    # 1. Forgetting (decay)
-    if halflife is not None and state.last_interaction_ts is not None and current_ts is not None:
-        if current_ts < state.last_interaction_ts:
-            raise ValueError("current_ts cannot be earlier than last_interaction_ts")
-        days = (current_ts - state.last_interaction_ts) / 86400.0
-        # Simple exponential decay of mastery probability
-        p_mastery *= exp_forgetting(days=days, halflife=halflife)
+    # 1. Forgetting decay
+    r = 1.0
+    if retrievability is not None:
+        r = retrievability
+    elif days_since is not None:
+        r = exp_forgetting(days_since=days_since)
+    
+    p_eff = p_l * r
 
-    # 2. Bayesian Update
-    p_guess = state.p_guess
-    p_slip = state.p_slip
-    p_transit = state.p_transit
-
-    if correct:
-        p_known_given_obs = (p_mastery * (1 - p_slip)) / (
-            p_mastery * (1 - p_slip) + (1 - p_mastery) * p_guess
-        )
+    # 2. Bayesian update (Observation)
+    if is_correct:
+        p_obs = (p_eff * (1 - p_s)) / (p_eff * (1 - p_s) + (1 - p_eff) * p_g)
     else:
-        p_known_given_obs = (p_mastery * p_slip) / (
-            p_mastery * p_slip + (1 - p_mastery) * (1 - p_guess)
-        )
+        p_obs = (p_eff * p_s) / (p_eff * p_s + (1 - p_eff) * (1 - p_g))
 
-    p_new = p_known_given_obs + (1 - p_known_given_obs) * p_transit
+    # 3. Learning transition
+    p_new = p_obs + (1 - p_obs) * p_t
+    p_new = min(p_new, cap)
 
-    # 3. Apply Cap
-    p_new = min(p_new, mastery_cap)
-
-    # 4. Long Term Mastery EMA
-    ltm = state.long_term_mastery
-    if ltm is None:
-        ltm = p_new
+    # 4. Update state (in-place)
+    state.p_mastery = p_new
+    
+    if state.long_term_mastery is None:
+        state.long_term_mastery = p_new
     else:
-        ltm = ema_alpha * p_new + (1 - ema_alpha) * ltm
+        state.long_term_mastery = alpha * p_new + (1 - alpha) * state.long_term_mastery
 
-    return replace(
-        state,
-        p_mastery=p_new,
-        long_term_mastery=ltm,
-        last_interaction_ts=current_ts if current_ts is not None else state.last_interaction_ts,
-        n_attempts=state.n_attempts + 1,
+    state.n_attempts += 1
+    # Note: last_interaction_ts update is left to the caller or handled via oskill
+    return state
+
+def bkt_classify_error(*, state: KCState) -> str:
+    """答错时判定根因：'careless' 或 'dontknow'。"""
+    p_l = state.current()
+    p_g = state.p_guess
+    p_s = state.p_slip
+
+    # careless ∝ P(L) * P(S)
+    # dontknow ∝ (1-P(L)) * (1-P(G))
+    careless_weight = p_l * p_s
+    dontknow_weight = (1 - p_l) * (1 - p_g)
+
+    return "careless" if careless_weight >= dontknow_weight else "dontknow"
+
+def bkt_predict_correct(*, state: KCState, retrievability: float | None = None) -> float:
+    """预测下一次答对概率。"""
+    p_l = state.current()
+    r = retrievability if retrievability is not None else 1.0
+    p_eff = p_l * r
+    return p_eff * (1 - state.p_slip) + (1 - p_eff) * state.p_guess
+
+def exp_forgetting(*, days_since: float, halflife_days: float = 7.0) -> float:
+    """指数遗忘近似 R = 0.5^(days/halflife)。"""
+    if halflife_days <= 0:
+        raise ValueError("halflife_days must be positive")
+    if days_since < 0:
+        raise ValueError("days_since must be non-negative")
+    return 0.5 ** (days_since / halflife_days)
+
+def bkt_new_state(*, kc_id: str, prior: dict) -> KCState:
+    """从先验参数字典创建 KCState。"""
+    return KCState(
+        kc_id=kc_id,
+        p_init=prior.get("p_init", 0.2),
+        p_transit=prior.get("p_transit", 0.2),
+        p_guess=prior.get("p_guess", 0.15),
+        p_slip=prior.get("p_slip", 0.12),
     )
 
+# FSRS Helpers (dict-based serialization)
 
-def bkt_classify_error(
-    *,
-    state: KCState,
-    correct: bool,
-) -> Literal["careless", "dontknow", "none"]:
-    """Classify the type of error based on BKT state.
+def _card_to_dict(card: Card) -> dict:
+    return card.to_dict()
 
-    If correct is False, evaluates if it's a 'careless' mistake (high mastery)
-    or 'dontknow' (low mastery).
-
-    Parameters
-    ----------
-    state : KCState
-        Current KC state.
-    correct : bool
-        Whether the response was correct.
-
-    Returns
-    -------
-    {"careless", "dontknow", "none"}
-        Error classification.
-    """
-    if correct:
-        return "none"
-
-    p_mastery = state.current()
-    p_slip = state.p_slip
-    p_guess = state.p_guess
-
-    # Probability of mistake being a slip: P(Slip | Incorrect)
-    p_inc = p_mastery * p_slip + (1 - p_mastery) * (1 - p_guess)
-    if p_inc == 0:
-        return "dontknow"
-
-    p_slip_given_inc = (p_mastery * p_slip) / p_inc
-    p_dontknow_given_inc = ((1 - p_mastery) * (1 - p_guess)) / p_inc
-
-    return "careless" if p_slip_given_inc > p_dontknow_given_inc else "dontknow"
+def _dict_to_card(d: dict) -> Card:
+    return Card.from_dict(d)
 
 
-def bkt_predict_correct(*, state: KCState) -> float:
-    """Predict the probability of a correct response.
+def fsrs_new_card() -> dict:
+    """创建新 FSRS 记忆卡片。"""
+    return _card_to_dict(Card())
 
-    P(Correct) = P(Mastery) * (1 - P(Slip)) + (1 - P(Mastery)) * P(Guess)
-
-    Parameters
-    ----------
-    state : KCState
-        Current KC state.
-
-    Returns
-    -------
-    float
-        Probability of correct response in [0, 1].
-    """
-    p_l = state.current()
-    return p_l * (1 - state.p_slip) + (1 - p_l) * state.p_guess
-
-
-def exp_forgetting(*, days: float, halflife: float) -> float:
-    """Exponential forgetting approximation.
-
-    R = 0.5^(days/halflife)
-
-    Parameters
-    ----------
-    days : float
-        Elapsed time in days.
-    halflife : float
-        Time in days when retention drops to 0.5.
-
-    Returns
-    -------
-    float
-        Retention (retrievability) in [0, 1].
-    """
-    if halflife <= 0:
-        raise ValueError("halflife must be positive")
-    if days < 0:
-        raise ValueError("days must be non-negative")
-    return 0.5 ** (days / halflife)
-
-
-def fsrs_new_card() -> Card:
-    """Create a new FSRS card.
-
-    Returns
-    -------
-    fsrs.Card
-        New initialized card.
-    """
-    return Card()
-
-
-def fsrs_review(
-    *,
-    card: Card,
-    rating: int | Rating,
-    current_ts: float | None = None,
-    weights: tuple[float, ...] | None = None,
-) -> tuple[Card, Any]:
-    """Review an FSRS card and return the updated card and review log.
-
-    Parameters
-    ----------
-    card : Card
-        The FSRS card being reviewed.
-    rating : int | Rating
-        Rating (1-4). 1: Again, 2: Hard, 3: Good, 4: Easy.
-    current_ts : float | None
-        Timestamp of the review. Defaults to current time.
-    weights : tuple[float, ...] | None
-        FSRS model weights. If None, uses default weights.
-
-    Returns
-    -------
-    tuple[Card, ReviewLog]
-        Updated card and the review log.
-    """
-    if isinstance(rating, int):
-        rating = fsrs_map_rating(rating=rating)
-
-    scheduler = Scheduler(w=weights) if weights else Scheduler()
-    dt = datetime.fromtimestamp(current_ts, tz=timezone.utc) if current_ts else datetime.now(timezone.utc)
-
-    return scheduler.review_card(card=card, rating=rating, review_datetime=dt)
-
-
-def fsrs_retrievability(
-    *,
-    card: Card,
-    current_ts: float | None = None,
-) -> float:
-    """Compute the current retrievability (R) of an FSRS card.
-
-    Parameters
-    ----------
-    card : Card
-        The FSRS card.
-    current_ts : float | None
-        Timestamp to evaluate at. Defaults to current time.
-
-    Returns
-    -------
-    float
-        Retrievability in [0, 1].
-    """
+def fsrs_review(*, card_dict: dict, rating: str, now: datetime | None = None) -> dict:
+    """对卡片做一次复习。"""
+    card = _dict_to_card(card_dict)
     scheduler = Scheduler()
-    dt = datetime.fromtimestamp(current_ts, tz=timezone.utc) if current_ts else datetime.now(timezone.utc)
-    return float(scheduler.get_card_retrievability(card, dt))
-
-
-def fsrs_map_rating(*, rating: int) -> Rating:
-    """Map integer rating (1-4) to FSRS Rating enum.
-
-    Parameters
-    ----------
-    rating : int
-        Rating value. 1: Again, 2: Hard, 3: Good, 4: Easy.
-
-    Returns
-    -------
-    fsrs.Rating
-        Corresponding Rating enum.
-    """
-    mapping = {
-        1: Rating.Again,
-        2: Rating.Hard,
-        3: Rating.Good,
-        4: Rating.Easy,
+    if now is None:
+        now = datetime.now(timezone.utc)
+    
+    rating_map = {
+        "Again": Rating.Again,
+        "Hard": Rating.Hard,
+        "Good": Rating.Good,
+        "Easy": Rating.Easy,
     }
-    if rating not in mapping:
-        raise ValueError(f"Invalid FSRS rating: {rating}. Must be 1, 2, 3, or 4.")
-    return mapping[rating]
+    r = rating_map.get(rating, Rating.Good)
+    
+    new_card, _ = scheduler.review_card(card, r, now)
+    return _card_to_dict(new_card)
 
+def fsrs_retrievability(*, card_dict: dict, now: datetime | None = None) -> float:
+    """当前可提取性 R ∈ [0,1]。"""
+    if card_dict.get("last_review") is None:
+        return 1.0
+    card = _dict_to_card(card_dict)
+    scheduler = Scheduler()
+    if now is None:
+        now = datetime.now(timezone.utc)
+    return float(scheduler.get_card_retrievability(card, now))
 
-def fsrs_due_date(*, card: Card) -> datetime:
-    """Return the due date of an FSRS card.
+def fsrs_map_rating(
+    *, is_correct: bool, used_answer: bool = False,
+    struggled: bool = False, effortless: bool = False
+) -> str:
+    """表现映射为 FSRS Rating 字符串。"""
+    if used_answer or not is_correct:
+        return "Again"
+    if struggled:
+        return "Hard"
+    if effortless:
+        return "Easy"
+    return "Good"
 
-    Parameters
-    ----------
-    card : Card
-        The FSRS card.
-
-    Returns
-    -------
-    datetime
-        The next due date.
-    """
-    return card.due
+def fsrs_due_date(*, card_dict: dict) -> str | None:
+    """下次复习日期 ISO 字符串。"""
+    return card_dict.get("due")
