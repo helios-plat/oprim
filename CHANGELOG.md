@@ -2,6 +2,12 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.37.0] — 2026-06-12
+
+### Added (AII 3O Batch 6 — 2 new elements)
+- feat: `mathlib_lookup` — 查一个标识符在 Mathlib 的形式化条目: 通过 Loogle API 查询 Lean/Mathlib 既有形式化定理条目; count==1 表示唯一无歧义命中, 可用于既有定理确证 (不需现场证明)。依赖 obase.http.dns_pinned_transport。
+- feat: `epistemic_confidence_compute` — 按 grade 加权算整体认知可信度: 输入一组检索 KU 的 grade → 输出加权整体可信度 [0,1]。跨项目复用: Tide 信号可信度 / Stratum 引用置信 / Aegis 根因可信度。
+
 ## [2.36.1] — 2026-06-12
 
 ### Fixed

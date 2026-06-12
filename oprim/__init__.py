@@ -116,6 +116,13 @@ from oprim._system import (
     system_load_avg,
     system_ram_usage,
 )
+# AII 3O Batch 6 (oprim 2.37.0)
+from oprim.epistemic_confidence_compute import (
+    DEFAULT_GRADE_WEIGHTS,
+    epistemic_confidence_compute,
+)
+from oprim.mathlib_lookup import MathlibHit, MathlibLookupResult, mathlib_lookup
+
 from oprim._version import __version__
 from oprim.appstore_catalog_fetch import AppCatalogEntry, appstore_catalog_fetch
 
@@ -993,6 +1000,12 @@ __all__ = [
     "ssh_file_upload",
     "SshPortCheckResult",
     "ssh_port_forward_check",
+    # AII 3O Batch 6 (oprim 2.37.0)
+    "mathlib_lookup",
+    "MathlibHit",
+    "MathlibLookupResult",
+    "epistemic_confidence_compute",
+    "DEFAULT_GRADE_WEIGHTS",
 ]
 
 # --- Tide v4 extraction: B1-B3 (11 oprims) ---
