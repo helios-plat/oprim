@@ -2,6 +2,11 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.36.1] — 2026-06-12
+
+### Fixed
+- fix: 声明缺失依赖 `fsrs>=4.0.0`（`oprim.cognitive` 使用 `fsrs.Card/Rating/Scheduler`，容器重建后 ModuleNotFoundError；陷阱 11 变体）
+
 ## [2.31.0] — 2026-06-05
 
 ### Added (Aegis 3O Element IMPL SPEC v1.0 — B2: 25 new elements)
