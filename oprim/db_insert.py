@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import psycopg
@@ -34,6 +35,12 @@ def db_insert(
         >>> db_insert(dsn="postgresql://...", table="users", data={"name": "Wiki"})
         1
     """
+    warnings.warn(
+        "oprim.db_insert is deprecated and will be removed in oprim v3.0.0. "
+        "Use obase.persistence.insert_one instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if not data:
         raise OprimError("db_insert: data must not be empty")
 

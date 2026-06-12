@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import psycopg
@@ -31,6 +32,12 @@ def db_read(
     Returns:
         Row as dict, or None if not found
     """
+    warnings.warn(
+        "oprim.db_read is deprecated and will be removed in oprim v3.0.0. "
+        "Use obase.persistence.read_one instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     try:
         with (
             psycopg.connect(dsn, row_factory=psycopg.rows.dict_row) as conn,

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import functools
 import time
+import warnings
 from datetime import UTC
 from typing import Any, Literal
 
@@ -15,6 +17,24 @@ from oprim._exceptions import (
     OprimConnectionError,
     OprimNotFoundError,
 )
+
+# ---------------------------------------------------------------------------
+# Deprecation decorator
+# ---------------------------------------------------------------------------
+
+
+def _deprecated_docker(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        warnings.warn(
+            f"oprim.{func.__name__} is deprecated and will be removed in oprim v3.0.0. "
+            f"Use obase.docker.{func.__name__} instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return func(*args, **kwargs)
+    return wrapper
+
 
 # ---------------------------------------------------------------------------
 # Shared models
@@ -213,6 +233,7 @@ def _parse_mounts(attrs: dict[str, Any]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_inspect(
     *,
     container_id: str,
@@ -269,6 +290,7 @@ def docker_container_inspect(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_logs(
     *,
     container_id: str,
@@ -333,6 +355,7 @@ def docker_container_logs(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_start(
     *,
     container_id: str,
@@ -378,6 +401,7 @@ def docker_container_start(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_stop(
     *,
     container_id: str,
@@ -425,6 +449,7 @@ def docker_container_stop(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_restart(
     *,
     container_id: str,
@@ -472,6 +497,7 @@ def docker_container_restart(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_image_pull(
     *,
     image: str,
@@ -540,6 +566,7 @@ def docker_image_pull(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_stats(
     *,
     container_id: str,
@@ -618,6 +645,7 @@ def docker_container_stats(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_image_list(
     *,
     docker_host: str = "unix:///var/run/docker.sock",
@@ -651,6 +679,7 @@ def docker_image_list(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_image_delete(
     *,
     image: str,
@@ -682,6 +711,7 @@ def docker_image_delete(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_volume_list(
     *,
     docker_host: str = "unix:///var/run/docker.sock",
@@ -713,6 +743,7 @@ def docker_volume_list(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_volume_delete(
     *,
     name: str,
@@ -740,6 +771,7 @@ def docker_volume_delete(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_network_list(
     *,
     docker_host: str = "unix:///var/run/docker.sock",
@@ -898,6 +930,7 @@ def compose_down(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_list(
     *,
     all: bool = False,
@@ -947,6 +980,7 @@ def docker_container_list(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_create(
     *,
     image: str,
@@ -1027,6 +1061,7 @@ def docker_container_create(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_system_prune(
     *,
     volumes: bool = False,
@@ -1072,6 +1107,7 @@ def docker_system_prune(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_node_info(
     *,
     docker_host: str,
@@ -1123,6 +1159,7 @@ def docker_node_info(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_rename(
     *,
     container_id: str,
@@ -1180,6 +1217,7 @@ docker_compose_up = compose_up
 docker_compose_down = compose_down
 
 
+@_deprecated_docker
 def docker_compose_pull(
     *,
     compose_file: str,
@@ -1229,6 +1267,7 @@ def docker_compose_pull(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_network_create(
     *,
     name: str,
@@ -1278,6 +1317,7 @@ def docker_network_create(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_network_delete(
     *,
     network_id: str,
@@ -1322,6 +1362,7 @@ def docker_network_delete(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_volume_create(
     *,
     name: str,
@@ -1370,6 +1411,7 @@ def docker_volume_create(
 # ---------------------------------------------------------------------------
 
 
+@_deprecated_docker
 def docker_container_exec(
     *,
     container_id: str,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import psycopg
@@ -31,6 +32,12 @@ def db_write(
     Raises:
         OprimError: Database error
     """
+    warnings.warn(
+        "oprim.db_write is deprecated and will be removed in oprim v3.0.0. "
+        "Use obase.persistence.write_one instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if not data:
         raise OprimError("db_write: data must not be empty")
 

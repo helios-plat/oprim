@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import warnings
+
 import psycopg
 
 from oprim._exceptions import OprimError
@@ -25,6 +27,12 @@ def db_soft_delete(
     Returns:
         True if row was found and updated, False if not found
     """
+    warnings.warn(
+        "oprim.db_soft_delete is deprecated and will be removed in oprim v3.0.0. "
+        "Use obase.persistence.soft_delete_one instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     query = (
         f'UPDATE "{table}" SET "{deleted_at_column}" = NOW()'
         f' WHERE "id" = %s AND "{deleted_at_column}" IS NULL'

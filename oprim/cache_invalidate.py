@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import redis
 
 from oprim._exceptions import OprimError
@@ -29,6 +31,12 @@ def cache_invalidate(
         >>> cache_invalidate(key="user:123:profile", redis_url="redis://localhost:6379/0")
         True
     """
+    warnings.warn(
+        "oprim.cache_invalidate is deprecated and will be removed in oprim v3.0.0. "
+        "Migrate to a dedicated cache layer.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if cache_backend == "redis":
         try:
             url = redis_url or "redis://localhost:6379/0"

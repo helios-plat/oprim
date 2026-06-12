@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import psycopg
@@ -29,6 +30,12 @@ def db_update(
     Returns:
         True if row was found and updated, False if not found
     """
+    warnings.warn(
+        "oprim.db_update is deprecated and will be removed in oprim v3.0.0. "
+        "Use obase.persistence.update_one instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if not data:
         raise OprimError("db_update: data must not be empty")
 

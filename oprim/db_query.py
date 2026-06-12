@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import psycopg
@@ -31,6 +32,12 @@ def db_query(
     Raises:
         OprimError: Database error or invalid query
     """
+    warnings.warn(
+        "oprim.db_query is deprecated and will be removed in oprim v3.0.0. "
+        "Use obase.persistence.query instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     try:
         with psycopg.connect(dsn, row_factory=psycopg.rows.dict_row) as conn, conn.cursor() as cur:
             cur.execute(query, params)
