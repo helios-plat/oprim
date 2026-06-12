@@ -2,6 +2,15 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [3.0.0] — 2026-06-13
+
+### Removed — BREAKING CHANGES
+- 删除: `db_insert` / `db_query` / `db_read` / `db_write` / `db_update` / `db_soft_delete` (已迁移至 obase.persistence)
+- 删除: `cache_invalidate` (已迁移至 obase.cache)
+- 删除: `_docker.py` (整文件 + 22 个 `docker_*` 函数，已迁移至 obase.docker)
+- 删除: `realtime_quote_redis_fetch` (依赖 redis)
+- pyproject 移除重依赖: `docker` / `psycopg` / `redis`
+
 ## [2.38.0] — 2026-06-12
 
 ### Changed — L2 枢纽惰性化

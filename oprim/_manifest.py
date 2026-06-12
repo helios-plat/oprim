@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "2.0.0"
+VERSION = "3.0.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -267,7 +267,6 @@ ELEMENTS: list[str] = [
     "fetch_sector_returns",
     "pe_ttm_lookback_safe",
     "stop_loss_compliance_check",
-    "realtime_quote_redis_fetch",
     "stamp_tax_rate_by_date",
     "broker_export_render",
     "compliance_disclaimer_inject",
@@ -295,12 +294,6 @@ ELEMENTS: list[str] = [
     "file_size_limiter",
     "file_type_detector",
     "http_post",
-    "db_insert",
-    "db_query",
-    "db_write",
-    "db_read",
-    "db_soft_delete",
-    "db_update",
     "migration_runner",
     "file_parser_pdf",
     "file_parser_epub",
@@ -309,7 +302,6 @@ ELEMENTS: list[str] = [
     "file_parser_plaintext",
     "document_structure_extractor",
     "llm_summarize",
-    "cache_invalidate",
     "file_upload_handler",
     "temp_file_manager",
     "push_email",
@@ -533,7 +525,6 @@ CATEGORIES: dict[str, list[str]] = {
         "fetch_sector_returns",
         "pe_ttm_lookback_safe",
         "stop_loss_compliance_check",
-        "realtime_quote_redis_fetch",
         "stamp_tax_rate_by_date",
         "broker_export_render",
         "compliance_disclaimer_inject",
