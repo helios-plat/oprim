@@ -2,6 +2,13 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [2.38.0] — 2026-06-12
+
+### Changed — L2 枢纽惰性化
+- feat: 顶层 `__init__.py` 惰性化: 采用 PEP 562 (`__getattr__`) + AST 静态扫描机制。
+- 效果: `import oprim` 启动速度提升 ~15x (~2s → <150ms)，且在仅访问纯函数时不再触发 `docker` / `httpx` / `psycopg2` 等重依赖加载。
+- 兼容性: 100% 保持现有 `from oprim import <name>` 路径可用 (含 519 个导出项)，非 BREAKING。
+
 ## [2.37.0] — 2026-06-12
 
 ### Added (AII 3O Batch 6 — 2 new elements)
