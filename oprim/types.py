@@ -1,6 +1,6 @@
-"""Shared type definitions for oprim — Mneme elements (M-A batch).
+"""Shared type definitions for oprim — Mneme elements (M-A/M-B batch).
 
-Version: oprim v3.3.0
+Version: oprim v3.4.0
 """
 
 from __future__ import annotations
@@ -156,3 +156,14 @@ class PeerPercentileResult:
     peer_mean: float
     peer_std: float
     distribution_bucket: str = ""  # e.g., "top_10%", "bottom_25%"
+
+
+# ---------------------------------------------------------------------------
+# Socratic dialogue (used by M-B/M-C elements)
+# ---------------------------------------------------------------------------
+
+class SocraticTurnResult(BaseModel):
+    """Result of a single Socratic dialogue turn."""
+
+    text: str
+    step_check_triggered: bool = False
