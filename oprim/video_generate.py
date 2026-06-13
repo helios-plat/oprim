@@ -64,6 +64,27 @@ async def video_generate(
     Example:
         >>> await video_generate(provider="stub", prompt="test", output_path=Path("out.mp4"))
     """
+    # Built-in wan_cloud dispatch — no ProviderRegistry registration needed
+    if provider == "wan_cloud":
+        from oprim._config import cfg
+        from oprim._providers.wan_cloud import WanCloudError
+        from oprim._providers.wan_cloud import invoke as _wan_invoke
+
+        api_key: str = cfg.get("DASHSCOPE_API_KEY", "")  # type: ignore[assignment]
+        if not api_key:
+            raise VideoGenError("DASHSCOPE_API_KEY not configured for wan_cloud")
+        _mode = "i2v" if reference_image is not None else "t2v"
+        try:
+            return await _wan_invoke(
+                mode=_mode,
+                prompt=prompt,
+                reference_image=reference_image,
+                output_path=output_path,
+                api_key=api_key,
+            )
+        except WanCloudError as exc:
+            raise VideoGenError(f"wan_cloud generation failed: {exc}") from exc
+
     try:
         gen_fn = ProviderRegistry.get(category="video_gen", name=provider)
     except ProviderNotFoundError as exc:

@@ -68,6 +68,21 @@ async def avatar_generate(
     if not audio_path.exists():
         raise AvatarGenError(f"Audio file not found: {audio_path}")
 
+    # Built-in duix dispatch — local Docker REST, no ProviderRegistry needed
+    if provider == "duix":
+        from oprim._providers.duix import DuixError
+        from oprim._providers.duix import submit_and_poll as _duix_submit
+
+        try:
+            return await _duix_submit(
+                portrait_image=portrait_image,
+                audio_path=audio_path,
+                output_path=output_path,
+                timeout_s=timeout_s,
+            )
+        except DuixError as exc:
+            raise AvatarGenError(f"Duix generation failed: {exc}") from exc
+
     try:
         gen_fn = ProviderRegistry.get(category="avatar", name=provider)
     except ProviderNotFoundError as exc:

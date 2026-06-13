@@ -2,6 +2,15 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [3.1.0] — 2026-06-13
+
+### Added (hevi v2 — M1/M3 新建 + M2/M4 扩展)
+- feat: `ltx2_cloud_generate` — LTX-2 cloud video generation via fal.ai (T2V/I2V, ≤20s, async poll, base64 i2v)
+- feat: `vibevoice_synthesize` — VibeVoice 1.5B 本地多说话人 TTS (zero-shot 克隆, 分段, safety watermark)
+- feat: `video_generate` +`"wan_cloud"` provider — Wan 2.6/2.7 Alibaba Cloud T2V/I2V (删 duration 参数)
+- feat: `avatar_generate` +`"duix"` provider — Duix-Avatar 本地 Docker REST (fun-asr + fish-speech + duix.avatar)
+- Internal: `_providers/wan_cloud.py`, `_providers/duix.py`
+
 ## [3.0.0] — 2026-06-13
 
 ### Removed — BREAKING CHANGES
