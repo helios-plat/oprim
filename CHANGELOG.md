@@ -638,3 +638,11 @@ All future Phase releases must:
 1. Use independent feat branches (not accumulate Phases on one branch)
 2. Merge to main via PR before tagging
 3. Tag on main (never on feat branches)
+
+## [3.2.0] — 2026-06-13
+### Added
+- hicode 批次 A-C: file_*/git_*/bash_exec/lsp_*/mcp_*/llm_complete/llm_stream
+  embed_text/http_fetch/web_search/build_system_prompt/truncate_messages
+  extract_thinking/snapshot_conversation/parse_unified_diff/compute_diff
+  detect_language/html_to_markdown/redact_secrets/count_tokens/estimate_cost
+  run_hook/load_image/read_skill_frontmatter/git_worktree_* (共 55 个新元素)
