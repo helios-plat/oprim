@@ -38,6 +38,8 @@ async def ltx2_cloud_generate(
     resolution: tuple[int, int],
     audio_enabled: bool = True,
     output_path: Path,
+    fps: int = 24,
+    bitrate_kbps: int | None = None,
 ) -> Path:
     """Generate a video clip via LTX-2 on fal.ai cloud.
 
@@ -87,7 +89,10 @@ async def ltx2_cloud_generate(
         "width": resolution[0],
         "height": resolution[1],
         "enable_audio": audio_enabled,
+        "fps": fps,
     }
+    if bitrate_kbps is not None:
+        payload["bitrate_kbps"] = bitrate_kbps
 
     if mode == "i2v" and reference_image is not None:
         if not reference_image.exists():

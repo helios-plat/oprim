@@ -41,6 +41,8 @@ async def video_generate(
     height: int = 1920,
     output_path: Path,
     timeout_s: float = 600.0,
+    fps: int = 24,
+    bitrate_kbps: int | None = None,
 ) -> Path:
     """Generate video using a registered provider.
 
@@ -81,6 +83,8 @@ async def video_generate(
                 reference_image=reference_image,
                 output_path=output_path,
                 api_key=api_key,
+                fps=fps,
+                bitrate_kbps=bitrate_kbps,
             )
         except WanCloudError as exc:
             raise VideoGenError(f"wan_cloud generation failed: {exc}") from exc
