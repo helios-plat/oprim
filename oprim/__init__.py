@@ -75,3 +75,13 @@ from oprim.prompt import (
 from oprim.image_generate import image_generate
 from oprim.image_understand import image_understand
 from oprim.tts_synthesize import tts_synthesize
+
+# --- Mneme elements (M-A batch) ---
+from oprim.types import (
+    SolveResult, SolveStep, StepCheckResult, Plot2DData, Three3DData,
+    GradeResult, PeerPercentileResult
+)
+from oprim.compute_peer_percentile import compute_peer_percentile, compute_percentile_batch
+from oprim.recognition_update import recognition_update, recognition_update_sequence
+from oprim.compute_effortful_gain import compute_effortful_gain, compute_effortful_gain_from_arrays
+from oprim.compute_feedback import compute_feedback, grade_answer
