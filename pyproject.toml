@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "oprim"
-version = "3.1.0"
+version = "3.1.1"
 description = "Atomic operations library — Layer 1 meta-primitives for financial analysis"
 readme = "README.md"
 license = "MIT"
@@ -110,3 +110,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["alipay"]
 ignore_missing_imports = true
+
+[project.entry-points."obase.providers"]
+qwen3_dashscope = "oprim.providers.dashscope:register"
+qwen3 = "oprim.providers.qwen3:register"

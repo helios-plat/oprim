@@ -2,6 +2,12 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [3.1.1] — 2026-06-13
+
+### Fixed (B-1 + B-2)
+- fix(B-2): `from oprim import image_generate` returned `<module>` instead of `<function>` — PEP 562 lazy loading (v2.38.0) removed the v2.24.1 explicit re-exports; restored for `image_generate`, `image_understand`, `tts_synthesize`
+- feat(B-1): `[project.entry-points."obase.providers"]` — `qwen3_dashscope` + `qwen3` LLM providers now declared; `ProviderRegistry.auto_discover()` can discover without manual Layer-4 bootstrap
+
 ## [3.1.0] — 2026-06-13
 
 ### Added (hevi v2 — M1/M3 新建 + M2/M4 扩展)

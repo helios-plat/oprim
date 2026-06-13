@@ -100,3 +100,10 @@ def __dir__() -> list[str]:
 
 
 __all__ = sorted(_ELEMENT_MAP.keys())
+
+# Explicit re-exports: `from oprim import X` must return the function, not the X.py submodule.
+# Python finds submodules before calling __getattr__, so same-named functions must be pinned here.
+# Regressed in v2.38.0 (PEP 562 lazy loading); restored in v3.1.1.
+from oprim.image_generate import image_generate as image_generate  # noqa: E402
+from oprim.image_understand import image_understand as image_understand  # noqa: E402
+from oprim.tts_synthesize import tts_synthesize as tts_synthesize  # noqa: E402
