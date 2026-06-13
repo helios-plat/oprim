@@ -2,7 +2,7 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
-## [2.40.0] — 2026-06-13
+## [3.1.0] — 2026-06-13
 
 ### Added (hevi v2 — M1/M3 新建 + M2/M4 扩展)
 - feat: `ltx2_cloud_generate` — LTX-2 cloud video generation via fal.ai (T2V/I2V, ≤20s, async poll, base64 i2v)
