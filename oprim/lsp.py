@@ -22,12 +22,16 @@ oprim 内部只调用 server.request(method, params)，不 import obase.lsp。
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from ._exceptions import OprimError
 from ._protocols import LspServerHandle
+
+# LSP 位置类型：(line, character) — 0-based
+Pos = tuple[int, int]
 
 
 class LspOprimError(OprimError):
@@ -151,6 +155,19 @@ class CodeAction:
     command: dict | None = None
 
 
+@dataclass
+class CallItem:
+    """LSP CallHierarchyItem — 调用层级节点。"""
+    name: str
+    kind: int
+    uri: str
+    range_start_line: int
+    range_start_char: int
+    range_end_line: int
+    range_end_char: int
+    detail: str = ""
+
+
 # ---------------------------------------------------------------------------
 # lsp_diagnostics
 # ---------------------------------------------------------------------------
@@ -158,34 +175,40 @@ class CodeAction:
 async def lsp_diagnostics(
     path: str | Path,
     *,
-    server: LspServerHandle,
+    server: LspServerHandle | None = None,
+    lsp: LspServerHandle | None = None,
 ) -> list[Diagnostic]:
     """单次获取文件的诊断信息（错误/警告）。
 
     Args:
         path: 文件路径。
-        server: LSP server handle（由 obase.lsp 注入）。
+        server: LSP server handle（旧参数名）。
+        lsp: LSP server handle（新参数名，与 server 互斥）。
 
     Returns:
         Diagnostic 列表，按行号排序。
 
     Raises:
+        ValueError: server 和 lsp 均未提供。
         LspOprimError: LSP 请求失败。
 
     Example:
-        >>> diags = await lsp_diagnostics("src/main.py", server=server)
+        >>> diags = await lsp_diagnostics("src/main.py", lsp=server)
         >>> [d.message for d in diags if d.severity == 1]
         ['undefined name foo']
     """
+    _server = lsp if lsp is not None else server
+    if _server is None:
+        raise ValueError("must provide server or lsp")
     try:
-        result = await server.request(
+        result = await _server.request(
             "textDocument/diagnostic",
             {"textDocument": _text_doc(path)},
         )
     except Exception as e:
         raise LspOprimError(f"lsp_diagnostics failed for '{path}'", cause=e)
 
-    items = result.get("items", []) if isinstance(result, dict) else (result or [])
+    items: list = result.get("items", []) if isinstance(result, dict) else (result or [])
     diags = []
     for d in items:
         r = d.get("range", {})
@@ -212,36 +235,45 @@ async def lsp_diagnostics(
 async def lsp_hover(
     path: str | Path,
     *,
-    line: int,
-    character: int,
-    server: LspServerHandle,
+    pos: Pos | None = None,
+    line: int = 0,
+    character: int = 0,
+    server: LspServerHandle | None = None,
+    lsp: LspServerHandle | None = None,
 ) -> Hover | None:
     """单次获取光标位置的 hover 信息（类型/文档）。
 
     Args:
         path: 文件路径。
-        line: 行号（0-based）。
-        character: 列号（0-based）。
-        server: LSP server handle。
+        pos: (line, character) 元组（新 API）。
+        line: 行号（0-based，旧 API）。
+        character: 列号（0-based，旧 API）。
+        server: LSP server handle（旧参数名）。
+        lsp: LSP server handle（新参数名）。
 
     Returns:
         Hover（含 Markdown 格式文档），或 None（无 hover 信息）。
 
     Raises:
+        ValueError: server 和 lsp 均未提供。
         LspOprimError: LSP 请求失败。
 
     Example:
-        >>> h = await lsp_hover("src/main.py", line=10, character=5, server=server)
+        >>> h = await lsp_hover("src/main.py", pos=(10, 5), lsp=server)
         >>> h.contents
         '```python\ndef foo() -> int\n```'
     """
+    _server = lsp if lsp is not None else server
+    if _server is None:
+        raise ValueError("must provide server or lsp")
+    _line, _char = pos if pos is not None else (line, character)
     try:
-        result = await server.request(
+        result = await _server.request(
             "textDocument/hover",
-            _text_doc_pos(path, line, character),
+            _text_doc_pos(path, _line, _char),
         )
     except Exception as e:
-        raise LspOprimError(f"lsp_hover failed for '{path}':{line}", cause=e)
+        raise LspOprimError(f"lsp_hover failed for '{path}':{_line}", cause=e)
 
     if not result:
         return None
@@ -740,3 +772,337 @@ def _parse_workspace_edit(result: dict) -> WorkspaceEdit:
             we.changes[path] = _parse_text_edits(dc["edits"])
 
     return we
+
+
+# ---------------------------------------------------------------------------
+# H-B D组 新增函数 (10)
+# ---------------------------------------------------------------------------
+
+def _parse_call_item(raw: dict) -> CallItem:
+    r = raw.get("range", raw.get("selectionRange", {}))
+    start = r.get("start", {})
+    end = r.get("end", {})
+    uri = raw.get("uri", "")
+    return CallItem(
+        name=raw.get("name", ""),
+        kind=raw.get("kind", 0),
+        uri=uri,
+        range_start_line=start.get("line", 0),
+        range_start_char=start.get("character", 0),
+        range_end_line=end.get("line", 0),
+        range_end_char=end.get("character", 0),
+        detail=raw.get("detail", ""),
+    )
+
+
+def _call_item_to_lsp(item: CallItem) -> dict:
+    return {
+        "name": item.name,
+        "kind": item.kind,
+        "uri": item.uri,
+        "range": {
+            "start": {"line": item.range_start_line, "character": item.range_start_char},
+            "end": {"line": item.range_end_line, "character": item.range_end_char},
+        },
+        "selectionRange": {
+            "start": {"line": item.range_start_line, "character": item.range_start_char},
+            "end": {"line": item.range_end_line, "character": item.range_end_char},
+        },
+    }
+
+
+async def lsp_goto_definition(
+    path: str | Path,
+    *,
+    pos: Pos,
+    lsp: LspServerHandle,
+) -> list[Location]:
+    """跳转到符号定义位置。
+
+    Args:
+        path: 当前文件路径。
+        pos: (line, character) 光标位置（0-based）。
+        lsp: LSP server handle。
+
+    Returns:
+        Location 列表（通常 0-1 个）。
+
+    Raises:
+        LspOprimError: LSP 请求失败。
+    """
+    try:
+        result = await lsp.request(
+            "textDocument/definition",
+            _text_doc_pos(path, pos[0], pos[1]),
+        )
+    except Exception as e:
+        raise LspOprimError("lsp_goto_definition failed", cause=e)
+    return _parse_locations(result)
+
+
+async def lsp_find_references(
+    path: str | Path,
+    *,
+    pos: Pos,
+    lsp: LspServerHandle,
+    include_declaration: bool = False,
+) -> list[Location]:
+    """查找符号的所有引用位置。
+
+    Args:
+        path: 当前文件路径。
+        pos: (line, character) 光标位置（0-based）。
+        lsp: LSP server handle。
+        include_declaration: 是否包含声明处。
+
+    Returns:
+        Location 列表。
+
+    Raises:
+        LspOprimError: LSP 请求失败。
+    """
+    params = {
+        **_text_doc_pos(path, pos[0], pos[1]),
+        "context": {"includeDeclaration": include_declaration},
+    }
+    try:
+        result = await lsp.request("textDocument/references", params)
+    except Exception as e:
+        raise LspOprimError("lsp_find_references failed", cause=e)
+    return _parse_locations(result)
+
+
+async def lsp_goto_implementation(
+    path: str | Path,
+    *,
+    pos: Pos,
+    lsp: LspServerHandle,
+) -> list[Location]:
+    """跳转到接口的实现位置。
+
+    Args:
+        path: 当前文件路径。
+        pos: (line, character) 光标位置（0-based）。
+        lsp: LSP server handle。
+
+    Returns:
+        Location 列表。
+
+    Raises:
+        LspOprimError: LSP 请求失败。
+    """
+    try:
+        result = await lsp.request(
+            "textDocument/implementation",
+            _text_doc_pos(path, pos[0], pos[1]),
+        )
+    except Exception as e:
+        raise LspOprimError("lsp_goto_implementation failed", cause=e)
+    return _parse_locations(result)
+
+
+async def lsp_document_symbol(
+    path: str | Path,
+    *,
+    lsp: LspServerHandle,
+) -> list[Symbol]:
+    """获取文件内所有符号（类/函数/变量等）。
+
+    Args:
+        path: 文件路径。
+        lsp: LSP server handle。
+
+    Returns:
+        Symbol 列表，按位置排序。
+
+    Raises:
+        LspOprimError: LSP 请求失败。
+    """
+    try:
+        result = await lsp.request(
+            "textDocument/documentSymbol",
+            {"textDocument": _text_doc(path)},
+        )
+    except Exception as e:
+        raise LspOprimError("lsp_document_symbol failed", cause=e)
+    return _parse_symbols(result or [], default_path=str(path))
+
+
+async def lsp_workspace_symbol(
+    *,
+    query: str,
+    lsp: LspServerHandle,
+) -> list[Symbol]:
+    """跨工作区搜索符号。
+
+    Args:
+        query: 符号名称搜索关键字（空字符串返回所有）。
+        lsp: LSP server handle。
+
+    Returns:
+        Symbol 列表。
+
+    Raises:
+        LspOprimError: LSP 请求失败。
+    """
+    try:
+        result = await lsp.request("workspace/symbol", {"query": query})
+    except Exception as e:
+        raise LspOprimError("lsp_workspace_symbol failed", cause=e)
+    return _parse_symbols(result or [], default_path="")
+
+
+async def lsp_prepare_call_hierarchy(
+    path: str | Path,
+    *,
+    pos: Pos,
+    lsp: LspServerHandle,
+) -> CallItem | None:
+    """在光标位置准备调用层级入口项。
+
+    Args:
+        path: 当前文件路径。
+        pos: (line, character) 光标位置（0-based）。
+        lsp: LSP server handle。
+
+    Returns:
+        CallItem（第一项），或 None（不在可调用符号处）。
+
+    Raises:
+        LspOprimError: LSP 请求失败。
+    """
+    try:
+        result = await lsp.request(
+            "textDocument/prepareCallHierarchy",
+            _text_doc_pos(path, pos[0], pos[1]),
+        )
+    except Exception as e:
+        raise LspOprimError("lsp_prepare_call_hierarchy failed", cause=e)
+    if not result:
+        return None
+    items = result if isinstance(result, list) else [result]
+    return _parse_call_item(items[0]) if items else None
+
+
+async def lsp_incoming_calls(
+    item: CallItem,
+    *,
+    lsp: LspServerHandle,
+) -> list[CallItem]:
+    """获取调用 item 的所有上层调用方。
+
+    Args:
+        item: CallItem（由 lsp_prepare_call_hierarchy 获取）。
+        lsp: LSP server handle。
+
+    Returns:
+        调用方 CallItem 列表。
+
+    Raises:
+        LspOprimError: LSP 请求失败。
+    """
+    try:
+        result = await lsp.request(
+            "callHierarchy/incomingCalls",
+            {"item": _call_item_to_lsp(item)},
+        )
+    except Exception as e:
+        raise LspOprimError("lsp_incoming_calls failed", cause=e)
+    if not result:
+        return []
+    return [_parse_call_item(r["from"]) for r in result if isinstance(r, dict) and "from" in r]
+
+
+async def lsp_outgoing_calls(
+    item: CallItem,
+    *,
+    lsp: LspServerHandle,
+) -> list[CallItem]:
+    """获取 item 调用的所有下层被调用方。
+
+    Args:
+        item: CallItem（由 lsp_prepare_call_hierarchy 获取）。
+        lsp: LSP server handle。
+
+    Returns:
+        被调用方 CallItem 列表。
+
+    Raises:
+        LspOprimError: LSP 请求失败。
+    """
+    try:
+        result = await lsp.request(
+            "callHierarchy/outgoingCalls",
+            {"item": _call_item_to_lsp(item)},
+        )
+    except Exception as e:
+        raise LspOprimError("lsp_outgoing_calls failed", cause=e)
+    if not result:
+        return []
+    return [_parse_call_item(r["to"]) for r in result if isinstance(r, dict) and "to" in r]
+
+
+def diagnostics_to_summary(diags: list[Diagnostic]) -> str:
+    """将 Diagnostic 列表格式化为人类可读摘要（纯计算）。
+
+    Args:
+        diags: Diagnostic 列表。
+
+    Returns:
+        多行摘要字符串；空列表返回 "No diagnostics."。
+    """
+    if not diags:
+        return "No diagnostics."
+
+    groups: dict[int, list[Diagnostic]] = {}
+    for d in diags:
+        groups.setdefault(d.severity, []).append(d)
+
+    _labels = {1: "Errors", 2: "Warnings", 3: "Info", 4: "Hints"}
+    lines: list[str] = []
+    for sev in sorted(groups):
+        items = groups[sev]
+        label = _labels.get(sev, f"Severity{sev}")
+        lines.append(f"{label} ({len(items)}):")
+        for d in items:
+            loc = f"{d.path}:{d.line + 1}:{d.character + 1}"
+            lines.append(f"  {loc} [{d.source}] {d.message}")
+    return "\n".join(lines)
+
+
+async def location_to_snippet(
+    loc: Location,
+    *,
+    ctx: int = 3,
+) -> str:
+    """读取 Location 对应源文件并返回带上下文的代码片段。
+
+    Args:
+        loc: Location（含路径和行范围）。
+        ctx: 高亮行上/下各显示的上下文行数，默认 3。
+
+    Returns:
+        代码片段字符串（含行号前缀）。
+
+    Raises:
+        FileNotFoundError: 文件不存在。
+    """
+    loop = asyncio.get_event_loop()
+    path = Path(loc.path)
+
+    def _read() -> str:
+        if not path.exists():
+            raise FileNotFoundError(f"file not found: {path}")
+        return path.read_text(encoding="utf-8", errors="replace")
+
+    content = await loop.run_in_executor(None, _read)
+    all_lines = content.splitlines()
+
+    start = max(0, loc.start_line - ctx)
+    end = min(len(all_lines), loc.end_line + ctx + 1)
+
+    snippet_lines = []
+    for i in range(start, end):
+        prefix = ">>>" if loc.start_line <= i <= loc.end_line else "   "
+        snippet_lines.append(f"{prefix} {i + 1:4d} | {all_lines[i]}")
+    return "\n".join(snippet_lines)
