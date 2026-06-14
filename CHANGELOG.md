@@ -2,6 +2,63 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [3.9.0] — 2026-06-14
+
+### Added (H-B: IO oprim 36 新建)
+
+**A组 — 文件 IO 扩展 (5)**
+- feat: `ensure_parent_dir` — 幂等创建父目录链（atomic_write 辅助）
+- feat: `file_read_bytes` — 字节范围读取（offset/length，图片/二进制 part）
+- feat: `image_to_base64` — 图片 → base64 ASCII 字符串（多模态 part，不校验 mime）
+- feat: `atomic_write` — 原子写（临时文件 + fsync + rename，防写一半崩溃）
+- feat: `backup_before_overwrite` — 覆盖前自动备份（.bak / .bak1 序列，undo 辅助）
+
+**B组 — 进程控制扩展 (5)**
+- feat: `spawn_pty` — PTY 伪终端启动（交互式命令，返回 PtyHandle）
+- feat: `stream_stdout` — 流式读进程输出 async generator（PtyHandle | ProcHandle）
+- feat: `kill_process` — 向进程组发信号（TERM/KILL/INT/HUP，幂等）
+- feat: `wait_with_timeout` — 等待进程结束带超时，超时 raise TimeoutError
+- feat: `run_background` — 后台启动进程，立即返回 JobId（UUID4）
+- types: `ProcHandle`, `PtyHandle`, `JobId`, `ExecResult`
+
+**D组 — LSP IO 扩展 (12)**
+- feat: `lsp_goto_definition(path, *, pos, lsp)` — 跳转定义（pos: Pos = tuple[int,int]）
+- feat: `lsp_find_references(path, *, pos, lsp)` — 查找引用
+- feat: `lsp_goto_implementation(path, *, pos, lsp)` — 跳转实现（接口→实现类）
+- feat: `lsp_document_symbol(path, *, lsp)` — 文档符号大纲（singular）
+- feat: `lsp_workspace_symbol(*, query, lsp)` — workspace 符号搜索（singular）
+- feat: `lsp_prepare_call_hierarchy(path, *, pos, lsp)` — 准备调用层级
+- feat: `lsp_incoming_calls(item, *, lsp)` — 谁调用了它
+- feat: `lsp_outgoing_calls(item, *, lsp)` — 它调用了谁
+- feat: `diagnostics_to_summary(diags)` — 诊断列表 → 文本摘要 [s 纯计算]
+- feat: `location_to_snippet(loc, *, ctx)` — Location → 带上下文代码片段
+- upd: `lsp_hover` — 新增 `pos: Pos | None` 和 `lsp:` 参数（向后兼容 line/character/server）
+- upd: `lsp_diagnostics` — 新增 `lsp:` 参数别名（向后兼容 server:）
+- types: `Pos = tuple[int, int]`, `CallItem`
+
+**E组 — 网络 IO 扩展 (5)**
+- feat: `validate_api_key(key, *, provider)` — 校验 API key（anthropic/openai/openrouter/google/mistral/cohere，401→False，网络失败 raise）
+- feat: `upload_share(payload, *, endpoint)` — 上传 session payload 返回分享 URL
+- feat: `revoke_share(url)` — 撤销分享链接（404/409 幂等）
+- feat: `fetch_models_dev(*, refresh)` — 从 models.dev 拉取 75+ provider 模型清单
+- feat: `load_skill_raw(path)` — 读 SKILL.md 返回原始字符串（解析交 parse_skill_md H-A）
+- types: `ModelSpec`, `ShareUrl`
+
+**G组 — MCP IO 扩展 (2)**
+- feat: `mcp_connect(server_url, *, timeout)` — 连接 MCP server（HTTP/SSE + stdio://），返回 McpSession
+- feat: `load_custom_tool(path)` — 加载 .ts/.js/.json/.yaml tool 定义，返回 Tool
+- types: `McpSession`, `Tool`
+
+**H组 — Git 原子 (7)**
+- feat: `parse_git_status(raw)` — 解析 git status --porcelain 输出 [s 纯计算]
+- feat: `parse_git_diff(raw)` — 解析 git diff unified format → FileChange 列表 [s 纯计算]
+- feat: `parse_gitignore(content)` — 解析 .gitignore → GitIgnorePattern 列表 [s 纯计算]
+- feat: `detect_project_type(root)` — 探测项目类型（读盘标志文件，不依赖 git）
+- feat: `git_current_branch(*, cwd)` — 当前分支名（detached HEAD 返回短 hash）
+- feat: `git_snapshot(*, cwd)` — 创建工作区快照（stash push + unique id）
+- feat: `git_restore_snapshot(snap_id, *, cwd)` — 恢复快照（stash pop，empty: 前缀 no-op）
+- types: `GitStatus`, `StatusEntry`, `FileChange`, `GitIgnorePattern`, `ProjectType`, `SnapshotId`
+
 ## [3.1.1] — 2026-06-13
 
 ### Fixed (B-1 + B-2)
@@ -646,3 +703,29 @@ All future Phase releases must:
   extract_thinking/snapshot_conversation/parse_unified_diff/compute_diff
   detect_language/html_to_markdown/redact_secrets/count_tokens/estimate_cost
   run_hook/load_image/read_skill_frontmatter/git_worktree_* (共 55 个新元素)
+
+## [3.8.0] — 2026-06-14
+### Added
+- hicode 批次 H-A: 纯计算 oprim 100 个新元素
+  (file_read_range/detect_encoding/detect_mime/is_binary/truncate_for_context/
+   add_line_numbers/normalize_line_endings/preserve_indentation/
+   apply_string_replace/verify_unique_match/apply_patch/apply_hunk/
+   plan_multiedit/detect_edit_conflict/parse_ripgrep_output/sort_by_mtime/
+   format_tree/apply_gitignore/build_ripgrep_args/truncate_output/strip_ansi/
+   parse_exit_signal/sanitize_env/detect_shell/extract_main_content/
+   validate_url/resolve_redirect/todo_*/session_*/to_*_format/from_*_format/
+   normalize_tool_schema/normalize_stop_reason/patch_provider_quirk/
+   map_model_alias/inject_cache_control/split_system_message/make_*_part/
+   render_part/parts_to_message/message_to_parts/merge_streaming_parts/
+   build_system_prompt/inject_agents_md/parse_tool_calls/parse_stop_reason/
+   format_tool_results/build_tool_schema/select_compaction_window/
+   merge_summary/should_compact/extract_pinned_messages/build_compaction_prompt/
+   resolve_config_paths/parse_json_config/parse_markdown_agent/
+   interpolate_env_vars/resolve_config_path_refs/parse_skill_md/
+   resolve_external_dir/check_path_allowed/match_wildcard_pattern/
+   classify_risk/match_bash_command_rule/resolve_agent_permissions/
+   serialize_share_payload/redact_share_secrets/redact_secret/make_event/
+   serialize_event/deserialize_event/event_should_sync/select_model/
+   filter_curated_models/resolve_model_capabilities/resolve_subagent_tools/
+   summarize_subagent_result/mcp_tool_to_schema/build_question_payload/
+   parse_question_answer/estimate_tokens/count_message_tokens)
