@@ -167,3 +167,8 @@ class SocraticTurnResult(BaseModel):
 
     text: str
     step_check_triggered: bool = False
+
+# ---------------------------------------------------------------------------
+# KCState — defined in _cognitive.py, re-exported here for compatibility
+# ---------------------------------------------------------------------------
+from oprim._cognitive import KCState

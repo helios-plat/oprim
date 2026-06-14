@@ -729,3 +729,8 @@ All future Phase releases must:
    filter_curated_models/resolve_model_capabilities/resolve_subagent_tools/
    summarize_subagent_result/mcp_tool_to_schema/build_question_payload/
    parse_question_answer/estimate_tokens/count_message_tokens)
+
+## [3.10.2] — 2026-06-13
+### Fixed
+- types.py: re-export KCState from _cognitive (修复 bkt.py 等 from oprim.types import KCState 的 ImportError)
+- v3.10.1 fix 不完整，本次彻底修复
