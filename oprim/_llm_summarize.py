@@ -56,7 +56,7 @@ def llm_summarize(
     prompt = f"{style_instructions[style]}\n\nText:\n{text}"
 
     try:
-        caller = ProviderRegistry.get_caller(provider=provider, model=model)
+        caller = ProviderRegistry.get().llm(provider)
         response = caller(messages=[{"role": "user", "content": prompt}])
 
         # Handle different response formats

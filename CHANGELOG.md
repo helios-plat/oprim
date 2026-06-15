@@ -741,3 +741,8 @@ All future Phase releases must:
 - __init__.py: re-export llm_summarize (修复 from oprim import llm_summarize)
 ### Note
 - 含 v3.10.1/v3.10.2 的 KCState 修复（已在远端，本地 merge 进来）
+
+## [3.10.4] — 2026-06-14
+### Fixed
+- _llm_summarize: ProviderRegistry.get_caller() → ProviderRegistry.get().llm(provider)
+  (get_caller 方法不存在，修正为真实 API)
