@@ -751,3 +751,9 @@ All future Phase releases must:
 ### Fixed
 - image_generate: ProviderRegistry.get(category=,name=) → get().image_gen(name)
 - image_generate: catch RuntimeError (from image_gen()) alongside ProviderNotFoundError
+
+## [3.10.6] — 2026-06-15
+### Fixed
+- llm/llm_call._call_dashscope: stub → 真实 DashScope HTTP 实现
+  (httpx POST + DASHSCOPE_API_KEY + 429 rate limit 处理)
+- _call_claude: 明确报错指向 oprim.llm_complete (不再静默返回 dummy)
