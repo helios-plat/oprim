@@ -734,3 +734,10 @@ All future Phase releases must:
 ### Fixed
 - types.py: re-export KCState from _cognitive (修复 bkt.py 等 from oprim.types import KCState 的 ImportError)
 - v3.10.1 fix 不完整，本次彻底修复
+
+## [3.10.3] — 2026-06-14
+### Fixed
+- finance.py: add public re-export facade (oprim.finance, 修复 omodul/strategies import)
+- __init__.py: re-export llm_summarize (修复 from oprim import llm_summarize)
+### Note
+- 含 v3.10.1/v3.10.2 的 KCState 修复（已在远端，本地 merge 进来）

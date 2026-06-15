@@ -42,6 +42,8 @@ def _build_element_map() -> None:
 _build_element_map()
 
 from oprim._cognitive import KCState  # re-export for oskill compatibility
+from oprim._llm_summarize import llm_summarize as llm_summarize
+
 def __getattr__(name: str) -> Any:
     if name == "__version__": return __version__
     if name in _ELEMENT_MAP:
