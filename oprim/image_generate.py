@@ -68,8 +68,8 @@ async def image_generate(
         raise ImageGenError("prompt must not be empty")
 
     try:
-        gen_fn = ProviderRegistry.get(category="image_gen", name=provider)
-    except ProviderNotFoundError as exc:
+        gen_fn = ProviderRegistry.get().image_gen(provider)
+    except (ProviderNotFoundError, RuntimeError) as exc:
         raise ImageGenError(f"Image gen provider not found: {provider!r}") from exc
 
     try:

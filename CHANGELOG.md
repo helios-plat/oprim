@@ -746,3 +746,8 @@ All future Phase releases must:
 ### Fixed
 - _llm_summarize: ProviderRegistry.get_caller() → ProviderRegistry.get().llm(provider)
   (get_caller 方法不存在，修正为真实 API)
+
+## [3.10.5] — 2026-06-15
+### Fixed
+- image_generate: ProviderRegistry.get(category=,name=) → get().image_gen(name)
+- image_generate: catch RuntimeError (from image_gen()) alongside ProviderNotFoundError
