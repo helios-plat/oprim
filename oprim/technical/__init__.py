@@ -10,6 +10,7 @@ from oprim.technical.oscillators import (
     stochastic_oscillator,
     williams_r,
 )
+from oprim.technical.trend import adx_series, atr_series, supertrend
 from oprim.technical.volume import mfi, obv
 
 __all__ = [
@@ -28,4 +29,7 @@ __all__ = [
     "kama",
     "obv",
     "mfi",
+    "atr_series",
+    "adx_series",
+    "supertrend",
 ]
