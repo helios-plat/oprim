@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "oprim"
-version = "3.10.7"
+version = "3.10.8"
 description = "Atomic operations library — Layer 1 meta-primitives for financial analysis"
 readme = "README.md"
 license = "MIT"

@@ -89,3 +89,11 @@ from oprim.recognition_update import recognition_update, recognition_update_sequ
 from oprim.compute_effortful_gain import compute_effortful_gain, compute_effortful_gain_from_arrays
 from oprim.compute_feedback import compute_feedback, grade_answer
 from oprim.file_type_detector import file_type_detector as file_type_detector
+
+# File parsers + structure extractor (restored exports)
+from oprim._file_parser_pdf import file_parser_pdf as file_parser_pdf
+from oprim._file_parser_epub import file_parser_epub as file_parser_epub
+from oprim._file_parser_html import file_parser_html as file_parser_html
+from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
+from oprim._file_parser_plaintext import file_parser_plaintext as file_parser_plaintext
+from oprim._document_structure_extractor import document_structure_extractor as document_structure_extractor

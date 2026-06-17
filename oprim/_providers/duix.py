@@ -68,7 +68,7 @@ async def submit_and_poll(
                 f"Duix submit error {submit_resp.status_code}: {submit_resp.text[:200]}"
             )
         submit_data = submit_resp.json()
-        if submit_data.get("code") not in (0, 200, "0", "200", None):
+        if submit_data.get("code") != 10000:
             raise DuixSubmitError(
                 f"Duix submit rejected: {submit_data}"
             )
@@ -90,15 +90,29 @@ async def submit_and_poll(
             qdata = query_resp.json()
             status = qdata.get("status", "")
 
-            if status in ("completed", "success", "done", "2"):
-                video_url: str | None = qdata.get("video_url") or qdata.get("url")
-                if not video_url:
-                    raise DuixError(f"No video_url in Duix result: {qdata}")
-                dl = await client.get(video_url)
-                if dl.status_code != 200:
-                    raise DuixError(f"Duix video download failed {dl.status_code}")
+            if status in ("completed", "success", "done", 2, "2"):
+                # Duix returns container-local path in data["result"]
+                result_path_str: str | None = (
+                    qdata.get("result")
+                    or qdata.get("video_url")
+                    or qdata.get("url")
+                )
+                if not result_path_str:
+                    raise DuixError(f"No result path in Duix response: {qdata}")
+                result_path = Path(result_path_str)
                 output_path.parent.mkdir(parents=True, exist_ok=True)
-                output_path.write_bytes(dl.content)
+                if result_path.exists():
+                    import shutil
+                    shutil.copy2(result_path, output_path)
+                else:
+                    # Fallback: try HTTP download if looks like URL
+                    if result_path_str.startswith("http"):
+                        dl = await client.get(result_path_str)
+                        if dl.status_code != 200:
+                            raise DuixError(f"Duix video download failed {dl.status_code}")
+                        output_path.write_bytes(dl.content)
+                    else:
+                        raise DuixError(f"Duix result path not found: {result_path_str}")
                 return output_path
 
             if status in ("failed", "error", "-1"):
