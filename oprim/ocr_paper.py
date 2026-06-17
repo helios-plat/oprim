@@ -48,6 +48,8 @@ class OCRPaperResult:
         Detected LaTeX math expressions.
     structured_questions : list[dict]
         Detected Q&A structure (question number + body).
+    confidence : float
+        Overall confidence score (0.0 to 1.0).
     success : bool
     error : str
     """
@@ -55,6 +57,7 @@ class OCRPaperResult:
     raw_text: str = ""
     math_expressions: list[str] = field(default_factory=list)
     structured_questions: list[dict] = field(default_factory=list)
+    confidence: float = 1.0
     success: bool = True
     error: str = ""
 
@@ -64,7 +67,7 @@ _OCR_SYSTEM = (
     "from the provided image. Render math as LaTeX enclosed in $..$ (inline) or "
     "$$...$$ (display). Preserve question numbers and structure. Return JSON with "
     'keys: "raw_text" (str), "math_expressions" (list of LaTeX strings), '
-    '"structured_questions" (list of {number, body} dicts).'
+    '"structured_questions" (list of {number, body} dicts), "confidence" (float 0.0-1.0).'
 )
 
 
@@ -153,6 +156,7 @@ async def ocr_paper(
             raw_text=data.get("raw_text", ""),
             math_expressions=data.get("math_expressions", []),
             structured_questions=data.get("structured_questions", []),
+            confidence=float(data.get("confidence", 1.0)),
             success=True,
         )
 

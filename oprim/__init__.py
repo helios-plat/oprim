@@ -89,6 +89,9 @@ from oprim.recognition_update import recognition_update, recognition_update_sequ
 from oprim.compute_effortful_gain import compute_effortful_gain, compute_effortful_gain_from_arrays
 from oprim.compute_feedback import compute_feedback, grade_answer
 from oprim.file_type_detector import file_type_detector as file_type_detector
+from oprim.due_compute import due_compute
+from oprim.speech_to_math import speech_to_math
+from oprim.error_classify import error_classify
 
 # File parsers + structure extractor (restored exports)
 from oprim._file_parser_pdf import file_parser_pdf as file_parser_pdf

@@ -114,13 +114,13 @@ def _load_model(model_dir: Path) -> Any:
         ) from exc
 
     try:
-        from transformers import (  # type: ignore[import-untyped]
-            AutoModelForTextToWaveform,
-            AutoProcessor,
+        from vibevoice import (  # type: ignore[import-untyped]
+            VibeVoiceForConditionalGenerationInference,
+            VibeVoiceProcessor,
         )
     except ImportError as exc:
         raise VibeVoiceSetupError(
-            "transformers not installed; required for VibeVoice inference"
+            "vibevoice package not installed; pip install vibevoice"
         ) from exc
 
     if not model_dir.exists():
@@ -129,11 +129,12 @@ def _load_model(model_dir: Path) -> Any:
         )
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    processor = AutoProcessor.from_pretrained(str(model_dir))
-    model = AutoModelForTextToWaveform.from_pretrained(
+    processor = VibeVoiceProcessor.from_pretrained(str(model_dir))
+    model = VibeVoiceForConditionalGenerationInference.from_pretrained(
         str(model_dir),
         torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-    ).to(device)
+        device_map=device,
+    )
     return (processor, model, device)
 
 

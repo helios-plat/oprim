@@ -757,3 +757,9 @@ All future Phase releases must:
 - llm/llm_call._call_dashscope: stub → 真实 DashScope HTTP 实现
   (httpx POST + DASHSCOPE_API_KEY + 429 rate limit 处理)
 - _call_claude: 明确报错指向 oprim.llm_complete (不再静默返回 dummy)
+
+## [3.10.10] — 2026-06-17
+### Fixed
+- _vibevoice_synthesize: AutoModelForTextToWaveform/AutoProcessor →
+  VibeVoiceForConditionalGenerationInference/VibeVoiceProcessor
+  (正确的 vibevoice 包 API，修复 hevi M3 真跑失败)
