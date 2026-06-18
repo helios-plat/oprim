@@ -768,3 +768,12 @@ All future Phase releases must:
 ### Fixed
 - _cognitive.py KCState: 补 p_recognition/p_recognition_init 字段（M-G 识别维度）
 - types.py GradeResult: 补 reason 字段（M-F compute_feedback 依赖）
+
+## [3.10.14] — 2026-06-18
+### Fixed
+- _file_parser_epub: 章节标题改用 TOC 语义标题（spine 文件名→toc title）
+- parser/parse_epub: 同上修复 + metadata 补 author/language
+### Added
+- epub_toc_split: EPUB 按顶层 TOC 拆分（套装→多本，单本→长度1）
+- markdown_frontmatter_build: 元数据 dict → YAML frontmatter 字符串
+- text_clean_publish_noise: 去版权页/水印/页眉页脚/空白页

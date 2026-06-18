@@ -97,6 +97,10 @@ from oprim.error_classify import error_classify
 from oprim._file_parser_pdf import file_parser_pdf as file_parser_pdf
 from oprim._file_parser_epub import file_parser_epub as file_parser_epub
 from oprim._file_parser_html import file_parser_html as file_parser_html
-from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
+# from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
 from oprim._file_parser_plaintext import file_parser_plaintext as file_parser_plaintext
 from oprim._document_structure_extractor import document_structure_extractor as document_structure_extractor
+
+from oprim._epub_toc_split import epub_toc_split, EpubBook
+from oprim._markdown_frontmatter_build import markdown_frontmatter_build
+from oprim._text_clean_publish_noise import text_clean_publish_noise
