@@ -49,7 +49,26 @@ def file_parser_pdf(
 
     pages = []
     for page_num, page in enumerate(doc, 1):
+        # Primary: get_text() with Unicode map
         text = page.get_text()
+
+        # CID 乱码检测: \ufffd 比例 > 30% → fallback to "blocks" mode
+        if text:
+            garbled_ratio = text.count("\ufffd") / max(len(text), 1)
+            if garbled_ratio > 0.30:
+                # Fallback: extract via text blocks with rawdict (better CID handling)
+                text_blocks = page.get_text("blocks")
+                fallback_text = "\n".join(
+                    b[4] for b in text_blocks
+                    if isinstance(b[4], str) and b[4].strip()
+                )
+                # Use fallback only if it's better (fewer \ufffd)
+                if fallback_text and (
+                    fallback_text.count("\ufffd") / max(len(fallback_text), 1)
+                    < garbled_ratio
+                ):
+                    text = fallback_text
+
         pages.append(Page(page_number=page_num, text=text))
 
     metadata = doc.metadata or {}

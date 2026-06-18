@@ -786,3 +786,8 @@ All future Phase releases must:
   response["data"]["status"] 层级修正 / 失败状态码 3
 - _avatar_generate: 传入 DUIX_HOST_DATA_DIR / DUIX_CONTAINER_DATA_DIR
 - pyproject.toml: 补 vibevoice>=0.0.1 依赖声明
+
+## [3.10.16] — 2026-06-18
+### Fixed
+- _file_parser_pdf: CID/Type1 字体乱码检测 + fallback to blocks mode
+  (\ufffd 比例 > 30% 时自动切换，回归保持向后兼容)
