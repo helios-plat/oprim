@@ -70,6 +70,7 @@ async def avatar_generate(
 
     # Built-in duix dispatch — local Docker REST, no ProviderRegistry needed
     if provider == "duix":
+        from oprim._config import cfg
         from oprim._providers.duix import DuixError
         from oprim._providers.duix import submit_and_poll as _duix_submit
 
@@ -79,6 +80,8 @@ async def avatar_generate(
                 audio_path=audio_path,
                 output_path=output_path,
                 timeout_s=timeout_s,
+                host_data_dir=cfg.get("DUIX_HOST_DATA_DIR"),
+                container_data_dir=cfg.get("DUIX_CONTAINER_DATA_DIR", "/code/data"),
             )
         except DuixError as exc:
             raise AvatarGenError(f"Duix generation failed: {exc}") from exc
