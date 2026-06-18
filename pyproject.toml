@@ -25,6 +25,7 @@ dependencies = [
     "duckdb>=0.10",
     "dashscope>=1.14",
     "ebooklib>=0.18",
+    "vibevoice>=0.0.1",
     "beautifulsoup4>=4.12",
     "chardet>=5.0",
     "python-ulid>=3.0",

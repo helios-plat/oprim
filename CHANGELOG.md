@@ -777,3 +777,12 @@ All future Phase releases must:
 - epub_toc_split: EPUB 按顶层 TOC 拆分（套装→多本，单本→长度1）
 - markdown_frontmatter_build: 元数据 dict → YAML frontmatter 字符串
 - text_clean_publish_noise: 去版权页/水印/页眉页脚/空白页
+
+## [3.10.15] — 2026-06-18
+### Fixed
+- _vibevoice_synthesize: Speaker N 格式化 / speech_outputs 提取 /
+  正确采样率 / 波形 clip（CC fix/m3-m4 真跑验证）
+- _providers/duix: _map_path host↔container 路径映射 /
+  response["data"]["status"] 层级修正 / 失败状态码 3
+- _avatar_generate: 传入 DUIX_HOST_DATA_DIR / DUIX_CONTAINER_DATA_DIR
+- pyproject.toml: 补 vibevoice>=0.0.1 依赖声明
