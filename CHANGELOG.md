@@ -763,3 +763,8 @@ All future Phase releases must:
 - _vibevoice_synthesize: AutoModelForTextToWaveform/AutoProcessor →
   VibeVoiceForConditionalGenerationInference/VibeVoiceProcessor
   (正确的 vibevoice 包 API，修复 hevi M3 真跑失败)
+
+## [3.10.12] — 2026-06-18
+### Fixed
+- _cognitive.py KCState: 补 p_recognition/p_recognition_init 字段（M-G 识别维度）
+- types.py GradeResult: 补 reason 字段（M-F compute_feedback 依赖）

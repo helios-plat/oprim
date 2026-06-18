@@ -138,6 +138,7 @@ class GradeResult:
     is_correct: bool
     method: str  # "kernel" | "llm"
     score: float = 0.0  # 0..1
+    reason: str | None = None  # 批改原因说明（M-F compute_feedback）
     feedback: str = ""
     error: str = ""
 
