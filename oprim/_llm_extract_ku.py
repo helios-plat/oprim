@@ -26,6 +26,16 @@ Text:
 
 Respond with valid JSON only."""
 
+_RETRY_SUFFIX = "\n\nIMPORTANT: Respond with ONLY the JSON object. No explanation, no markdown, no code fences."
+
+
+def _parse_json_response(resp: str) -> dict:
+    """Strip markdown fences and parse JSON. Raises json.JSONDecodeError on failure."""
+    t = resp.strip()
+    t = re.sub(r'^```(?:json)?\s*\n?', '', t)
+    t = re.sub(r'\n?```\s*$', '', t).strip()
+    return json.loads(t)
+
 
 def llm_extract_ku(
     *,
@@ -36,51 +46,62 @@ def llm_extract_ku(
 ) -> dict:
     """Extract a KU candidate from text via single LLM call.
 
-    Calls obase.ProviderRegistry.get("llm", provider). On ProviderNotFoundError
-    logs a warning and falls back to a deterministic stub. Any other exception
-    (code error) is re-raised — not silently swallowed.
+    On JSON parse failure: retries once with explicit JSON-only instruction.
+    On second failure: returns KU with empty knowledge_type so ku_gate_validate rejects it
+    (residue not stored, consistent with §: 残品不入库).
+
+    On ProviderNotFoundError/RuntimeError (LLM unavailable): falls back to deterministic stub.
 
     Returns KU dict with epistemic_status.verified=False (A19: default unverified).
-
-    Args:
-        text: Source text chunk to extract from.
-        project_id: Project this KU belongs to.
-        knowledge_type_hint: Fallback knowledge_type for stub path.
-        provider: LLM provider name in ProviderRegistry.
     """
-    _stub = False
+    _raw = None
+    _provider_unavailable = False
 
     try:
         from obase import ProviderRegistry
         from obase.exceptions import ProviderNotFoundError
 
         llm = ProviderRegistry.get().llm(provider)
-        prompt = _EXTRACT_PROMPT.format(text=text[:3000])
+        # Prefer sync wrapper (async LLMs attach call_sync)
         caller = getattr(llm, 'call_sync', None) or llm
+        prompt = _EXTRACT_PROMPT.format(text=text[:3000])
+
         response = caller(prompt)
-        text_resp = response.strip()
-        text_resp = re.sub(r'^```(?:json)?\s*\n?', '', text_resp)
-        text_resp = re.sub(r'\n?```\s*$', '', text_resp).strip()
-        raw = json.loads(text_resp)
-        knowledge_type = raw.get("knowledge_type", "proposition")
-        natural_text = raw.get("natural_text", text[:200])
-        symbolic_form = raw.get("symbolic_form")
-        tags = raw.get("tags", [])
+        try:
+            _raw = _parse_json_response(response)
+        except json.JSONDecodeError:
+            # Retry once with explicit JSON-only instruction
+            response2 = caller(prompt + _RETRY_SUFFIX)
+            try:
+                _raw = _parse_json_response(response2)
+            except json.JSONDecodeError as e:
+                _log.warning("llm_extract_ku: non-JSON after retry (%s), chunk discarded", e)
+                # _raw stays None → knowledge_type will be "" → gate rejects
+
     except (ProviderNotFoundError, RuntimeError):
         _log.warning(
             "llm_extract_ku: LLM provider %r not registered — falling back to stub", provider
         )
-        _stub = True
-    except json.JSONDecodeError as e:
-        _log.warning("llm_extract_ku: LLM returned non-JSON (%s), using stub", e)
-        _stub = True
+        _provider_unavailable = True
     except ImportError:
-        _stub = True  # obase not installed
+        _provider_unavailable = True
 
-    if _stub:
-        # Deterministic stub: first sentence as a proposition
+    # Build result fields
+    if _raw is not None:
+        knowledge_type = _raw.get("knowledge_type", "proposition")
+        natural_text = _raw.get("natural_text", text[:200])
+        symbolic_form = _raw.get("symbolic_form")
+        tags = _raw.get("tags", [])
+    elif _provider_unavailable:
+        # LLM unavailable: deterministic stub (first sentence)
         natural_text = text.split(".")[0].strip()[:200] or text[:200]
         knowledge_type = knowledge_type_hint or "proposition"
+        symbolic_form = None
+        tags = []
+    else:
+        # JSON failed after retry: produce invalid KU → gate rejects → not stored
+        natural_text = ""
+        knowledge_type = ""
         symbolic_form = None
         tags = []
 
@@ -89,7 +110,7 @@ def llm_extract_ku(
         "knowledge_type": knowledge_type,
         "natural_text": natural_text,
         "symbolic_form": symbolic_form,
-        "vector": None,  # filled later by vector_encode
+        "vector": None,
         "vector_frozen": False,
         "epistemic_status": {
             "grade": "unverified",
