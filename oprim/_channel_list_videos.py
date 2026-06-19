@@ -13,6 +13,7 @@ async def channel_list_videos(
     channel_url: str,
     proxy: str | None = None,
     limit: int | None = None,
+    cookies_path: str | Path | None = None,
 ) -> list[VideoMeta]:
     """List videos from a YouTube channel or playlist using yt-dlp.
 
@@ -20,6 +21,7 @@ async def channel_list_videos(
         channel_url: Channel or playlist URL.
         proxy: Optional HTTP/SOCKS proxy URL passed to yt-dlp --proxy.
         limit: Maximum number of videos to return; uses --playlist-end.
+        cookies_path: Optional path to a cookies file in Netscape format.
 
     Returns:
         List of VideoMeta. Empty list if channel has no public videos.
@@ -35,8 +37,12 @@ async def channel_list_videos(
         raise RuntimeError("yt-dlp is not installed or not found in PATH")
 
     from pathlib import Path
-    cookie_file = Path("~/.stratum/youtube_cookies.txt").expanduser()
-    cookie_args = ["--cookies", str(cookie_file)] if cookie_file.exists() else []
+    cookie_args = []
+    if cookies_path:
+        cookie_file = Path(cookies_path).expanduser()
+        if cookie_file.exists():
+            cookie_args = ["--cookies", str(cookie_file)]
+
     cmd = ["yt-dlp", "--flat-playlist", "--dump-json", "--no-warnings"] + cookie_args
     if proxy:
         cmd += ["--proxy", proxy]

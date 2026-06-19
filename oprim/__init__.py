@@ -104,3 +104,5 @@ from oprim._document_structure_extractor import document_structure_extractor as 
 from oprim._epub_toc_split import epub_toc_split, EpubBook
 from oprim._markdown_frontmatter_build import markdown_frontmatter_build
 from oprim._text_clean_publish_noise import text_clean_publish_noise
+from oprim._arxiv_search import arxiv_search, ArxivPaper
+from oprim._http_download_file import http_download_file

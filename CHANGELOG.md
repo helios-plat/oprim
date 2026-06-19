@@ -797,3 +797,8 @@ All future Phase releases must:
 - parser/parse_pdf: embed_images 参数化（默认 False 保持兼容）
   True 时图片转 base64 嵌入 md（体积增大 ~23x，适合数学图表场景）
   Stratum 按需传 embed_images=True
+
+## [3.10.20] — 2026-06-19
+### Added
+- arxiv_search: arXiv API 论文检索（分类/关键词/作者/日期过滤，rate limit 遵守）
+- http_download_file: URL→本地文件（流式，支持大文件，可选代理）
