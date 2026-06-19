@@ -39,7 +39,12 @@ def vector_encode(
         from obase import ProviderRegistry
         from obase.exceptions import ProviderNotFoundError
 
-        embed_fn = ProviderRegistry.get("embedding", provider)
+        reg = ProviderRegistry.get()
+        embed_fn = reg._generic.get("embedding", {}).get(provider)
+        if embed_fn is None and provider != "default":
+            embed_fn = reg._generic.get("embedding", {}).get("default")
+        if embed_fn is None:
+            raise ProviderNotFoundError(f"embedding provider '{provider}' not registered")
         vecs = np.array(embed_fn(texts), dtype=np.float32)
         if normalize:
             norms = np.linalg.norm(vecs, axis=1, keepdims=True)
