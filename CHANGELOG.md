@@ -802,3 +802,8 @@ All future Phase releases must:
 ### Added
 - arxiv_search: arXiv API 论文检索（分类/关键词/作者/日期过滤，rate limit 遵守）
 - http_download_file: URL→本地文件（流式，支持大文件，可选代理）
+
+## [3.10.20] patch — 2026-06-19
+### Fixed
+- _arxiv_search.py / _http_download_file.py: 补 commit 漏提交的实现文件
+  (v3.10.20 __init__ 已声明但文件未 commit，干净 clone 会崩)
