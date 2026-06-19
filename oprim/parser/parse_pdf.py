@@ -70,7 +70,7 @@ def parse_pdf(
         provider = _dispatch(path, hint)
 
     if provider == "pymupdf4llm":
-        return _parse_pymupdf4llm(path)
+        return _parse_pymupdf4llm(path, embed_images=embed_images)
     elif provider == "marker":
         return _parse_marker(path)
     elif provider == "mineru":
@@ -79,7 +79,7 @@ def parse_pdf(
         raise PDFParseError(f"Unknown PDF provider: {provider}")
 
 
-def _parse_pymupdf4llm(path: Path) -> ParsedContent:
+def _parse_pymupdf4llm(path: Path, *, embed_images: bool = False) -> ParsedContent:
     try:
         doc = fitz.open(str(path))
         if doc.is_encrypted:
