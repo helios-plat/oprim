@@ -100,7 +100,9 @@ def _require_ffmpeg() -> None:
 
 
 async def _get_video_info(url: str, proxy_args: list[str]) -> dict:
-    cmd = ["yt-dlp", "--dump-json", "--no-playlist"] + proxy_args + [url]
+    cookie_file = Path("~/.stratum/youtube_cookies.txt").expanduser()
+    cookie_args = ["--cookies", str(cookie_file)] if cookie_file.exists() else []
+    cmd = ["yt-dlp", "--dump-json", "--no-playlist"] + cookie_args + proxy_args + [url]
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=asyncio.subprocess.PIPE,
@@ -118,7 +120,9 @@ async def _get_video_info(url: str, proxy_args: list[str]) -> dict:
 async def _try_download_subtitle(url: str, proxy_args: list[str], work_dir: Path) -> str | None:
     """Check for and download subtitles. Returns cleaned text or None."""
     # Step 1: list available subtitles
-    cmd = ["yt-dlp", "--list-subs", "--no-playlist", "--no-warnings"] + proxy_args + [url]
+    cookie_file = Path("~/.stratum/youtube_cookies.txt").expanduser()
+    cookie_args = ["--cookies", str(cookie_file)] if cookie_file.exists() else []
+    cmd = ["yt-dlp", "--list-subs", "--no-playlist", "--no-warnings"] + cookie_args + proxy_args + [url]
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=asyncio.subprocess.PIPE,
@@ -138,6 +142,8 @@ async def _try_download_subtitle(url: str, proxy_args: list[str], work_dir: Path
         return None
 
     # Step 2: download subtitle
+    cookie_file = Path("~/.stratum/youtube_cookies.txt").expanduser()
+    cookie_args = ["--cookies", str(cookie_file)] if cookie_file.exists() else []
     sub_cmd = [
         "yt-dlp",
         "--write-subs", "--write-auto-subs",
@@ -145,7 +151,7 @@ async def _try_download_subtitle(url: str, proxy_args: list[str], work_dir: Path
         "--convert-subs", "srt",
         "--skip-download", "--no-playlist", "--no-warnings",
         "-o", str(work_dir / "%(id)s.%(ext)s"),
-    ] + proxy_args + [url]
+    ] + cookie_args + proxy_args + [url]
 
     proc = await asyncio.create_subprocess_exec(
         *sub_cmd,
@@ -167,12 +173,14 @@ async def _download_audio(
 ) -> Path:
     """Download best audio and convert to mp3 via yt-dlp -x."""
     out_template = str(work_dir / f"{video_id}.%(ext)s")
+    cookie_file = Path("~/.stratum/youtube_cookies.txt").expanduser()
+    cookie_args = ["--cookies", str(cookie_file)] if cookie_file.exists() else []
     cmd = [
         "yt-dlp", "-f", "bestaudio",
         "-x", "--audio-format", "mp3",
         "--no-playlist", "--no-warnings",
         "-o", out_template,
-    ] + proxy_args + [url]
+    ] + cookie_args + proxy_args + [url]
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,

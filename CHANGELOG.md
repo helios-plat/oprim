@@ -791,3 +791,9 @@ All future Phase releases must:
 ### Fixed
 - _file_parser_pdf: CID/Type1 字体乱码检测 + fallback to blocks mode
   (\ufffd 比例 > 30% 时自动切换，回归保持向后兼容)
+
+## [3.10.19] — 2026-06-19
+### Changed
+- parser/parse_pdf: embed_images 参数化（默认 False 保持兼容）
+  True 时图片转 base64 嵌入 md（体积增大 ~23x，适合数学图表场景）
+  Stratum 按需传 embed_images=True

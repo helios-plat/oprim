@@ -47,6 +47,7 @@ def parse_pdf(
     path: Path,
     provider: str = "auto",
     hint: dict | None = None,
+    embed_images: bool = False,
 ) -> ParsedContent:
     """Parse a PDF file and return structured content.
 
@@ -54,6 +55,8 @@ def parse_pdf(
         path: Path to the PDF file.
         provider: One of "auto", "pymupdf4llm", "marker", "mineru".
         hint: Optional dict with hints (e.g. {"language": "zh"}).
+        embed_images: 是否将图片转为 base64 嵌入 markdown（默认 False）。
+            True 时 md 体积可能增大 20x+，适合需要图片内容的场景（如数学图表）。
 
     Raises:
         FileNotFoundError: file does not exist.
@@ -103,7 +106,7 @@ def _parse_pymupdf4llm(path: Path) -> ParsedContent:
         metadata = dict(doc.metadata) if doc.metadata else {}
         doc.close()
 
-        md = pymupdf4llm.to_markdown(str(path))
+        md = pymupdf4llm.to_markdown(str(path), embed_images=embed_images)
         plaintext = _md_to_plain(md)
 
         expected = page_count * 300

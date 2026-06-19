@@ -34,7 +34,10 @@ async def channel_list_videos(
     if shutil.which("yt-dlp") is None:
         raise RuntimeError("yt-dlp is not installed or not found in PATH")
 
-    cmd = ["yt-dlp", "--flat-playlist", "--dump-json", "--no-warnings"]
+    from pathlib import Path
+    cookie_file = Path("~/.stratum/youtube_cookies.txt").expanduser()
+    cookie_args = ["--cookies", str(cookie_file)] if cookie_file.exists() else []
+    cmd = ["yt-dlp", "--flat-playlist", "--dump-json", "--no-warnings"] + cookie_args
     if proxy:
         cmd += ["--proxy", proxy]
     if limit is not None:
