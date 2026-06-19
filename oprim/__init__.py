@@ -106,3 +106,6 @@ from oprim._markdown_frontmatter_build import markdown_frontmatter_build
 from oprim._text_clean_publish_noise import text_clean_publish_noise
 from oprim._arxiv_search import arxiv_search, ArxivPaper
 from oprim._http_download_file import http_download_file
+from oprim._media_types import SourceResult
+from oprim._gutenberg_search import gutenberg_search
+from oprim._oapen_search import oapen_search

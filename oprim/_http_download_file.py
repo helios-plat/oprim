@@ -15,6 +15,7 @@ def http_download_file(
     retries: int = 2,
     retry_sleep: float = 3.0,
     rate_limit_sleep: float = 0.0,
+    force_ipv4: bool = False,
 ) -> bool:
     """Download *url* to *dest_path*.
 

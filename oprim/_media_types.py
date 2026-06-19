@@ -50,3 +50,13 @@ class MediaFindings:
     has_subtitle: bool
     transcribed: bool
     md_path: str | None
+
+
+@dataclass
+class SourceResult:
+    """统一源订阅结果接口。各 xxx_search 元素返回此类型。"""
+    external_id: str       # arxiv_id / gutenberg_id / oapen_handle
+    title: str
+    download_url: str      # PDF/epub/txt 直链
+    file_type: str         # "pdf" | "epub" | "txt"
+    metadata: dict         # authors/published/subjects/doi 等各源自填

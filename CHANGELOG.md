@@ -807,3 +807,12 @@ All future Phase releases must:
 ### Fixed
 - _arxiv_search.py / _http_download_file.py: 补 commit 漏提交的实现文件
   (v3.10.20 __init__ 已声明但文件未 commit，干净 clone 会崩)
+
+## [3.10.21] — 2026-06-19
+### Added
+- SourceResult: 统一源订阅结果接口（external_id/title/download_url/file_type/metadata）
+- gutenberg_search: Gutendex API 公版书检索（epub/txt，User-Agent 必须）
+- oapen_search: OAPEN + Unpaywall + 白名单过滤（IPv4 强制，Springer OA 子集）
+### Changed
+- http_download_file: 加 force_ipv4 参数（OAPEN 等 IPv6 超时场景）
+- _media_types: 加 SourceResult dataclass
