@@ -109,3 +109,28 @@ from oprim._http_download_file import http_download_file
 from oprim._media_types import SourceResult
 from oprim._gutenberg_search import gutenberg_search
 from oprim._oapen_search import oapen_search
+# ── AII Graph Capability (P-G1 … P-G7) ──────────────────────────────────────
+# Types (shared across AII graph elements)
+from oprim._aii_graph_types import (
+    ConflictSignal,
+    ConflictPair,
+    SourceTraceResult,
+    GraphRetrievalResult,
+    CascadeDeleteResult,
+    TwoStepIngestResult,
+    ConflictDetectionInput,
+)
+# P-G1: conflict candidate detection (pure computation, no LLM)
+from oprim._ku_conflict_detect import ku_conflict_detect
+# P-G2: purpose alignment scoring (cosine + keyword, no LLM)
+from oprim._purpose_alignment_score import purpose_alignment_score
+# P-G3: source provenance query (single async DB call)
+from oprim._source_trace import source_trace
+# P-G4: direct graph link score
+from oprim._direct_link_score import direct_link_score
+# P-G5: shared source overlap score
+from oprim._source_overlap_score import source_overlap_score
+# P-G6: adamic-adar similarity score
+from oprim._adamic_adar_score import adamic_adar_score
+# P-G7: knowledge-type affinity score
+from oprim._type_affinity_score import type_affinity_score
