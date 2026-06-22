@@ -68,3 +68,74 @@ class TheoremVerifyResult:
     lean_name: str | None     # only set when verified
     type_signature: str | None  # only set when verified
     reason: str               # rejection/ambiguity reason; "" when verified
+
+
+@dataclass
+class ConflictSignal:
+    """Output of ku_conflict_detect (P-G1)."""
+    is_conflict_candidate: bool
+    similarity: float
+    polarity_signal: str   # "opposing"|"neutral"|"insufficient"
+    evidence: str          # matched polarity pair, traceable
+
+
+@dataclass
+class ConflictPair:
+    """One confirmed conflict pair from conflict_resolution (K-G1).
+
+    grade is hardcoded "unverified" — not settable by callers.
+    """
+    new_ku_idx: int
+    existing_ku_id: str
+    conflict_type: str    # "factual_contradiction"|"stance_opposition"|"scope_conflict"
+    description: str
+    severity: str         # "high"|"medium"|"low"
+    grade: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.grade = "unverified"
+
+
+@dataclass
+class SourceTraceResult:
+    """Output of source_trace (P-G3)."""
+    ku_id: str
+    source_ids: list[str]
+    source_positions: list[dict]   # [{source_id, page, chunk_idx, text_snippet}]
+    trace_depth: int
+
+
+@dataclass
+class GraphRetrievalResult:
+    """One result from graph_expand_retrieval (K-G4)."""
+    ku_id: str
+    score: float
+    hop_distance: int
+    retrieval_path: list[str]   # path from seed to this KU
+
+
+@dataclass
+class CascadeDeleteResult:
+    """Output of cascade_delete (K-G5)."""
+    deleted_ku_ids: list[str]      # KUs only supported by this source (deleted or would-delete)
+    preserved_ku_ids: list[str]    # multi-source shared KUs (kept)
+    dangling_deps_cleared: int     # dangling dependency references cleared
+    dry_run: bool
+
+
+@dataclass
+class TwoStepIngestResult:
+    """Output of two_step_ingest (K-G2)."""
+    analysis: dict              # Step 1: entities/concepts/conflict candidates/structure
+    ku_candidates: list[dict]   # Step 2: generated KU candidates
+    conflict_candidates: list[str]  # conflict descriptions (pending conflict_resolution)
+
+
+@dataclass
+class ConflictDetectionInput:
+    """Input for conflict_detection_workflow (M-G1)."""
+    new_ku_texts: list[str]
+    new_ku_embeddings: list[list[float]]
+    existing_ku_texts: list[str]
+    existing_ku_embeddings: list[list[float]]
+    existing_ku_ids: list[str]
