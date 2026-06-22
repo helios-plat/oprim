@@ -20,6 +20,25 @@ class EpubBook:
     metadata: dict[str, str]     # title/author/language from DC metadata
 
 
+_AUX_TITLES = frozenset([
+    "扉页", "版权页", "版权", "目录", "前言", "序言", "序", "后记",
+    "致谢", "附录", "索引", "参考文献", "bibliography", "contents",
+    "copyright", "title page", "preface", "foreword", "index",
+    "acknowledgements", "acknowledgments", "cover",
+])
+
+def _is_aux_node(title: str, content: str) -> bool:
+    """判断是否为辅助页（扉页/版权页/目录等），应过滤掉不作为独立书。"""
+    t = title.strip().lower()
+    if t in _AUX_TITLES:
+        return True
+    if any(aux in t for aux in _AUX_TITLES):
+        return True
+    if len(content.strip()) < 2000:  # 内容极短，辅助页特征
+        return True
+    return False
+
+
 def epub_toc_split(*, file_path: Path) -> list[EpubBook]:
     """Parse EPUB and split by top-level TOC into individual books.
 
@@ -108,12 +127,13 @@ def epub_toc_split(*, file_path: Path) -> list[EpubBook]:
         parts = [item_map[h] for h in hrefs if h in item_map]
         content = "\n\n".join(parts)
 
-        result.append(EpubBook(
-            book_title=node_title,
-            toc_subtree=list(children),
-            content=content,
-            metadata={**base_meta, "title": node_title},
-        ))
+        if not _is_aux_node(node_title, content):
+            result.append(EpubBook(
+                book_title=node_title,
+                toc_subtree=list(children),
+                content=content,
+                metadata={**base_meta, "title": node_title},
+            ))
 
     return result if result else [EpubBook(
         book_title=base_meta["title"] or file_path.stem,

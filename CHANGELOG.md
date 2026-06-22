@@ -816,3 +816,8 @@ All future Phase releases must:
 ### Changed
 - http_download_file: 加 force_ipv4 参数（OAPEN 等 IPv6 超时场景）
 - _media_types: 加 SourceResult dataclass
+
+## [3.10.23] — 2026-06-19
+### Fixed
+- epub_toc_split: 过滤辅助节点（扉页/版权页/目录/前言等，内容<2000字符）
+  防止辅助页被拆成独立 EpubBook 进入 bundle 路径
