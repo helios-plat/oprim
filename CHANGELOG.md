@@ -860,3 +860,9 @@ All future Phase releases must:
   optional[cloud]: boto3/google-api/asyncpg
   optional[full]: 全部 optional 合集
   Helios 等轻量环境 pip install oprim 不再拉重型依赖
+
+## [3.10.29] — 2026-06-24
+### Added
+- _aii_graph_types: 知识本体受控词表
+  VALID_KNOWLEDGE_TYPES / VALID_RELATION_TYPES / VALID_GRADES / VALID_SUB_TYPES
+  OntologyExtractResult / RegisterKuOntologyInput 共享类型
