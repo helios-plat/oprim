@@ -866,3 +866,15 @@ All future Phase releases must:
 - _aii_graph_types: 知识本体受控词表
   VALID_KNOWLEDGE_TYPES / VALID_RELATION_TYPES / VALID_GRADES / VALID_SUB_TYPES
   OntologyExtractResult / RegisterKuOntologyInput 共享类型
+
+## [3.10.30] — 2026-06-24
+### Added
+- compute_shapley_values: 真·非线性 Shapley 分解
+  传特征dict + 聚合函数callable，算真边际贡献（在场vs不在场）
+  method=monte_carlo（采样，默认2000）或 exact（2^n，n<=12）
+  确定性（seed）、baseline/residual 显式分离、可加性保证
+  比例分配版 compute_shapley_decomposition 保留作 fallback
+### Fixed
+- _cognitive: fsrs import 改函数内惰性加载
+  KCState/BKT 不依赖 fsrs，import oprim 不再触发 fsrs eager-load
+  根治 __init__ 第124行 + types.py 第175行的 fsrs 链

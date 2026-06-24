@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Literal, Optional, Dict
 
-from fsrs import Card, Rating, Scheduler
+# fsrs imported lazily inside FSRS functions (KCState/BKT don't need it)
 
 @dataclass
 class KCState:
@@ -126,19 +126,22 @@ def bkt_new_state(*, kc_id: str, prior: dict) -> KCState:
 
 # FSRS Helpers (dict-based serialization)
 
-def _card_to_dict(card: Card) -> dict:
+def _card_to_dict(card) -> dict:
     return card.to_dict()
 
-def _dict_to_card(d: dict) -> Card:
+def _dict_to_card(d: dict):
+    from fsrs import Card
     return Card.from_dict(d)
 
 
 def fsrs_new_card() -> dict:
+    from fsrs import Card
     """创建新 FSRS 记忆卡片。"""
     return _card_to_dict(Card())
 
 def fsrs_review(*, card_dict: dict, rating: str, now: datetime | None = None) -> dict:
     """对卡片做一次复习。"""
+    from fsrs import Scheduler, Rating
     card = _dict_to_card(card_dict)
     scheduler = Scheduler()
     if now is None:
@@ -159,6 +162,7 @@ def fsrs_retrievability(*, card_dict: dict, now: datetime | None = None) -> floa
     """当前可提取性 R ∈ [0,1]。"""
     if card_dict.get("last_review") is None:
         return 1.0
+    from fsrs import Scheduler
     card = _dict_to_card(card_dict)
     scheduler = Scheduler()
     if now is None:

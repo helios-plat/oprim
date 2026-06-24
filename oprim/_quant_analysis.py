@@ -244,6 +244,111 @@ def compute_shapley_decomposition(*, contributions: dict[str, float], total: flo
     return result
 
 
+def compute_shapley_values(
+    *,
+    features: dict[str, float],
+    aggregate_fn,
+    baseline_features: dict[str, float] | None = None,
+    method: str = "monte_carlo",
+    n_samples: int = 2000,
+    seed: int = 42,
+) -> dict[str, float]:
+    """True (non-linear) Shapley value decomposition over an aggregation function.
+
+    Unlike compute_shapley_decomposition (proportional split, kept as fallback),
+    this computes real marginal contributions: for each feature, the average
+    change in aggregate_fn output when that feature is present vs absent across
+    coalitions. Works for non-linear aggregate_fn (e.g. geometric mean fusion).
+
+    Args:
+        features: {dim: value} — raw per-dimension feature values.
+        aggregate_fn: callable(dict[str, float]) -> float. The (possibly
+            non-linear) fusion function. Absent dimensions are replaced by the
+            corresponding baseline value when forming a coalition.
+        baseline_features: {dim: value} representing "absent" state per dim.
+            Defaults to 0.0 for every dim. baseline output = aggregate_fn(all-absent).
+        method: "monte_carlo" (sampled permutations) or "exact" (2^n, n<=12).
+        n_samples: permutations sampled in monte_carlo mode.
+        seed: RNG seed for determinism (same input → same output).
+
+    Returns:
+        {dim: shapley_value, ..., "baseline": float, "residual": float}
+        where sum(shapley_values) + baseline + residual == aggregate_fn(features).
+        residual captures numerical/sampling slack (≈0 for exact, small for MC).
+
+    Raises:
+        QuantAnalysisError: if features empty, aggregate_fn not callable, or
+            method="exact" with n>12 (combinatorial blowup).
+
+    Example:
+        >>> agg = lambda d: (d.get("a",0)*d.get("b",0)) ** 0.5  # non-linear
+        >>> sv = compute_shapley_values(features={"a":4.0,"b":9.0}, aggregate_fn=agg)
+        >>> round(sv["a"] + sv["b"] + sv["baseline"] + sv["residual"], 6) == round(agg({"a":4.0,"b":9.0}),6)
+        True
+    """
+    import random as _random
+
+    if not features:
+        raise QuantAnalysisError("features must be non-empty")
+    if not callable(aggregate_fn):
+        raise QuantAnalysisError("aggregate_fn must be callable")
+
+    dims = list(features.keys())
+    n = len(dims)
+    base = baseline_features or {d: 0.0 for d in dims}
+
+    def _coalition_value(present: set[str]) -> float:
+        """aggregate_fn with present dims = real value, absent = baseline."""
+        coalition = {d: (features[d] if d in present else base.get(d, 0.0)) for d in dims}
+        return float(aggregate_fn(coalition))
+
+    baseline_output = _coalition_value(set())
+    full_output = _coalition_value(set(dims))
+
+    shapley: dict[str, float] = {d: 0.0 for d in dims}
+
+    if method == "exact":
+        if n > 12:
+            raise QuantAnalysisError(
+                f"exact method infeasible for n={n} (2^{n} coalitions); use monte_carlo"
+            )
+        from itertools import permutations as _perms
+        all_perms = list(_perms(dims))
+        for perm in all_perms:
+            present: set[str] = set()
+            prev = _coalition_value(present)
+            for d in perm:
+                present.add(d)
+                cur = _coalition_value(present)
+                shapley[d] += (cur - prev)
+                prev = cur
+        for d in dims:
+            shapley[d] /= len(all_perms)
+    elif method == "monte_carlo":
+        rng = _random.Random(seed)
+        for _ in range(n_samples):
+            perm = dims[:]
+            rng.shuffle(perm)
+            present = set()
+            prev = _coalition_value(present)
+            for d in perm:
+                present.add(d)
+                cur = _coalition_value(present)
+                shapley[d] += (cur - prev)
+                prev = cur
+        for d in dims:
+            shapley[d] /= n_samples
+    else:
+        raise QuantAnalysisError(f"unknown method: {method!r} (use 'monte_carlo' or 'exact')")
+
+    result = {d: round(shapley[d], 6) for d in dims}
+    result["baseline"] = round(baseline_output, 6)
+    # residual = full - baseline - sum(shapley); ≈0 exact, small sampling slack MC
+    residual = full_output - baseline_output - sum(shapley.values())
+    result["residual"] = round(residual, 6)
+    return result
+
+
 def compute_herfindahl_index(*, weights: dict[str, float]) -> float:
     """Compute Herfindahl-Hirschman Index (concentration measure).
 
