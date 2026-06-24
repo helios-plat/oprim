@@ -134,3 +134,5 @@ from oprim._source_overlap_score import source_overlap_score
 from oprim._adamic_adar_score import adamic_adar_score
 # P-G7: knowledge-type affinity score
 from oprim._type_affinity_score import type_affinity_score
+
+from oprim._quant_analysis import compute_shapley_decomposition

@@ -821,3 +821,9 @@ All future Phase releases must:
 ### Fixed
 - epub_toc_split: 过滤辅助节点（扉页/版权页/目录/前言等，内容<2000字符）
   防止辅助页被拆成独立 EpubBook 进入 bundle 路径
+
+## [3.10.24] — 2026-06-23
+### Fixed
+- 新增 oprim/quant_analysis.py 门面模块，暴露 compute_shapley_decomposition
+  修复 Helios oprim.quant_analysis.compute_shapley_decomposition 调用 500 问题
+- __init__ 补 compute_shapley_decomposition export
