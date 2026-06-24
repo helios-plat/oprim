@@ -839,3 +839,10 @@ All future Phase releases must:
   llm_complete / llm_stream / embed_text / image_generate / image_understand / tts_synthesize
   全部改为调用时才 import obase，不在 import oprim 时触发
   修复 Helios 等无 obase 环境 import oprim 失败（打地鼠根治）
+
+## [3.10.27] — 2026-06-23
+### Fixed
+- __init__: 惰性化文件解析器（file_parser_pdf/epub/html + epub_toc_split）
+  修复 fitz/ebooklib/bs4 在无重依赖环境（Helios）触发 ImportError
+  配合 v3.10.26 的 obase 惰性化，import oprim 全程不触发任何重依赖
+  Helios 最小环境三条验收全部通过

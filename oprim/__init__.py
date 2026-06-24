@@ -111,14 +111,25 @@ from oprim.speech_to_math import speech_to_math
 from oprim.error_classify import error_classify
 
 # File parsers + structure extractor (restored exports)
-from oprim._file_parser_pdf import file_parser_pdf as file_parser_pdf
-from oprim._file_parser_epub import file_parser_epub as file_parser_epub
-from oprim._file_parser_html import file_parser_html as file_parser_html
+def file_parser_pdf(*args, **kwargs):
+    from oprim._file_parser_pdf import file_parser_pdf as _fn
+    return _fn(*args, **kwargs)
+def file_parser_epub(*args, **kwargs):
+    from oprim._file_parser_epub import file_parser_epub as _fn
+    return _fn(*args, **kwargs)
+def file_parser_html(*args, **kwargs):
+    from oprim._file_parser_html import file_parser_html as _fn
+    return _fn(*args, **kwargs)
 # from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
 from oprim._file_parser_plaintext import file_parser_plaintext as file_parser_plaintext
 from oprim._document_structure_extractor import document_structure_extractor as document_structure_extractor
 
-from oprim._epub_toc_split import epub_toc_split, EpubBook
+def epub_toc_split(*args, **kwargs):
+    from oprim._epub_toc_split import epub_toc_split as _fn
+    return _fn(*args, **kwargs)
+def _get_EpubBook():
+    from oprim._epub_toc_split import EpubBook
+    return EpubBook
 from oprim._markdown_frontmatter_build import markdown_frontmatter_build
 from oprim._text_clean_publish_noise import text_clean_publish_noise
 from oprim._arxiv_search import arxiv_search, ArxivPaper
