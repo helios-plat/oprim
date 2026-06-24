@@ -827,3 +827,8 @@ All future Phase releases must:
 - 新增 oprim/quant_analysis.py 门面模块，暴露 compute_shapley_decomposition
   修复 Helios oprim.quant_analysis.compute_shapley_decomposition 调用 500 问题
 - __init__ 补 compute_shapley_decomposition export
+
+## [3.10.25] — 2026-06-23
+### Fixed
+- __init__: llm_summarize 改惰性加载，不在 import 时触发 obase 依赖
+  修复 Helios 等无 obase 环境 import oprim 失败问题（ModuleNotFoundError: obase）

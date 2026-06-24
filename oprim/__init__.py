@@ -42,7 +42,11 @@ def _build_element_map() -> None:
 _build_element_map()
 
 from oprim._cognitive import KCState  # re-export for oskill compatibility
-from oprim._llm_summarize import llm_summarize as llm_summarize
+# llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
+def llm_summarize(*args, **kwargs):
+    """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
+    from oprim._llm_summarize import llm_summarize as _fn
+    return _fn(*args, **kwargs)
 
 def __getattr__(name: str) -> Any:
     if name == "__version__": return __version__
