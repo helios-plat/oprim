@@ -73,15 +73,28 @@ from oprim.llm._types import (
     LLMResponse, StreamDelta, EmbedResult, ConversationSnapshot,
     ThinkingResult, SearchResult, HttpResponse
 )
-from oprim.llm._llm_complete import llm_complete
-from oprim.llm._llm_stream import llm_stream
-from oprim.llm._embed_text import embed_text
+# llm_complete: 惰性加载（依赖 obase）
+def llm_complete(*args, **kwargs):
+    from oprim.llm._llm_complete import llm_complete as _fn
+    return _fn(*args, **kwargs)
+def llm_stream(*args, **kwargs):
+    from oprim.llm._llm_stream import llm_stream as _fn
+    return _fn(*args, **kwargs)
+def embed_text(*args, **kwargs):
+    from oprim.llm._embed_text import embed_text as _fn
+    return _fn(*args, **kwargs)
 from oprim.prompt import (
     build_system_prompt, truncate_messages, extract_thinking, snapshot_conversation
 )
-from oprim.image_generate import image_generate
-from oprim.image_understand import image_understand
-from oprim.tts_synthesize import tts_synthesize
+def image_generate(*args, **kwargs):
+    from oprim.image_generate import image_generate as _fn
+    return _fn(*args, **kwargs)
+def image_understand(*args, **kwargs):
+    from oprim.image_understand import image_understand as _fn
+    return _fn(*args, **kwargs)
+def tts_synthesize(*args, **kwargs):
+    from oprim.tts_synthesize import tts_synthesize as _fn
+    return _fn(*args, **kwargs)
 
 # --- Mneme elements (M-A batch) ---
 from oprim.types import (

@@ -832,3 +832,10 @@ All future Phase releases must:
 ### Fixed
 - __init__: llm_summarize 改惰性加载，不在 import 时触发 obase 依赖
   修复 Helios 等无 obase 环境 import oprim 失败问题（ModuleNotFoundError: obase）
+
+## [3.10.26] — 2026-06-23
+### Fixed
+- __init__: 系统性惰性化所有 obase 依赖模块
+  llm_complete / llm_stream / embed_text / image_generate / image_understand / tts_synthesize
+  全部改为调用时才 import obase，不在 import oprim 时触发
+  修复 Helios 等无 obase 环境 import oprim 失败（打地鼠根治）
