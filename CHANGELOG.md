@@ -846,3 +846,17 @@ All future Phase releases must:
   修复 fitz/ebooklib/bs4 在无重依赖环境（Helios）触发 ImportError
   配合 v3.10.26 的 obase 惰性化，import oprim 全程不触发任何重依赖
   Helios 最小环境三条验收全部通过
+
+## [3.10.28] — 2026-06-23
+### Changed
+- pyproject.toml: 重型依赖移到 optional extras
+  核心依赖（required）：numpy/scipy/pandas/pydantic/chardet/fsrs 等轻量包
+  optional[pdf]: pymupdf/pymupdf4llm
+  optional[epub]: ebooklib/beautifulsoup4
+  optional[storage]: lancedb/tantivy/duckdb
+  optional[llm]: dashscope
+  optional[image]: Pillow
+  optional[tts]: vibevoice
+  optional[cloud]: boto3/google-api/asyncpg
+  optional[full]: 全部 optional 合集
+  Helios 等轻量环境 pip install oprim 不再拉重型依赖
