@@ -139,3 +139,51 @@ class ConflictDetectionInput:
     existing_ku_texts: list[str]
     existing_ku_embeddings: list[list[float]]
     existing_ku_ids: list[str]
+
+
+# ---------------------------------------------------------------------------
+# Controlled vocabularies (K-ONT-1 / M-ONT-1)
+# ---------------------------------------------------------------------------
+
+VALID_KNOWLEDGE_TYPES: frozenset[str] = frozenset([
+    "factual", "conceptual", "positional", "procedural",
+    "explanatory", "metacognitive",
+])
+
+VALID_RELATION_TYPES: frozenset[str] = frozenset([
+    "explains", "causes", "subsumes", "special_case_of",
+    "prerequisite_of", "contrasts_with", "opposes",
+    "contradicts", "supported_by", "same_as",
+])
+
+VALID_GRADES: frozenset[str] = frozenset([
+    "unverified", "verified", "refuted", "high",
+    "moderate", "low", "contradicted", "pending",
+])
+
+VALID_SUB_TYPES: frozenset[str] = frozenset([
+    "classification", "principle", "theory",
+    "skill", "technique", "conditional",
+    "strategic", "task_knowledge", "self_knowledge",
+])
+
+
+# ---------------------------------------------------------------------------
+# ONT types (K-ONT-1 / M-ONT-1)
+# ---------------------------------------------------------------------------
+
+@dataclass
+class OntologyExtractResult:
+    """Output of ontology_extract (K-ONT-1)."""
+    outline: dict                    # Pass-1: full-book outline
+    ku_candidates: list[dict]        # Pass-2: 6-class KU candidates (all fields)
+    edge_candidates: list[dict]      # relation candidates (controlled relation_type)
+    concept_candidates: list[str]    # concept candidates
+    stats: dict                      # {total, by_type, explains_count}
+
+
+@dataclass
+class RegisterKuOntologyInput:
+    """Input for register_ku_ontology (M-ONT-1)."""
+    ku: dict               # 6-class KU with all fields
+    edges: list[dict]      # edge candidates [{source, target, relation_type}]
