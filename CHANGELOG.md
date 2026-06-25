@@ -878,3 +878,10 @@ All future Phase releases must:
 - _cognitive: fsrs import 改函数内惰性加载
   KCState/BKT 不依赖 fsrs，import oprim 不再触发 fsrs eager-load
   根治 __init__ 第124行 + types.py 第175行的 fsrs 链
+
+## [3.10.31] — 2026-06-25
+### Fixed
+- 补全 quant_analysis 门面（之前 v3.10.24 只暴露 shapley，漏了 15 个量化函数）
+- 新增 time_series 门面（percentile_rank 等，oskill.liquidation_cascade_risk 依赖）
+- 补 apply_screen_filter / parse_obsidian_tasks / policy_event_extraction 门面
+- 根治 oskill/omodul 所有 oprim 子模块路径 import（全量冒烟通过）
