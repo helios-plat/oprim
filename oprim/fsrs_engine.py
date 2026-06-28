@@ -19,9 +19,8 @@ from fsrs import Scheduler, Card, Rating
 _scheduler = Scheduler()
 
 
-def fsrs_new_card() -> dict:
-    """新建一张记忆卡片，返回可入库的 dict。"""
-    return Card().to_dict()
+# fsrs_new_card（初始卡片工厂）归 obase.cognitive_types（单源），此处 re-export 保持兼容。
+from obase.cognitive_types import fsrs_new_card  # noqa: E402,F401
 
 
 def fsrs_map_rating(
