@@ -15,6 +15,8 @@ Raises:
 
 from __future__ import annotations
 
+import asyncio
+import json
 import tempfile
 from pathlib import Path
 from typing import Literal
@@ -51,6 +53,9 @@ async def video_concat(
         transitions: Optional list of transition specs applied between clips:
             [{type: "hard"|"dissolve"|"flash", duration_s: float}, ...].
             Length must be len(inputs)-1. None = hard cut (default).
+            "dissolve" → cross-dissolve (xfade=fade), "flash" → flash-to-white
+            (xfade=fadewhite), "hard" → plain cut. Overlapping transitions probe
+            clip durations (ffprobe) to place each xfade and keep A/V in sync.
 
     Returns:
         The output_path on success.
@@ -114,6 +119,13 @@ async def _concat_demuxer(inputs: list[Path], output_path: Path, timeout_s: floa
         list_path.unlink(missing_ok=True)
 
 
+# Map a transition spec type → ffmpeg xfade transition kind.
+_XFADE_KIND = {"dissolve": "fade", "flash": "fadewhite"}
+
+# Assumed fps for converting trim_lead_frames → an audio-trim offset (seconds).
+_ASSUMED_FPS = 30.0
+
+
 async def _concat_filter(
     inputs: list[Path],
     output_path: Path,
@@ -121,6 +133,14 @@ async def _concat_filter(
     trim_lead_frames: int = 0,
     transitions: list[dict] | None = None,
 ) -> None:
+    if transitions:
+        await _concat_with_transitions(
+            inputs, output_path, timeout_s,
+            trim_lead_frames=trim_lead_frames,
+            transitions=transitions,
+        )
+        return
+
     n = len(inputs)
     args: list[str] = []
     for p in inputs:
@@ -131,7 +151,7 @@ async def _concat_filter(
     for i in range(n):
         if i > 0 and trim_lead_frames > 0:
             filter_parts.append(f"[{i}:v]trim=start_frame={trim_lead_frames}[v{i}t];")
-            filter_parts.append(f"[{i}:a]atrim=start={trim_lead_frames / 30.0:.4f}[a{i}t];")
+            filter_parts.append(f"[{i}:a]atrim=start={trim_lead_frames / _ASSUMED_FPS:.4f}[a{i}t];")
             v_label, a_label = f"[v{i}t]", f"[a{i}t]"
         else:
             v_label, a_label = f"[{i}:v]", f"[{i}:a]"
@@ -149,3 +169,117 @@ async def _concat_filter(
         str(output_path),
     ])
     await ffmpeg_run(args=args, timeout_s=timeout_s, expected_output=output_path)
+
+
+async def _concat_with_transitions(
+    inputs: list[Path],
+    output_path: Path,
+    timeout_s: float,
+    trim_lead_frames: int,
+    transitions: list[dict],
+) -> None:
+    """Concatenate clips applying a per-junction transition (fold chain).
+
+    Junction i (between clip i and i+1) honours ``transitions[i]``:
+      - "dissolve" → xfade=fade        (cross-dissolve)
+      - "flash"    → xfade=fadewhite   (flash-to-white)
+      - "hard"     → plain concat cut  (no overlap)
+
+    xfade junctions overlap clips by ``duration_s``, so the running timeline
+    position is needed to compute each xfade ``offset``. Absolute clip
+    durations are probed via ffprobe (only when an overlapping junction
+    exists). Audio mirrors video — acrossfade for overlapping junctions,
+    concat for hard cuts — keeping A/V in sync as the timeline shortens.
+    """
+    n = len(inputs)
+
+    needs_durations = any(
+        spec.get("type", "hard") != "hard" and float(spec.get("duration_s", 0.0)) > 0.0
+        for spec in transitions
+    )
+    durations = await _probe_durations(inputs) if needs_durations else [0.0] * n
+
+    args: list[str] = []
+    for p in inputs:
+        args.extend(["-i", str(p)])
+
+    parts: list[str] = []
+    base_v: list[str] = []
+    base_a: list[str] = []
+
+    # Normalise each input: optional lead-frame trim, fixed pixfmt, and a PTS
+    # reset (xfade/concat require monotonic timestamps starting at 0).
+    for i in range(n):
+        vf: list[str] = []
+        af: list[str] = []
+        if i > 0 and trim_lead_frames > 0:
+            vf.append(f"trim=start_frame={trim_lead_frames}")
+            af.append(f"atrim=start={trim_lead_frames / _ASSUMED_FPS:.4f}")
+        vf.extend(["format=yuv420p", "setpts=PTS-STARTPTS"])
+        af.append("asetpts=PTS-STARTPTS")
+        parts.append(f"[{i}:v]{','.join(vf)}[bv{i}];")
+        parts.append(f"[{i}:a]{','.join(af)}[ba{i}];")
+        base_v.append(f"[bv{i}]")
+        base_a.append(f"[ba{i}]")
+
+    v_acc, a_acc = base_v[0], base_a[0]
+    running = durations[0]
+
+    for i in range(1, n):
+        spec = transitions[i - 1]
+        ttype = spec.get("type", "hard")
+        dur = float(spec.get("duration_s", 0.0))
+        v_out, a_out = f"[vc{i}]", f"[ac{i}]"
+
+        if ttype == "hard" or dur <= 0.0:
+            parts.append(f"{v_acc}{base_v[i]}concat=n=2:v=1:a=0{v_out};")
+            parts.append(f"{a_acc}{base_a[i]}concat=n=2:v=0:a=1{a_out};")
+            running += durations[i]
+        else:
+            kind = _XFADE_KIND.get(ttype, "fade")
+            offset = max(0.0, running - dur)
+            parts.append(
+                f"{v_acc}{base_v[i]}xfade=transition={kind}:duration={dur:.4f}:offset={offset:.4f}{v_out};"
+            )
+            parts.append(f"{a_acc}{base_a[i]}acrossfade=d={dur:.4f}{a_out};")
+            running += durations[i] - dur
+
+        v_acc, a_acc = v_out, a_out
+
+    filter_complex = "".join(parts).rstrip(";")
+
+    args.extend([
+        "-filter_complex", filter_complex,
+        "-map", v_acc,
+        "-map", a_acc,
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        str(output_path),
+    ])
+    await ffmpeg_run(args=args, timeout_s=timeout_s, expected_output=output_path)
+
+
+async def _probe_durations(inputs: list[Path]) -> list[float]:
+    """Return each input's container duration in seconds via ffprobe."""
+    durations: list[float] = []
+    for p in inputs:
+        cmd = [
+            "ffprobe", "-v", "quiet", "-print_format", "json",
+            "-show_format", str(p),
+        ]
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await proc.communicate()
+        except FileNotFoundError as exc:
+            raise VideoConcatError("ffprobe not found on PATH") from exc
+        if proc.returncode != 0:
+            raise VideoConcatError(f"ffprobe failed for {p}")
+        try:
+            durations.append(float(json.loads(stdout.decode())["format"]["duration"]))
+        except (KeyError, ValueError) as exc:
+            raise VideoConcatError(f"Could not parse duration for {p}") from exc
+    return durations

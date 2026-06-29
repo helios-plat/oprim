@@ -19,6 +19,19 @@ def _mock_ffmpeg_run():
     return _run
 
 
+def _capture_filter(out: Path):
+    """Return (captured, run) — run records the -filter_complex value into captured['fc']."""
+    captured: dict[str, str] = {}
+
+    async def _run(*, args: list[str], **kw: object) -> str:
+        if "-filter_complex" in args:
+            captured["fc"] = args[args.index("-filter_complex") + 1]
+        (kw.get("expected_output") or out).write_bytes(b"\x00" * 8)
+        return "ok"
+
+    return captured, _run
+
+
 @pytest.fixture()
 def video_files(tmp_path: Path) -> list[Path]:
     files = []
@@ -130,10 +143,82 @@ class TestVideoConcat:
 
     async def test_transitions_list_triggers_filter(self, video_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "trans.mp4"
-        with patch("oprim._video_concat.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        captured, run = _capture_filter(out)
+        async def _durs(inputs: list[Path]) -> list[float]:
+            return [5.0, 5.0]
+        with patch("oprim._video_concat.ffmpeg_run", side_effect=run), \
+                patch("oprim._video_concat._probe_durations", new=_durs):
             result = await video_concat(
                 inputs=video_files[:2],
                 output_path=out,
                 transitions=[{"type": "dissolve", "duration_s": 0.5}],
             )
         assert result == out
+        assert "xfade=transition=fade" in captured["fc"]
+
+    # ------------------------------------------------------------------
+    # E6 transitions — real xfade/acrossfade filter graph
+    # ------------------------------------------------------------------
+
+    async def test_dissolve_builds_xfade_with_offset(self, video_files: list[Path], tmp_path: Path) -> None:
+        out = tmp_path / "dissolve.mp4"
+        captured, run = _capture_filter(out)
+        async def _durs(inputs: list[Path]) -> list[float]:
+            return [5.0, 5.0]
+        with patch("oprim._video_concat.ffmpeg_run", side_effect=run), \
+                patch("oprim._video_concat._probe_durations", new=_durs):
+            await video_concat(
+                inputs=video_files[:2], output_path=out,
+                transitions=[{"type": "dissolve", "duration_s": 0.5}],
+            )
+        fc = captured["fc"]
+        # cross-dissolve, offset = dur0 - duration = 5.0 - 0.5 = 4.5, audio mirrored
+        assert "xfade=transition=fade:duration=0.5000:offset=4.5000" in fc
+        assert "acrossfade=d=0.5000" in fc
+
+    async def test_flash_uses_fadewhite(self, video_files: list[Path], tmp_path: Path) -> None:
+        out = tmp_path / "flash.mp4"
+        captured, run = _capture_filter(out)
+        async def _durs(inputs: list[Path]) -> list[float]:
+            return [5.0, 5.0]
+        with patch("oprim._video_concat.ffmpeg_run", side_effect=run), \
+                patch("oprim._video_concat._probe_durations", new=_durs):
+            await video_concat(
+                inputs=video_files[:2], output_path=out,
+                transitions=[{"type": "flash", "duration_s": 0.2}],
+            )
+        assert "xfade=transition=fadewhite:duration=0.2000" in captured["fc"]
+
+    async def test_hard_transition_uses_concat_not_xfade(self, video_files: list[Path], tmp_path: Path) -> None:
+        out = tmp_path / "hard.mp4"
+        captured, run = _capture_filter(out)
+        # all-hard → durations not needed; _probe_durations must NOT be called.
+        async def _boom(inputs: list[Path]) -> list[float]:
+            raise AssertionError("ffprobe should not run for all-hard transitions")
+        with patch("oprim._video_concat.ffmpeg_run", side_effect=run), \
+                patch("oprim._video_concat._probe_durations", new=_boom):
+            await video_concat(
+                inputs=video_files[:2], output_path=out,
+                transitions=[{"type": "hard", "duration_s": 0.0}],
+            )
+        fc = captured["fc"]
+        assert "concat=n=2:v=1:a=0" in fc
+        assert "xfade" not in fc
+
+    async def test_mixed_offset_accumulates_through_hard_cut(self, video_files: list[Path], tmp_path: Path) -> None:
+        out = tmp_path / "mixed.mp4"
+        captured, run = _capture_filter(out)
+        async def _durs(inputs: list[Path]) -> list[float]:
+            return [5.0, 5.0, 5.0]
+        with patch("oprim._video_concat.ffmpeg_run", side_effect=run), \
+                patch("oprim._video_concat._probe_durations", new=_durs):
+            await video_concat(
+                inputs=video_files, output_path=out,
+                transitions=[
+                    {"type": "hard", "duration_s": 0.0},      # j1: cut, running 5+5=10
+                    {"type": "dissolve", "duration_s": 0.5},  # j2: offset = 10 - 0.5 = 9.5
+                ],
+            )
+        fc = captured["fc"]
+        assert "concat=n=2:v=1:a=0" in fc
+        assert "xfade=transition=fade:duration=0.5000:offset=9.5000" in fc
