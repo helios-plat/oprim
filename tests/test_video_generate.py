@@ -34,7 +34,7 @@ def _register_stub_provider(tmp_path: Path) -> None:
     ) -> None:
         output_path.write_bytes(b"\x00" * 128)
 
-    ProviderRegistry.register(category="video_gen", name="stub", fn=_stub)
+    ProviderRegistry.register(category="video_gen", name="stub", caller=_stub)
 
 
 class TestVideoGenerate:
@@ -60,7 +60,7 @@ class TestVideoGenerate:
             captured.update(kw)
             Path(str(kw["output_path"])).write_bytes(b"\x00")
 
-        ProviderRegistry.register(category="video_gen", name="mock", fn=_capture)
+        ProviderRegistry.register(category="video_gen", name="mock", caller=_capture)
         out = tmp_path / "out.mp4"
         await video_generate(
             provider="mock",
@@ -78,7 +78,7 @@ class TestVideoGenerate:
         async def _timeout(**kw: object) -> None:
             raise TimeoutError("provider timed out")
 
-        ProviderRegistry.register(category="video_gen", name="slow", fn=_timeout)
+        ProviderRegistry.register(category="video_gen", name="slow", caller=_timeout)
         with pytest.raises(VideoGenError, match="failed"):
             await video_generate(
                 provider="slow", prompt="test", output_path=tmp_path / "out.mp4"
@@ -88,7 +88,7 @@ class TestVideoGenerate:
         async def _noop(**kw: object) -> None:
             pass  # Does not create output file
 
-        ProviderRegistry.register(category="video_gen", name="noop", fn=_noop)
+        ProviderRegistry.register(category="video_gen", name="noop", caller=_noop)
         with pytest.raises(VideoGenError, match="did not produce output"):
             await video_generate(
                 provider="noop", prompt="test", output_path=tmp_path / "out.mp4"
@@ -101,7 +101,7 @@ class TestVideoGenerate:
             captured.update(kw)
             Path(str(kw["output_path"])).write_bytes(b"\x00")
 
-        ProviderRegistry.register(category="video_gen", name="ref", fn=_capture)
+        ProviderRegistry.register(category="video_gen", name="ref", caller=_capture)
         ref = tmp_path / "ref.png"
         ref.write_bytes(b"\x89PNG")
         out = tmp_path / "out.mp4"

@@ -20,7 +20,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from obase import ProviderRegistry
-from obase.exceptions import ProviderNotFoundError
 
 
 class VideoGenError(Exception):
@@ -89,12 +88,11 @@ async def video_generate(
         except WanCloudError as exc:
             raise VideoGenError(f"wan_cloud generation failed: {exc}") from exc
 
-    try:
-        gen_fn = ProviderRegistry.get(category="video_gen", name=provider)
-    except ProviderNotFoundError as exc:
+    if not ProviderRegistry.has("video_gen", provider):
         raise VideoGenProviderNotFoundError(
             f"Video generation provider not found: {provider!r}"
-        ) from exc
+        )
+    gen_fn = ProviderRegistry.get().generic("video_gen", provider)
 
     try:
         await gen_fn(

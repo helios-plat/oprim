@@ -109,7 +109,7 @@ class TestVideoGenerateWanCloud:
         async def _stub(**kw: object) -> None:
             Path(str(kw["output_path"])).write_bytes(b"\x00" * 32)
 
-        ProviderRegistry.register(category="video_gen", name="stub", fn=_stub)
+        ProviderRegistry.register(category="video_gen", name="stub", caller=_stub)
         out = tmp_path / "stub.mp4"
 
         try:
