@@ -58,7 +58,7 @@ async def vlm_video_analyze(
             raise VLMVideoAnalyzeError(f"Frame not found: {f}")
 
     try:
-        fn = ProviderRegistry.get(category="vlm", name=provider)
+        fn = ProviderRegistry.get().vlm(provider)
     except ProviderNotFoundError as exc:
         raise VLMVideoAnalyzeError(f"VLM provider not found: {provider!r}") from exc
 

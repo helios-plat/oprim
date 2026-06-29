@@ -57,7 +57,7 @@ async def image_understand(
         raise ImageUnderstandError(f"Image file not found: {image_path}")
 
     try:
-        vlm_fn = ProviderRegistry.get(category="vlm", name=provider)
+        vlm_fn = ProviderRegistry.get().vlm(provider)
     except ProviderNotFoundError as exc:
         raise ImageUnderstandError(f"VLM provider not found: {provider!r}") from exc
 

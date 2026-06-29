@@ -58,7 +58,7 @@ def llm_distill_strategy(
         from obase import ProviderRegistry
         from obase.exceptions import ProviderNotFoundError
 
-        llm = ProviderRegistry.get("llm", provider)
+        llm = ProviderRegistry.get().llm(provider)
         prompt = _DISTILL_PROMPT.format(
             event=event[:500], outcome=outcome[:200], context=context[:500]
         )

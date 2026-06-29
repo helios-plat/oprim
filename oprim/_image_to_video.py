@@ -67,7 +67,7 @@ async def image_to_video(
         raise ImageToVideoError(f"Reference image not found: {reference_image}")
 
     try:
-        fn = ProviderRegistry.get(category="image_to_video", name=provider)
+        fn = ProviderRegistry.get().generic("image_to_video", provider)
     except ProviderNotFoundError as exc:
         raise ImageToVideoProviderNotFoundError(
             f"Provider not found: {provider!r}"

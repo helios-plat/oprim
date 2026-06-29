@@ -2,7 +2,7 @@
 
 import uuid
 import pytest
-from oprim.llm_distill_strategy import llm_distill_strategy
+from oprim._llm_distill_strategy import llm_distill_strategy
 
 
 def _episode(**kwargs) -> dict:
@@ -121,7 +121,7 @@ class TestProviderRegistryPath:
 
         ep = {"event": "deploy failed", "outcome": "rollback", "context": {}}
         with patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("llm", "x")):
-            with patch("oprim.llm_distill_strategy._log") as mock_log:
+            with patch("oprim._llm_distill_strategy._log") as mock_log:
                 result = llm_distill_strategy(episode=ep)
         assert result["knowledge_type"] == "solution_strategy"
         assert result["epistemic_status"]["verified"] is False
@@ -138,10 +138,13 @@ class TestProviderRegistryPath:
             "content": "Steps: 1. detect 2. rollback",
         })
         mock_llm = MagicMock(return_value=fake_response)
+        mock_registry = MagicMock()
+        mock_registry.llm.return_value = mock_llm
         ep = {"event": "prod deploy", "outcome": "success", "context": {"env": "prod"}}
-        with patch("obase.ProviderRegistry.get", return_value=mock_llm) as mock_get:
+        with patch("obase.ProviderRegistry.get", return_value=mock_registry) as mock_get:
             result = llm_distill_strategy(episode=ep, provider="deepseek")
-        mock_get.assert_called_once_with("llm", "deepseek")
+        mock_get.assert_called_once_with()
+        mock_registry.llm.assert_called_once_with("deepseek")
         prompt = mock_llm.call_args[0][0]
         assert "prod deploy" in prompt
         assert result["symbolic_form"]["title"] == "Rollback strategy"

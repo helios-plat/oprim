@@ -69,7 +69,7 @@ async def face_animation(
         raise FaceAnimationError(f"Audio not found: {audio_path}")
 
     try:
-        fn = ProviderRegistry.get(category="face_animation", name=provider)
+        fn = ProviderRegistry.get().generic("face_animation", provider)
     except ProviderNotFoundError as exc:
         raise FaceAnimationProviderNotFoundError(
             f"Provider not found: {provider!r}"

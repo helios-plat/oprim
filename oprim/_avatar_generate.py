@@ -87,7 +87,7 @@ async def avatar_generate(
             raise AvatarGenError(f"Duix generation failed: {exc}") from exc
 
     try:
-        gen_fn = ProviderRegistry.get(category="avatar", name=provider)
+        gen_fn = ProviderRegistry.get().generic("avatar", provider)
     except ProviderNotFoundError as exc:
         raise AvatarGenError(f"Avatar provider not found: {provider!r}") from exc
 
