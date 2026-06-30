@@ -924,7 +924,13 @@ def docker_container_list(
             ContainerInfo(
                 container_id=c.id,
                 name=c.name,
-                image=c.image.tags[0] if c.image.tags else c.image.id,
+                # Use the container's cached attrs instead of c.image: accessing
+                # c.image triggers an inspect_image() call that raises ImageNotFound
+                # (404) when the container's image has been deleted/dangling, which
+                # would abort listing ALL containers on the host. attrs carry the
+                # original image reference + ID without any extra daemon lookup.
+                image=c.attrs.get("Config", {}).get("Image")
+                or c.attrs.get("Image", ""),
                 state=_parse_state(c.attrs),
                 status=c.status,
                 started_at=c.attrs.get("State", {}).get("StartedAt"),
