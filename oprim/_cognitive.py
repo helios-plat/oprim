@@ -19,6 +19,9 @@ from obase.cognitive_types import KCState, new_state_from_prior as bkt_new_state
 _GAMMA_SLIP = 1.0
 _GAMMA_GUESS = 1.0
 
+# 红线 P(L)∈(0,0.97] 的下界：strictly >0 的最小掌握度，防退化输入压到 0/负。
+_PL_FLOOR = 1e-4
+
 def _item_adjust(
     p_guess: float, p_slip: float, difficulty: float | None
 ) -> tuple[float, float]:
@@ -78,7 +81,9 @@ def bkt_update(
 
     # 3. Learning transition
     p_new = p_obs + (1 - p_obs) * p_t
-    p_new = min(p_new, cap)
+    # 红线 P(L)∈(0,0.97]：上界封顶 cap，下界显式 clip 到 floor>0，
+    # 防退化输入（如 r=0 / 病态先验）把掌握度压到 0 或负。
+    p_new = min(max(p_new, _PL_FLOOR), cap)
 
     # 4. Update state (in-place)
     state.p_mastery = p_new

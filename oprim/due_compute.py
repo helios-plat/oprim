@@ -19,13 +19,17 @@ def due_compute(*, card_dict: dict, now: Optional[datetime] = None) -> bool:
     Returns
     -------
     bool
-        如果卡片已到期（due <= now）或未设置复习时间（新卡片），则返回 True，否则返回 False。
+        卡片已到期（已排程且 due <= now）返回 True；未设置 due（未排程/新卡片）返回 False。
+
+    Note
+    ----
+    单源到期语义（item 13）：missing due → 未排程 → **不到期**。复习池只收"已学过且到期"
+    的卡片；从未排程的新卡片由新学路径处理，不应混进复习池（与 review_queue_workflow 一致）。
     """
     due_iso = card_dict.get("due")
     if not due_iso:
-        # 新卡片或无 due 的情况，算见到期或立即可复习
-        return True
-        
+        return False
+
     try:
         if hasattr(due_iso, "isoformat"):
             due_dt = due_iso
@@ -33,7 +37,7 @@ def due_compute(*, card_dict: dict, now: Optional[datetime] = None) -> bool:
             # 兼容 python 3.11 以前如果 Z 不带冒号可能出错，但这里假定标准 ISO
             due_dt = datetime.fromisoformat(due_iso.replace('Z', '+00:00'))
     except ValueError:
-        return True
+        return False  # 无法解析的 due 视为未排程（不混入复习池）
 
     now = now or datetime.now(timezone.utc)
     return now >= due_dt
