@@ -15,8 +15,22 @@ from datetime import datetime, timezone
 from typing import Optional
 from fsrs import Scheduler, Card, Rating
 
-# 全局调度器（可后续按学生加载个性化参数）
+from functools import lru_cache
+
+# 全局调度器（默认 FSRS-6 权重）
 _scheduler = Scheduler()
+
+
+@lru_cache(maxsize=64)
+def _scheduler_for(parameters: tuple | None) -> Scheduler:
+    """按权重向量取（缓存的）Scheduler。parameters=None → 全局默认（行为不变）。
+
+    个性化基础设施：调用方可传按学生/群体优化出的 FSRS 权重，移除"只有一个
+    全局默认 Scheduler"的架构瓶颈。权重的拟合/选择见 services.fsrs_optimize_service。
+    """
+    if not parameters:
+        return _scheduler
+    return Scheduler(parameters=parameters)
 
 
 # fsrs_new_card（初始卡片工厂）归 obase.cognitive_types（单源），此处 re-export 保持兼容。
@@ -44,36 +58,46 @@ def fsrs_review(
     *,
     card_dict: dict,
     rating: Rating,
-    now: datetime | None = None
+    now: datetime | None = None,
+    parameters: tuple | None = None,
 ) -> dict:
-    """对一张卡片做一次复习，返回更新后的 card dict。"""
+    """对一张卡片做一次复习，返回更新后的 card dict。
+
+    parameters：可选的个性化 FSRS 权重；None → 全局默认（行为不变）。
+    """
     card = Card.from_dict(card_dict)
     now = now or datetime.now(timezone.utc)
-    card, _log = _scheduler.review_card(card, rating, review_datetime=now)
+    scheduler = _scheduler_for(parameters)
+    card, _log = scheduler.review_card(card, rating, review_datetime=now)
     return card.to_dict()
 
 
 def fsrs_retrievability(
     *,
     card_dict: dict,
-    now: datetime | None = None
+    now: datetime | None = None,
+    parameters: tuple | None = None,
 ) -> float:
-    """当前可提取性 R (0~1)：此刻能回忆起的概率。"""
+    """当前可提取性 R (0~1)：此刻能回忆起的概率。
+
+    parameters：可选的个性化 FSRS 权重；None → 全局默认（行为不变）。
+    """
     card = Card.from_dict(card_dict)
-    
+
     # 核心修正：对于从未复习过的新卡片，可提取性视为 1.0 (BKT 初始掌握度不衰减)
     if card.last_review is None:
         return 1.0
-        
+
     now = now or datetime.now(timezone.utc)
+    scheduler = _scheduler_for(parameters)
 
     # 优先用官方方法
     for meth in ("get_card_retrievability", "retrievability"):
-        fn = getattr(_scheduler, meth, None) or getattr(card, meth, None)
+        fn = getattr(scheduler, meth, None) or getattr(card, meth, None)
         if callable(fn):
             try:
-                # py-fsrs 5.x+
-                if fn.__self__ is _scheduler:
+                # py-fsrs 5.x+：scheduler 方法签名 (card, now)，card 方法签名 (now)
+                if getattr(fn, "__self__", None) is scheduler:
                     return float(fn(card, now))
                 else:
                     return float(fn(now))
