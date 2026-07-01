@@ -41,7 +41,10 @@ def _build_element_map() -> None:
 
 _build_element_map()
 
-from oprim._cognitive import KCState  # re-export for oskill compatibility
+# KCState 归 obase（经 oprim._cognitive 单源、惰性暴露）。登记到元素表以保持
+# `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
+# __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
+_ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
 def llm_summarize(*args, **kwargs):
     """惰性加载 llm_summarize，调用时才 import obase 依赖。"""

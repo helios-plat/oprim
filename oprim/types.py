@@ -172,4 +172,10 @@ class SocraticTurnResult(BaseModel):
 # ---------------------------------------------------------------------------
 # KCState — defined in _cognitive.py, re-exported here for compatibility
 # ---------------------------------------------------------------------------
-from oprim._cognitive import KCState
+# 惰性暴露：不在 import 时 eager-load obase（KCState 单源在 obase.cognitive_types，
+# 经 oprim._cognitive 转发）。本模块只做兼容再导出，无 import 期运行依赖。
+def __getattr__(name):
+    if name == "KCState":
+        from oprim._cognitive import KCState
+        return KCState
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

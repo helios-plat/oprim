@@ -10,7 +10,16 @@ from typing import Any, Literal, Optional, Dict
 # fsrs imported lazily inside FSRS functions (KCState/BKT don't need it)
 
 # 单源：KCState 与初始状态工厂归 obase（杜绝 obase→oprim 反向依赖），算法仍在本模块。
-from obase.cognitive_types import KCState, new_state_from_prior as bkt_new_state  # noqa: E402,F401
+# 惰性暴露：不在 import 时 eager-load obase，无 obase 环境仍可 import 本模块。
+# 类型注解因 `from __future__ import annotations` 为字符串，运行期不需要 KCState 类对象。
+def __getattr__(name):
+    if name in ("KCState", "bkt_new_state"):
+        from obase.cognitive_types import (
+            KCState,
+            new_state_from_prior as bkt_new_state,
+        )
+        return {"KCState": KCState, "bkt_new_state": bkt_new_state}[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # ── 难度感知发射参数（BKT+IRT，Phase 0）──────────────────────────

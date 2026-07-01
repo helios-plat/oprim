@@ -20,7 +20,12 @@ _scheduler = Scheduler()
 
 
 # fsrs_new_card（初始卡片工厂）归 obase.cognitive_types（单源），此处 re-export 保持兼容。
-from obase.cognitive_types import fsrs_new_card  # noqa: E402,F401
+# 惰性暴露：不在 import 时 eager-load obase，无 obase 环境仍可 import 本模块。
+def __getattr__(name):
+    if name == "fsrs_new_card":
+        from obase.cognitive_types import fsrs_new_card
+        return fsrs_new_card
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def fsrs_map_rating(
