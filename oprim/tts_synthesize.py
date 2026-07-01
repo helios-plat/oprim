@@ -62,7 +62,7 @@ async def tts_synthesize(
         raise TTSError("text must not be empty")
 
     try:
-        tts_fn = ProviderRegistry.get(category="tts", name=provider)
+        tts_fn = ProviderRegistry.get().generic("tts", provider)
     except ProviderNotFoundError as exc:
         raise TTSError(f"TTS provider not found: {provider!r}") from exc
 

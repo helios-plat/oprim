@@ -2,6 +2,366 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [3.9.0] — 2026-06-14
+
+### Added (H-B: IO oprim 36 新建)
+
+**A组 — 文件 IO 扩展 (5)**
+- feat: `ensure_parent_dir` — 幂等创建父目录链（atomic_write 辅助）
+- feat: `file_read_bytes` — 字节范围读取（offset/length，图片/二进制 part）
+- feat: `image_to_base64` — 图片 → base64 ASCII 字符串（多模态 part，不校验 mime）
+- feat: `atomic_write` — 原子写（临时文件 + fsync + rename，防写一半崩溃）
+- feat: `backup_before_overwrite` — 覆盖前自动备份（.bak / .bak1 序列，undo 辅助）
+
+**B组 — 进程控制扩展 (5)**
+- feat: `spawn_pty` — PTY 伪终端启动（交互式命令，返回 PtyHandle）
+- feat: `stream_stdout` — 流式读进程输出 async generator（PtyHandle | ProcHandle）
+- feat: `kill_process` — 向进程组发信号（TERM/KILL/INT/HUP，幂等）
+- feat: `wait_with_timeout` — 等待进程结束带超时，超时 raise TimeoutError
+- feat: `run_background` — 后台启动进程，立即返回 JobId（UUID4）
+- types: `ProcHandle`, `PtyHandle`, `JobId`, `ExecResult`
+
+**D组 — LSP IO 扩展 (12)**
+- feat: `lsp_goto_definition(path, *, pos, lsp)` — 跳转定义（pos: Pos = tuple[int,int]）
+- feat: `lsp_find_references(path, *, pos, lsp)` — 查找引用
+- feat: `lsp_goto_implementation(path, *, pos, lsp)` — 跳转实现（接口→实现类）
+- feat: `lsp_document_symbol(path, *, lsp)` — 文档符号大纲（singular）
+- feat: `lsp_workspace_symbol(*, query, lsp)` — workspace 符号搜索（singular）
+- feat: `lsp_prepare_call_hierarchy(path, *, pos, lsp)` — 准备调用层级
+- feat: `lsp_incoming_calls(item, *, lsp)` — 谁调用了它
+- feat: `lsp_outgoing_calls(item, *, lsp)` — 它调用了谁
+- feat: `diagnostics_to_summary(diags)` — 诊断列表 → 文本摘要 [s 纯计算]
+- feat: `location_to_snippet(loc, *, ctx)` — Location → 带上下文代码片段
+- upd: `lsp_hover` — 新增 `pos: Pos | None` 和 `lsp:` 参数（向后兼容 line/character/server）
+- upd: `lsp_diagnostics` — 新增 `lsp:` 参数别名（向后兼容 server:）
+- types: `Pos = tuple[int, int]`, `CallItem`
+
+**E组 — 网络 IO 扩展 (5)**
+- feat: `validate_api_key(key, *, provider)` — 校验 API key（anthropic/openai/openrouter/google/mistral/cohere，401→False，网络失败 raise）
+- feat: `upload_share(payload, *, endpoint)` — 上传 session payload 返回分享 URL
+- feat: `revoke_share(url)` — 撤销分享链接（404/409 幂等）
+- feat: `fetch_models_dev(*, refresh)` — 从 models.dev 拉取 75+ provider 模型清单
+- feat: `load_skill_raw(path)` — 读 SKILL.md 返回原始字符串（解析交 parse_skill_md H-A）
+- types: `ModelSpec`, `ShareUrl`
+
+**G组 — MCP IO 扩展 (2)**
+- feat: `mcp_connect(server_url, *, timeout)` — 连接 MCP server（HTTP/SSE + stdio://），返回 McpSession
+- feat: `load_custom_tool(path)` — 加载 .ts/.js/.json/.yaml tool 定义，返回 Tool
+- types: `McpSession`, `Tool`
+
+**H组 — Git 原子 (7)**
+- feat: `parse_git_status(raw)` — 解析 git status --porcelain 输出 [s 纯计算]
+- feat: `parse_git_diff(raw)` — 解析 git diff unified format → FileChange 列表 [s 纯计算]
+- feat: `parse_gitignore(content)` — 解析 .gitignore → GitIgnorePattern 列表 [s 纯计算]
+- feat: `detect_project_type(root)` — 探测项目类型（读盘标志文件，不依赖 git）
+- feat: `git_current_branch(*, cwd)` — 当前分支名（detached HEAD 返回短 hash）
+- feat: `git_snapshot(*, cwd)` — 创建工作区快照（stash push + unique id）
+- feat: `git_restore_snapshot(snap_id, *, cwd)` — 恢复快照（stash pop，empty: 前缀 no-op）
+- types: `GitStatus`, `StatusEntry`, `FileChange`, `GitIgnorePattern`, `ProjectType`, `SnapshotId`
+
+## [3.1.1] — 2026-06-13
+
+### Fixed (B-1 + B-2)
+- fix(B-2): `from oprim import image_generate` returned `<module>` instead of `<function>` — PEP 562 lazy loading (v2.38.0) removed the v2.24.1 explicit re-exports; restored for `image_generate`, `image_understand`, `tts_synthesize`
+- feat(B-1): `[project.entry-points."obase.providers"]` — `qwen3_dashscope` + `qwen3` LLM providers now declared; `ProviderRegistry.auto_discover()` can discover without manual Layer-4 bootstrap
+
+## [3.1.0] — 2026-06-13
+
+### Added (hevi v2 — M1/M3 新建 + M2/M4 扩展)
+- feat: `ltx2_cloud_generate` — LTX-2 cloud video generation via fal.ai (T2V/I2V, ≤20s, async poll, base64 i2v)
+- feat: `vibevoice_synthesize` — VibeVoice 1.5B 本地多说话人 TTS (zero-shot 克隆, 分段, safety watermark)
+- feat: `video_generate` +`"wan_cloud"` provider — Wan 2.6/2.7 Alibaba Cloud T2V/I2V (删 duration 参数)
+- feat: `avatar_generate` +`"duix"` provider — Duix-Avatar 本地 Docker REST (fun-asr + fish-speech + duix.avatar)
+- Internal: `_providers/wan_cloud.py`, `_providers/duix.py`
+
+## [3.0.0] — 2026-06-13
+
+### Removed — BREAKING CHANGES
+- 删除: `db_insert` / `db_query` / `db_read` / `db_write` / `db_update` / `db_soft_delete` (已迁移至 obase.persistence)
+- 删除: `cache_invalidate` (已迁移至 obase.cache)
+- 删除: `_docker.py` (整文件 + 22 个 `docker_*` 函数，已迁移至 obase.docker)
+- 删除: `realtime_quote_redis_fetch` (依赖 redis)
+- pyproject 移除重依赖: `docker` / `psycopg` / `redis`
+
+## [2.38.0] — 2026-06-12
+
+### Changed — L2 枢纽惰性化
+- feat: 顶层 `__init__.py` 惰性化: 采用 PEP 562 (`__getattr__`) + AST 静态扫描机制。
+- 效果: `import oprim` 启动速度提升 ~15x (~2s → <150ms)，且在仅访问纯函数时不再触发 `docker` / `httpx` / `psycopg2` 等重依赖加载。
+- 兼容性: 100% 保持现有 `from oprim import <name>` 路径可用 (含 519 个导出项)，非 BREAKING。
+
+## [2.37.0] — 2026-06-12
+
+### Added (AII 3O Batch 6 — 2 new elements)
+- feat: `mathlib_lookup` — 查一个标识符在 Mathlib 的形式化条目: 通过 Loogle API 查询 Lean/Mathlib 既有形式化定理条目; count==1 表示唯一无歧义命中, 可用于既有定理确证 (不需现场证明)。依赖 obase.http.dns_pinned_transport。
+- feat: `epistemic_confidence_compute` — 按 grade 加权算整体认知可信度: 输入一组检索 KU 的 grade → 输出加权整体可信度 [0,1]。跨项目复用: Tide 信号可信度 / Stratum 引用置信 / Aegis 根因可信度。
+
+## [2.36.1] — 2026-06-12
+
+### Fixed
+- fix: 声明缺失依赖 `fsrs>=4.0.0`（`oprim.cognitive` 使用 `fsrs.Card/Rating/Scheduler`，容器重建后 ModuleNotFoundError；陷阱 11 变体）
+
+## [2.31.0] — 2026-06-05
+
+### Added (Aegis 3O Element IMPL SPEC v1.0 — B2: 25 new elements)
+- **Docker short-names**: `docker_logs`, `docker_ps`, `docker_restart`, `docker_stats`, `docker_inspect`, `docker_compose_up`, `docker_compose_down` (aliases over existing `docker_container_*`/`compose_*`)
+- **`docker_compose_pull`**: new — `docker compose pull` subprocess wrapper; raises `OprimNotFoundError` if compose file missing, `OprimConnectionError` on non-zero exit
+- **PostgreSQL aliases**: `postgres_long_running_queries` → `postgres_slow_queries`, `postgres_locks` → `postgres_locks_status`
+- **RabbitMQ focused wrappers**: `rabbitmq_queue_depth` (ready+unacked int), `rabbitmq_consumer_count` (consumers int)
+- **Network aliases**: `network_port_check` → `tcp_port_check`, `network_http_health` → `http_health_probe`, `network_dns_resolve` → `dns_resolve`
+- **Filesystem**: `fs_disk_usage` → `disk_usage` alias; `fs_inode_check` — new inode stat via `os.statvfs`
+- **System focused wrappers**: `system_cpu_usage` (float 0–100), `system_ram_usage` (dict), `system_load_avg` (dict with 1m/5m/15m)
+- **Caddy new ops**: `caddy_admin_config` (GET full config), `caddy_admin_routes` → `caddy_routes_list` alias, `caddy_route_add_atomic` (GET→insert→PUT), `caddy_route_remove_atomic` (GET→filter→PUT)
+- **`appstore_catalog_fetch`** (new module `appstore_catalog_fetch.py`): httpx GET catalog endpoint → `AppCatalogEntry` Pydantic model
+- 80 new tests (B2), all green. Pre-existing `postgres_pool_status` and `caddy_admin_reload` count as part of the 27-element surface.
+
+## [2.30.0] — 2026-06-05
+
+### Added (Stratum B2)
+- `searxng_search` — single searxng instance query; SSRF-safe transport for public URLs, direct urllib for Docker-internal (172.17.x.x); structured results with title/url/content/engine/score
+
+## [2.29.1] — 2026-06-04
+
+### Fixed
+- `vector_encode`: `ProviderRegistry.get_instance()` → `ProviderRegistry.get("embedding", provider)` (classmethod, 3-arg form). `except Exception` split: `ProviderNotFoundError` → log.warning + stub; other exceptions re-raise.
+- `llm_extract_ku`: same `get_instance()` fix + `ProviderNotFoundError` vs code-error distinction.
+- `llm_distill_strategy`: same fix. All three were silently falling to stub on every call due to `get_instance()` not existing.
+
+### Tests added
+- 3 tests per element (9 total): provider-not-registered → stub + warning; provider-registered → real call with messages passthrough; code-error → re-raise.
+
+## [2.29.0] — 2026-06-04
+
+### Added (Stratum B2 — 13 new elements)
+**Feed/Content group (B2a):**
+- `url_fetch_ssrf_safe` — SSRF-safe URL fetch via obase.http.dns_pinned_transport
+- `fetch_rss_feed` — RSS 2.0 feed fetch + parse
+- `parse_atom_feed` — Atom 1.0 feed parse from XML string
+- `detect_feed_url` — Auto-detect RSS/Atom URL from HTML <link> tags
+- `podcast_episode_parser` — Podcast RSS with iTunes enclosure/duration
+- `feed_diff_detector` — New/removed items between two feed snapshots
+- `ocr_detect_text` — OCR text extraction via provider (stub fallback)
+
+**Utility group (B2b):**
+- `concept_extractor` — LLM concept extraction (stub: capitalized phrase regex)
+- `keyword_alert_checker` — Exact/regex/fuzzy keyword match with positions
+- `citation_formatter` — APA/MLA/Chicago citation formatting, pure logic
+- `timeline_aggregator` — Items bucketed by day/week/month from timestamps
+- `backlink_resolver` — [[wikilink]] resolution + bidirectional index
+- `graph_traversal` — Generic BFS/DFS traversal, cross-business reusable
+
+## [2.28.0] — 2026-06-04
+
+### Added (AII-3O Batch 5b — P5 causal + backtest)
+- `cmi_verify` — deterministic CMI causal verification: Cohen's d + Welch's t-test p-value, causal_confidence classification (strong/moderate/weak/none); A11/A17 reproducible
+- `backtest_stat` — deterministic backtest statistics from returns series: total_return, annualized_return, annualized_volatility, sharpe_ratio, max_drawdown, win_rate; A17 reproducible
+
+## [2.27.0] — 2026-06-04
+
+### Added (AII-3O Batch 5a — P3 Q-matrix)
+- `build_q_matrix` — build IRT/CDM Q-matrix from knowledge graph `assesses` edges; pure logic, no LLM; used by cognitive_diagnosis DINA model
+
+## [2.26.0] — 2026-06-04
+
+### Added (AII-3O Batch 4a — P2 knowledge layer)
+- `structural_chunk` — MD semantic chunking, pure logic, no LLM
+- `ku_gate_validate` — HOS-001 three-face-unity gate validation, pure logic
+- `llm_extract_ku` — single LLM call: text → unverified KU candidate (A19)
+- `llm_distill_strategy` — single LLM call: Episode → unverified solution_strategy (A19)
+
+## [2.25.0] — 2026-06-04
+
+### Added (AII-3O Batch 3a)
+- `coherence_compute` — deterministic KU coherence evidence from confirmed knowledge (A20 compliant, extracted from omodul.knowledge_reflux)
+- `entity_graph_search` — single graph BFS traversal from seed nodes, cross-business reusable
+- `vector_encode` — single-call text encoding via obase.ProviderRegistry with deterministic stub fallback
+
+## [2.24.1] - 2026-06-03 — fix: re-export tts_synthesize / image_generate / image_understand
+
+### Fixed
+
+- `oprim/__init__.py`: added missing top-level re-exports for `tts_synthesize`, `image_generate`, `image_understand` (resolves AttributeError from consumers calling `oprim.tts_synthesize` etc.)
+- `__all__` updated with all three symbols
+
+## [2.24.0] - 2026-06-02 — Aegis C3-4 ErrorAggregator primitives
+
+### Added
+
+- `compute_event_fingerprint` — Sentry-style error aggregation key: SHA-256(exception_type|exception_value|top_frame_function|top_frame_filename, null-byte separated). Custom fingerprint override supported. NOT omodul fingerprint (business transaction identity); NOT compute_dedup_key (time-bucket dedup). Stable across time; same error → same fingerprint → same issue.
+
+## [2.23.0] - 2026-06-01 — Stratum Batch 1: 24 P0 oprims
+
+### Added — Stratum B1 P0 — ghost dependency clearance + file/DB/LLM/upload primitives
+
+**File parsers (6)**
+- `file_parser_pdf` — PDF → ParsedDocument via pymupdf4llm; DRM detection
+- `file_parser_epub` — EPUB → ParsedDocument via ebooklib; per-chapter pages
+- `file_parser_html` — HTML → ParsedDocument via trafilatura main-content extraction
+- `file_parser_markdown` — Markdown + YAML frontmatter → ParsedMarkdown via python-frontmatter
+- `file_parser_plaintext` — Plain text → ParsedPlaintext with chardet encoding detection
+- `document_structure_extractor` — ParsedDocument → DocumentStructure (headings, TOC, word count)
+
+**DB operations (7)**
+- `db_insert` — Single row INSERT, returns RETURNING column value
+- `db_query` — Parameterized SELECT, returns list[dict]
+- `db_write` — INSERT with optional ON CONFLICT DO UPDATE (upsert)
+- `db_read` — SELECT by ID with deleted_at IS NULL filter
+- `db_soft_delete` — UPDATE set deleted_at = NOW()
+- `db_update` — UPDATE single row by ID
+- `migration_runner` — Alembic upgrade/downgrade/history/current/stamp
+
+**Utility (5)**
+- `template_render` — Jinja2 string template rendering; strict/non-strict undefined handling
+- `crypto_token_generate` — secrets.token_urlsafe() wrapper; URL-safe or hex output
+- `http_post` — Generic single HTTP POST (distinct from webhook-specific http_post_webhook)
+- `file_size_limiter` — Client-type-aware upload size validation
+- `file_type_detector` — Magic-byte MIME detection + category classification
+
+**LLM (1)**
+- `llm_summarize` — Single LLM call summary via obase.ProviderRegistry; concise/detailed/bullet styles
+
+**Cache (1)**
+- `cache_invalidate` — Redis DEL or in-memory pop; returns True if key existed
+
+**Upload/temp (2)**
+- `file_upload_handler` — Chunked BinaryIO → disk write with SHA-256 checksum
+- `temp_file_manager` — TTL-based temp file registry; create/get/cleanup_expired/cleanup_user
+
+**Push (1)**
+- `push_email` — Single SMTP email send; STARTTLS; plain + HTML multipart
+
+**Auth (1, REUSE★)**
+- `otp_generate` / `otp_verify` — TOTP wrapper (obase.auth.totp equivalent; pyotp)
+
+### Notes
+- oprim-081 otp_generate: REUSE path — pyotp directly used (obase.auth unavailable in oprim venv due to missing argon2-cffi)
+- oprim-078 http_post: NEW (obase has no generic POST; http_post_webhook is webhook-specific)
+- obase dependency: spec requires v0.8.0; current v0.7.0 used — no v0.8.0-specific features required for P0
+- Total new tests: 41 + 37 + 36 + 38 = 152 tests for this batch
+
+## [2.22.0] - 2026-05-31 — Step-12 markets-related oprims (5) for paper_trading_session deps
+
+### Added — 5 markets-related oprims (消除 omodul.paper_trading_session 28 fail 中的 9 fail)
+
+- `detect_daily_limit_up` — A 股日线涨停判定,1e-9 浮点容差,回测日线撮合用
+- `detect_daily_limit_down` — A 股日线跌停判定,对称 detect_daily_limit_up
+- `t_plus_n_blocked` — A 股 T+N 持仓锁定判定(days_held < t_plus_n)
+- `compute_commission` — 券商佣金计算 max(amount × rate, min_fee)
+- `compute_stamp_tax` — 印花税额计算,税率由 caller 从 stamp_tax_rate_by_date 取得
+
+### Notes
+- 5 元素平铺顶层 `oprim/<name>.py`,不放 `oprim/markets/`
+- `_version.py` 同步修复(stale 2.20.0 → 2.22.0)
+- Spec: Tide v4 经理人 Step-12 IMPL SPEC 2026-05-28
+
+## [2.21.0] - 2026-05-31 — P9-B2+B3 payment oprims — Alipay (4) + Stripe (4)
+
+### Added — Alipay payment oprims
+
+- `alipay_create_qr_order` — async face-to-face QR code order via `api_alipay_trade_precreate`; returns `AlipayQRCode(qr_code_url, out_trade_no)`; `sub_code` present → `AlipayAPIError`.
+- `alipay_query_order` — async trade status query via `api_alipay_trade_query`; returns `AlipayTradeStatus(trade_status, trade_no, out_trade_no, total_amount)`; `sub_code` → `AlipayAPIError`.
+- `alipay_refund_order` — async refund via `api_alipay_trade_refund`; full or partial; optional `refund_reason`; returns `True` on success; `sub_code` → `AlipayAPIError`.
+- `alipay_verify_notify_signature` — **sync** RSA2 notification signature verification via python-alipay-sdk `client.verify`; strips `sign`/`sign_type` before verification; missing `sign` → `AlipayInvalidSignatureError`; SDK exception → `AlipayInvalidSignatureError`.
+- `AlipayConfig(app_id, app_private_key, alipay_public_key, notify_url, sandbox)` — shared config model; `sandbox=True` passes `debug=True` to AliPay constructor.
+- `AlipayError` / `AlipayAPIError` / `AlipayInvalidSignatureError` — error taxonomy.
+
+### Added — Stripe payment oprims
+
+- `stripe_create_payment_intent` — async `stripe.PaymentIntent.create` wrapper; returns `StripePaymentIntent`; `StripeError` → `StripeAPIError`.
+- `stripe_retrieve_payment_intent` — async `stripe.PaymentIntent.retrieve` by `intent_id`; returns `StripePaymentIntent`; not found/API error → `StripeAPIError`.
+- `stripe_refund_payment` — async `stripe.Refund.create`; full or partial (`amount` optional); `reason` ∈ `{"duplicate","fraudulent","requested_by_customer"}`; returns `True`; `StripeError` → `StripeAPIError`.
+- `stripe_verify_webhook_signature` — **sync** `stripe.Webhook.construct_event` wrapper; missing `webhook_secret` → `ValueError`; `SignatureVerificationError` → `StripeInvalidSignatureError`; returns `dict[str, object]` event.
+- `StripeConfig(api_key, webhook_secret)` — shared config model.
+- `StripePaymentIntent(intent_id, client_secret, amount, currency, status, metadata)` — result model; `currency` ∈ `{"usd","eur","cny","gbp","hkd"}`; `status` full Stripe lifecycle Literal.
+- `StripeError` / `StripeAPIError` / `StripeInvalidSignatureError` — error taxonomy.
+- 26 tests (6 alipay-verify + 5 stripe-create + 5 stripe-retrieve + 5 stripe-refund + 5 stripe-webhook); ruff clean; mypy --strict clean.
+
+## [2.20.0] - 2026-05-30 (planned) — Aegis C2 B2-B5 webhook pipeline
+
+### Added — B2 single-shot webhook delivery
+
+- `http_post_webhook` — keyword-only HTTP POST webhook delivery; never raises; all errors returned via `WebhookResult.success=False`.
+- `WebhookResult(success, status_code, elapsed_ms, response_body, error)` — result model; `status_code=None` on network error; `response_body` truncated to 4 096 chars.
+- Error taxonomy: `"timeout"`, `"connect_failed: ..."`, `"http_4xx"`, `"http_5xx"`, `"payload_not_serializable: ..."`, `"unexpected: ..."`.
+- `follow_redirects=False` by default (SSRF prevention); `signature` / `signature_header` kwargs for HMAC delivery.
+- 18 tests; ruff clean; mypy --strict clean.
+
+### Added — B3 triple-tier threshold severity evaluator
+
+- `evaluate_threshold_rule` — keyword-only single-value vs dual-threshold triple-tier evaluator for alert engines; never silently passes misconfigured rules.
+- `ThresholdResult(triggered, severity, reason, metric, current_value, threshold_breached)` — result model; `severity` ∈ `{"ok","warn","critical"}`; `threshold_breached=None` when ok.
+- `ThresholdRuleError` — raised immediately on any misconfiguration: missing fields, unsupported operator, inverted warn/critical thresholds, threshold not a dict.
+- Supports four operators: `>=`, `>` (higher = more severe) and `<=`, `<` (lower = more severe); semantic order validated per direction.
+- 27 tests; ruff clean; mypy --strict clean.
+
+### Added — B4 time-window throttle decision
+
+- `should_throttle` — keyword-only time-window throttle gate; returns `True` (skip) when still within window, `False` (allow) when window expired or never fired.
+- `last_fired_at=None` → always allow (False); `throttle_seconds <= 0` → `ValueError`; naive datetimes → `ValueError`.
+- `now` kwarg for deterministic testing; defaults to `datetime.now(UTC)`.
+- 9 tests; ruff clean; mypy --strict clean.
+
+### Added — B5 time-bucket dedup key
+
+- `compute_dedup_key` — keyword-only SHA-256 time-bucket dedup key; NOT omodul fingerprint (content identity); this is time-window identity (same inputs in different buckets → different key).
+- `rule_id` + `entity_id` + `bucket_start` + `bucket_seconds` → SHA-256 hex (64 chars).
+- `bucket_seconds <= 0` → `ValueError`; naive `bucket_anchor` → `ValueError("timezone-aware")`; `bucket_anchor=None` → `datetime.now(UTC)`.
+- 12 tests; ruff clean; mypy --strict clean.
+
+## [2.19.0] - 2026-05-30 — B9 realtime detector oprims (7 detectors)
+
+### Added — B9 realtime detectors
+
+- `detect_sector_collapse` — 板块塌方: 1H 跌幅 > T1 AND 内部分化 std > T2; `SectorCollapseConfig`.
+- `detect_dragon_switch` — 龙头切换: 原 Top1 滞涨 AND 新候补量比放大; `DragonSwitchConfig`.
+- `detect_hot_money_converge` — 游资集中: 知名席位命中数 ≥ T1 AND 净买入 ≥ T2; 席位表注入; `HotMoneyConvergeConfig`.
+- `detect_limit_board_explosion` — 涨停炸板: 调 `limit_status_calc` 判状态切换 + 放量验证; `LimitBoardExplosionConfig`.
+- `detect_volume_spike` — 异常放量: 调 `volume_ratio` + MA20 价格确认 + 5min 涨幅; `VolumeSpikeConfig`.
+- `detect_northbound_reversal` — 北向逆转: 连续 N min 净流入后突现净流出 ≥ T1 亿; `NorthboundReversalConfig`.
+- `detect_news_shock` — 新闻冲击: `financial_metric_extraction` 情感命中 + inline 5min 波动率; 确认为 oprim (单 oprim 调用 + inline 计算); `NewsShockConfig`.
+- `DetectorSignal(detector_name, severity, triggered_at, evidence)` — 统一信号模型, 定义于 `_detector_types.py`.
+- 所有检测器: 同步函数, keyword-only, hit→`DetectorSignal | None`, 数据注入, 阈值 `ConfigModel` 参数化.
+- `detect_limit_board_explosion` / `detect_volume_spike` 各调用 1 个既有 oprim (符合单一调用约定).
+- 49 tests total (≥5 per detector, 7 additional structural tests); 2.18.0 → 2.19.0.
+
+## [2.18.0] - 2026-05-29 — B8 utility/compute oprims (13 oprims)
+
+### Added — B8 utility/compute
+
+- `compute_seat_t3_return` — 席位 T+3 收益率计算; `SeatT3ReturnResult(return_pct, is_profit)`.
+- `fetch_themes_daily` — async 每日概念主题行情 (akshare); `list[ThemeEntry]` 按涨跌幅降序.
+- `theme_to_sw_industry_mapping` — 概念→申万行业查表映射 (mapping_table 注入); `list[ThemeSWMapping]`.
+- `fetch_sector_returns` — async 申万板块涨幅 (akshare); `top_n` 截断.
+- `pe_ttm_lookback_safe` — 消除前视偏差 TTM PE; `lag_days=45`; `PETTMResult(pe_ttm, eps_ttm, warning)`.
+- `stop_loss_compliance_check` — 止损合规判定; `StopLossResult(triggered, action)`.
+- `realtime_quote_redis_fetch` — async Redis 实时行情 + EOD 兜底; 使用既有 `CacheClient` Protocol.
+- `stamp_tax_rate_by_date` — A股印花税率; 2023-08-28 精确切换 1‰→0.5‰; 仅卖方.
+- `broker_export_render` — 配置驱动券商导出 (csv/tsv/json); `template_config` 注入.
+- `compliance_disclaimer_inject` — 注入"信息参考, 不构成投资建议"; prefix/suffix/both.
+- `monthly_review_jinja2_render` — Jinja2 月度复盘模板渲染; `template_dir` 注入; `RenderedReport`.
+- `train_val_oos_splitter` — 60/20/20 时序切分; 严格时序, 无 shuffle; `TrainValOOSSplit`.
+- `detect_volume_dryup_breakout` — 缩量调整后放量突破 (华安规律 ①); `VolumeBreakoutResult`.
+- `jinja2>=3.0` 加入 `pyproject.toml` 主依赖.
+- 84 tests total across 13 oprims (≥5 each); 2.17.0 → 2.18.0.
+
+## [2.17.0] - 2026-05-29 — B7 macro data fetch oprims (8 oprims)
+
+### Added — B7 macro data fetch
+
+- `oprim.fetch_macro_m2` — PBoC M2 monthly money supply; indicators `m2_yoy` (%) + `m2_abs` (亿元).
+- `oprim.fetch_macro_pboc` — PBoC open market ops (reverse repo / MLF / SLF); indicators `pboc_reverse_repo_rate`, `pboc_mlf_rate`, `pboc_slf_rate`.
+- `oprim.fetch_macro_cpi_ppi_pmi` — NBS monthly CPI/PPI/PMI (3 parallel fetches); indicators `cpi_yoy`, `ppi_yoy`, `pmi_mfg`.
+- `oprim.fetch_macro_lpr` — LPR 1y / 5y+ irregular; indicators `lpr_1y`, `lpr_5y`.
+- `oprim.fetch_macro_rrr` — PBoC RRR irregular; indicators `rrr_large`, `rrr_small`.
+- `oprim.fetch_macro_yield_spread` — Daily China–US 10y yield spread; indicator `cn_us_yield_spread_10y`; raw yields in `metadata`.
+- `oprim.fetch_macro_calendar` — China econ calendar events with actual + forecast; `indicator` = event name; `metadata["forecast"]` / `metadata["prev"]`.
+- `oprim.fetch_macro_policy_news` — Policy-relevant headlines (央行/财政部/发改委/证监会/商务部); `indicator="policy_news"`, `value=0.0`, text in `metadata`.
+- `oprim._macro_types.MacroDataPoint` — Shared Pydantic model (indicator, date, value, metadata).
+- `oprim._macro_types.MacroFetchError` — Inherits `OprimError`; raised on network error, licensed source, or bad response.
+- All 8 use `source: Literal["wind","akshare","tushare"]="akshare"`; wind/tushare raise immediately.
+- `akshare>=1.14` added to `pyproject.toml` as optional dep `[macro]` — `pip install oprim[macro]`.
+- 44 tests total (≥5 per oprim); akshare calls fully mocked — no network required.
+
 ## [2.15.0] - 2026-05-28 — Tide v4 B1-B3 extraction (11 oprims)
 
 ### Added — Tide v4 B1-B3 — A股技术/基本面/选股 oprim
@@ -335,3 +695,193 @@ All future Phase releases must:
 1. Use independent feat branches (not accumulate Phases on one branch)
 2. Merge to main via PR before tagging
 3. Tag on main (never on feat branches)
+
+## [3.2.0] — 2026-06-13
+### Added
+- hicode 批次 A-C: file_*/git_*/bash_exec/lsp_*/mcp_*/llm_complete/llm_stream
+  embed_text/http_fetch/web_search/build_system_prompt/truncate_messages
+  extract_thinking/snapshot_conversation/parse_unified_diff/compute_diff
+  detect_language/html_to_markdown/redact_secrets/count_tokens/estimate_cost
+  run_hook/load_image/read_skill_frontmatter/git_worktree_* (共 55 个新元素)
+
+## [3.8.0] — 2026-06-14
+### Added
+- hicode 批次 H-A: 纯计算 oprim 100 个新元素
+  (file_read_range/detect_encoding/detect_mime/is_binary/truncate_for_context/
+   add_line_numbers/normalize_line_endings/preserve_indentation/
+   apply_string_replace/verify_unique_match/apply_patch/apply_hunk/
+   plan_multiedit/detect_edit_conflict/parse_ripgrep_output/sort_by_mtime/
+   format_tree/apply_gitignore/build_ripgrep_args/truncate_output/strip_ansi/
+   parse_exit_signal/sanitize_env/detect_shell/extract_main_content/
+   validate_url/resolve_redirect/todo_*/session_*/to_*_format/from_*_format/
+   normalize_tool_schema/normalize_stop_reason/patch_provider_quirk/
+   map_model_alias/inject_cache_control/split_system_message/make_*_part/
+   render_part/parts_to_message/message_to_parts/merge_streaming_parts/
+   build_system_prompt/inject_agents_md/parse_tool_calls/parse_stop_reason/
+   format_tool_results/build_tool_schema/select_compaction_window/
+   merge_summary/should_compact/extract_pinned_messages/build_compaction_prompt/
+   resolve_config_paths/parse_json_config/parse_markdown_agent/
+   interpolate_env_vars/resolve_config_path_refs/parse_skill_md/
+   resolve_external_dir/check_path_allowed/match_wildcard_pattern/
+   classify_risk/match_bash_command_rule/resolve_agent_permissions/
+   serialize_share_payload/redact_share_secrets/redact_secret/make_event/
+   serialize_event/deserialize_event/event_should_sync/select_model/
+   filter_curated_models/resolve_model_capabilities/resolve_subagent_tools/
+   summarize_subagent_result/mcp_tool_to_schema/build_question_payload/
+   parse_question_answer/estimate_tokens/count_message_tokens)
+
+## [3.10.2] — 2026-06-13
+### Fixed
+- types.py: re-export KCState from _cognitive (修复 bkt.py 等 from oprim.types import KCState 的 ImportError)
+- v3.10.1 fix 不完整，本次彻底修复
+
+## [3.10.3] — 2026-06-14
+### Fixed
+- finance.py: add public re-export facade (oprim.finance, 修复 omodul/strategies import)
+- __init__.py: re-export llm_summarize (修复 from oprim import llm_summarize)
+### Note
+- 含 v3.10.1/v3.10.2 的 KCState 修复（已在远端，本地 merge 进来）
+
+## [3.10.4] — 2026-06-14
+### Fixed
+- _llm_summarize: ProviderRegistry.get_caller() → ProviderRegistry.get().llm(provider)
+  (get_caller 方法不存在，修正为真实 API)
+
+## [3.10.5] — 2026-06-15
+### Fixed
+- image_generate: ProviderRegistry.get(category=,name=) → get().image_gen(name)
+- image_generate: catch RuntimeError (from image_gen()) alongside ProviderNotFoundError
+
+## [3.10.6] — 2026-06-15
+### Fixed
+- llm/llm_call._call_dashscope: stub → 真实 DashScope HTTP 实现
+  (httpx POST + DASHSCOPE_API_KEY + 429 rate limit 处理)
+- _call_claude: 明确报错指向 oprim.llm_complete (不再静默返回 dummy)
+
+## [3.10.10] — 2026-06-17
+### Fixed
+- _vibevoice_synthesize: AutoModelForTextToWaveform/AutoProcessor →
+  VibeVoiceForConditionalGenerationInference/VibeVoiceProcessor
+  (正确的 vibevoice 包 API，修复 hevi M3 真跑失败)
+
+## [3.10.12] — 2026-06-18
+### Fixed
+- _cognitive.py KCState: 补 p_recognition/p_recognition_init 字段（M-G 识别维度）
+- types.py GradeResult: 补 reason 字段（M-F compute_feedback 依赖）
+
+## [3.10.14] — 2026-06-18
+### Fixed
+- _file_parser_epub: 章节标题改用 TOC 语义标题（spine 文件名→toc title）
+- parser/parse_epub: 同上修复 + metadata 补 author/language
+### Added
+- epub_toc_split: EPUB 按顶层 TOC 拆分（套装→多本，单本→长度1）
+- markdown_frontmatter_build: 元数据 dict → YAML frontmatter 字符串
+- text_clean_publish_noise: 去版权页/水印/页眉页脚/空白页
+
+## [3.10.15] — 2026-06-18
+### Fixed
+- _vibevoice_synthesize: Speaker N 格式化 / speech_outputs 提取 /
+  正确采样率 / 波形 clip（CC fix/m3-m4 真跑验证）
+- _providers/duix: _map_path host↔container 路径映射 /
+  response["data"]["status"] 层级修正 / 失败状态码 3
+- _avatar_generate: 传入 DUIX_HOST_DATA_DIR / DUIX_CONTAINER_DATA_DIR
+- pyproject.toml: 补 vibevoice>=0.0.1 依赖声明
+
+## [3.10.16] — 2026-06-18
+### Fixed
+- _file_parser_pdf: CID/Type1 字体乱码检测 + fallback to blocks mode
+  (\ufffd 比例 > 30% 时自动切换，回归保持向后兼容)
+
+## [3.10.19] — 2026-06-19
+### Changed
+- parser/parse_pdf: embed_images 参数化（默认 False 保持兼容）
+  True 时图片转 base64 嵌入 md（体积增大 ~23x，适合数学图表场景）
+  Stratum 按需传 embed_images=True
+
+## [3.10.20] — 2026-06-19
+### Added
+- arxiv_search: arXiv API 论文检索（分类/关键词/作者/日期过滤，rate limit 遵守）
+- http_download_file: URL→本地文件（流式，支持大文件，可选代理）
+
+## [3.10.20] patch — 2026-06-19
+### Fixed
+- _arxiv_search.py / _http_download_file.py: 补 commit 漏提交的实现文件
+  (v3.10.20 __init__ 已声明但文件未 commit，干净 clone 会崩)
+
+## [3.10.21] — 2026-06-19
+### Added
+- SourceResult: 统一源订阅结果接口（external_id/title/download_url/file_type/metadata）
+- gutenberg_search: Gutendex API 公版书检索（epub/txt，User-Agent 必须）
+- oapen_search: OAPEN + Unpaywall + 白名单过滤（IPv4 强制，Springer OA 子集）
+### Changed
+- http_download_file: 加 force_ipv4 参数（OAPEN 等 IPv6 超时场景）
+- _media_types: 加 SourceResult dataclass
+
+## [3.10.23] — 2026-06-19
+### Fixed
+- epub_toc_split: 过滤辅助节点（扉页/版权页/目录/前言等，内容<2000字符）
+  防止辅助页被拆成独立 EpubBook 进入 bundle 路径
+
+## [3.10.24] — 2026-06-23
+### Fixed
+- 新增 oprim/quant_analysis.py 门面模块，暴露 compute_shapley_decomposition
+  修复 Helios oprim.quant_analysis.compute_shapley_decomposition 调用 500 问题
+- __init__ 补 compute_shapley_decomposition export
+
+## [3.10.25] — 2026-06-23
+### Fixed
+- __init__: llm_summarize 改惰性加载，不在 import 时触发 obase 依赖
+  修复 Helios 等无 obase 环境 import oprim 失败问题（ModuleNotFoundError: obase）
+
+## [3.10.26] — 2026-06-23
+### Fixed
+- __init__: 系统性惰性化所有 obase 依赖模块
+  llm_complete / llm_stream / embed_text / image_generate / image_understand / tts_synthesize
+  全部改为调用时才 import obase，不在 import oprim 时触发
+  修复 Helios 等无 obase 环境 import oprim 失败（打地鼠根治）
+
+## [3.10.27] — 2026-06-23
+### Fixed
+- __init__: 惰性化文件解析器（file_parser_pdf/epub/html + epub_toc_split）
+  修复 fitz/ebooklib/bs4 在无重依赖环境（Helios）触发 ImportError
+  配合 v3.10.26 的 obase 惰性化，import oprim 全程不触发任何重依赖
+  Helios 最小环境三条验收全部通过
+
+## [3.10.28] — 2026-06-23
+### Changed
+- pyproject.toml: 重型依赖移到 optional extras
+  核心依赖（required）：numpy/scipy/pandas/pydantic/chardet/fsrs 等轻量包
+  optional[pdf]: pymupdf/pymupdf4llm
+  optional[epub]: ebooklib/beautifulsoup4
+  optional[storage]: lancedb/tantivy/duckdb
+  optional[llm]: dashscope
+  optional[image]: Pillow
+  optional[tts]: vibevoice
+  optional[cloud]: boto3/google-api/asyncpg
+  optional[full]: 全部 optional 合集
+  Helios 等轻量环境 pip install oprim 不再拉重型依赖
+
+## [3.10.29] — 2026-06-24
+### Added
+- _aii_graph_types: 知识本体受控词表
+  VALID_KNOWLEDGE_TYPES / VALID_RELATION_TYPES / VALID_GRADES / VALID_SUB_TYPES
+  OntologyExtractResult / RegisterKuOntologyInput 共享类型
+
+## [3.10.30] — 2026-06-24
+### Added
+- compute_shapley_values: 真·非线性 Shapley 分解
+  传特征dict + 聚合函数callable，算真边际贡献（在场vs不在场）
+  method=monte_carlo（采样，默认2000）或 exact（2^n，n<=12）
+  确定性（seed）、baseline/residual 显式分离、可加性保证
+  比例分配版 compute_shapley_decomposition 保留作 fallback
+### Fixed
+- _cognitive: fsrs import 改函数内惰性加载
+  KCState/BKT 不依赖 fsrs，import oprim 不再触发 fsrs eager-load
+  根治 __init__ 第124行 + types.py 第175行的 fsrs 链
+
+## [3.10.31] — 2026-06-25
+### Fixed
+- 补全 quant_analysis 门面（之前 v3.10.24 只暴露 shapley，漏了 15 个量化函数）
+- 新增 time_series 门面（percentile_rank 等，oskill.liquidation_cascade_risk 依赖）
+- 补 apply_screen_filter / parse_obsidian_tasks / policy_event_extraction 门面
+- 根治 oskill/omodul 所有 oprim 子模块路径 import（全量冒烟通过）

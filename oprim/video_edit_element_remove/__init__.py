@@ -70,7 +70,7 @@ async def video_edit_element_remove(
         raise FileNotFoundError(f"video_path not found: {video_path}")
 
     try:
-        fn = ProviderRegistry.get(category="video_inpaint", name=inpaint_provider)
+        fn = ProviderRegistry.get().generic("video_inpaint", inpaint_provider)
     except ProviderNotFoundError as exc:
         raise VideoEditProviderNotFoundError(
             f"Inpaint provider not found: {inpaint_provider!r}"

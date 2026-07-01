@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from obase import ProviderRegistry
-from oprim.avatar_generate import AvatarGenError, AvatarSetupError, avatar_generate
+from oprim._avatar_generate import AvatarGenError, AvatarSetupError, avatar_generate
 
 
 @pytest.fixture(autouse=True)

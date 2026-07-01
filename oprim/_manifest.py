@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-VERSION = "2.0.0"
+VERSION = "3.0.0"
 
 ELEMENTS: list[str] = [
     # Time Series (11)
@@ -32,6 +32,17 @@ ELEMENTS: list[str] = [
     "correlation_batch",
     "bayesian_changepoint",
     "posterior_run_length",
+    # Cognitive (10)
+    "bkt_new_state",
+    "bkt_update",
+    "bkt_classify_error",
+    "bkt_predict_correct",
+    "exp_forgetting",
+    "fsrs_new_card",
+    "fsrs_review",
+    "fsrs_retrievability",
+    "fsrs_map_rating",
+    "fsrs_due_date",
     # Distance (5)
     "wasserstein_distance",
     "dtw_distance",
@@ -241,6 +252,60 @@ ELEMENTS: list[str] = [
     "apply_screen_filter",
     # --- Aegis Step 15 B2 --- Security (1)
     "url_safety_check",
+    # --- B9 --- Realtime detectors (7)
+    "detect_sector_collapse",
+    "detect_dragon_switch",
+    "detect_hot_money_converge",
+    "detect_limit_board_explosion",
+    "detect_volume_spike",
+    "detect_northbound_reversal",
+    "detect_news_shock",
+    # --- B8 --- Utility/compute (13)
+    "compute_seat_t3_return",
+    "fetch_themes_daily",
+    "theme_to_sw_industry_mapping",
+    "fetch_sector_returns",
+    "pe_ttm_lookback_safe",
+    "stop_loss_compliance_check",
+    "stamp_tax_rate_by_date",
+    "broker_export_render",
+    "compliance_disclaimer_inject",
+    "monthly_review_jinja2_render",
+    "train_val_oos_splitter",
+    "detect_volume_dryup_breakout",
+    # --- B7 --- Macro data fetch (8)
+    "fetch_macro_m2",
+    "fetch_macro_pboc",
+    "fetch_macro_cpi_ppi_pmi",
+    "fetch_macro_lpr",
+    "fetch_macro_rrr",
+    "fetch_macro_yield_spread",
+    "fetch_macro_calendar",
+    "fetch_macro_policy_news",
+    # --- Step-12 --- markets-related (5)
+    "detect_daily_limit_up",
+    "detect_daily_limit_down",
+    "t_plus_n_blocked",
+    "compute_commission",
+    "compute_stamp_tax",
+    # --- Stratum B1 P0 --- (24)
+    "template_render",
+    "crypto_token_generate",
+    "file_size_limiter",
+    "file_type_detector",
+    "http_post",
+    "migration_runner",
+    "file_parser_pdf",
+    "file_parser_epub",
+    "file_parser_html",
+    "file_parser_markdown",
+    "file_parser_plaintext",
+    "document_structure_extractor",
+    "llm_summarize",
+    "file_upload_handler",
+    "temp_file_manager",
+    "push_email",
+    "otp_generate",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -272,6 +337,19 @@ CATEGORIES: dict[str, list[str]] = {
         "correlation_batch",
         "bayesian_changepoint",
         "posterior_run_length",
+        "compute_peer_percentile",
+    ],
+    "cognitive": [
+        "bkt_new_state",
+        "bkt_update",
+        "bkt_classify_error",
+        "bkt_predict_correct",
+        "exp_forgetting",
+        "fsrs_new_card",
+        "fsrs_review",
+        "fsrs_retrievability",
+        "fsrs_map_rating",
+        "fsrs_due_date",
     ],
     "distance": [
         "wasserstein_distance",
@@ -429,6 +507,42 @@ CATEGORIES: dict[str, list[str]] = {
     ],
     # Aegis Step 15 B2
     "security": ["url_safety_check"],
+    # B9 — realtime detectors (7)
+    "detectors": [
+        "detect_sector_collapse",
+        "detect_dragon_switch",
+        "detect_hot_money_converge",
+        "detect_limit_board_explosion",
+        "detect_volume_spike",
+        "detect_northbound_reversal",
+        "detect_news_shock",
+    ],
+    # B8 — utility/compute (13)
+    "utility": [
+        "compute_seat_t3_return",
+        "fetch_themes_daily",
+        "theme_to_sw_industry_mapping",
+        "fetch_sector_returns",
+        "pe_ttm_lookback_safe",
+        "stop_loss_compliance_check",
+        "stamp_tax_rate_by_date",
+        "broker_export_render",
+        "compliance_disclaimer_inject",
+        "monthly_review_jinja2_render",
+        "train_val_oos_splitter",
+        "detect_volume_dryup_breakout",
+    ],
+    # B7 — macro data fetch (8)
+    "macro": [
+        "fetch_macro_m2",
+        "fetch_macro_pboc",
+        "fetch_macro_cpi_ppi_pmi",
+        "fetch_macro_lpr",
+        "fetch_macro_rrr",
+        "fetch_macro_yield_spread",
+        "fetch_macro_calendar",
+        "fetch_macro_policy_news",
+    ],
 }
 
 STABILITY: dict[str, str] = {e: "stable" for e in ELEMENTS}

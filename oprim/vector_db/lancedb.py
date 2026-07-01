@@ -12,6 +12,11 @@ import pyarrow as pa
 from oprim._logging import log as olog
 from oprim.errors import VectorDBError
 
+# Call optimize() after this many upsert() calls to prevent fragment accumulation.
+# merge_insert creates one new fragment per call; without periodic compaction
+# 600+ fragments accumulate and force full-table scans on every search.
+_OPTIMIZE_EVERY = 50
+
 
 @dataclass
 class VectorRecord:
@@ -47,7 +52,9 @@ class LanceDBVectorDB:
                 pa.field("metadata", pa.string()),
             ]
         )
+        self._upsert_count = 0
         self._tbl = self._get_or_create_table()
+        self._warn_if_no_index()
 
     def _get_or_create_table(self):
         try:
@@ -69,6 +76,25 @@ class LanceDBVectorDB:
                 f"Failed to open/create table {self._table_name}: {e}"
             ) from e
 
+    def _warn_if_no_index(self) -> None:
+        """Log a warning if the table has rows but no ANN index.
+
+        Operator action: call create_index() once (see open_vector_db docstring).
+        Not built automatically to avoid blocking startup for minutes.
+        """
+        try:
+            stats = self._tbl.stats()
+            if stats["num_indices"] == 0 and stats["num_rows"] > 10_000:
+                olog.warn(
+                    "vector_db.no_index",
+                    table=self._table_name,
+                    rows=stats["num_rows"],
+                    hint="run tbl.create_index(metric='cosine', num_partitions=256, "
+                         "num_sub_vectors=128, vector_column_name='embedding') once",
+                )
+        except Exception:
+            pass
+
     def upsert(self, records: list[VectorRecord]) -> None:
         if not records:
             return
@@ -87,6 +113,18 @@ class LanceDBVectorDB:
                 .execute(data)
             )
             olog.emit("vector_upsert", table=self._table_name, count=len(records))
+
+            # Periodic compaction: merge_insert creates one fragment per call.
+            # Without this, hundreds of small fragments accumulate and degrade
+            # search performance from ANN to full-table-scan territory.
+            self._upsert_count += 1
+            if self._upsert_count % _OPTIMIZE_EVERY == 0:
+                self._tbl.optimize()
+                olog.emit(
+                    "vector_db.optimized",
+                    table=self._table_name,
+                    after_upserts=self._upsert_count,
+                )
         except Exception as e:
             olog.error("vector_upsert failed", error=str(e))
             raise VectorDBError(f"Upsert failed: {e}") from e
@@ -98,7 +136,12 @@ class LanceDBVectorDB:
         filter: dict | None = None,
     ) -> list[VectorRecord]:
         try:
-            q = self._tbl.search(query_vec).limit(top_k)
+            q = (
+                self._tbl
+                .search(query_vec, vector_column_name="embedding")
+                .metric("cosine")
+                .limit(top_k)
+            )
             rows = q.to_list()
             results = []
             for row in rows:

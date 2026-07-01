@@ -12,6 +12,7 @@ from pydantic import BaseModel
 # Models
 # ---------------------------------------------------------------------------
 
+
 class SystemSnapshot(BaseModel):
     host: str | None
     cpu_count: int
@@ -43,6 +44,7 @@ class ProcessInfo(BaseModel):
 # ---------------------------------------------------------------------------
 # 9.1 cpu_memory_snapshot
 # ---------------------------------------------------------------------------
+
 
 def cpu_memory_snapshot(
     *,
@@ -102,6 +104,7 @@ def cpu_memory_snapshot(
 # 9.2 process_list_top
 # ---------------------------------------------------------------------------
 
+
 def process_list_top(
     *,
     top_n: int = 20,
@@ -120,8 +123,14 @@ def process_list_top(
 
     procs: list[ProcessInfo] = []
     attrs = [
-        "pid", "name", "cmdline", "cpu_percent", "memory_percent",
-        "memory_info", "status", "username",
+        "pid",
+        "name",
+        "cmdline",
+        "cpu_percent",
+        "memory_percent",
+        "memory_info",
+        "status",
+        "username",
     ]
     for proc in psutil.process_iter(attrs):
         try:
@@ -129,19 +138,82 @@ def process_list_top(
             cmdline = " ".join(info.get("cmdline") or [])
             mem_info = info.get("memory_info")
             rss = mem_info.rss if mem_info else 0
-            procs.append(ProcessInfo(
-                pid=info["pid"],
-                name=info.get("name") or "",
-                cmdline=cmdline[:500],
-                cpu_percent=round(info.get("cpu_percent") or 0.0, 2),
-                memory_percent=round(info.get("memory_percent") or 0.0, 2),
-                memory_rss_bytes=rss,
-                status=info.get("status") or "",
-                user=info.get("username"),
-            ))
+            procs.append(
+                ProcessInfo(
+                    pid=info["pid"],
+                    name=info.get("name") or "",
+                    cmdline=cmdline[:500],
+                    cpu_percent=round(info.get("cpu_percent") or 0.0, 2),
+                    memory_percent=round(info.get("memory_percent") or 0.0, 2),
+                    memory_rss_bytes=rss,
+                    status=info.get("status") or "",
+                    user=info.get("username"),
+                )
+            )
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
 
     key = (lambda p: p.cpu_percent) if sort_by == "cpu" else (lambda p: p.memory_percent)
     procs.sort(key=key, reverse=True)
     return procs[:top_n]
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — focused single-metric wrappers (B2)
+# ---------------------------------------------------------------------------
+
+
+def system_cpu_usage() -> float:
+    """当前 CPU 使用率 (0.0 – 100.0).
+
+    Returns:
+        CPU 使用率百分比 (float, 0–100)
+    """
+    import psutil
+
+    per_core: list[float] = psutil.cpu_percent(interval=0.1, percpu=True)
+    return round(sum(per_core) / len(per_core), 2) if per_core else 0.0
+
+
+def system_ram_usage() -> dict[str, int | float]:
+    """当前内存使用情况.
+
+    Returns:
+        {
+          "total_bytes": int,
+          "used_bytes": int,
+          "available_bytes": int,
+          "used_percent": float,
+        }
+    """
+    import psutil
+
+    mem = psutil.virtual_memory()
+    return {
+        "total_bytes": mem.total,
+        "used_bytes": mem.used,
+        "available_bytes": mem.available,
+        "used_percent": round(mem.percent, 2),
+    }
+
+
+def system_load_avg() -> dict[str, float]:
+    """系统 1/5/15 分钟平均负载.
+
+    Returns:
+        {"load_1m": float, "load_5m": float, "load_15m": float}
+
+    Note:
+        Windows 上 os.getloadavg() 不可用, 返回全零.
+    """
+    import os
+
+    try:
+        l1, l5, l15 = os.getloadavg()
+    except (AttributeError, OSError):
+        l1 = l5 = l15 = 0.0
+    return {
+        "load_1m": round(l1, 2),
+        "load_5m": round(l5, 2),
+        "load_15m": round(l15, 2),
+    }
