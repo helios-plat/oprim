@@ -88,10 +88,31 @@ async def video_generate(
         except WanCloudError as exc:
             raise VideoGenError(f"wan_cloud generation failed: {exc}") from exc
 
+    # B6: 内建 fal 高写实 providers(veo3/kling_v2/hailuo)—— 与 wan_cloud 并列,免 registry
+    # 注册,使 A 组 fal 视频原语可经 video_generate 统一到达(t2v;size→朝向推导)。
+    if provider in ("veo3", "kling_v2", "hailuo"):
+        from oprim._fal_queue_generate import FalQueueError
+        from oprim._hailuo_generate import hailuo_generate
+        from oprim._kling_v2_generate import kling_v2_generate
+        from oprim._veo3_generate import veo3_generate
+
+        _fal = {
+            "veo3": veo3_generate,
+            "kling_v2": kling_v2_generate,
+            "hailuo": hailuo_generate,
+        }
+        try:
+            return await _fal[provider](
+                prompt=prompt,
+                output_path=output_path,
+                duration_s=duration_s,
+                size=(width, height),
+            )
+        except FalQueueError as exc:
+            raise VideoGenError(f"{provider} generation failed: {exc}") from exc
+
     if not ProviderRegistry.has("video_gen", provider):
-        raise VideoGenProviderNotFoundError(
-            f"Video generation provider not found: {provider!r}"
-        )
+        raise VideoGenProviderNotFoundError(f"Video generation provider not found: {provider!r}")
     gen_fn = ProviderRegistry.get().generic("video_gen", provider)
 
     try:

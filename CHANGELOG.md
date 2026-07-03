@@ -10,6 +10,11 @@
 - feat: `fal_queue_generate` —— fal.ai 队列制模型通用提交/轮询/下载工具,带**总超时 deadline**(治 fal 队列卡住时无限轮询);veo3/kling/hailuo(及后续 lipsync)共用。
 - 回迁自 hevi 会话临时实现(`hevi/video/fal_providers.py`),规整为 L2 原语;hevi 后续只在 registry `from oprim import veo3_generate` 等 wire。零新增依赖(httpx 已是 core)。
 
+### Fixed
+- fix(B2): `ltx2_cloud_generate` 新增 `negative_prompt` 参数并下发 payload(fal ltx-video 接受负向,此前漏发)。
+- fix(B3): `ltx2_cloud_generate` 轮询加**总超时 deadline**(`_POLL_TIMEOUT_S=600`),治 fal 任务卡住时 `while True` 无限轮询。
+- fix(B6): `video_generate` 内建 dispatch 增 `veo3`/`kling_v2`/`hailuo`(与 wan_cloud 并列),A 组原语可经 `video_generate(provider=...)` 到达。
+
 ## [3.9.0] — 2026-06-14
 
 ### Added (H-B: IO oprim 36 新建)
