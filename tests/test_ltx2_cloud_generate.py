@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from oprim.ltx2_cloud_generate import Ltx2CloudError, ltx2_cloud_generate
+from oprim import Ltx2CloudError, ltx2_cloud_generate
 
 
 def _make_client(submit_resp: object, poll_resp: object | None, dl_bytes: bytes) -> MagicMock:
@@ -167,7 +167,7 @@ class TestLtx2CloudGenerate:
         client.__aexit__ = AsyncMock(return_value=False)
 
         with patch("httpx.AsyncClient", return_value=client):
-            with patch("oprim.ltx2_cloud_generate.asyncio.sleep", new_callable=AsyncMock):
+            with patch("oprim._ltx2_cloud_generate.asyncio.sleep", new_callable=AsyncMock):
                 result = await ltx2_cloud_generate(
                     config={"FAL_API_KEY": "k"},
                     mode="t2v",

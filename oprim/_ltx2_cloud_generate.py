@@ -28,6 +28,10 @@ class Ltx2CloudError(Exception):
     """LTX-2 fal.ai generation failed."""
 
 
+# B3: 轮询总超时(秒),避免 fal 任务卡住时 `while True` 无限轮询。
+_POLL_TIMEOUT_S = 600.0
+
+
 async def ltx2_cloud_generate(
     *,
     config: dict[str, Any] | None = None,
@@ -37,6 +41,7 @@ async def ltx2_cloud_generate(
     duration_s: float,
     resolution: tuple[int, int],
     audio_enabled: bool = True,
+    negative_prompt: str = "",
     output_path: Path,
     fps: int = 24,
     bitrate_kbps: int | None = None,
@@ -67,17 +72,14 @@ async def ltx2_cloud_generate(
         ... )
     """
     if duration_s > 20:
-        raise ValueError(
-            f"duration_s={duration_s} exceeds LTX-2 single-clip limit of 20s"
-        )
+        raise ValueError(f"duration_s={duration_s} exceeds LTX-2 single-clip limit of 20s")
     if mode == "i2v" and reference_image is None:
         raise ValueError("mode='i2v' requires reference_image")
 
     cfg_dict = config or {}
     api_key: str = cfg_dict.get("FAL_API_KEY") or cfg.get("FAL_API_KEY", "")  # type: ignore[assignment]
-    base_url: str = (
-        cfg_dict.get("FAL_BASE_URL")
-        or cfg.get("FAL_BASE_URL", "https://fal.run/fal-ai/ltx-video")
+    base_url: str = cfg_dict.get("FAL_BASE_URL") or cfg.get(
+        "FAL_BASE_URL", "https://fal.run/fal-ai/ltx-video"
     )  # type: ignore[assignment]
 
     if not api_key:
@@ -93,6 +95,8 @@ async def ltx2_cloud_generate(
     }
     if bitrate_kbps is not None:
         payload["bitrate_kbps"] = bitrate_kbps
+    if negative_prompt:  # B2: fal ltx-video 接受负向提示,此前 payload 漏发
+        payload["negative_prompt"] = negative_prompt
 
     if mode == "i2v" and reference_image is not None:
         if not reference_image.exists():
@@ -111,30 +115,29 @@ async def ltx2_cloud_generate(
     async with httpx.AsyncClient(timeout=300.0) as client:
         resp = await client.post(base_url, json=payload, headers=headers)
         if resp.status_code not in (200, 202):
-            raise Ltx2CloudError(
-                f"fal.ai submit error {resp.status_code}: {resp.text[:300]}"
-            )
+            raise Ltx2CloudError(f"fal.ai submit error {resp.status_code}: {resp.text[:300]}")
         data = resp.json()
 
         # Poll if async job
         request_id: str | None = data.get("request_id")
         if request_id:
             status_url = f"{base_url}/requests/{request_id}/status"
+            _deadline = asyncio.get_event_loop().time() + _POLL_TIMEOUT_S
             while True:
+                if asyncio.get_event_loop().time() > _deadline:  # B3: 总超时,治轮询无限挂
+                    raise Ltx2CloudError(
+                        f"fal.ai poll timeout after {_POLL_TIMEOUT_S:.0f}s (request {request_id})"
+                    )
                 st_resp = await client.get(status_url, headers=headers)
                 if st_resp.status_code != 200:
-                    raise Ltx2CloudError(
-                        f"fal.ai poll {st_resp.status_code}: {st_resp.text[:200]}"
-                    )
+                    raise Ltx2CloudError(f"fal.ai poll {st_resp.status_code}: {st_resp.text[:200]}")
                 st = st_resp.json()
                 job_status = st.get("status", "")
                 if job_status == "COMPLETED":
                     data = st
                     break
                 if job_status in ("FAILED", "CANCELLED"):
-                    raise Ltx2CloudError(
-                        f"fal.ai job {job_status}: {st.get('error', st)}"
-                    )
+                    raise Ltx2CloudError(f"fal.ai job {job_status}: {st.get('error', st)}")
                 await asyncio.sleep(3.0)
 
         video_url: str | None = (
@@ -147,9 +150,7 @@ async def ltx2_cloud_generate(
 
         dl = await client.get(video_url)
         if dl.status_code != 200:
-            raise Ltx2CloudError(
-                f"Video download failed {dl.status_code}: {dl.text[:200]}"
-            )
+            raise Ltx2CloudError(f"Video download failed {dl.status_code}: {dl.text[:200]}")
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_bytes(dl.content)
 
