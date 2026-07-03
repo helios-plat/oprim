@@ -11,6 +11,7 @@
 - 回迁自 hevi 会话临时实现(`hevi/video/fal_providers.py`),规整为 L2 原语;hevi 后续只在 registry `from oprim import veo3_generate` 等 wire。零新增依赖(httpx 已是 core)。
 
 ### Fixed
+- fix(B1): `wan_cloud.invoke` 修正默认端点(`.../video-generation/video-synthesis`)与模型(`wanx2.1-t2v-turbo`,此前 wanx2.6 为 broken 默认),并以 `**_ignored` 吸收 `video_generate` 多传的 `fps`/`bitrate_kbps`(此前 TypeError)。拆 hevi `_patched_wan_invoke` 补丁。
 - fix(B2): `ltx2_cloud_generate` 新增 `negative_prompt` 参数并下发 payload(fal ltx-video 接受负向,此前漏发)。
 - fix(B3): `ltx2_cloud_generate` 轮询加**总超时 deadline**(`_POLL_TIMEOUT_S=600`),治 fal 任务卡住时 `while True` 无限轮询。
 - fix(B6): `video_generate` 内建 dispatch 增 `veo3`/`kling_v2`/`hailuo`(与 wan_cloud 并列),A 组原语可经 `video_generate(provider=...)` 到达。

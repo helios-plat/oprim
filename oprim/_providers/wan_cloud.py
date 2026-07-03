@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import base64
 from pathlib import Path
+from typing import Any
 
 
 class WanCloudError(Exception):
@@ -22,12 +23,13 @@ async def invoke(
     output_path: Path,
     api_key: str,
     base_url: str = (
-        "https://dashscope.aliyuncs.com/api/v1/services/aigc/"
-        "video-generation/generation"
+        # B1: 修正端点(此前 .../video-generation/generation 对 Wan 2.1 无效)
+        "https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis"
     ),
-    model: str = "wanx2.6-t2v-turbo",
+    model: str = "wanx2.1-t2v-turbo",  # B1: 修正默认模型(此前 wanx2.6-t2v-turbo 为 broken 默认)
     poll_interval_s: float = 5.0,
     timeout_s: float = 600.0,
+    **_ignored: Any,  # B1: 吸收 video_generate 多传的 fps/bitrate_kbps(Wan 不用),避免 TypeError
 ) -> Path:
     """Call Alibaba Cloud Wan 2.6/2.7 for T2V or I2V generation.
 
@@ -84,10 +86,7 @@ async def invoke(
         if not task_id:
             raise WanCloudError(f"No task_id in submit response: {submit_data}")
 
-        poll_url = (
-            "https://dashscope.aliyuncs.com/api/v1/tasks/"
-            f"{task_id}"
-        )
+        poll_url = f"https://dashscope.aliyuncs.com/api/v1/tasks/{task_id}"
         poll_headers = {"Authorization": f"Bearer {api_key}"}
         while True:
             await asyncio.sleep(poll_interval_s)
@@ -105,9 +104,7 @@ async def invoke(
                     raise WanCloudError(f"No video_url in task result: {pdata}")
                 dl = await client.get(video_url)
                 if dl.status_code != 200:
-                    raise WanCloudError(
-                        f"Video download failed {dl.status_code}"
-                    )
+                    raise WanCloudError(f"Video download failed {dl.status_code}")
                 output_path.parent.mkdir(parents=True, exist_ok=True)
                 output_path.write_bytes(dl.content)
                 return output_path
