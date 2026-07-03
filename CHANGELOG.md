@@ -5,6 +5,7 @@
 ## [3.11.0] — 2026-07-03
 
 ### Added
+- feat: `edge_tts_synthesize` —— 多语言云 TTS 旁白原语(microsoft edge-tts,免费/不占 GPU/30+ 语言/中文音色自然),与 `vibevoice_synthesize`(本地)并列。逐行合成 → ffmpeg 合并为统一 WAV;按文本自动选中/英音色(含 CJK),支持多语言混排。新增可选依赖 `edge-tts>=7.2`(`tts` extra)。
 - feat: `veo3_generate` / `kling_v2_generate` / `hailuo_generate` —— fal 高写实视频原语(Veo3 / 可灵v2 / 海螺02),与 `ltx2_cloud_generate` 并列。ltx2 基础版写实/人体解剖弱(手崩、768x512),这三者对标真人级,支持 negative_prompt 与朝向(veo3/kling)。均走 fal 队列。
 - feat: `fal_queue_generate` —— fal.ai 队列制模型通用提交/轮询/下载工具,带**总超时 deadline**(治 fal 队列卡住时无限轮询);veo3/kling/hailuo(及后续 lipsync)共用。
 - 回迁自 hevi 会话临时实现(`hevi/video/fal_providers.py`),规整为 L2 原语;hevi 后续只在 registry `from oprim import veo3_generate` 等 wire。零新增依赖(httpx 已是 core)。
