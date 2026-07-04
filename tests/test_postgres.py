@@ -23,18 +23,10 @@ from oprim._exceptions import (
     OprimValidationError,
 )
 from oprim._postgres import (
-    LockInfo,
-    PoolStatus,
-    PruneResult,
-    ReplicationLag,
-    SlowQuery,
-    TableSize,
-)
-from oprim._exceptions import OprimAuthError, OprimConnectionError, OprimError
-from oprim._postgres import (
     AdvisoryLockPlan,
     LockInfo,
     PoolStatus,
+    PruneResult,
     ReplicationLag,
     SlowQuery,
     TableSize,
@@ -456,6 +448,8 @@ class TestPgAdvisoryLockPlan:
         with patch("oprim._postgres.psycopg", None):
             plan = pg_advisory_lock_plan(name="aegis.loop_runner")
         assert plan.key == pg_advisory_lock_plan(name="aegis.loop_runner").key
+
+
 # retention_prune (aegis DESIGN #5)
 # ---------------------------------------------------------------------------
 
