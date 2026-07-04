@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Any
 
 from pydantic import BaseModel
@@ -12,6 +13,7 @@ from oprim._exceptions import (
     OprimConnectionError,
     OprimError,
     OprimTimeoutError,
+    OprimValidationError,
 )
 
 try:
@@ -77,6 +79,10 @@ class AdvisoryLockPlan(BaseModel):
     key: int  # 由 name 派生的稳定 signed 64-bit key(PG advisory lock 用 bigint)
     try_lock_sql: str  # session 级 try-lock;执行后 fetchone()[0] 为 bool(是否获锁)
     unlock_sql: str
+class PruneResult(BaseModel):
+    table: str
+    deleted_rows: int
+    cutoff: str  # ISO 时间戳:此次运行删除的行的 ts 上界(不含)
 
 
 # ---------------------------------------------------------------------------
@@ -481,3 +487,76 @@ def pg_advisory_lock_plan(*, name: str) -> AdvisoryLockPlan:
         try_lock_sql="SELECT pg_try_advisory_lock(%s)",
         unlock_sql="SELECT pg_advisory_unlock(%s)",
     )
+# retention_prune — 按保留期分批删除过期行 (aegis DESIGN #5)
+# ---------------------------------------------------------------------------
+
+_IDENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
+
+
+def _check_identifier(name: str, kind: str) -> str:
+    """校验 SQL 标识符(可选 schema.table),拒绝注入。返回原值。"""
+    if not _IDENT_RE.match(name):
+        raise OprimValidationError(f"invalid {kind} identifier: {name!r}")
+    return name
+
+
+def retention_prune(
+    *,
+    dsn: str,
+    table: str,
+    ts_column: str,
+    retain_days: float,
+    batch_size: int = 10_000,
+    timeout_sec: int = 30,
+) -> PruneResult:
+    """按保留期删除 table 中 ts_column 早于 now()-retain_days 的行(分批).
+
+    幂等:cutoff 在运行开始一次性求值并跨批复用,重跑只删新到期行。分批(ctid IN ...
+    LIMIT)避免长事务/长锁;每批 commit。
+
+    Args:
+        dsn: PostgreSQL 连接串.
+        table: 目标表(可 schema.table). 标识符经正则校验防注入.
+        ts_column: 时间戳列名. 同样校验.
+        retain_days: 保留天数(支持小数). 早于 now()-retain_days 的行被删.
+        batch_size: 每批删除行数上限.
+        timeout_sec: 连接超时秒数.
+
+    Returns:
+        PruneResult 含删除行数与本次 cutoff.
+
+    Raises:
+        OprimValidationError: 标识符非法、retain_days<0 或 batch_size<=0.
+        OprimConnectionError / OprimTimeoutError / OprimAuthError.
+    """
+    _check_identifier(table, "table")
+    _check_identifier(ts_column, "ts_column")
+    if retain_days < 0:
+        raise OprimValidationError(f"retain_days must be >= 0, got {retain_days}")
+    if batch_size <= 0:
+        raise OprimValidationError(f"batch_size must be > 0, got {batch_size}")
+
+    conn = _connect(dsn, timeout_sec)
+    deleted = 0
+    try:
+        with conn.cursor() as cur:
+            # cutoff 一次求值,保证跨批一致(幂等边界)
+            cur.execute("SELECT now() - (%s * interval '1 day')", (retain_days,))
+            row = cur.fetchone()
+            cutoff = row[0] if row else None
+
+            del_sql = (
+                f"DELETE FROM {table} WHERE ctid IN ("  # noqa: S608 — 标识符已校验
+                f"SELECT ctid FROM {table} WHERE {ts_column} < %s LIMIT %s)"
+            )
+            while True:
+                cur.execute(del_sql, (cutoff, batch_size))
+                n = cur.rowcount
+                conn.commit()
+                deleted += n if n > 0 else 0
+                if n < batch_size:
+                    break
+    finally:
+        conn.close()
+
+    return PruneResult(table=table, deleted_rows=deleted, cutoff=str(cutoff))
