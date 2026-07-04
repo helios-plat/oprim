@@ -27,6 +27,8 @@ class DiskUsage(BaseModel):
     used_bytes: int
     free_bytes: int
     used_percent: float
+    threshold_percent: float | None = None
+    over_threshold: bool | None = None
 
 
 class ArchiveResult(BaseModel):
@@ -54,14 +56,17 @@ class ArchiveResult(BaseModel):
 def disk_usage(
     *,
     path: str,
+    threshold_percent: float | None = None,
 ) -> DiskUsage:
     """查 path 所在文件系统的使用情况.
 
     Args:
         path: 文件系统路径
+        threshold_percent: 可选使用率告警阈值(0-100). 给定时结果的 over_threshold 置为
+            used_percent >= threshold_percent;不给则 over_threshold 为 None(未评估).
 
     Returns:
-        DiskUsage 含 total / used / free bytes 和使用率
+        DiskUsage 含 total / used / free bytes 和使用率;给定阈值时含 over_threshold.
 
     Raises:
         OprimNotFoundError: path 不存在
@@ -72,6 +77,7 @@ def disk_usage(
 
     usage = shutil.disk_usage(path)
     used_percent = (usage.used / usage.total * 100.0) if usage.total > 0 else 0.0
+    over_threshold = used_percent >= threshold_percent if threshold_percent is not None else None
 
     return DiskUsage(
         path=str(p.resolve()),
@@ -79,6 +85,8 @@ def disk_usage(
         used_bytes=usage.used,
         free_bytes=usage.free,
         used_percent=round(used_percent, 2),
+        threshold_percent=threshold_percent,
+        over_threshold=over_threshold,
     )
 
 
