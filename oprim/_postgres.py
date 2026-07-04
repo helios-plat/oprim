@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 from pydantic import BaseModel
@@ -69,6 +70,13 @@ class ReplicationLag(BaseModel):
     is_primary: bool
     replicas: list[dict[str, Any]]
     max_lag_seconds: float | None
+
+
+class AdvisoryLockPlan(BaseModel):
+    name: str
+    key: int  # 由 name 派生的稳定 signed 64-bit key(PG advisory lock 用 bigint)
+    try_lock_sql: str  # session 级 try-lock;执行后 fetchone()[0] 为 bool(是否获锁)
+    unlock_sql: str
 
 
 # ---------------------------------------------------------------------------
@@ -434,3 +442,42 @@ def postgres_replication_lag(
 
 postgres_long_running_queries = postgres_slow_queries
 postgres_locks = postgres_locks_status
+
+
+# ---------------------------------------------------------------------------
+# pg_advisory_lock_plan — 无状态 advisory lock 规划 (aegis DESIGN #1)
+# ---------------------------------------------------------------------------
+
+
+def _derive_advisory_key(name: str) -> int:
+    """由角色名派生稳定的 signed 64-bit key(PG advisory lock 用 bigint)。"""
+    digest = hashlib.sha256(name.encode("utf-8")).digest()[:8]
+    return int.from_bytes(digest, "big", signed=True)
+
+
+def pg_advisory_lock_plan(*, name: str) -> AdvisoryLockPlan:
+    """为命名角色锁生成 session 级 advisory lock 的 key 与 SQL(无状态)。
+
+    oprim 不持连接、不获锁:仅由 name 派生稳定 bigint key 并给出参数化 try-lock/unlock
+    SQL。"锁随连接存活"是有状态且与运行时(async)强绑定的责任,归调用方——aegis 在一条
+    **专用长连接**上执行 try_lock_sql,`fetchone()[0]` 为是否获得角色(如 loop-runner)的
+    bool;放弃角色/进程退出时执行 unlock_sql(或直接关连接由 PG 自动释放 session 锁)。
+
+    Args:
+        name: 角色/资源名(如 "aegis.loop_runner")。同名跨进程派生同 key → 全局互斥。
+
+    Returns:
+        AdvisoryLockPlan 含 key 与参数化 SQL(占位符绑定 key)。
+
+    Example:
+        >>> plan = pg_advisory_lock_plan(name="aegis.loop_runner")
+        >>> plan.try_lock_sql
+        'SELECT pg_try_advisory_lock(%s)'
+        >>> # 调用方: cur.execute(plan.try_lock_sql, (plan.key,)); got = cur.fetchone()[0]
+    """
+    return AdvisoryLockPlan(
+        name=name,
+        key=_derive_advisory_key(name),
+        try_lock_sql="SELECT pg_try_advisory_lock(%s)",
+        unlock_sql="SELECT pg_advisory_unlock(%s)",
+    )
