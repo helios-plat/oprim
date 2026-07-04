@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from unittest.mock import MagicMock, patch, call
 
 import pytest
@@ -13,12 +14,19 @@ from oprim import (
     postgres_replication_lag,
     postgres_slow_queries,
     postgres_table_size,
+    retention_prune,
 )
-from oprim._exceptions import OprimAuthError, OprimConnectionError, OprimError
+from oprim._exceptions import (
+    OprimAuthError,
+    OprimConnectionError,
+    OprimError,
+    OprimValidationError,
+)
 from oprim._postgres import (
     AdvisoryLockPlan,
     LockInfo,
     PoolStatus,
+    PruneResult,
     ReplicationLag,
     SlowQuery,
     TableSize,
@@ -440,3 +448,94 @@ class TestPgAdvisoryLockPlan:
         with patch("oprim._postgres.psycopg", None):
             plan = pg_advisory_lock_plan(name="aegis.loop_runner")
         assert plan.key == pg_advisory_lock_plan(name="aegis.loop_runner").key
+
+
+# retention_prune (aegis DESIGN #5)
+# ---------------------------------------------------------------------------
+
+
+class TestRetentionPrune:
+    def _build_conn(self, cutoff, delete_rowcounts):
+        conn = MagicMock()
+        cur = MagicMock()
+        cur.__enter__ = MagicMock(return_value=cur)
+        cur.__exit__ = MagicMock(return_value=False)
+        cur.fetchone.return_value = (cutoff,)
+        counts = iter(delete_rowcounts)
+
+        def _exec(sql, params=None):
+            if "DELETE" in sql:
+                cur.rowcount = next(counts)
+
+        cur.execute.side_effect = _exec
+        conn.cursor.return_value = cur
+        return conn
+
+    def _patch(self, conn):
+        p = patch("oprim._postgres.psycopg")
+        m = p.start()
+        m.connect.return_value = conn
+        m.OperationalError = Exception
+        return p
+
+    def test_batched_delete_sums_rowcounts(self):
+        cutoff = datetime(2026, 1, 1)
+        conn = self._build_conn(cutoff, [10, 3])
+        p = self._patch(conn)
+        try:
+            result = retention_prune(
+                dsn="postgresql://u:p@h/db",
+                table="metrics",
+                ts_column="ts",
+                retain_days=15,
+                batch_size=10,
+            )
+        finally:
+            p.stop()
+        assert isinstance(result, PruneResult)
+        assert result.deleted_rows == 13  # 10 + 3, 第二批 < batch 收尾
+        assert result.table == "metrics"
+        assert result.cutoff == str(cutoff)
+        conn.commit.assert_called()
+
+    def test_single_batch_under_limit(self):
+        conn = self._build_conn(datetime(2026, 1, 1), [3])
+        p = self._patch(conn)
+        try:
+            result = retention_prune(
+                dsn="d", table="t", ts_column="ts", retain_days=1, batch_size=10
+            )
+        finally:
+            p.stop()
+        assert result.deleted_rows == 3
+
+    def test_schema_qualified_table_ok(self):
+        conn = self._build_conn(datetime(2026, 1, 1), [0])
+        p = self._patch(conn)
+        try:
+            result = retention_prune(
+                dsn="d",
+                table="public.metrics",
+                ts_column="created_at",
+                retain_days=30,
+                batch_size=100,
+            )
+        finally:
+            p.stop()
+        assert result.deleted_rows == 0
+
+    def test_invalid_table_identifier_rejected(self):
+        with pytest.raises(OprimValidationError):
+            retention_prune(dsn="d", table="metrics; DROP TABLE x", ts_column="ts", retain_days=1)
+
+    def test_invalid_ts_column_rejected(self):
+        with pytest.raises(OprimValidationError):
+            retention_prune(dsn="d", table="metrics", ts_column="ts) OR 1=1--", retain_days=1)
+
+    def test_negative_retain_days_rejected(self):
+        with pytest.raises(OprimValidationError):
+            retention_prune(dsn="d", table="t", ts_column="ts", retain_days=-1)
+
+    def test_zero_batch_rejected(self):
+        with pytest.raises(OprimValidationError):
+            retention_prune(dsn="d", table="t", ts_column="ts", retain_days=1, batch_size=0)
