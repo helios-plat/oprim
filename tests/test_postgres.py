@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch, call
 import pytest
 
 from oprim import (
+    metric_downsample_rollup,
     pg_advisory_lock_plan,
     postgres_locks_status,
     postgres_pool_status,
@@ -28,6 +29,7 @@ from oprim._postgres import (
     PoolStatus,
     PruneResult,
     ReplicationLag,
+    RollupResult,
     SlowQuery,
     TableSize,
 )
@@ -539,3 +541,108 @@ class TestRetentionPrune:
     def test_zero_batch_rejected(self):
         with pytest.raises(OprimValidationError):
             retention_prune(dsn="d", table="t", ts_column="ts", retain_days=1, batch_size=0)
+
+
+class TestMetricDownsampleRollup:
+    def _conn(self, rowcount):
+        conn = MagicMock()
+        cur = MagicMock()
+        cur.__enter__ = MagicMock(return_value=cur)
+        cur.__exit__ = MagicMock(return_value=False)
+        cur.rowcount = rowcount
+        conn.cursor.return_value = cur
+        return conn, cur
+
+    def _patch(self, conn):
+        p = patch("oprim._postgres.psycopg")
+        m = p.start()
+        m.connect.return_value = conn
+        m.OperationalError = Exception
+        return p
+
+    def test_writes_and_returns_count_with_expected_sql(self):
+        conn, cur = self._conn(42)
+        p = self._patch(conn)
+        try:
+            r = metric_downsample_rollup(
+                dsn="d",
+                source_table="raw_metrics",
+                dest_table="metrics_5m",
+                ts_column="ts",
+                value_column="val",
+                agg="avg",
+                bucket_seconds=300,
+                since=datetime(2026, 1, 1),
+            )
+        finally:
+            p.stop()
+        assert isinstance(r, RollupResult)
+        assert r.rows_written == 42
+        assert r.bucket_seconds == 300
+        sql, params = cur.execute.call_args[0]
+        assert "date_bin" in sql
+        assert "avg(val)" in sql
+        assert "ON CONFLICT (bucket)" in sql
+        assert "raw_metrics" in sql and "metrics_5m" in sql
+        assert params[0] == 300
+
+    def test_labels_appear_in_group_and_conflict(self):
+        conn, cur = self._conn(3)
+        p = self._patch(conn)
+        try:
+            metric_downsample_rollup(
+                dsn="d",
+                source_table="raw",
+                dest_table="dst",
+                ts_column="ts",
+                value_column="v",
+                agg="max",
+                bucket_seconds=60,
+                since=datetime(2026, 1, 1),
+                label_columns=["host", "region"],
+            )
+        finally:
+            p.stop()
+        sql = cur.execute.call_args[0][0]
+        assert "GROUP BY bucket, host, region" in sql
+        assert "ON CONFLICT (bucket, host, region)" in sql
+        assert "max(v)" in sql
+
+    def test_invalid_agg_rejected(self):
+        with pytest.raises(OprimValidationError):
+            metric_downsample_rollup(
+                dsn="d",
+                source_table="s",
+                dest_table="d2",
+                ts_column="ts",
+                value_column="v",
+                agg="median",
+                bucket_seconds=60,
+                since=datetime(2026, 1, 1),
+            )
+
+    def test_invalid_identifier_rejected(self):
+        with pytest.raises(OprimValidationError):
+            metric_downsample_rollup(
+                dsn="d",
+                source_table="s; DROP TABLE x",
+                dest_table="d2",
+                ts_column="ts",
+                value_column="v",
+                agg="avg",
+                bucket_seconds=60,
+                since=datetime(2026, 1, 1),
+            )
+
+    def test_zero_bucket_rejected(self):
+        with pytest.raises(OprimValidationError):
+            metric_downsample_rollup(
+                dsn="d",
+                source_table="s",
+                dest_table="d2",
+                ts_column="ts",
+                value_column="v",
+                agg="avg",
+                bucket_seconds=0,
+                since=datetime(2026, 1, 1),
+            )

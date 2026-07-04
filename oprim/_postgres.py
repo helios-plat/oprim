@@ -79,10 +79,19 @@ class AdvisoryLockPlan(BaseModel):
     key: int  # 由 name 派生的稳定 signed 64-bit key(PG advisory lock 用 bigint)
     try_lock_sql: str  # session 级 try-lock;执行后 fetchone()[0] 为 bool(是否获锁)
     unlock_sql: str
+
+
 class PruneResult(BaseModel):
     table: str
     deleted_rows: int
     cutoff: str  # ISO 时间戳:此次运行删除的行的 ts 上界(不含)
+
+
+class RollupResult(BaseModel):
+    source_table: str
+    dest_table: str
+    rows_written: int
+    bucket_seconds: int
 
 
 # ---------------------------------------------------------------------------
@@ -487,10 +496,14 @@ def pg_advisory_lock_plan(*, name: str) -> AdvisoryLockPlan:
         try_lock_sql="SELECT pg_try_advisory_lock(%s)",
         unlock_sql="SELECT pg_advisory_unlock(%s)",
     )
-# retention_prune — 按保留期分批删除过期行 (aegis DESIGN #5)
+
+
+# ---------------------------------------------------------------------------
+# retention_prune (#5) / metric_downsample_rollup (#6) — 共享标识符校验
 # ---------------------------------------------------------------------------
 
 _IDENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
+_AGGS = {"avg", "max", "min", "sum"}
 
 
 def _check_identifier(name: str, kind: str) -> str:
@@ -560,3 +573,81 @@ def retention_prune(
         conn.close()
 
     return PruneResult(table=table, deleted_rows=deleted, cutoff=str(cutoff))
+
+
+def metric_downsample_rollup(
+    *,
+    dsn: str,
+    source_table: str,
+    dest_table: str,
+    ts_column: str,
+    value_column: str,
+    agg: str,
+    bucket_seconds: int,
+    since: Any,
+    label_columns: list[str] | None = None,
+    timeout_sec: int = 30,
+) -> RollupResult:
+    """把 source 原始点按时间桶聚合 upsert 进 dest(幂等)。
+
+    以 date_bin 将 ts_column 分桶(bucket_seconds),按 label_columns 分组,对 value_column
+    取 agg(avg/max/min/sum),ON CONFLICT (bucket, *labels) DO UPDATE —— 重跑同一区间只覆盖
+    对应桶,幂等(DESIGN §7 保留/降采样,C-7)。持连接由本函数管理(与 _postgres 其它函数一致)。
+
+    dest 表约定:列 (bucket timestamptz, *label_columns, value),且在 (bucket, *label_columns)
+    上有唯一约束(供 ON CONFLICT)。表结构由调用方(migration)保证。
+
+    Args:
+        dsn: 连接串.
+        source_table / dest_table: 源表 / 目标表(标识符校验).
+        ts_column / value_column: 时间戳列 / 值列(标识符校验).
+        agg: 聚合函数,取 avg/max/min/sum.
+        bucket_seconds: 桶宽秒.
+        since: 只聚合 ts_column >= since 的行(参数化传入).
+        label_columns: 分组维度列(标识符校验);None=无分组.
+        timeout_sec: 连接超时.
+
+    Returns:
+        RollupResult(rows_written 为本次 upsert 影响行数).
+
+    Raises:
+        OprimValidationError: 标识符非法、agg 不支持、或 bucket_seconds<=0.
+        OprimConnectionError / OprimTimeoutError / OprimAuthError.
+    """
+    _check_identifier(source_table, "source_table")
+    _check_identifier(dest_table, "dest_table")
+    _check_identifier(ts_column, "ts_column")
+    _check_identifier(value_column, "value_column")
+    labels = label_columns or []
+    for c in labels:
+        _check_identifier(c, "label_column")
+    if agg not in _AGGS:
+        raise OprimValidationError(f"agg must be one of {sorted(_AGGS)}, got {agg!r}")
+    if bucket_seconds <= 0:
+        raise OprimValidationError(f"bucket_seconds must be > 0, got {bucket_seconds}")
+
+    label_sql = "".join(f", {c}" for c in labels)
+    sql = (
+        f"INSERT INTO {dest_table} (bucket{label_sql}, value) "  # noqa: S608 — 标识符已校验
+        f"SELECT date_bin(make_interval(secs => %s), {ts_column}, 'epoch'::timestamptz) AS bucket"
+        f"{label_sql}, {agg}({value_column}) "
+        f"FROM {source_table} WHERE {ts_column} >= %s "
+        f"GROUP BY bucket{label_sql} "
+        f"ON CONFLICT (bucket{label_sql}) DO UPDATE SET value = EXCLUDED.value"
+    )
+
+    conn = _connect(dsn, timeout_sec)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, (bucket_seconds, since))
+            written = cur.rowcount
+            conn.commit()
+    finally:
+        conn.close()
+
+    return RollupResult(
+        source_table=source_table,
+        dest_table=dest_table,
+        rows_written=written if written > 0 else 0,
+        bucket_seconds=bucket_seconds,
+    )
