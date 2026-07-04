@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from oprim._exceptions import (
     OprimError,
     OprimNotFoundError,
+    OprimValidationError,
 )
 
 # ---------------------------------------------------------------------------
@@ -303,3 +304,80 @@ def fs_inode_check(
         "inodes_free": free,
         "inodes_used_percent": pct,
     }
+
+
+# ---------------------------------------------------------------------------
+# disk_cleanup — allowlist 硬约束的磁盘清理 (aegis DESIGN §5.2 R2 / §9 S2 护栏)
+# ---------------------------------------------------------------------------
+
+
+class CleanupResult(BaseModel):
+    freed_bytes: int
+    touched_paths: list[str]  # 实删(或 dry_run 命中)的已解析路径
+    dry_run: bool
+
+
+def _path_size(p: Path) -> int:
+    """文件返回自身大小;目录返回其下所有普通文件大小之和。"""
+    if p.is_file() or p.is_symlink():
+        try:
+            return p.stat(follow_symlinks=False).st_size
+        except OSError:
+            return 0
+    total = 0
+    for f in p.rglob("*"):
+        if f.is_file():
+            try:
+                total += f.stat().st_size
+            except OSError:
+                continue
+    return total
+
+
+def disk_cleanup(
+    *,
+    targets: list[str],
+    allowlist: list[str],
+    dry_run: bool = True,
+) -> CleanupResult:
+    """删除 targets 中的文件/目录,但每个 target 必须落在 allowlist 前缀内。
+
+    **护栏硬约束**:每个 target 解析(resolve,消解符号链接与 ..)后必须在某个 allowlist
+    条目内(含相等),否则抛 OprimValidationError(**拒绝而非跳过**)——验证"不越界",
+    供 aegis-verify S2 断言 cleanup 只触碰 allowlist 路径。dry_run=True 只统计不删。
+
+    Args:
+        targets: 待清理路径列表。
+        allowlist: 允许清理的路径前缀列表(为空 → 任何 target 都越界报错)。
+        dry_run: True 只统计不实删。
+
+    Returns:
+        CleanupResult(freed_bytes / touched_paths / dry_run)。
+
+    Raises:
+        OprimValidationError: 某 target 越出 allowlist。
+    """
+    allow_resolved = [Path(a).resolve() for a in allowlist]
+
+    # 先全量校验:任一 target 越界即整批拒绝,不删任何东西(护栏优先于功能)。
+    resolved: list[Path] = []
+    for t in targets:
+        p = Path(t).resolve()
+        if not any(p == a or p.is_relative_to(a) for a in allow_resolved):
+            raise OprimValidationError(f"target {t!r} (resolved {p}) escapes allowlist {allowlist}")
+        resolved.append(p)
+
+    freed = 0
+    touched: list[str] = []
+    for p in resolved:
+        if not p.exists():
+            continue  # 已不存在,幂等跳过
+        freed += _path_size(p)
+        touched.append(str(p))
+        if not dry_run:
+            if p.is_dir() and not p.is_symlink():
+                shutil.rmtree(p)
+            else:
+                p.unlink()
+
+    return CleanupResult(freed_bytes=freed, touched_paths=touched, dry_run=dry_run)
