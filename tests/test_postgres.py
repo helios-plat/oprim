@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch, call
 import pytest
 
 from oprim import (
+    pg_advisory_lock_plan,
     postgres_locks_status,
     postgres_pool_status,
     postgres_replication_lag,
@@ -14,12 +15,20 @@ from oprim import (
     postgres_table_size,
 )
 from oprim._exceptions import OprimAuthError, OprimConnectionError, OprimError
-from oprim._postgres import LockInfo, PoolStatus, ReplicationLag, SlowQuery, TableSize
+from oprim._postgres import (
+    AdvisoryLockPlan,
+    LockInfo,
+    PoolStatus,
+    ReplicationLag,
+    SlowQuery,
+    TableSize,
+)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _mock_psycopg_connect(fetchall_returns=None, fetchone_returns=None, side_effect=None):
     """Return a patched psycopg.connect context."""
@@ -29,9 +38,13 @@ def _mock_psycopg_connect(fetchall_returns=None, fetchone_returns=None, side_eff
     cursor.__exit__ = MagicMock(return_value=False)
 
     if fetchall_returns is not None:
-        cursor.fetchall.side_effect = fetchall_returns if isinstance(fetchall_returns, list) else [fetchall_returns]
+        cursor.fetchall.side_effect = (
+            fetchall_returns if isinstance(fetchall_returns, list) else [fetchall_returns]
+        )
     if fetchone_returns is not None:
-        cursor.fetchone.side_effect = fetchone_returns if isinstance(fetchone_returns, list) else [fetchone_returns]
+        cursor.fetchone.side_effect = (
+            fetchone_returns if isinstance(fetchone_returns, list) else [fetchone_returns]
+        )
 
     conn.cursor.return_value = cursor
     conn.__enter__ = MagicMock(return_value=conn)
@@ -45,6 +58,7 @@ def _mock_psycopg_connect(fetchall_returns=None, fetchone_returns=None, side_eff
 # ---------------------------------------------------------------------------
 # postgres_pool_status
 # ---------------------------------------------------------------------------
+
 
 class TestPostgresPoolStatus:
     def test_healthy_pool(self):
@@ -110,7 +124,9 @@ class TestPostgresPoolStatus:
     def test_auth_failure(self):
         with patch("oprim._postgres.psycopg") as mock_psycopg:
             mock_psycopg.OperationalError = type("OpError", (Exception,), {})
-            mock_psycopg.connect.side_effect = mock_psycopg.OperationalError("password authentication failed")
+            mock_psycopg.connect.side_effect = mock_psycopg.OperationalError(
+                "password authentication failed"
+            )
             with pytest.raises(OprimAuthError):
                 postgres_pool_status(dsn="postgresql://u:wrongpass@localhost/db")
 
@@ -137,6 +153,7 @@ class TestPostgresPoolStatus:
 # ---------------------------------------------------------------------------
 # postgres_slow_queries
 # ---------------------------------------------------------------------------
+
 
 class TestPostgresSlowQueries:
     def _conn_with_slow_queries(self, rows):
@@ -204,6 +221,7 @@ class TestPostgresSlowQueries:
 # postgres_locks_status
 # ---------------------------------------------------------------------------
 
+
 class TestPostgresLocksStatus:
     def _make_lock_conn(self, rows):
         conn = MagicMock()
@@ -215,7 +233,9 @@ class TestPostgresLocksStatus:
         return conn
 
     def test_waiting_locks(self):
-        rows = [("relation", "my_table", "RowExclusiveLock", False, 1234, "SELECT ...", "Lock", 5.0)]
+        rows = [
+            ("relation", "my_table", "RowExclusiveLock", False, 1234, "SELECT ...", "Lock", 5.0)
+        ]
         conn = self._make_lock_conn(rows)
         with patch("oprim._postgres.psycopg") as mock_psycopg:
             mock_psycopg.connect.return_value = conn
@@ -240,7 +260,9 @@ class TestPostgresLocksStatus:
         with patch("oprim._postgres.psycopg") as mock_psycopg:
             mock_psycopg.connect.return_value = conn
             mock_psycopg.OperationalError = Exception
-            result = postgres_locks_status(dsn="postgresql://u:p@localhost/db", include_granted=True)
+            result = postgres_locks_status(
+                dsn="postgresql://u:p@localhost/db", include_granted=True
+            )
         assert result[0].granted is True
 
     def test_multiple_locks(self):
@@ -266,6 +288,7 @@ class TestPostgresLocksStatus:
 # ---------------------------------------------------------------------------
 # postgres_table_size
 # ---------------------------------------------------------------------------
+
 
 class TestPostgresTableSize:
     def _make_conn(self, rows):
@@ -330,6 +353,7 @@ class TestPostgresTableSize:
 # postgres_replication_lag
 # ---------------------------------------------------------------------------
 
+
 class TestPostgresReplicationLag:
     def _make_conn(self, is_replica: bool, replicas):
         conn = MagicMock()
@@ -386,3 +410,33 @@ class TestPostgresReplicationLag:
             mock_psycopg.connect.side_effect = mock_psycopg.OperationalError("refused")
             with pytest.raises(OprimConnectionError):
                 postgres_replication_lag(dsn="postgresql://u:p@badhost/db")
+
+
+# ---------------------------------------------------------------------------
+# pg_advisory_lock_plan (aegis DESIGN #1, 无状态)
+# ---------------------------------------------------------------------------
+
+
+class TestPgAdvisoryLockPlan:
+    def test_returns_plan_with_parametrized_sql(self):
+        plan = pg_advisory_lock_plan(name="aegis.loop_runner")
+        assert isinstance(plan, AdvisoryLockPlan)
+        assert plan.name == "aegis.loop_runner"
+        assert plan.try_lock_sql == "SELECT pg_try_advisory_lock(%s)"
+        assert plan.unlock_sql == "SELECT pg_advisory_unlock(%s)"
+
+    def test_key_is_deterministic(self):
+        assert pg_advisory_lock_plan(name="role.x").key == pg_advisory_lock_plan(name="role.x").key
+
+    def test_key_differs_by_name(self):
+        assert pg_advisory_lock_plan(name="role.a").key != pg_advisory_lock_plan(name="role.b").key
+
+    def test_key_within_signed_64bit(self):
+        key = pg_advisory_lock_plan(name="anything").key
+        assert -(2**63) <= key < 2**63
+
+    def test_stateless_no_db_access(self):
+        # 纯函数:即便 psycopg 缺失/连接不可用也能生成 plan(不碰 DB)
+        with patch("oprim._postgres.psycopg", None):
+            plan = pg_advisory_lock_plan(name="aegis.loop_runner")
+        assert plan.key == pg_advisory_lock_plan(name="aegis.loop_runner").key
