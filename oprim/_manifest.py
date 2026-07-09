@@ -306,6 +306,10 @@ ELEMENTS: list[str] = [
     "temp_file_manager",
     "push_email",
     "otp_generate",
+    # --- Portfolio risk additions (helivex CVaR/dynamic-risk port) ---
+    "cvar_portfolio_optimize",
+    "atr_position_cap",
+    "net_exposure_clip",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -407,7 +411,13 @@ CATEGORIES: dict[str, list[str]] = {
         "ed25519_verify",
     ],
     "serialization": ["canonical_json"],
-    "risk": ["cvar", "mean_deviation"],
+    "risk": [
+        "cvar",
+        "mean_deviation",
+        "cvar_portfolio_optimize",
+        "atr_position_cap",
+        "net_exposure_clip",
+    ],
     # Phase 2 categories
     "performance": ["cumulative_returns_perf", "cagr"],
     "mean_reversion": ["ornstein_uhlenbeck_fit", "ornstein_uhlenbeck_half_life"],

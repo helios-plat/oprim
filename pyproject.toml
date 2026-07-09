@@ -69,8 +69,11 @@ cloud = [
 macro = [
     "akshare>=1.14",
 ]
+portfolio = [
+    "riskfolio-lib>=7.2.1",
+]
 full = [
-    "oprim[pdf,epub,storage,llm,image,tts,cloud,macro]",
+    "oprim[pdf,epub,storage,llm,image,tts,cloud,macro,portfolio]",
 ]
 
 
