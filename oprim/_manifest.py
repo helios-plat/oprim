@@ -310,6 +310,8 @@ ELEMENTS: list[str] = [
     "cvar_portfolio_optimize",
     "atr_position_cap",
     "net_exposure_clip",
+    # --- ML labeling (helivex qlib-style signal engine port) ---
+    "triple_barrier_label",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -385,6 +387,7 @@ CATEGORIES: dict[str, list[str]] = {
     "topology": ["takens_embed", "persistence_landscape"],
     "point_process": ["hawkes_nll"],
     "technical": [
+        "triple_barrier_label",
         "sma",
         "ema",
         "vwap",
