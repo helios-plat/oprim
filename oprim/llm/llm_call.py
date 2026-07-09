@@ -1,4 +1,5 @@
 """Provider-dispatched LLM call with retry and cost tracking."""
+
 from __future__ import annotations
 
 from ._types import LLMResponse
@@ -19,6 +20,8 @@ def llm_call(
         return _call_dashscope(prompt, model, temperature, max_tokens, system)
     elif provider == "claude":
         return _call_claude(prompt, model, temperature, max_tokens, system)
+    elif provider == "nvidia_nim":
+        return _call_nvidia_nim(prompt, model, temperature, max_tokens, system)
     else:
         raise LLMError(f"Unknown LLM provider: {provider}")
 
@@ -71,4 +74,67 @@ def _call_dashscope(prompt, model, temperature, max_tokens, system):
 
 def _call_claude(prompt, model, temperature, max_tokens, system):
     # Claude 走 obase.ProviderRegistry，此处保留 stub 待接入
-    raise LLMError("Claude provider not yet implemented via llm_call; use oprim.llm_complete instead")
+    raise LLMError(
+        "Claude provider not yet implemented via llm_call; use oprim.llm_complete instead"
+    )
+
+
+def _call_nvidia_nim(prompt, model, temperature, max_tokens, system):
+    """NVIDIA NIM — 云端 OpenAI 兼容端点。之前 provider="nvidia_nim" 调这个函数时
+    压根没实现(直接落进 llm_call() 的 else 分支报 "Unknown LLM provider"), 不是
+    配错了名字——调用方(aii_feedback_service.py 等)一直以为这条路能通。这里补上
+    真正的实现, 照抄 aii/aii/aii/api/_provider.py 里已经在用、已验证工作的
+    NIM caller 的请求/响应形状(标准 OpenAI chat/completions 格式, 和 DashScope
+    自家那套 input/output 包法不是一回事)。
+    """
+    try:
+        import os
+
+        import httpx
+    except ImportError as e:
+        raise LLMError(f"httpx not installed: {e}") from e
+
+    api_key = cfg.get("NVIDIA_NIM_API_KEY") or os.getenv("NVIDIA_NIM_API_KEY", "")
+    if not api_key:
+        raise LLMError("NVIDIA_NIM_API_KEY not set")
+
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+
+    _model = model or os.getenv("NIM_MODEL", "nvidia/llama-3.3-nemotron-super-49b-v1.5")
+    try:
+        resp = httpx.post(
+            "https://integrate.api.nvidia.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": _model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            },
+            timeout=60.0,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        choice = data["choices"][0]
+        text = choice["message"]["content"]
+        usage = data.get("usage", {})
+        return LLMResponse(
+            text=text,
+            model=_model,
+            stop_reason=choice.get("finish_reason", ""),
+            input_tokens=usage.get("prompt_tokens", 0),
+            output_tokens=usage.get("completion_tokens", 0),
+            raw=data,
+        )
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 429:
+            raise LLMRateLimitError(f"NVIDIA NIM rate limit: {e}") from e
+        raise LLMError(f"NVIDIA NIM HTTP error {e.response.status_code}: {e}") from e
+    except Exception as e:
+        raise LLMError(f"NVIDIA NIM call failed: {e}") from e
