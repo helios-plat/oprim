@@ -313,6 +313,7 @@ ELEMENTS: list[str] = [
     # --- ML labeling (helivex qlib-style signal engine port) ---
     "triple_barrier_label",
     "fee_edge_filter",
+    "adx",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -389,6 +390,7 @@ CATEGORIES: dict[str, list[str]] = {
     "point_process": ["hawkes_nll"],
     "technical": [
         "triple_barrier_label",
+        "adx",
         "sma",
         "ema",
         "vwap",
