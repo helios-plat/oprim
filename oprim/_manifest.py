@@ -312,6 +312,7 @@ ELEMENTS: list[str] = [
     "net_exposure_clip",
     # --- ML labeling (helivex qlib-style signal engine port) ---
     "triple_barrier_label",
+    "fee_edge_filter",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -416,6 +417,7 @@ CATEGORIES: dict[str, list[str]] = {
     "serialization": ["canonical_json"],
     "risk": [
         "cvar",
+        "fee_edge_filter",
         "mean_deviation",
         "cvar_portfolio_optimize",
         "atr_position_cap",
