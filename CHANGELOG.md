@@ -2,6 +2,11 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [3.19.1] — 2026-07-10
+
+### Fixed
+- fix: 补回 3 个聚合 facade 模块 `oprim.signal_analysis` / `oprim.data_fetch` / `oprim.correlation_options`。2.x→3.x 重构把实现挪进私有 `_signal_analysis.py` / `_data_fetch.py` / `_correlation_options.py`,并为部分符号建了单函数 facade(`signal_processing.py` / `ic_oos_decay.py` 等),但这 3 个聚合 facade 漏建 → 所有 `from oprim.signal_analysis import ...`(oskill.signal_fusion_skills 15 处、helios analytics/collectors、以及 oprim 自己的 `test_signal_analysis.py`)一律 ModuleNotFoundError。表现:helios counterfactual / factor-attribution 端点静默 500。facade 从对应私有模块的公开符号全量 re-export(signal_analysis 15 / data_fetch 35 / correlation_options 3),不改任何实现。tests 26+33 passed。
+
 ## [3.11.0] — 2026-07-03
 
 ### Added
