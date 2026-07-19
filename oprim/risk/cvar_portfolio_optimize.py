@@ -18,6 +18,8 @@ def cvar_portfolio_optimize(
     l: float = 0.0,
     hist: bool = True,
     alpha: float = 0.05,
+    max_weight: float = 1.0,
+    min_weight: float = 0.0,
 ) -> dict:
     """Historical CVaR-based mean-risk portfolio optimization (Riskfolio-Lib).
 
@@ -50,6 +52,21 @@ def cvar_portfolio_optimize(
         Use the historical scenario matrix directly (not a parametric model).
     alpha : float
         CVaR significance level, e.g. 0.05 for 95% CVaR.
+    max_weight : float
+        Per-asset upper bound in (0, 1], default 1.0 (no cap — original
+        unconstrained behavior). Unconstrained max-Sharpe/CVaR optimization is
+        notoriously sensitive to estimation error and tends toward corner
+        solutions (near-100% in whichever asset had the best trailing
+        risk-adjusted return over the sample window); a max_weight < 1 forces
+        genuine diversification. Passed straight through to Riskfolio-Lib's
+        `Portfolio(upperlng=...)`, which applies it uniformly per asset
+        (empirically verified: caps each weight at max_weight, redistributing
+        the remainder proportionally to the other assets).
+    min_weight : float
+        Per-asset lower bound in [0, max_weight), default 0.0 (no floor). A
+        cap alone still lets the optimizer starve an asset to ~0 while two
+        others sit at the cap; a floor forces every asset to hold at least
+        this much. Passed through to `Portfolio(lowerlng=...)`.
 
     Returns
     -------
@@ -85,7 +102,7 @@ def cvar_portfolio_optimize(
             "(install extra: oprim[portfolio])"
         ) from e
 
-    port = rp.Portfolio(returns=returns)
+    port = rp.Portfolio(returns=returns, upperlng=max_weight, lowerlng=min_weight)
     port.alpha = alpha
     port.assets_stats(method_mu=method_mu, method_cov=method_cov)
 
