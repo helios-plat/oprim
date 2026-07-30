@@ -18,6 +18,7 @@ from oprim._exceptions import (
 # Models
 # ---------------------------------------------------------------------------
 
+
 class ReloadResult(BaseModel):
     success: bool
     elapsed_ms: int
@@ -43,6 +44,7 @@ class CertStatus(BaseModel):
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _admin_request(
     method: str,
@@ -72,13 +74,16 @@ def _extract_upstream(handlers: list[dict[str, Any]]) -> str | None:
         if handler.get("handler") == "reverse_proxy":
             upstreams = handler.get("upstreams", [])
             if upstreams:
-                return str(upstreams[0].get("dial")) if upstreams[0].get("dial") is not None else None
+                return (
+                    str(upstreams[0].get("dial")) if upstreams[0].get("dial") is not None else None
+                )
     return None
 
 
 # ---------------------------------------------------------------------------
 # 5.2 caddy_admin_reload
 # ---------------------------------------------------------------------------
+
 
 def caddy_admin_reload(
     *,
@@ -124,6 +129,7 @@ def caddy_admin_reload(
 # 5.3 caddy_routes_list
 # ---------------------------------------------------------------------------
 
+
 def caddy_routes_list(
     *,
     admin_url: str,
@@ -160,18 +166,21 @@ def caddy_routes_list(
     result = []
     for r in raw_routes:
         handlers = r.get("handle", [])
-        result.append(Route(
-            id=r.get("@id"),
-            matchers=r.get("match", []),
-            handlers=handlers,
-            target_upstream=_extract_upstream(handlers),
-        ))
+        result.append(
+            Route(
+                id=r.get("@id"),
+                matchers=r.get("match", []),
+                handlers=handlers,
+                target_upstream=_extract_upstream(handlers),
+            )
+        )
     return result
 
 
 # ---------------------------------------------------------------------------
 # 5.4 caddy_certificates_status
 # ---------------------------------------------------------------------------
+
 
 def caddy_certificates_status(
     *,
@@ -256,6 +265,7 @@ def caddy_certificates_status(
 # 5.5 caddy_admin_post
 # ---------------------------------------------------------------------------
 
+
 def caddy_admin_post(
     *,
     admin_url: str,
@@ -293,3 +303,139 @@ def caddy_admin_post(
         return cast(dict[str, Any], resp.json())
     except Exception:
         return {"status": "ok", "http_code": resp.status_code}
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — caddy_admin_config / caddy_admin_routes /
+#                         caddy_route_add_atomic / caddy_route_remove_atomic
+# ---------------------------------------------------------------------------
+
+caddy_admin_routes = caddy_routes_list
+
+
+def caddy_admin_config(
+    *,
+    admin_url: str,
+    timeout_sec: int = 5,
+) -> dict[str, Any]:
+    """获取 Caddy 完整 JSON 配置.
+
+    Args:
+        admin_url: Caddy admin API URL (e.g. "http://localhost:2019")
+        timeout_sec: 请求超时
+
+    Returns:
+        完整 Caddy JSON config dict
+
+    Raises:
+        OprimConnectionError
+    """
+    from typing import cast
+
+    resp = _admin_request("GET", admin_url, "/config/", timeout_sec=timeout_sec)
+    if not resp.is_success:
+        raise OprimConnectionError(f"Caddy /config/ returned {resp.status_code}: {resp.text[:200]}")
+    return cast(dict[str, Any], resp.json())
+
+
+def caddy_route_add_atomic(
+    *,
+    admin_url: str,
+    server_name: str = "srv0",
+    route: dict[str, Any],
+    position: int | None = None,
+    timeout_sec: int = 10,
+) -> dict[str, Any]:
+    """原子添加单条路由到 Caddy (不影响其他路由).
+
+    Strategy: GET 当前路由列表 → 插入新路由 → PUT 整体替换.
+    全程无中间状态暴露给流量 (Caddy /config/ PUT 是 atomic).
+
+    Args:
+        admin_url: Caddy admin API URL
+        server_name: Caddy server block name (default "srv0")
+        route: 新路由 dict (Caddy JSON route 格式)
+        position: 插入位置 (None = 追加到末尾)
+        timeout_sec: 请求超时
+
+    Returns:
+        {"status": "ok", "routes_total": int}
+
+    Raises:
+        OprimConnectionError / OprimValidationError
+    """
+    from typing import cast
+
+    path = f"/config/apps/http/servers/{server_name}/routes"
+
+    # GET current routes
+    get_resp = _admin_request("GET", admin_url, path, timeout_sec=timeout_sec)
+    if not get_resp.is_success:
+        raise OprimConnectionError(f"Failed to fetch routes: HTTP {get_resp.status_code}")
+    routes: list[dict[str, Any]] = cast(list, get_resp.json()) or []
+
+    # Insert
+    if position is None:
+        routes.append(route)
+    else:
+        routes.insert(position, route)
+
+    # PUT atomically
+    put_resp = _admin_request("PUT", admin_url, path, json_body=routes, timeout_sec=timeout_sec)
+    if put_resp.status_code >= 400 and put_resp.status_code < 500:
+        raise OprimValidationError(
+            f"Caddy rejected route config (HTTP {put_resp.status_code}): {put_resp.text[:400]}"
+        )
+    if not put_resp.is_success:
+        raise OprimConnectionError(
+            f"Caddy PUT routes failed (HTTP {put_resp.status_code}): {put_resp.text[:200]}"
+        )
+    return {"status": "ok", "routes_total": len(routes)}
+
+
+def caddy_route_remove_atomic(
+    *,
+    admin_url: str,
+    server_name: str = "srv0",
+    route_id: str,
+    timeout_sec: int = 10,
+) -> dict[str, Any]:
+    """原子移除单条路由 (按 route id 匹配).
+
+    Strategy: GET 当前路由列表 → 过滤掉目标 id → PUT 整体替换.
+
+    Args:
+        admin_url: Caddy admin API URL
+        server_name: Caddy server block name (default "srv0")
+        route_id: 要移除的路由 "@id" 字段值
+        timeout_sec: 请求超时
+
+    Returns:
+        {"status": "ok", "removed": bool, "routes_total": int}
+
+    Raises:
+        OprimConnectionError / OprimValidationError
+    """
+    from typing import cast
+
+    path = f"/config/apps/http/servers/{server_name}/routes"
+
+    get_resp = _admin_request("GET", admin_url, path, timeout_sec=timeout_sec)
+    if not get_resp.is_success:
+        raise OprimConnectionError(f"Failed to fetch routes: HTTP {get_resp.status_code}")
+    routes: list[dict[str, Any]] = cast(list, get_resp.json()) or []
+
+    original_len = len(routes)
+    filtered = [r for r in routes if r.get("@id") != route_id]
+    removed = len(filtered) < original_len
+
+    put_resp = _admin_request("PUT", admin_url, path, json_body=filtered, timeout_sec=timeout_sec)
+    if put_resp.status_code >= 400 and put_resp.status_code < 500:
+        raise OprimValidationError(
+            f"Caddy rejected route update (HTTP {put_resp.status_code}): {put_resp.text[:400]}"
+        )
+    if not put_resp.is_success:
+        raise OprimConnectionError(
+            f"Caddy PUT routes failed (HTTP {put_resp.status_code}): {put_resp.text[:200]}"
+        )
+    return {"status": "ok", "removed": removed, "routes_total": len(filtered)}

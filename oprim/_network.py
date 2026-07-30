@@ -25,6 +25,7 @@ from oprim._exceptions import (
 # Models
 # ---------------------------------------------------------------------------
 
+
 class PortCheckResult(BaseModel):
     host: str
     port: int
@@ -61,6 +62,7 @@ class HttpResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # 6.1 tcp_port_check
 # ---------------------------------------------------------------------------
+
 
 def tcp_port_check(
     *,
@@ -116,6 +118,7 @@ def tcp_port_check(
 # ---------------------------------------------------------------------------
 # 6.2 http_health_probe
 # ---------------------------------------------------------------------------
+
 
 def http_health_probe(
     *,
@@ -173,6 +176,7 @@ def http_health_probe(
 # ---------------------------------------------------------------------------
 # 6.3 dns_resolve
 # ---------------------------------------------------------------------------
+
 
 def dns_resolve(
     *,
@@ -247,6 +251,7 @@ def dns_resolve(
 # 6.4 http_request_once
 # ---------------------------------------------------------------------------
 
+
 def http_request_once(
     *,
     method: Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"],
@@ -296,3 +301,12 @@ def http_request_once(
         body=resp.content,
         elapsed_ms=elapsed,
     )
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — short-name aliases (B2)
+# ---------------------------------------------------------------------------
+
+network_port_check = tcp_port_check
+network_http_health = http_health_probe
+network_dns_resolve = dns_resolve

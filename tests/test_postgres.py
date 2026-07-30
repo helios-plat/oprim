@@ -2,24 +2,43 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from unittest.mock import MagicMock, patch, call
 
 import pytest
 
 from oprim import (
+    metric_downsample_rollup,
+    pg_advisory_lock_plan,
     postgres_locks_status,
     postgres_pool_status,
     postgres_replication_lag,
     postgres_slow_queries,
     postgres_table_size,
+    retention_prune,
 )
-from oprim._exceptions import OprimAuthError, OprimConnectionError, OprimError
-from oprim._postgres import LockInfo, PoolStatus, ReplicationLag, SlowQuery, TableSize
+from oprim._exceptions import (
+    OprimAuthError,
+    OprimConnectionError,
+    OprimError,
+    OprimValidationError,
+)
+from oprim._postgres import (
+    AdvisoryLockPlan,
+    LockInfo,
+    PoolStatus,
+    PruneResult,
+    ReplicationLag,
+    RollupResult,
+    SlowQuery,
+    TableSize,
+)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _mock_psycopg_connect(fetchall_returns=None, fetchone_returns=None, side_effect=None):
     """Return a patched psycopg.connect context."""
@@ -29,9 +48,13 @@ def _mock_psycopg_connect(fetchall_returns=None, fetchone_returns=None, side_eff
     cursor.__exit__ = MagicMock(return_value=False)
 
     if fetchall_returns is not None:
-        cursor.fetchall.side_effect = fetchall_returns if isinstance(fetchall_returns, list) else [fetchall_returns]
+        cursor.fetchall.side_effect = (
+            fetchall_returns if isinstance(fetchall_returns, list) else [fetchall_returns]
+        )
     if fetchone_returns is not None:
-        cursor.fetchone.side_effect = fetchone_returns if isinstance(fetchone_returns, list) else [fetchone_returns]
+        cursor.fetchone.side_effect = (
+            fetchone_returns if isinstance(fetchone_returns, list) else [fetchone_returns]
+        )
 
     conn.cursor.return_value = cursor
     conn.__enter__ = MagicMock(return_value=conn)
@@ -45,6 +68,7 @@ def _mock_psycopg_connect(fetchall_returns=None, fetchone_returns=None, side_eff
 # ---------------------------------------------------------------------------
 # postgres_pool_status
 # ---------------------------------------------------------------------------
+
 
 class TestPostgresPoolStatus:
     def test_healthy_pool(self):
@@ -110,7 +134,9 @@ class TestPostgresPoolStatus:
     def test_auth_failure(self):
         with patch("oprim._postgres.psycopg") as mock_psycopg:
             mock_psycopg.OperationalError = type("OpError", (Exception,), {})
-            mock_psycopg.connect.side_effect = mock_psycopg.OperationalError("password authentication failed")
+            mock_psycopg.connect.side_effect = mock_psycopg.OperationalError(
+                "password authentication failed"
+            )
             with pytest.raises(OprimAuthError):
                 postgres_pool_status(dsn="postgresql://u:wrongpass@localhost/db")
 
@@ -137,6 +163,7 @@ class TestPostgresPoolStatus:
 # ---------------------------------------------------------------------------
 # postgres_slow_queries
 # ---------------------------------------------------------------------------
+
 
 class TestPostgresSlowQueries:
     def _conn_with_slow_queries(self, rows):
@@ -204,6 +231,7 @@ class TestPostgresSlowQueries:
 # postgres_locks_status
 # ---------------------------------------------------------------------------
 
+
 class TestPostgresLocksStatus:
     def _make_lock_conn(self, rows):
         conn = MagicMock()
@@ -215,7 +243,9 @@ class TestPostgresLocksStatus:
         return conn
 
     def test_waiting_locks(self):
-        rows = [("relation", "my_table", "RowExclusiveLock", False, 1234, "SELECT ...", "Lock", 5.0)]
+        rows = [
+            ("relation", "my_table", "RowExclusiveLock", False, 1234, "SELECT ...", "Lock", 5.0)
+        ]
         conn = self._make_lock_conn(rows)
         with patch("oprim._postgres.psycopg") as mock_psycopg:
             mock_psycopg.connect.return_value = conn
@@ -240,7 +270,9 @@ class TestPostgresLocksStatus:
         with patch("oprim._postgres.psycopg") as mock_psycopg:
             mock_psycopg.connect.return_value = conn
             mock_psycopg.OperationalError = Exception
-            result = postgres_locks_status(dsn="postgresql://u:p@localhost/db", include_granted=True)
+            result = postgres_locks_status(
+                dsn="postgresql://u:p@localhost/db", include_granted=True
+            )
         assert result[0].granted is True
 
     def test_multiple_locks(self):
@@ -266,6 +298,7 @@ class TestPostgresLocksStatus:
 # ---------------------------------------------------------------------------
 # postgres_table_size
 # ---------------------------------------------------------------------------
+
 
 class TestPostgresTableSize:
     def _make_conn(self, rows):
@@ -330,6 +363,7 @@ class TestPostgresTableSize:
 # postgres_replication_lag
 # ---------------------------------------------------------------------------
 
+
 class TestPostgresReplicationLag:
     def _make_conn(self, is_replica: bool, replicas):
         conn = MagicMock()
@@ -386,3 +420,229 @@ class TestPostgresReplicationLag:
             mock_psycopg.connect.side_effect = mock_psycopg.OperationalError("refused")
             with pytest.raises(OprimConnectionError):
                 postgres_replication_lag(dsn="postgresql://u:p@badhost/db")
+
+
+# ---------------------------------------------------------------------------
+# pg_advisory_lock_plan (aegis DESIGN #1, 无状态)
+# ---------------------------------------------------------------------------
+
+
+class TestPgAdvisoryLockPlan:
+    def test_returns_plan_with_parametrized_sql(self):
+        plan = pg_advisory_lock_plan(name="aegis.loop_runner")
+        assert isinstance(plan, AdvisoryLockPlan)
+        assert plan.name == "aegis.loop_runner"
+        assert plan.try_lock_sql == "SELECT pg_try_advisory_lock(%s)"
+        assert plan.unlock_sql == "SELECT pg_advisory_unlock(%s)"
+
+    def test_key_is_deterministic(self):
+        assert pg_advisory_lock_plan(name="role.x").key == pg_advisory_lock_plan(name="role.x").key
+
+    def test_key_differs_by_name(self):
+        assert pg_advisory_lock_plan(name="role.a").key != pg_advisory_lock_plan(name="role.b").key
+
+    def test_key_within_signed_64bit(self):
+        key = pg_advisory_lock_plan(name="anything").key
+        assert -(2**63) <= key < 2**63
+
+    def test_stateless_no_db_access(self):
+        # 纯函数:即便 psycopg 缺失/连接不可用也能生成 plan(不碰 DB)
+        with patch("oprim._postgres.psycopg", None):
+            plan = pg_advisory_lock_plan(name="aegis.loop_runner")
+        assert plan.key == pg_advisory_lock_plan(name="aegis.loop_runner").key
+
+
+# retention_prune (aegis DESIGN #5)
+# ---------------------------------------------------------------------------
+
+
+class TestRetentionPrune:
+    def _build_conn(self, cutoff, delete_rowcounts):
+        conn = MagicMock()
+        cur = MagicMock()
+        cur.__enter__ = MagicMock(return_value=cur)
+        cur.__exit__ = MagicMock(return_value=False)
+        cur.fetchone.return_value = (cutoff,)
+        counts = iter(delete_rowcounts)
+
+        def _exec(sql, params=None):
+            if "DELETE" in sql:
+                cur.rowcount = next(counts)
+
+        cur.execute.side_effect = _exec
+        conn.cursor.return_value = cur
+        return conn
+
+    def _patch(self, conn):
+        p = patch("oprim._postgres.psycopg")
+        m = p.start()
+        m.connect.return_value = conn
+        m.OperationalError = Exception
+        return p
+
+    def test_batched_delete_sums_rowcounts(self):
+        cutoff = datetime(2026, 1, 1)
+        conn = self._build_conn(cutoff, [10, 3])
+        p = self._patch(conn)
+        try:
+            result = retention_prune(
+                dsn="postgresql://u:p@h/db",
+                table="metrics",
+                ts_column="ts",
+                retain_days=15,
+                batch_size=10,
+            )
+        finally:
+            p.stop()
+        assert isinstance(result, PruneResult)
+        assert result.deleted_rows == 13  # 10 + 3, 第二批 < batch 收尾
+        assert result.table == "metrics"
+        assert result.cutoff == str(cutoff)
+        conn.commit.assert_called()
+
+    def test_single_batch_under_limit(self):
+        conn = self._build_conn(datetime(2026, 1, 1), [3])
+        p = self._patch(conn)
+        try:
+            result = retention_prune(
+                dsn="d", table="t", ts_column="ts", retain_days=1, batch_size=10
+            )
+        finally:
+            p.stop()
+        assert result.deleted_rows == 3
+
+    def test_schema_qualified_table_ok(self):
+        conn = self._build_conn(datetime(2026, 1, 1), [0])
+        p = self._patch(conn)
+        try:
+            result = retention_prune(
+                dsn="d",
+                table="public.metrics",
+                ts_column="created_at",
+                retain_days=30,
+                batch_size=100,
+            )
+        finally:
+            p.stop()
+        assert result.deleted_rows == 0
+
+    def test_invalid_table_identifier_rejected(self):
+        with pytest.raises(OprimValidationError):
+            retention_prune(dsn="d", table="metrics; DROP TABLE x", ts_column="ts", retain_days=1)
+
+    def test_invalid_ts_column_rejected(self):
+        with pytest.raises(OprimValidationError):
+            retention_prune(dsn="d", table="metrics", ts_column="ts) OR 1=1--", retain_days=1)
+
+    def test_negative_retain_days_rejected(self):
+        with pytest.raises(OprimValidationError):
+            retention_prune(dsn="d", table="t", ts_column="ts", retain_days=-1)
+
+    def test_zero_batch_rejected(self):
+        with pytest.raises(OprimValidationError):
+            retention_prune(dsn="d", table="t", ts_column="ts", retain_days=1, batch_size=0)
+
+
+class TestMetricDownsampleRollup:
+    def _conn(self, rowcount):
+        conn = MagicMock()
+        cur = MagicMock()
+        cur.__enter__ = MagicMock(return_value=cur)
+        cur.__exit__ = MagicMock(return_value=False)
+        cur.rowcount = rowcount
+        conn.cursor.return_value = cur
+        return conn, cur
+
+    def _patch(self, conn):
+        p = patch("oprim._postgres.psycopg")
+        m = p.start()
+        m.connect.return_value = conn
+        m.OperationalError = Exception
+        return p
+
+    def test_writes_and_returns_count_with_expected_sql(self):
+        conn, cur = self._conn(42)
+        p = self._patch(conn)
+        try:
+            r = metric_downsample_rollup(
+                dsn="d",
+                source_table="raw_metrics",
+                dest_table="metrics_5m",
+                ts_column="ts",
+                value_column="val",
+                agg="avg",
+                bucket_seconds=300,
+                since=datetime(2026, 1, 1),
+            )
+        finally:
+            p.stop()
+        assert isinstance(r, RollupResult)
+        assert r.rows_written == 42
+        assert r.bucket_seconds == 300
+        sql, params = cur.execute.call_args[0]
+        assert "date_bin" in sql
+        assert "avg(val)" in sql
+        assert "ON CONFLICT (bucket)" in sql
+        assert "raw_metrics" in sql and "metrics_5m" in sql
+        assert params[0] == 300
+
+    def test_labels_appear_in_group_and_conflict(self):
+        conn, cur = self._conn(3)
+        p = self._patch(conn)
+        try:
+            metric_downsample_rollup(
+                dsn="d",
+                source_table="raw",
+                dest_table="dst",
+                ts_column="ts",
+                value_column="v",
+                agg="max",
+                bucket_seconds=60,
+                since=datetime(2026, 1, 1),
+                label_columns=["host", "region"],
+            )
+        finally:
+            p.stop()
+        sql = cur.execute.call_args[0][0]
+        assert "GROUP BY bucket, host, region" in sql
+        assert "ON CONFLICT (bucket, host, region)" in sql
+        assert "max(v)" in sql
+
+    def test_invalid_agg_rejected(self):
+        with pytest.raises(OprimValidationError):
+            metric_downsample_rollup(
+                dsn="d",
+                source_table="s",
+                dest_table="d2",
+                ts_column="ts",
+                value_column="v",
+                agg="median",
+                bucket_seconds=60,
+                since=datetime(2026, 1, 1),
+            )
+
+    def test_invalid_identifier_rejected(self):
+        with pytest.raises(OprimValidationError):
+            metric_downsample_rollup(
+                dsn="d",
+                source_table="s; DROP TABLE x",
+                dest_table="d2",
+                ts_column="ts",
+                value_column="v",
+                agg="avg",
+                bucket_seconds=60,
+                since=datetime(2026, 1, 1),
+            )
+
+    def test_zero_bucket_rejected(self):
+        with pytest.raises(OprimValidationError):
+            metric_downsample_rollup(
+                dsn="d",
+                source_table="s",
+                dest_table="d2",
+                ts_column="ts",
+                value_column="v",
+                agg="avg",
+                bucket_seconds=0,
+                since=datetime(2026, 1, 1),
+            )

@@ -74,7 +74,7 @@ async def first_last_frame_transition(
         raise FileNotFoundError(f"last_frame not found: {last_frame}")
 
     try:
-        fn = ProviderRegistry.get(category="image_to_video", name=video_provider)
+        fn = ProviderRegistry.get().generic("image_to_video", video_provider)
     except ProviderNotFoundError as exc:
         raise FrameTransitionProviderNotFoundError(
             f"Video provider not found: {video_provider!r}"

@@ -1,679 +1,169 @@
-"""Oprim — atomic operations library (Layer 1 meta-primitives)."""
+"""Oprim — atomic operations library (Layer 1 meta-primitives). Lazy-loaded."""
 
-from oprim.crypto_scoring import (
-    CryptoScoringError,
-    score_active_addresses_change,
-    score_basis,
-    score_cex_balance_change,
-    score_etf_inflow,
-    score_funding_rate,
-    score_lth_change,
-    score_ma200_position,
-    score_ma50_slope,
-    score_ma_arrangement,
-    score_max_pain_distance,
-    score_mvrv_zscore,
-    score_oi_change,
-    score_options_skew,
-    score_resistance_distance,
-    score_stablecoin_inflow,
-    score_support_distance,
-    score_vpvr_position,
-)
-
-from oprim.crypto_lookup import (
-    CryptoLookupError,
-    regime_score,
-    seasonality_score,
-    sector_rotation_score,
-)
-
-from oprim.crypto_technical import (
-    CryptoTechnicalError,
-    compute_cross_asset_divergence_revert,
-    compute_stablecoin_event_revert,
-    compute_vpvr,
-    detect_pivots,
-)
-
-from oprim.io_fetch import (
-    FetchError,
-    fetch_btc_spy_corr,
-    fetch_coingecko_history,
-    fetch_crypto,
-    fetch_current_price,
-    fetch_decision_count,
-    fetch_equity_series,
-    fetch_prefs,
-    fetch_regime,
-    fetch_regime_crisis_flips,
-    fetch_rss,
-    fetch_stablecoin_mcap,
-    fetch_strategy_trades,
-    fetch_yahoo_history,
-    fetch_yahoo_quote,
-    get_active_event,
-    get_etf_weight_modifier,
-    get_previous_30d,
-    get_regime_by_date,
-    get_stablecoin_change_7d,
-    get_symbol_funding_rate,
-    get_symbol_oi_change_7d,
-)
-
-from oprim.io_write import (
-    WriteError,
-    clear_event,
-    is_deduped,
-    refresh_view,
-    send_alert,
-    store_news,
-    upsert_canonical_metric,
-    upsert_equity_series,
-    upsert_events,
-    write_event,
-    write_rows,
-)
-
-from oprim._caddy import (
-    caddy_admin_post,
-    caddy_admin_reload,
-    caddy_certificates_status,
-    caddy_routes_list,
-)
-
-from oprim.llm_judge_rerank import LLMCaller, RerankResult, llm_judge_rerank
-from oprim.llm_query_expand import llm_query_expand
-from oprim.parse_obsidian_tasks import ObsidianTask, parse_obsidian_tasks
-
-# Aegis Batch 1 — infrastructure / ops primitives (v2.9.0)
-from oprim._docker import (
-    compose_down,
-    compose_up,
-    docker_container_inspect,
-    docker_container_list,
-    docker_container_logs,
-    docker_container_restart,
-    docker_container_start,
-    docker_container_stats,
-    docker_container_stop,
-    docker_image_delete,
-    docker_image_list,
-    docker_image_pull,
-    docker_network_list,
-    docker_volume_delete,
-    docker_volume_list,
-)
-from oprim._filesystem import (
-    archive_to_targz,
-    dir_archive_to_targz,
-    disk_usage,
-    file_checksum,
-)
-from oprim._metrics_logs import (
-    loki_log_query,
-    prometheus_instant_query,
-    prometheus_range_query,
-    structlog_parse,
-)
-from oprim._network import (
-    dns_resolve,
-    http_health_probe,
-    http_request_once,
-    tcp_port_check,
-)
-from oprim._postgres import (
-    postgres_locks_status,
-    postgres_pool_status,
-    postgres_replication_lag,
-    postgres_slow_queries,
-    postgres_table_size,
-)
-from oprim._rabbitmq import (
-    rabbitmq_connection_status,
-    rabbitmq_consumer_status,
-    rabbitmq_node_status,
-    rabbitmq_queue_status,
-)
-from oprim._s3 import (
-    s3_object_metadata,
-    s3_upload_file,
-)
-from oprim._system import (
-    cpu_memory_snapshot,
-    process_list_top,
-)
+from __future__ import annotations
+import ast
+import importlib
+from pathlib import Path
+from typing import Any
 from oprim._version import __version__
 
-# P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
-from oprim.style_marker_prompt import StyleType, style_marker_prompt
-from oprim.lighting_control_prompt import LightingType, lighting_control_prompt
-from oprim.camera_motion_prompt import MotionType, camera_motion_prompt
-from oprim.first_last_frame_transition import (
-    FrameTransitionError,
-    FrameTransitionProviderNotFoundError,
-    first_last_frame_transition,
-)
-from oprim.video_edit_element_remove import (
-    VideoEditError,
-    VideoEditProviderNotFoundError,
-    video_edit_element_remove,
-)
-from oprim.story_predict import (
-    StoryPredictError,
-    StoryPrediction,
-    TimePrediction,
-    story_predict,
-)
+_ELEMENT_MAP: dict[str, str] = {}
+_SUBMODULE_SET: set[str] = set()
 
-# P6-B2 — Video Generation + Audience Analytics
-from oprim.audience_feedback_extract import audience_feedback_extract
-from oprim.audience_sentiment_analyze import audience_sentiment_analyze
-from oprim.bilibili_comments_fetch import bilibili_comments_fetch
-from oprim.bilibili_video_stats import bilibili_video_stats
-from oprim.face_animation import face_animation
-from oprim.image_to_video import image_to_video
-from oprim.motion_prompt_translate import motion_prompt_translate
-from oprim.video_quality_metrics import video_quality_metrics
-from oprim.vlm_video_analyze import vlm_video_analyze
-from oprim.youtube_comments_fetch import youtube_comments_fetch
-from oprim.youtube_video_stats import youtube_video_stats
+def _build_element_map() -> None:
+    pkg_dir = Path(__file__).parent
+    pkg_name = __package__ or "oprim"
+    for py in sorted(pkg_dir.rglob("*.py")):
+        rel_path = py.relative_to(pkg_dir)
+        if rel_path.parts == ("__init__.py",): continue
+        mod_parts = list(rel_path.with_suffix("").parts)
+        if mod_parts[-1] == "__init__": mod_parts.pop()
+        if not mod_parts: continue
+        mod_path = pkg_name + "." + ".".join(mod_parts)
+        stem = mod_parts[-1]
+        _SUBMODULE_SET.add(stem)
+        try:
+            tree = ast.parse(py.read_text(encoding="utf-8"))
+            for node in tree.body:
+                names = []
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    names.append(node.name)
+                elif isinstance(node, ast.ImportFrom) and rel_path.name == "__init__.py":
+                    for alias in node.names:
+                        if alias.name != "*": names.append(alias.asname or alias.name)
+                for name in names:
+                    if not name.startswith("_"):
+                        if name not in _ELEMENT_MAP or (
+                            not mod_path.split(".")[-1].startswith("_") and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
+                        ):
+                            _ELEMENT_MAP[name] = mod_path
+        except Exception: continue
 
-# Phase 10 additions (v2.0.0)
-from oprim.behavioral import (
-    cpt_value_function,
-    large_loss_aversion_degree,
-    probability_weighting_function,
-    salience_function,
-    salience_ranking_weights,
-)
+_build_element_map()
 
-# Phase 6A additions (v1.9.0)
-from oprim.crypto.ed25519 import (
-    ed25519_keypair_generate,
-    ed25519_sign,
-    ed25519_verify,
-    generate_keypair,
-    load_private_key_pem,
-    load_public_key_pem,
-    save_keypair_pem,
-    sign,
-    verify,
-)
-from oprim.crypto.hashing import hmac_sha256, sha256_hash
-from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
-from oprim.derivatives.american import lsm_american_price
+# KCState 归 obase（经 oprim._cognitive 单源、惰性暴露）。登记到元素表以保持
+# `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
+# __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
+_ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
+# llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
+def llm_summarize(*args, **kwargs):
+    """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
+    from oprim._llm_summarize import llm_summarize as _fn
+    return _fn(*args, **kwargs)
 
-# Phase 5A additions (v1.8.0)
-from oprim.derivatives.binomial_tree import binomial_tree_price
-from oprim.derivatives.black_scholes import (
-    black_scholes_greeks,
-    black_scholes_price,
-    implied_volatility,
-)
-from oprim.derivatives.exotic import barrier_option_price, lookback_option_price
-from oprim.derivatives.monte_carlo import mc_asian_price, mc_european_price
-from oprim.derivatives.rates import cubic_spline_yield_curve, svensson_yield_curve
-from oprim.derivatives.sabr import sabr_implied_volatility
-from oprim.distance import (
-    cosine_similarity_batch,
-    distributional_distance,
-    dtw_distance,
-    euclidean_distance_matrix,
-    symmetric_kl_divergence,
-    wasserstein_distance,
-)
-from oprim.finance import (
-    beta_alpha_ols,
-    drawdown_curve,
-    futures_curve_shape,
-    nelson_siegel_yield_curve,
-    sharpe_ratio,
-    value_at_risk,
-)
-from oprim.info_geometry.fisher_rao import fisher_rao_distance
-from oprim.information import ordinal_pattern, phase_randomize, shannon_entropy
-from oprim.mean_reversion.ornstein_uhlenbeck import (
-    ornstein_uhlenbeck_fit,
-    ornstein_uhlenbeck_half_life,
-)
-from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
-from oprim.performance.annualization import cagr
+def __getattr__(name: str) -> Any:
+    if name == "__version__": return __version__
+    if name in _ELEMENT_MAP:
+        mod = importlib.import_module(_ELEMENT_MAP[name])
+        return getattr(mod, name)
+    if name in _SUBMODULE_SET:
+        pkg_name = __package__ or "oprim"
+        return importlib.import_module(f"{pkg_name}.{name}")
+    raise AttributeError(f"module '{__name__}' has no attribute {name!r}")
 
-# Phase 2 additions (v1.5.0)
-# Note: cumulative_returns below shadows the time_series one;
-# the time_series version remains accessible via oprim.time_series directly.
-from oprim.performance.cumulative import cumulative_returns
-from oprim.point_process import hawkes_nll
-from oprim.recursive_utility import epstein_zin_aggregator
-from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
-from oprim.risk.cvar import cvar
+def __dir__() -> list[str]:
+    return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
 
-# Phase 4 additions (v1.7.0)
-from oprim.risk.dispersion import mean_deviation
-from oprim.serialization.canonical import canonical_json
-from oprim.signal_processing import (
-    H_change_rate_std,
-    atr,
-    compute_dwt,
-    hurst_exponent,
-    linear_slope,
-    orderbook_entropy,
+__all__ = sorted(_ELEMENT_MAP.keys())
+
+# --- Explicit re-exports (Pinning) ---
+from oprim._exceptions import (
+    OprimError, FileOprimError, GitOprimError, ShellOprimError,
+    ParseOprimError, PathSecurityError, LLMOprimError, BudgetExceededError,
+    PromptOprimError, SearchOprimError, HttpOprimError, SnapshotOprimError
 )
-
-# Phase 9A additions (v1.11.0)
-from oprim.signature.compute import path_signature_compute
-
-# Phase 3 additions (v1.6.0)
-from oprim.similarity.vector import vector_similarity
-from oprim.spectral import (
-    ledoit_wolf_shrinkage,
-    marchenko_pastur_threshold,
-    rotationally_invariant_estimator,
-    spectral_eigengap_detect,
+from oprim.llm._types import (
+    LLMResponse, StreamDelta, EmbedResult, ConversationSnapshot,
+    ThinkingResult, SearchResult, HttpResponse
 )
-from oprim.statistics import (
-    bayes_beta_update,
-    bootstrap_ci,
-    brier_score_decomposed,
-    correlation_batch,
-    distribution_summary,
-    kde_density,
-    kolmogorov_smirnov_test,
-    mann_kendall_trend,
-    pearson_spearman_corr,
-    percentile_ci,
-    percentile_value,
-    skew_kurt_robust,
+# llm_complete: 惰性加载（依赖 obase）
+def llm_complete(*args, **kwargs):
+    from oprim.llm._llm_complete import llm_complete as _fn
+    return _fn(*args, **kwargs)
+def llm_stream(*args, **kwargs):
+    from oprim.llm._llm_stream import llm_stream as _fn
+    return _fn(*args, **kwargs)
+def embed_text(*args, **kwargs):
+    from oprim.llm._embed_text import embed_text as _fn
+    return _fn(*args, **kwargs)
+from oprim.prompt import (
+    build_system_prompt, truncate_messages, extract_thinking, snapshot_conversation
 )
-from oprim.technical.adaptive import kama
-from oprim.technical.bands import bollinger_bands, donchian_channel, keltner_channels
-from oprim.technical.exits import chandelier_exit
+def image_generate(*args, **kwargs):
+    from oprim.image_generate import image_generate as _fn
+    return _fn(*args, **kwargs)
+def image_understand(*args, **kwargs):
+    from oprim.image_understand import image_understand as _fn
+    return _fn(*args, **kwargs)
+def tts_synthesize(*args, **kwargs):
+    from oprim.tts_synthesize import tts_synthesize as _fn
+    return _fn(*args, **kwargs)
 
-# Phase 1 additions (v1.4.0)
-from oprim.technical.moving_averages import ema, macd, sma, vwap
-from oprim.technical.oscillators import cci, rsi_normalized, stochastic_oscillator, williams_r
-from oprim.technical.volume import mfi, obv
-from oprim.time_series import (
-    ewma_smooth,
-    gap_detect,
-    lag_forward_fill,
-    log_returns,
-    percentile_rank,
-    purge_embargo_split,
-    realized_vol,
-    resample_align,
-    rolling_window_split,
-    zscore_normalize,
+# --- Mneme elements (M-A batch) ---
+from oprim.types import (
+    SolveResult, SolveStep, StepCheckResult, Plot2DData, Three3DData,
+    GradeResult, PeerPercentileResult
 )
-from oprim.timeseries.autocorrelation import durbin_watson, ljung_box_test
-from oprim.timeseries.causality import granger_causality_test
-from oprim.timeseries.cointegration import engle_granger_cointegration, johansen_cointegration
-from oprim.timeseries.distribution_tests import jarque_bera_test
-from oprim.timeseries.heteroskedasticity import breusch_pagan_test
-from oprim.timeseries.stationarity import adf_test, kpss_test
-from oprim.timeseries.time_series_split import time_series_split
-from oprim.timeseries.equity_curve_segment_label import equity_curve_segment_label
-from oprim.timeseries.rolling_window_aggregate import rolling_window_aggregate
-from oprim.markets.sector_strength_proxy import sector_strength_proxy
-from oprim.stats.within_group_percentile import within_group_percentile
-from oprim.topology import persistence_landscape, takens_embed
-from oprim.volatility.egarch import egarch_fit, egarch_forecast
-from oprim.volatility.ewma import ewma_volatility
-from oprim.volatility.garch import garch_fit, garch_forecast
-from oprim.volatility.gjr_garch import gjr_garch_fit, gjr_garch_forecast
-from oprim.volatility.range_based import (
-    garman_klass_volatility,
-    parkinson_volatility,
-    yang_zhang_volatility,
+from oprim.compute_peer_percentile import compute_peer_percentile, compute_percentile_batch
+from oprim.recognition_update import recognition_update, recognition_update_sequence
+from oprim.compute_effortful_gain import compute_effortful_gain, compute_effortful_gain_from_arrays
+from oprim.compute_feedback import compute_feedback, grade_answer
+from oprim.file_type_detector import file_type_detector as file_type_detector
+from oprim.due_compute import due_compute
+from oprim.speech_to_math import speech_to_math
+from oprim.error_classify import error_classify
+
+# File parsers + structure extractor (restored exports)
+def file_parser_pdf(*args, **kwargs):
+    from oprim._file_parser_pdf import file_parser_pdf as _fn
+    return _fn(*args, **kwargs)
+def file_parser_epub(*args, **kwargs):
+    from oprim._file_parser_epub import file_parser_epub as _fn
+    return _fn(*args, **kwargs)
+def file_parser_html(*args, **kwargs):
+    from oprim._file_parser_html import file_parser_html as _fn
+    return _fn(*args, **kwargs)
+# from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
+from oprim._file_parser_plaintext import file_parser_plaintext as file_parser_plaintext
+from oprim._document_structure_extractor import document_structure_extractor as document_structure_extractor
+
+def epub_toc_split(*args, **kwargs):
+    from oprim._epub_toc_split import epub_toc_split as _fn
+    return _fn(*args, **kwargs)
+def _get_EpubBook():
+    from oprim._epub_toc_split import EpubBook
+    return EpubBook
+from oprim._markdown_frontmatter_build import markdown_frontmatter_build
+from oprim._text_clean_publish_noise import text_clean_publish_noise
+from oprim._arxiv_search import arxiv_search, ArxivPaper
+from oprim._http_download_file import http_download_file
+from oprim._media_types import SourceResult
+from oprim._gutenberg_search import gutenberg_search
+from oprim._oapen_search import oapen_search
+# ── AII Graph Capability (P-G1 … P-G7) ──────────────────────────────────────
+# Types (shared across AII graph elements)
+from oprim._aii_graph_types import (
+    ConflictSignal,
+    ConflictPair,
+    SourceTraceResult,
+    GraphRetrievalResult,
+    CascadeDeleteResult,
+    TwoStepIngestResult,
+    ConflictDetectionInput,
 )
-from oprim.volatility.realized import realized_variance
-from oprim.volatility.rough import rough_volatility_simulate
+# P-G1: conflict candidate detection (pure computation, no LLM)
+from oprim._ku_conflict_detect import ku_conflict_detect
+# P-G2: purpose alignment scoring (cosine + keyword, no LLM)
+from oprim._purpose_alignment_score import purpose_alignment_score
+# P-G3: source provenance query (single async DB call)
+from oprim._source_trace import source_trace
+# P-G4: direct graph link score
+from oprim._direct_link_score import direct_link_score
+# P-G5: shared source overlap score
+from oprim._source_overlap_score import source_overlap_score
+# P-G6: adamic-adar similarity score
+from oprim._adamic_adar_score import adamic_adar_score
+# P-G7: knowledge-type affinity score
+from oprim._type_affinity_score import type_affinity_score
 
-__all__ = [
-    "__version__",
-    # Time Series (11)
-    "log_returns",
-    "cumulative_returns",
-    "rolling_window_split",
-    "lag_forward_fill",
-    "percentile_rank",
-    "ewma_smooth",
-    "realized_vol",
-    "zscore_normalize",
-    "gap_detect",
-    "resample_align",
-    "purge_embargo_split",
-    # Statistics (12)
-    "bootstrap_ci",
-    "percentile_ci",
-    "percentile_value",
-    "distribution_summary",
-    "skew_kurt_robust",
-    "kolmogorov_smirnov_test",
-    "mann_kendall_trend",
-    "bayes_beta_update",
-    "brier_score_decomposed",
-    "pearson_spearman_corr",
-    "kde_density",
-    "correlation_batch",
-    # Distance (6)
-    "wasserstein_distance",
-    "dtw_distance",
-    "cosine_similarity_batch",
-    "euclidean_distance_matrix",
-    "symmetric_kl_divergence",
-    "distributional_distance",
-    # Numerics (3)
-    "logsumexp_safe",
-    "softmax_safe",
-    "clip_with_warning",
-    # Regime (3)
-    "regime_filter_data",
-    "regime_transition_matrix",
-    "regime_label_align",
-    # Finance (6)
-    "drawdown_curve",
-    "sharpe_ratio",
-    "beta_alpha_ols",
-    "value_at_risk",
-    "nelson_siegel_yield_curve",
-    "futures_curve_shape",
-    # Information (3)
-    "shannon_entropy",
-    "ordinal_pattern",
-    "phase_randomize",
-    # Signal Processing (6)
-    "linear_slope",
-    "atr",
-    "hurst_exponent",
-    "compute_dwt",
-    "H_change_rate_std",
-    "orderbook_entropy",
-    # Topology (2)
-    "takens_embed",
-    "persistence_landscape",
-    # Point Process (1)
-    "hawkes_nll",
-    # Technical (8) — Phase 1
-    "sma",
-    "ema",
-    "vwap",
-    "macd",
-    "rsi_normalized",
-    "bollinger_bands",
-    "donchian_channel",
-    "chandelier_exit",
-    # Crypto (4) — Phase 1
-    "sha256_hash",
-    "hmac_sha256",
-    "rfc6962_merkle_root",
-    "rfc6962_inclusion_proof",
-    # Crypto (3→9) — Phase 6A + Phase 3 v2.1.0
-    "ed25519_keypair_generate",
-    "ed25519_sign",
-    "ed25519_verify",
-    "generate_keypair",
-    "sign",
-    "verify",
-    "save_keypair_pem",
-    "load_private_key_pem",
-    "load_public_key_pem",
-    # Serialization (1) — Phase 1
-    "canonical_json",
-    # Risk (1) — Phase 1
-    "cvar",
-    # Performance (2) — Phase 2
-    "cagr",
-    # Mean Reversion (2) — Phase 2
-    "ornstein_uhlenbeck_fit",
-    "ornstein_uhlenbeck_half_life",
-    # Volatility (3) — Phase 2
-    "garch_fit",
-    "garch_forecast",
-    "ewma_volatility",
-    # Derivatives (3) — Phase 2
-    "black_scholes_price",
-    "black_scholes_greeks",
-    "implied_volatility",
-    # Derivatives (8) — Phase 5A
-    "binomial_tree_price",
-    "mc_european_price",
-    "mc_asian_price",
-    "barrier_option_price",
-    "lookback_option_price",
-    "lsm_american_price",
-    "svensson_yield_curve",
-    "cubic_spline_yield_curve",
-    # Similarity (1) — Phase 3
-    "vector_similarity",
-    # Risk (Phase 4)
-    "mean_deviation",
-    # Timeseries (Phase 4)
-    "adf_test",
-    "kpss_test",
-    "engle_granger_cointegration",
-    "johansen_cointegration",
-    "ljung_box_test",
-    "durbin_watson",
-    "granger_causality_test",
-    "jarque_bera_test",
-    "breusch_pagan_test",
-    # Volatility (Phase 4)
-    "egarch_fit",
-    "egarch_forecast",
-    "gjr_garch_fit",
-    "gjr_garch_forecast",
-    "realized_variance",
-    "parkinson_volatility",
-    "garman_klass_volatility",
-    "yang_zhang_volatility",
-    # Technical (Phase 4)
-    "kama",
-    "stochastic_oscillator",
-    "cci",
-    "williams_r",
-    "keltner_channels",
-    "obv",
-    "mfi",
-    # Phase 9A (v1.11.0)
-    "path_signature_compute",
-    "fisher_rao_distance",
-    "rough_volatility_simulate",
-    "sabr_implied_volatility",
-    # Phase 10 Behavioral (v2.0.0)
-    "cpt_value_function",
-    "probability_weighting_function",
-    "salience_function",
-    "large_loss_aversion_degree",
-    "salience_ranking_weights",
-    # Phase 10 Spectral (v2.0.0)
-    "marchenko_pastur_threshold",
-    "rotationally_invariant_estimator",
-    "ledoit_wolf_shrinkage",
-    "spectral_eigengap_detect",
-    "llm_judge_rerank",
-    "RerankResult",
-    "LLMCaller",
-    "llm_query_expand",
-    "parse_obsidian_tasks",
-    "ObsidianTask",
-    # Phase 10 Recursive Utility (v2.8.0)
-    "epstein_zin_aggregator",
-    # Aegis Batch 1 — Docker (v2.9.0)
-    "compose_down",
-    "compose_up",
-    "docker_container_inspect",
-    "docker_container_list",
-    "docker_container_logs",
-    "docker_container_start",
-    "docker_container_stop",
-    "docker_container_restart",
-    "docker_image_delete",
-    "docker_image_list",
-    "docker_image_pull",
-    "docker_container_stats",
-    "docker_network_list",
-    "docker_volume_delete",
-    "docker_volume_list",
-    # Aegis Batch 1 — PostgreSQL (v2.9.0)
-    "postgres_pool_status",
-    "postgres_slow_queries",
-    "postgres_locks_status",
-    "postgres_table_size",
-    "postgres_replication_lag",
-    # Aegis Batch 1 — RabbitMQ (v2.9.0)
-    "rabbitmq_queue_status",
-    "rabbitmq_connection_status",
-    "rabbitmq_consumer_status",
-    "rabbitmq_node_status",
-    # Aegis Batch 1 — Caddy (v2.9.0)
-    "caddy_admin_post",
-    "caddy_admin_reload",
-    "caddy_routes_list",
-    "caddy_certificates_status",
-    # Aegis Batch 1 — Network (v2.9.0)
-    "tcp_port_check",
-    "http_health_probe",
-    "dns_resolve",
-    "http_request_once",
-    # Aegis Batch 1 — Filesystem (v2.9.0)
-    "disk_usage",
-    "archive_to_targz",
-    "dir_archive_to_targz",
-    "file_checksum",
-    # Aegis Batch 1 — Metrics/Logs (v2.9.0)
-    "prometheus_instant_query",
-    "prometheus_range_query",
-    "loki_log_query",
-    "structlog_parse",
-    # Aegis Batch 1 — System (v2.9.0)
-    "cpu_memory_snapshot",
-    "process_list_top",
-    # Aegis Batch 1 — S3 (v2.9.0)
-    "s3_upload_file",
-    "s3_object_metadata",
-    # Sprint 11 — Timeseries (v2.12.0)
-    "time_series_split",
-    "equity_curve_segment_label",
-    # Sprint 12 — Markets + Stats (v2.13.0)
-    "sector_strength_proxy",
-    "within_group_percentile",
-    # Sprint 14 — Timeseries (v2.14.0)
-    "rolling_window_aggregate",
-    # P6-B2 — Video Generation + Audience Analytics
-    "image_to_video",
-    "face_animation",
-    "motion_prompt_translate",
-    "audience_sentiment_analyze",
-    "audience_feedback_extract",
-    "youtube_video_stats",
-    "youtube_comments_fetch",
-    "bilibili_video_stats",
-    "bilibili_comments_fetch",
-    "video_quality_metrics",
-    "vlm_video_analyze",
-    # P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
-    "style_marker_prompt",
-    "StyleType",
-    "lighting_control_prompt",
-    "LightingType",
-    "camera_motion_prompt",
-    "MotionType",
-    "first_last_frame_transition",
-    "FrameTransitionError",
-    "FrameTransitionProviderNotFoundError",
-    "video_edit_element_remove",
-    "VideoEditError",
-    "VideoEditProviderNotFoundError",
-    "story_predict",
-    "StoryPrediction",
-    "TimePrediction",
-    "StoryPredictError",
-    # Helios Wave 01 — Crypto Scoring (17 oprim)
-    "score_ma200_position",
-    "score_ma50_slope",
-    "score_ma_arrangement",
-    "score_stablecoin_inflow",
-    "score_etf_inflow",
-    "score_cex_balance_change",
-    "score_funding_rate",
-    "score_basis",
-    "score_mvrv_zscore",
-    "score_active_addresses_change",
-    "score_lth_change",
-    "score_options_skew",
-    "score_max_pain_distance",
-    "score_oi_change",
-    "score_resistance_distance",
-    "score_support_distance",
-    "score_vpvr_position",
-    "CryptoScoringError",
-    # --- Helios Wave 01: Crypto Lookup (3) ---
-    "regime_score",
-    "seasonality_score",
-    "sector_rotation_score",
-    "CryptoLookupError",
-    # --- Helios Wave 01: Crypto Technical (4) ---
-    "compute_vpvr",
-    "detect_pivots",
-    "compute_cross_asset_divergence_revert",
-    "compute_stablecoin_event_revert",
-    "CryptoTechnicalError",
-    # --- Helios Wave 01: IO Fetch (22) ---
-    "FetchError",
-    "fetch_yahoo_history",
-    "fetch_yahoo_quote",
-    "fetch_crypto",
-    "fetch_stablecoin_mcap",
-    "fetch_rss",
-    "fetch_current_price",
-    "fetch_coingecko_history",
-    "fetch_equity_series",
-    "fetch_decision_count",
-    "fetch_strategy_trades",
-    "fetch_prefs",
-    "fetch_btc_spy_corr",
-    "fetch_regime_crisis_flips",
-    "fetch_regime",
-    "get_active_event",
-    "get_regime_by_date",
-    "get_previous_30d",
-    "get_stablecoin_change_7d",
-    "get_etf_weight_modifier",
-    "get_symbol_funding_rate",
-    "get_symbol_oi_change_7d",
-    # --- Helios Wave 01: IO Write (11) ---
-    "WriteError",
-    "write_rows",
-    "store_news",
-    "upsert_events",
-    "upsert_canonical_metric",
-    "upsert_equity_series",
-    "write_event",
-    "clear_event",
-    "is_deduped",
-    "refresh_view",
-    "send_alert",
-    # --- Aegis Step 15 B2 — SSRF prevention ---
-    "url_safety_check",
-    "URLSafetyResult",
-    "URLSafetyError",
-]
-
-# --- Tide v4 extraction: B1-B3 (11 oprims) ---
-from oprim.kdj import kdj, KDJResult
-from oprim.limit_status_calc import limit_status_calc, LimitStatusResult
-from oprim.beneish_m_score import beneish_m_score, BeneishInput, BeneishResult
-from oprim.dupont_decomposition import dupont_decomposition, DuPontResult
-from oprim.dcf_valuation import dcf_valuation, DCFResult
-from oprim.volume_ratio import volume_ratio
-from oprim.apply_screen_filter import apply_screen_filter, ScreenRule, ScreenResult
-from oprim.financial_metric_extraction import financial_metric_extraction, NewsItem, FinancialMetric
-from oprim.policy_event_extraction import policy_event_extraction, PolicyNews, PolicyEvent
-from oprim.industry_attribution import industry_attribution, IndustryImpact
-from oprim.pattern_detection import pattern_detection, OHLCVInput, PatternMatch
-from oprim.predicate import evaluate_threshold_condition, OperatorType
-
-# --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
-from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
+from oprim._quant_analysis import compute_shapley_decomposition, compute_shapley_values

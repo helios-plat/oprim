@@ -1,21 +1,11 @@
 """Provider-dispatched LLM call with retry and cost tracking."""
+
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass
-
+from ._types import LLMResponse
 from oprim._config import cfg
 from oprim._logging import log as olog
 from oprim.errors import LLMError, LLMRateLimitError
-
-
-@dataclass
-class LLMResponse:
-    text: str
-    model: str
-    input_tokens: int
-    output_tokens: int
-    cost_usd: float
 
 
 def llm_call(
@@ -26,133 +16,125 @@ def llm_call(
     max_tokens: int = 4096,
     system: str | None = None,
 ) -> LLMResponse:
-    """Make an LLM completion call.
-
-    Args:
-        prompt: User message.
-        provider: "qwen3_dashscope" or "claude".
-        model: Override the default model for the provider.
-        temperature: Sampling temperature.
-        max_tokens: Maximum tokens in the response.
-        system: Optional system prompt.
-
-    Raises:
-        LLMError: Call failed after retries.
-        LLMRateLimitError: Rate limit hit (no retry).
-    """
     if provider == "qwen3_dashscope":
         return _call_dashscope(prompt, model, temperature, max_tokens, system)
     elif provider == "claude":
         return _call_claude(prompt, model, temperature, max_tokens, system)
+    elif provider == "nvidia_nim":
+        return _call_nvidia_nim(prompt, model, temperature, max_tokens, system)
     else:
         raise LLMError(f"Unknown LLM provider: {provider}")
 
 
-def _call_dashscope(
-    prompt: str,
-    model: str | None,
-    temperature: float,
-    max_tokens: int,
-    system: str | None,
-) -> LLMResponse:
-    import dashscope
-    from dashscope import Generation
+def _call_dashscope(prompt, model, temperature, max_tokens, system):
+    try:
+        import httpx
+        import os
+    except ImportError as e:
+        raise LLMError(f"httpx not installed: {e}")
 
-    api_key = cfg.get("DASHSCOPE_API_KEY")
-    if api_key:
-        dashscope.api_key = str(api_key)
+    api_key = cfg.get("DASHSCOPE_API_KEY") or os.getenv("DASHSCOPE_API_KEY", "")
+    if not api_key:
+        raise LLMError("DASHSCOPE_API_KEY not set")
 
-    model_id = model or "qwen-plus"
-    messages: list[dict] = []
+    messages = []
     if system:
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": prompt})
 
-    last_err: Exception | None = None
-    for attempt in range(3):
-        try:
-            resp = Generation.call(
-                model=model_id,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                result_format="message",
-            )
-            if resp.status_code == 200:
-                text = resp.output.choices[0].message.content
-                usage = resp.usage
-                input_tokens = usage.input_tokens
-                output_tokens = usage.output_tokens
-                # qwen-plus approximate pricing
-                cost = (input_tokens * 0.0004 + output_tokens * 0.0012) / 1000
-                return LLMResponse(
-                    text=text,
-                    model=model_id,
-                    input_tokens=input_tokens,
-                    output_tokens=output_tokens,
-                    cost_usd=cost,
-                )
-            elif resp.status_code == 429:
-                raise LLMRateLimitError(f"DashScope rate limit: {resp.message}")
-            else:
-                raise LLMError(f"DashScope error {resp.status_code}: {resp.message}")
-        except (LLMError, LLMRateLimitError):
-            raise
-        except Exception as e:
-            last_err = e
-            if attempt < 2:
-                wait = 2**attempt
-                olog.warning("dashscope llm retry", attempt=attempt, error=str(e))
-                time.sleep(wait)
-    raise LLMError(f"LLM call failed after 3 retries: {last_err}") from last_err
-
-
-def _call_claude(
-    prompt: str,
-    model: str | None,
-    temperature: float,
-    max_tokens: int,
-    system: str | None,
-) -> LLMResponse:
+    _model = model or "qwen-plus"
     try:
-        import anthropic
-    except ImportError as e:
-        raise LLMError("anthropic package not installed") from e
+        resp = httpx.post(
+            "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": _model,
+                "input": {"messages": messages},
+                "parameters": {
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+            },
+            timeout=60.0,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        text = data["output"]["choices"][0]["message"]["content"]
+        return LLMResponse(text=text, model=_model)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 429:
+            raise LLMRateLimitError(f"DashScope rate limit: {e}")
+        raise LLMError(f"DashScope HTTP error {e.response.status_code}: {e}")
+    except Exception as e:
+        raise LLMError(f"DashScope call failed: {e}")
 
-    api_key = cfg.get("ANTHROPIC_API_KEY")
-    client = anthropic.Anthropic(api_key=str(api_key) if api_key else None)
-    model_id = model or "claude-sonnet-4-6"
 
-    kwargs: dict = {
-        "model": model_id,
-        "max_tokens": max_tokens,
-        "messages": [{"role": "user", "content": prompt}],
-    }
-    if system:
-        kwargs["system"] = system
-
-    last_err: Exception | None = None
-    for attempt in range(3):
-        try:
-            resp = client.messages.create(**kwargs)
-            text = resp.content[0].text
-            input_tokens = resp.usage.input_tokens
-            output_tokens = resp.usage.output_tokens
-            # Sonnet 4.6 approximate pricing
-            cost = (input_tokens * 0.003 + output_tokens * 0.015) / 1000
-            return LLMResponse(
-                text=text,
-                model=model_id,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
-                cost_usd=cost,
-            )
-        except Exception as e:
-            last_err = e
-            if attempt < 2:
-                wait = 2**attempt
-                olog.warning("claude llm retry", attempt=attempt, error=str(e))
-                time.sleep(wait)
+def _call_claude(prompt, model, temperature, max_tokens, system):
+    # Claude 走 obase.ProviderRegistry，此处保留 stub 待接入
     raise LLMError(
-        f"Claude LLM call failed after 3 retries: {last_err}"
-    ) from last_err
+        "Claude provider not yet implemented via llm_call; use oprim.llm_complete instead"
+    )
+
+
+def _call_nvidia_nim(prompt, model, temperature, max_tokens, system):
+    """NVIDIA NIM — 云端 OpenAI 兼容端点。之前 provider="nvidia_nim" 调这个函数时
+    压根没实现(直接落进 llm_call() 的 else 分支报 "Unknown LLM provider"), 不是
+    配错了名字——调用方(aii_feedback_service.py 等)一直以为这条路能通。这里补上
+    真正的实现, 照抄 aii/aii/aii/api/_provider.py 里已经在用、已验证工作的
+    NIM caller 的请求/响应形状(标准 OpenAI chat/completions 格式, 和 DashScope
+    自家那套 input/output 包法不是一回事)。
+    """
+    try:
+        import os
+
+        import httpx
+    except ImportError as e:
+        raise LLMError(f"httpx not installed: {e}") from e
+
+    api_key = cfg.get("NVIDIA_NIM_API_KEY") or os.getenv("NVIDIA_NIM_API_KEY", "")
+    if not api_key:
+        raise LLMError("NVIDIA_NIM_API_KEY not set")
+
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+
+    _model = model or os.getenv("NIM_MODEL", "nvidia/llama-3.3-nemotron-super-49b-v1.5")
+    try:
+        resp = httpx.post(
+            "https://integrate.api.nvidia.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": _model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            },
+            timeout=60.0,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        choice = data["choices"][0]
+        text = choice["message"]["content"]
+        usage = data.get("usage", {})
+        return LLMResponse(
+            text=text,
+            model=_model,
+            stop_reason=choice.get("finish_reason", ""),
+            input_tokens=usage.get("prompt_tokens", 0),
+            output_tokens=usage.get("completion_tokens", 0),
+            raw=data,
+        )
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 429:
+            raise LLMRateLimitError(f"NVIDIA NIM rate limit: {e}") from e
+        raise LLMError(f"NVIDIA NIM HTTP error {e.response.status_code}: {e}") from e
+    except Exception as e:
+        raise LLMError(f"NVIDIA NIM call failed: {e}") from e

@@ -14,11 +14,13 @@ from pydantic import BaseModel
 from oprim._exceptions import (
     OprimError,
     OprimNotFoundError,
+    OprimValidationError,
 )
 
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
+
 
 class DiskUsage(BaseModel):
     path: str
@@ -26,6 +28,8 @@ class DiskUsage(BaseModel):
     used_bytes: int
     free_bytes: int
     used_percent: float
+    threshold_percent: float | None = None
+    over_threshold: bool | None = None
 
 
 class ArchiveResult(BaseModel):
@@ -39,6 +43,7 @@ class ArchiveResult(BaseModel):
     @property
     def src_dir(self) -> str:
         import warnings
+
         msg = "ArchiveResult.src_dir is deprecated, use .sources"
         warnings.warn(msg, DeprecationWarning, stacklevel=2)
         return self.sources[0] if self.sources else ""
@@ -48,17 +53,21 @@ class ArchiveResult(BaseModel):
 # 7.1 disk_usage
 # ---------------------------------------------------------------------------
 
+
 def disk_usage(
     *,
     path: str,
+    threshold_percent: float | None = None,
 ) -> DiskUsage:
     """查 path 所在文件系统的使用情况.
 
     Args:
         path: 文件系统路径
+        threshold_percent: 可选使用率告警阈值(0-100). 给定时结果的 over_threshold 置为
+            used_percent >= threshold_percent;不给则 over_threshold 为 None(未评估).
 
     Returns:
-        DiskUsage 含 total / used / free bytes 和使用率
+        DiskUsage 含 total / used / free bytes 和使用率;给定阈值时含 over_threshold.
 
     Raises:
         OprimNotFoundError: path 不存在
@@ -69,6 +78,7 @@ def disk_usage(
 
     usage = shutil.disk_usage(path)
     used_percent = (usage.used / usage.total * 100.0) if usage.total > 0 else 0.0
+    over_threshold = used_percent >= threshold_percent if threshold_percent is not None else None
 
     return DiskUsage(
         path=str(p.resolve()),
@@ -76,6 +86,8 @@ def disk_usage(
         used_bytes=usage.used,
         free_bytes=usage.free,
         used_percent=round(used_percent, 2),
+        threshold_percent=threshold_percent,
+        over_threshold=over_threshold,
     )
 
 
@@ -83,8 +95,10 @@ def disk_usage(
 # 7.2 archive_to_targz
 # ---------------------------------------------------------------------------
 
+
 def _matches_any(name: str, patterns: list[str]) -> bool:
     import fnmatch
+
     return any(fnmatch.fnmatch(name, pat) for pat in patterns)
 
 
@@ -188,6 +202,7 @@ def dir_archive_to_targz(
 ) -> ArchiveResult:
     """(Deprecated) use archive_to_targz."""
     import warnings
+
     msg = "dir_archive_to_targz is deprecated, use archive_to_targz"
     warnings.warn(msg, DeprecationWarning, stacklevel=2)
     return archive_to_targz(
@@ -201,6 +216,7 @@ def dir_archive_to_targz(
 # ---------------------------------------------------------------------------
 # 7.3 file_checksum
 # ---------------------------------------------------------------------------
+
 
 def file_checksum(
     *,
@@ -230,3 +246,138 @@ def file_checksum(
         for chunk in iter(lambda: f.read(chunk_size), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — short-name alias + fs_inode_check (B2)
+# ---------------------------------------------------------------------------
+
+fs_disk_usage = disk_usage
+
+
+def fs_inode_check(
+    *,
+    path: str,
+) -> dict[str, int | float | str]:
+    """检查文件系统 inode 使用情况.
+
+    Args:
+        path: 目标路径 (任意挂载点内的路径即可)
+
+    Returns:
+        {
+          "path": str,
+          "inodes_total": int,
+          "inodes_used": int,
+          "inodes_free": int,
+          "inodes_used_percent": float,
+        }
+
+    Raises:
+        OprimNotFoundError: path 不存在
+        OprimError: 平台不支持 inode 统计
+    """
+    p = Path(path)
+    if not p.exists():
+        raise OprimNotFoundError(f"Path not found: {path}")
+
+    try:
+        st = shutil.disk_usage(str(p))  # total/used/free bytes
+    except Exception as exc:
+        raise OprimError(f"Failed to stat path: {exc}") from exc
+
+    try:
+        import os
+
+        stat_vfs = os.statvfs(str(p))
+        total = stat_vfs.f_files
+        free = stat_vfs.f_ffree
+        used = total - free
+        pct = round(used / total * 100, 2) if total > 0 else 0.0
+    except AttributeError:
+        raise OprimError("fs_inode_check is not supported on this platform (no os.statvfs)")
+
+    return {
+        "path": str(p),
+        "inodes_total": total,
+        "inodes_used": used,
+        "inodes_free": free,
+        "inodes_used_percent": pct,
+    }
+
+
+# ---------------------------------------------------------------------------
+# disk_cleanup — allowlist 硬约束的磁盘清理 (aegis DESIGN §5.2 R2 / §9 S2 护栏)
+# ---------------------------------------------------------------------------
+
+
+class CleanupResult(BaseModel):
+    freed_bytes: int
+    touched_paths: list[str]  # 实删(或 dry_run 命中)的已解析路径
+    dry_run: bool
+
+
+def _path_size(p: Path) -> int:
+    """文件返回自身大小;目录返回其下所有普通文件大小之和。"""
+    if p.is_file() or p.is_symlink():
+        try:
+            return p.stat(follow_symlinks=False).st_size
+        except OSError:
+            return 0
+    total = 0
+    for f in p.rglob("*"):
+        if f.is_file():
+            try:
+                total += f.stat().st_size
+            except OSError:
+                continue
+    return total
+
+
+def disk_cleanup(
+    *,
+    targets: list[str],
+    allowlist: list[str],
+    dry_run: bool = True,
+) -> CleanupResult:
+    """删除 targets 中的文件/目录,但每个 target 必须落在 allowlist 前缀内。
+
+    **护栏硬约束**:每个 target 解析(resolve,消解符号链接与 ..)后必须在某个 allowlist
+    条目内(含相等),否则抛 OprimValidationError(**拒绝而非跳过**)——验证"不越界",
+    供 aegis-verify S2 断言 cleanup 只触碰 allowlist 路径。dry_run=True 只统计不删。
+
+    Args:
+        targets: 待清理路径列表。
+        allowlist: 允许清理的路径前缀列表(为空 → 任何 target 都越界报错)。
+        dry_run: True 只统计不实删。
+
+    Returns:
+        CleanupResult(freed_bytes / touched_paths / dry_run)。
+
+    Raises:
+        OprimValidationError: 某 target 越出 allowlist。
+    """
+    allow_resolved = [Path(a).resolve() for a in allowlist]
+
+    # 先全量校验:任一 target 越界即整批拒绝,不删任何东西(护栏优先于功能)。
+    resolved: list[Path] = []
+    for t in targets:
+        p = Path(t).resolve()
+        if not any(p == a or p.is_relative_to(a) for a in allow_resolved):
+            raise OprimValidationError(f"target {t!r} (resolved {p}) escapes allowlist {allowlist}")
+        resolved.append(p)
+
+    freed = 0
+    touched: list[str] = []
+    for p in resolved:
+        if not p.exists():
+            continue  # 已不存在,幂等跳过
+        freed += _path_size(p)
+        touched.append(str(p))
+        if not dry_run:
+            if p.is_dir() and not p.is_symlink():
+                shutil.rmtree(p)
+            else:
+                p.unlink()
+
+    return CleanupResult(freed_bytes=freed, touched_paths=touched, dry_run=dry_run)

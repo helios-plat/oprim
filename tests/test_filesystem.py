@@ -18,6 +18,7 @@ from oprim._filesystem import ArchiveResult, DiskUsage
 # disk_usage
 # ---------------------------------------------------------------------------
 
+
 class TestDiskUsage:
     def test_root_path(self, tmp_path):
         result = disk_usage(path=str(tmp_path))
@@ -40,10 +41,27 @@ class TestDiskUsage:
         # used + free should be close to total (some slack for reserved blocks)
         assert result.used_bytes + result.free_bytes <= result.total_bytes + 10 * 1024 * 1024
 
+    def test_no_threshold_leaves_over_threshold_none(self, tmp_path):
+        result = disk_usage(path=str(tmp_path))
+        assert result.threshold_percent is None
+        assert result.over_threshold is None
+
+    def test_threshold_zero_always_over(self, tmp_path):
+        result = disk_usage(path=str(tmp_path), threshold_percent=0.0)
+        assert result.threshold_percent == 0.0
+        assert result.over_threshold is True
+
+    def test_threshold_hundred_not_over(self, tmp_path):
+        # used_percent can only reach 100 on a full disk; 100 threshold with >= means
+        # over only when exactly full, which a test fs is not.
+        result = disk_usage(path=str(tmp_path), threshold_percent=100.0)
+        assert result.over_threshold is (result.used_percent >= 100.0)
+
 
 # ---------------------------------------------------------------------------
 # dir_archive_to_targz
 # ---------------------------------------------------------------------------
+
 
 class TestDirArchiveToTargz:
     def _make_tree(self, base: Path) -> int:
@@ -121,6 +139,7 @@ class TestDirArchiveToTargz:
 # ---------------------------------------------------------------------------
 # file_checksum
 # ---------------------------------------------------------------------------
+
 
 class TestFileChecksum:
     def test_sha256(self, tmp_path):

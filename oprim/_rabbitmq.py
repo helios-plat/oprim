@@ -18,6 +18,7 @@ from oprim._exceptions import (
 # Models
 # ---------------------------------------------------------------------------
 
+
 class QueueStatus(BaseModel):
     name: str
     vhost: str
@@ -76,6 +77,7 @@ class NodeStatus(BaseModel):
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _mgmt_get(mgmt_url: str, path: str, timeout_sec: int) -> dict[str, Any] | list[Any]:
     """GET request to RabbitMQ management API; raise oprim-typed errors."""
     url = mgmt_url.rstrip("/") + "/" + path.lstrip("/")
@@ -106,6 +108,7 @@ def _encode_vhost(vhost: str) -> str:
 # ---------------------------------------------------------------------------
 # 4.2 rabbitmq_queue_status
 # ---------------------------------------------------------------------------
+
 
 def rabbitmq_queue_status(
     *,
@@ -156,6 +159,7 @@ def rabbitmq_queue_status(
 # 4.3 rabbitmq_connection_status
 # ---------------------------------------------------------------------------
 
+
 def rabbitmq_connection_status(
     *,
     mgmt_url: str,
@@ -202,6 +206,7 @@ def rabbitmq_connection_status(
 # ---------------------------------------------------------------------------
 # 4.4 rabbitmq_consumer_status
 # ---------------------------------------------------------------------------
+
 
 def rabbitmq_consumer_status(
     *,
@@ -253,6 +258,7 @@ def rabbitmq_consumer_status(
 # 4.5 rabbitmq_node_status
 # ---------------------------------------------------------------------------
 
+
 def rabbitmq_node_status(
     *,
     mgmt_url: str,
@@ -276,21 +282,88 @@ def rabbitmq_node_status(
     result = []
     for n in data:
         node_type = n.get("type", "disc")
-        result.append(NodeStatus(
-            name=n.get("name", ""),
-            type="disc" if node_type not in ("disc", "ram") else node_type,
-            running=bool(n.get("running", False)),
-            mem_used_bytes=n.get("mem_used", 0),
-            mem_limit_bytes=n.get("mem_limit", 0),
-            mem_alarm=n.get("mem_alarm", False),
-            disk_free_bytes=n.get("disk_free", 0),
-            disk_free_limit_bytes=n.get("disk_free_limit", 0),
-            disk_free_alarm=n.get("disk_free_alarm", False),
-            fd_used=n.get("fd_used", 0),
-            fd_total=n.get("fd_total", 0),
-            sockets_used=n.get("sockets_used", 0),
-            sockets_total=n.get("sockets_total", 0),
-            proc_used=n.get("proc_used", 0),
-            proc_total=n.get("proc_total", 0),
-        ))
+        result.append(
+            NodeStatus(
+                name=n.get("name", ""),
+                type="disc" if node_type not in ("disc", "ram") else node_type,
+                running=bool(n.get("running", False)),
+                mem_used_bytes=n.get("mem_used", 0),
+                mem_limit_bytes=n.get("mem_limit", 0),
+                mem_alarm=n.get("mem_alarm", False),
+                disk_free_bytes=n.get("disk_free", 0),
+                disk_free_limit_bytes=n.get("disk_free_limit", 0),
+                disk_free_alarm=n.get("disk_free_alarm", False),
+                fd_used=n.get("fd_used", 0),
+                fd_total=n.get("fd_total", 0),
+                sockets_used=n.get("sockets_used", 0),
+                sockets_total=n.get("sockets_total", 0),
+                proc_used=n.get("proc_used", 0),
+                proc_total=n.get("proc_total", 0),
+            )
+        )
     return result
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — focused single-value wrappers (B2)
+# ---------------------------------------------------------------------------
+
+
+def rabbitmq_queue_depth(
+    *,
+    mgmt_url: str,
+    queue_name: str,
+    vhost: str = "/",
+    timeout_sec: int = 5,
+) -> int:
+    """返回队列深度 (messages ready + unacked).
+
+    Args:
+        mgmt_url: RabbitMQ Management API URL
+        queue_name: 队列名称
+        vhost: 虚拟主机
+        timeout_sec: 请求超时
+
+    Returns:
+        队列中消息总数 (messages_ready + messages_unacknowledged)
+
+    Raises:
+        OprimNotFoundError / OprimConnectionError / OprimAuthError
+    """
+    status = rabbitmq_queue_status(
+        mgmt_url=mgmt_url,
+        queue_name=queue_name,
+        vhost=vhost,
+        timeout_sec=timeout_sec,
+    )
+    return status.messages_ready + status.messages_unacked
+
+
+def rabbitmq_consumer_count(
+    *,
+    mgmt_url: str,
+    queue_name: str,
+    vhost: str = "/",
+    timeout_sec: int = 5,
+) -> int:
+    """返回队列活跃消费者数量.
+
+    Args:
+        mgmt_url: RabbitMQ Management API URL
+        queue_name: 队列名称
+        vhost: 虚拟主机
+        timeout_sec: 请求超时
+
+    Returns:
+        消费者数量 (int)
+
+    Raises:
+        OprimNotFoundError / OprimConnectionError / OprimAuthError
+    """
+    status = rabbitmq_queue_status(
+        mgmt_url=mgmt_url,
+        queue_name=queue_name,
+        vhost=vhost,
+        timeout_sec=timeout_sec,
+    )
+    return status.consumers
