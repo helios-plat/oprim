@@ -7,6 +7,39 @@ from pathlib import Path
 from typing import Any
 from oprim._version import __version__
 
+# Public-package contract for 3O consumers.  It describes only stable atomic
+# operations and intentionally contains no application-specific state.
+__manifest__ = {
+    "package": "oprim",
+    "version": __version__,
+    "elements": [
+        {
+            "name": "video_generate",
+            "kind": "oprim",
+            "module": "oprim.video_generate",
+            "signature": "(request, /, *, provider, output_path) -> Path",
+            "depends_on": ["obase.provider_registry"],
+            "pillars": ["cost", "fingerprint", "trail", "report"],
+        },
+        {
+            "name": "edge_tts_synthesize",
+            "kind": "oprim",
+            "module": "oprim.edge_tts_synthesize",
+            "signature": "(request, /, *, output_path) -> Path",
+            "depends_on": ["obase.ffmpeg"],
+            "pillars": ["cost", "fingerprint", "trail", "report"],
+        },
+        {
+            "name": "avatar_generate",
+            "kind": "oprim",
+            "module": "oprim.avatar_generate",
+            "signature": "(request, /, *, provider, output_path) -> Path",
+            "depends_on": ["obase.provider_registry"],
+            "pillars": ["cost", "fingerprint", "trail", "report"],
+        },
+    ],
+}
+
 _ELEMENT_MAP: dict[str, str] = {}
 _SUBMODULE_SET: set[str] = set()
 
@@ -64,7 +97,7 @@ def __getattr__(name: str) -> Any:
 def __dir__() -> list[str]:
     return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
 
-__all__ = sorted(_ELEMENT_MAP.keys())
+__all__ = sorted([*_ELEMENT_MAP.keys(), "__manifest__"])
 
 # --- Explicit re-exports (Pinning) ---
 from oprim._exceptions import (
