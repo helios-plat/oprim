@@ -11,6 +11,18 @@ from oprim._logging import log as olog
 from oprim.errors import FulltextError
 
 
+_CJK_RE = None
+def _space_cjk(text: str) -> str:
+    """Insert a space after each CJK char so tantivy's default tokenizer
+    (splits on non-alphanumerics) emits one token per CJK char — enables
+    Chinese BM25 matching without a registered CJK tokenizer."""
+    global _CJK_RE
+    if _CJK_RE is None:
+        import re as _re
+        _CJK_RE = _re.compile(r"[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef]")
+    return _CJK_RE.sub(lambda m: m.group(0) + " ", text)
+
+
 @dataclass
 class FulltextDoc:
     id: str
@@ -62,9 +74,9 @@ class TantivyFulltextIndex:
             for doc in docs:
                 tdoc = tantivy.Document()
                 tdoc.add_text("id", doc.id)
-                tdoc.add_text("title", doc.fields.get("title", ""))
-                tdoc.add_text("content", doc.fields.get("content", ""))
-                tdoc.add_text("tags", doc.fields.get("tags", ""))
+                tdoc.add_text("title", _space_cjk(doc.fields.get("title", "")))
+                tdoc.add_text("content", _space_cjk(doc.fields.get("content", "")))
+                tdoc.add_text("tags", _space_cjk(doc.fields.get("tags", "")))
                 writer.add_document(tdoc)
             writer.commit()
             self._index.reload()
@@ -83,7 +95,7 @@ class TantivyFulltextIndex:
             searcher = self._index.searcher()
             search_fields = fields or ["title", "content", "tags"]
             # tantivy 0.26 uses Index.parse_query(str, fields)
-            parsed = self._index.parse_query(query, search_fields)
+            parsed = self._index.parse_query(_space_cjk(query), search_fields)
             results = searcher.search(parsed, limit=top_k)
             hits: list[FulltextHit] = []
             for score, addr in results.hits:

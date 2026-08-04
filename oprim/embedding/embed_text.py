@@ -31,6 +31,10 @@ def _get_provider(name: str) -> TextEmbedder:
         from oprim.embedding.bge_m3 import BgeM3Embedder
 
         return BgeM3Embedder()
+    elif name == "aii_remote":
+        from oprim.embedding.aii_remote import AiiRemoteEmbedder
+
+        return AiiRemoteEmbedder()
     else:
         raise EmbeddingError(f"Unknown embedding provider: {name}")
 

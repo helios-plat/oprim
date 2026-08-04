@@ -22,6 +22,8 @@ def llm_call(
         return _call_claude(prompt, model, temperature, max_tokens, system)
     elif provider == "nvidia_nim":
         return _call_nvidia_nim(prompt, model, temperature, max_tokens, system)
+    elif provider in ("ollama", "ollama_local"):
+        return _call_ollama(prompt, model, temperature, max_tokens, system)
     else:
         raise LLMError(f"Unknown LLM provider: {provider}")
 
@@ -138,3 +140,55 @@ def _call_nvidia_nim(prompt, model, temperature, max_tokens, system):
         raise LLMError(f"NVIDIA NIM HTTP error {e.response.status_code}: {e}") from e
     except Exception as e:
         raise LLMError(f"NVIDIA NIM call failed: {e}") from e
+
+
+def _call_ollama(prompt, model, temperature, max_tokens, system):
+    """Local Ollama — OpenAI 兼容 /api/chat, 无外部凭证依赖 (本地兜底)."""
+    try:
+        import os
+
+        import httpx
+    except ImportError as e:
+        raise LLMError(f"httpx not installed: {e}") from e
+
+    base = (cfg.get("OLLAMA_BASE_URL") or os.getenv("OLLAMA_BASE_URL")
+            or "http://127.0.0.1:11434").rstrip("/")
+    _model = model or os.getenv("OLLAMA_MODEL", "qwen3-8b")
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    try:
+        # think=False: qwen3 思考 token 会吃光 num_predict 预算 → 200 但空 content。
+        # 空 content 再重试兜底。
+        for attempt in range(3):
+            resp = httpx.post(
+                f"{base}/api/chat",
+                json={
+                    "model": _model,
+                    "messages": messages,
+                    "stream": False,
+                    "think": False,
+                    "options": {"temperature": temperature, "num_predict": max_tokens},
+                },
+                timeout=180.0,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            text = (data.get("message") or {}).get("content", "") or ""
+            if text.strip() or attempt == 2:
+                break
+        return LLMResponse(
+            text=text,
+            model=_model,
+            stop_reason="stop",
+            input_tokens=(data.get("prompt_eval_count") or 0),
+            output_tokens=(data.get("eval_count") or 0),
+            raw=data,
+        )
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 429:
+            raise LLMRateLimitError(f"Ollama rate limit: {e}") from e
+        raise LLMError(f"Ollama HTTP error {e.response.status_code}: {e}") from e
+    except Exception as e:
+        raise LLMError(f"Ollama call failed: {e}") from e
