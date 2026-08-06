@@ -154,12 +154,20 @@ from oprim._optimize_loop import (  # noqa: F401
     DEFAULT_UTILITY_WEIGHTS,
     EvalCache,
     EvalWindow,
+    FoldResult,
+    LifecycleEvent,
+    LifecycleRecord,
     MultiObjectiveConfig,
     OptimizeLoopResult,
+    PHASES,
+    ParamSpec,
     RiskGateConfig,
+    StrategyLifecycle,
+    WalkForwardResult,
     fingerprint_eval,
     multi_objective_utility,
     optimize_loop,
+    walk_forward,
 )
 from oprim.p2p_mailbox import P2PMailbox  # noqa: F401
 from oprim.task_router import route_tasks, dispatch_decision  # noqa: F401

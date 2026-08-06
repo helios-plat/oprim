@@ -93,10 +93,15 @@ def bayesian_optimize(
     length_scale: float = 1.0,
     noise: float = 1e-3,
     minimize: bool = True,
+    early_stop_rounds: int = 0,
+    ei_stop: float | None = None,
 ) -> Dict[str, Any]:
     """在 box 约束上最小化/最大化 objective (RBF-GP + EI)。
 
-    Returns: {best_x, best_y, xs, ys, n_calls}。
+    early_stop_rounds: 连续 N 轮无改进 → 提前停止 (>0 启用)。
+    ei_stop: 最大 EI 改进期望 < 阈值 → 提前停止 (None 禁用)。
+
+    Returns: {best_x, best_y, xs, ys, n_calls, early_stopped, rounds_done}。
     """
     rng = np.random.default_rng(seed)
     dim = len(bounds)
@@ -121,6 +126,9 @@ def bayesian_optimize(
         ys.append(sign * float(objective(x)))
 
     gp = RBFGP(length_scale=length_scale, noise=noise)
+    early_stopped = False
+    no_improve = 0
+    rounds_done = 0
     for _ in range(n_iter):
         gp.fit(np.vstack([_norm(x) for x in xs]), np.array(ys))
         best = float(min(ys))
@@ -132,13 +140,28 @@ def bayesian_optimize(
         else:
             cand += [_denorm(rng.random(dim)) for _ in range(50)]
         vals = gp.ei(np.vstack([_norm(c) for c in cand]), best, xi=0.01)
+        best_ei = float(np.max(vals))
         x_next = cand[int(np.argmax(vals))]
+        y_next = sign * float(objective(x_next))
         xs.append(x_next)
-        ys.append(sign * float(objective(x_next)))
+        ys.append(y_next)
+        rounds_done += 1
+
+        if y_next < best - 1e-12:
+            no_improve = 0
+        else:
+            no_improve += 1
+        if ei_stop is not None and best_ei < ei_stop:
+            early_stopped = True
+            break
+        if early_stop_rounds > 0 and no_improve >= early_stop_rounds:
+            early_stopped = True
+            break
 
     best_i = int(np.argmin(ys))
     return {"best_x": xs[best_i], "best_y": sign * ys[best_i],
-            "xs": xs, "ys": [sign * v for v in ys], "n_calls": len(xs)}
+            "xs": xs, "ys": [sign * v for v in ys], "n_calls": len(xs),
+            "early_stopped": early_stopped, "rounds_done": rounds_done}
 
 
 # ---------------------------------------------------------------------------
