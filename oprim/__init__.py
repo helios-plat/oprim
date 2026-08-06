@@ -148,6 +148,19 @@ from oprim._inference_cache import (  # noqa: F401
     path_frequency_counts,
     set_intervention_cache_capacity,
 )
+
+# ── 多目标效用优化循环 (train 搜索 + OOS 硬门禁 + 评价缓存) ───────────
+from oprim._optimize_loop import (  # noqa: F401
+    DEFAULT_UTILITY_WEIGHTS,
+    EvalCache,
+    EvalWindow,
+    MultiObjectiveConfig,
+    OptimizeLoopResult,
+    RiskGateConfig,
+    fingerprint_eval,
+    multi_objective_utility,
+    optimize_loop,
+)
 from oprim.p2p_mailbox import P2PMailbox  # noqa: F401
 from oprim.task_router import route_tasks, dispatch_decision  # noqa: F401
 _ELEMENT_MAP.setdefault("p2p_mailbox", "oprim.p2p_mailbox")
