@@ -45,6 +45,115 @@ _build_element_map()
 # `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
 # __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
 _ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
+
+# Real heavy-SDK modules (tree-sitter / networkx / playwright / subprocess)
+_ELEMENT_MAP.setdefault("code_graph_parse", "oprim.code_graph_parse")
+_ELEMENT_MAP.setdefault("tdd_test_run", "oprim.tdd_test_run")
+_ELEMENT_MAP.setdefault("graph_impact_analysis", "oprim.graph_impact_analysis")
+_ELEMENT_MAP.setdefault("browser_element_interact", "oprim.browser_element_interact")
+
+# Real heavy-SDK function exports (eager-import so getattr resolves the function, not the module)
+from oprim.code_graph_parse import code_graph_parse  # noqa: F401
+from oprim.tdd_test_run import tdd_test_run  # noqa: F401
+from oprim.graph_impact_analysis import graph_impact_analysis  # noqa: F401
+from oprim.browser_element_interact import browser_element_interact  # noqa: F401
+from oprim.agent_codegen import agent_codegen, agent_handoff_switch  # noqa: F401
+
+# Grid-search ProcessPool 机制 (显式导出, 与 _injection_scan 同源可发现性)
+from oprim._grid_search import (  # noqa: F401
+    build_heatmap_payload,
+    expand_param_grid,
+    reduce_best,
+    run_grid_search,
+)
+
+# ── 神经符号 / 组合优化 / 沙箱推演 原子 (O1/O2/O3 机制层, 显式导出) ──────
+from oprim._do_calculus_intervention import (  # noqa: F401
+    _do_calculus_intervention,
+    build_binary_failure_cpd_map,
+    intervene_on_store,
+)
+from oprim._plan_ir import PlanIR, parse_ir, validate  # noqa: F401
+from oprim._ir_compile import compile_expr, compile_ir, domain_constraint_meta  # noqa: F401
+from oprim._mus import explain, shrink_to_mus  # noqa: F401
+from oprim._ir_solve import check_feasible, install_determinism, optimize  # noqa: F401
+from oprim._backtranslate import diff_all, diff_one, render  # noqa: F401
+from oprim._allocate import (  # noqa: F401
+    assign_one_to_one,
+    assign_with_capacity,
+    cost_matrix,
+    welfare,
+)
+from oprim._payments import first_price, second_price_per_task, vcg  # noqa: F401
+from oprim._truthfulness import check_strategyproof  # noqa: F401
+from oprim._deadlock import LeaseManager, ResourceOrder, WaitForGraph  # noqa: F401
+from oprim._games import (  # noqa: F401
+    Game,
+    dominant_strategies,
+    nash_vs_pareto_report,
+    pareto_optimal,
+    prisoners_dilemma,
+    pure_nash,
+)
+from oprim._ledger import Bid, Ledger, Problem, Task, Worker  # noqa: F401
+from oprim._snapshot import (  # noqa: F401
+    HardlinkBackend,
+    SnapshotStore,
+    atomic_write,
+    tree_digest,
+)
+from oprim._reward import (  # noqa: F401
+    DiffSizeProbe,
+    FileFrozenProbe,
+    py_syntax_gate,
+    run_probes,
+    unittest_probe,
+)
+from oprim._mcts import MCTS, best_path, puct  # noqa: F401
+from oprim._lookahead import Divergence, lookahead, render_verdict  # noqa: F401
+from oprim._actions import (  # noqa: F401
+    Action,
+    ActionPlan,
+    Applier,
+    Reversibility,
+    compensation_chain,
+    gate,
+)
+from oprim._sandbox import LocalSandbox, SandboxPool  # noqa: F401
+
+# ── Phase 3: 最优干预选择 (期望效用, 纯数值) ──────────────────────────
+from oprim._expected_utility_select import (  # noqa: F401
+    InterventionCandidate,
+    SelectionResult,
+    expected_utility,
+    from_diagnosis_report,
+    select_intervention,
+)
+
+# ── 决策审计统一写出口 (AuditEmitter) ──────────────────────────────────
+from oprim._audit_emit import (  # noqa: F401
+    AuditEmitter,
+    AuditEvent,
+    CompositeSink,
+    JsonlSink,
+    MemorySink,
+)
+
+# ── 推理缓存 (进程级 LRU + DAG 路径 DP) ────────────────────────────────
+from oprim._inference_cache import (  # noqa: F401
+    InferenceCache,
+    count_simple_paths_dag,
+    get_intervention_cache,
+    graph_fingerprint,
+    path_frequency_counts,
+    set_intervention_cache_capacity,
+)
+from oprim.p2p_mailbox import P2PMailbox  # noqa: F401
+from oprim.task_router import route_tasks, dispatch_decision  # noqa: F401
+_ELEMENT_MAP.setdefault("p2p_mailbox", "oprim.p2p_mailbox")
+_ELEMENT_MAP.setdefault("task_router", "oprim.task_router")
+_ELEMENT_MAP.setdefault("agent_codegen", "oprim.agent_codegen")
+_ELEMENT_MAP.setdefault("agent_handoff_switch", "oprim.agent_codegen")
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
 def llm_summarize(*args, **kwargs):
     """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
@@ -167,3 +276,55 @@ from oprim._adamic_adar_score import adamic_adar_score
 from oprim._type_affinity_score import type_affinity_score
 
 from oprim._quant_analysis import compute_shapley_decomposition, compute_shapley_values
+
+from oprim.soul_config_rewrite import soul_config_rewrite  # noqa: F401
+_ELEMENT_MAP.setdefault('soul_config_rewrite', 'oprim.soul_config_rewrite')
+
+from oprim.replay_step_record import replay_step_record  # noqa: F401
+_ELEMENT_MAP.setdefault('replay_step_record', 'oprim.replay_step_record')
+
+from oprim.kanban_task_update import kanban_task_update  # noqa: F401
+_ELEMENT_MAP.setdefault('kanban_task_update', 'oprim.kanban_task_update')
+
+from oprim.tmux_pane_create import tmux_pane_create  # noqa: F401
+_ELEMENT_MAP.setdefault('tmux_pane_create', 'oprim.tmux_pane_create')
+
+# ── Phase 4: 有限视距反事实滚动规划 ──────────────────────────────────
+from oprim._counterfactual_rollout import (  # noqa: F401
+    RolloutAction,
+    RolloutPlan,
+    counterfactual_rollout,
+)
+
+# ── L3 反事实 SCM (显式外生噪声) + 条件 Cholesky 流机制 ─────────────────
+from oprim._structural_counterfactual import SCMNode, StructuralSCM  # noqa: F401
+from oprim._cholesky_flow import (  # noqa: F401
+    CholeskyMechanism,
+    back_substitute,
+    forward_substitute,
+    log_det_lower,
+    project_lower_triangular,
+)
+
+# ── 混合离散–连续 SCM (NodeSpec / build / fit / 溯因 / 仿真 / CF) ─────────
+from oprim._hybrid_scm import HybridSCM, NodeSpec, build_hybrid_scm, fit_hybrid_scm  # noqa: F401
+from oprim._cholesky_flow import project_conditioned_lower_triangular  # noqa: F401
+
+# ── 耦合流机制 (条件仿射耦合, 可叠层) ───────────────────────────────────
+from oprim._coupling_flow import (  # noqa: F401
+    ConditionalCouplingMechanism,
+    CouplingLayer,
+)
+
+# ── 贝叶斯优化规划 (RBF-GP + EI) ───────────────────────────────────────
+from oprim._bayes_opt_plan import (  # noqa: F401
+    RBFGP,
+    bayesian_optimize,
+    continuous_plan_with_hybrid_bo,
+)
+
+# ── 深度 SCM 训练课表与温度校准 ─────────────────────────────────────────
+from oprim._deep_scm_train import (  # noqa: F401
+    calibrate_deep_scm_temperature,
+    fit_deep_scm,
+)
