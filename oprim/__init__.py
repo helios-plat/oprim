@@ -356,3 +356,15 @@ from oprim._canonical_event_ingest import (  # noqa: E402
     compute_event_fingerprint,
     deserialize_vendor,
 )
+
+# LLM 智能路由原语 (RouteLLM 内化): 路由决策 + 并行分派
+from oprim._llm_router import (  # noqa: E402
+    DEFAULT_MATRIX,
+    load_matrix,
+    route_decision,
+)
+from oprim._parallel_llm import (  # noqa: E402
+    aggregate_results,
+    dispatch_parallel,
+    split_prompt,
+)
