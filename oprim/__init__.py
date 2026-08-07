@@ -349,3 +349,10 @@ from oprim._deep_scm_train import (  # noqa: F401
     calibrate_deep_scm_temperature,
     fit_deep_scm,
 )
+
+# G5 规范化事件管道 (Vigla 复刻)
+from oprim._canonical_event_ingest import (  # noqa: E402
+    canonical_event_ingest,
+    compute_event_fingerprint,
+    deserialize_vendor,
+)
