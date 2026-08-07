@@ -373,3 +373,10 @@ from oprim._parallel_llm import (  # noqa: E402
 from oprim._quality_gate import (  # noqa: E402
     quality_check,
 )
+
+# 可执行 Spec 解析 (spec-kit 内化)
+from oprim._spec_parse import (  # noqa: E402
+    SECTION_ALIASES,
+    parse_spec,
+    validate_spec,
+)
