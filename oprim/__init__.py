@@ -380,3 +380,17 @@ from oprim._spec_parse import (  # noqa: E402
     parse_spec,
     validate_spec,
 )
+
+# 代码审查知识图谱 (code-review-graph 3O 复刻)
+from oprim._code_review_graph import (  # noqa: E402
+    QUERY_TYPES,
+    crg_available,
+    graph_build,
+    graph_communities,
+    graph_dead_code,
+    graph_ensure,
+    graph_impact,
+    graph_query,
+    graph_register,
+    graph_status,
+)

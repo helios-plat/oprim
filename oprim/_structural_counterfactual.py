@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from itertools import product
 from typing import Any
 
 import networkx as nx
@@ -47,17 +48,17 @@ class SCMNode:
 class StructuralSCM:
     """显式外生噪声 SCM (二进制故障网络)。
 
-    ⚠ 推断口径 = 均值场/乘积式**近似** (``INFERENCE``):
-      - ``propagate`` 的 OR 乘积式假设父节点边际独立 → 仅 polytree 精确;
-        reconvergent DAG (共享祖先) 上是近似。
-      - ``abduct`` 是均值场 MAP: 证据在多噪声源间歧义时回落先验,
-        对 explaining-away 欠捕捉 (L3 会偏保守)。
-      需要精确干预分布 P(Y|do(X)) 时, 走 ``_do_calculus_intervention`` 的
-      图割裂 + pgmpy VariableElimination 精确路径。
+    推断口径 (``INFERENCE``):
+      - 默认**精确** twin-network 枚举: ``abduct`` / ``l2_p_fault`` /
+        ``l3_p_fault(evidence=...)`` 联合枚举全部外生噪声 (leak + 边激活),
+        无父独立性假设, reconvergent DAG 上亦精确, 正确捕捉 explaining-away。
+      - 自由外生变量 > ``max_vars`` (默认 20, 即 2^20 世界) 时**回落**均值场:
+        ``propagate`` 乘积式 (仅 polytree 精确) + ``abduct`` MAP sweeps。
+      - ``l3_p_fault`` 不传 evidence (只给 u_posterior) 时走旧的均值场口径 (向后兼容)。
     """
 
-    #: 推断口径标记 —— 调用方据此判断是否可接受近似 (对照 do-calculus 精确路径)。
-    INFERENCE: str = "mean_field_approx"
+    #: 推断口径标记 —— 精确枚举优先, 超 max_vars 回落均值场。
+    INFERENCE: str = "exact_enum_with_meanfield_fallback"
 
     def __init__(self, nodes: dict[str, SCMNode], graph: nx.DiGraph):
         self.nodes = nodes
@@ -106,14 +107,124 @@ class StructuralSCM:
                 return False
         return True
 
-    # ── 1. Abduction: P(U | e) 均值场/边际 MAP ───────────────────────
-    def abduct(self, evidence: dict[str, str], *, sweeps: int = 5) -> dict[str, float]:
-        """均值场近似: 逐个 U 变量计算 P(U_X=1 | e, U_其他=MAP)。
+    # ── 精确外生噪声枚举 (twin-network, 无父独立性假设) ────────────────
+    def _exogenous(self):
+        """自由外生噪声: leak L_X~Bern(b_X) (0<b<1) + 边激活 A_{X,p}~Bern(t) (0<t<1)。
 
-        其余 U 夹持在当前 MAP (后验 ≥ 0.5), 用确定性传播检查相容性:
-          P(U_X=1|e) ∝ P(e|U_X=1, U_rest=MAP)·P(U_X=1) — 相容为 1, 否则 0。
-        两者都相容 → 保持先验 (证据对该噪声无信息); 都不相容 → 保持先验并记 note。
+        b/t ∈ {0,1} 退化为确定性, 不进枚举 (省 2 的幂次)。
+        返回 (拓扑序, 自由leak[(node,b)], 固定leak{node:bool},
+              自由边[((child,parent),t)], 固定边{(child,parent):bool})。
         """
+        order = list(nx.topological_sort(self.graph))
+        lf: list[tuple[str, float]] = []
+        lfx: dict[str, bool] = {}
+        for n in order:
+            b = self.nodes[n].base
+            if b <= 0.0:
+                lfx[n] = False
+            elif b >= 1.0:
+                lfx[n] = True
+            else:
+                lf.append((n, b))
+        ef: list[tuple[tuple[str, str], float]] = []
+        efx: dict[tuple[str, str], bool] = {}
+        for name in order:
+            for p in self.nodes[name].parents:
+                t = self.nodes[name].transmission_to(p)
+                if t <= 0.0:
+                    continue
+                key = (name, p)
+                if t >= 1.0:
+                    efx[key] = True
+                else:
+                    ef.append((key, t))
+        return order, lf, lfx, ef, efx
+
+    def _state_from_noise(self, order, leak_bits, edge_bits, intervened) -> dict[str, bool]:
+        """给定 leak/edge 噪声赋值确定性传播全网状态; intervened 节点 do 为 ok。"""
+        iv = set(intervened)
+        state: dict[str, bool] = {}
+        for name in order:
+            if name in iv:
+                state[name] = False
+                continue
+            hit = any(
+                state.get(p, False) and edge_bits.get((name, p), False)
+                for p in self.nodes[name].parents
+            )
+            state[name] = bool(leak_bits.get(name, False)) or hit
+        return state
+
+    @staticmethod
+    def _matches(state: dict[str, bool], evidence: dict[str, str]) -> bool:
+        for node, value in evidence.items():
+            want = str(value).lower() in ("fault", "1", "true", "fail")
+            if state.get(node, False) != want:
+                return False
+        return True
+
+    def _iter_worlds(self, order, lf, lfx, ef, efx):
+        """枚举全部自由外生赋值, yield (联合先验权重, leak_bits, edge_bits)。"""
+        free = [("L", k, pr) for k, pr in lf] + [("E", k, pr) for k, pr in ef]
+        for bits in product((0, 1), repeat=len(free)):
+            w = 1.0
+            leak_bits = dict(lfx)
+            edge_bits = dict(efx)
+            for i, (kind, key, pr) in enumerate(free):
+                on = bits[i]
+                w *= pr if on else (1.0 - pr)
+                (leak_bits if kind == "L" else edge_bits)[key] = bool(on)
+            yield w, leak_bits, edge_bits
+
+    def exact_intervene(
+        self, evidence, intervened, failure_node, *, max_vars: int = 20
+    ) -> float | None:
+        """精确 twin-network 反事实: P(Y=fault | do(intervened=ok), evidence)。
+
+        同一份外生噪声在事实世界 (无干预) 条件于 evidence, 反事实世界施加 do ——
+        无父独立性假设, reconvergent DAG 上亦精确。
+        自由外生变量 > max_vars → None (回落均值场); evidence 概率为 0 → None。
+        """
+        order, lf, lfx, ef, efx = self._exogenous()
+        if len(lf) + len(ef) > max_vars:
+            return None
+        num = den = 0.0
+        for w, lb, eb in self._iter_worlds(order, lf, lfx, ef, efx):
+            if w == 0.0:
+                continue
+            if not self._matches(self._state_from_noise(order, lb, eb, ()), evidence):
+                continue
+            den += w
+            if self._state_from_noise(order, lb, eb, intervened).get(failure_node, False):
+                num += w
+        return None if den <= 0.0 else num / den
+
+    def _abduct_exact(self, evidence, *, max_vars: int = 20) -> dict[str, float] | None:
+        """精确边际溯因 P(L_X=1 | evidence) (枚举); 过大或证据不可能 → None。"""
+        order, lf, lfx, ef, efx = self._exogenous()
+        if len(lf) + len(ef) > max_vars:
+            return None
+        node_num = {n: 0.0 for n in self.nodes}
+        den = 0.0
+        for w, lb, eb in self._iter_worlds(order, lf, lfx, ef, efx):
+            if w == 0.0:
+                continue
+            if not self._matches(self._state_from_noise(order, lb, eb, ()), evidence):
+                continue
+            den += w
+            for n in self.nodes:
+                if lb.get(n, False):
+                    node_num[n] += w
+        return None if den <= 0.0 else {n: node_num[n] / den for n in self.nodes}
+
+    # ── 1. Abduction: P(L | e) 精确枚举 (过大回落均值场 MAP) ───────────
+    def abduct(
+        self, evidence: dict[str, str], *, sweeps: int = 5, max_vars: int = 20
+    ) -> dict[str, float]:
+        """精确边际溯因 P(L_X=1 | e); 自由外生 > max_vars 时回落均值场 sweeps 近似。"""
+        exact = self._abduct_exact(evidence, max_vars=max_vars)
+        if exact is not None:
+            return exact
         u_posterior: dict[str, float] = {n: nd.base for n, nd in self.nodes.items()}
         order = list(nx.topological_sort(self.graph))
         for _ in range(sweeps):
@@ -153,16 +264,37 @@ class StructuralSCM:
             p_fault[name] = max(0.0, min(1.0, 1.0 - survive))
         return p_fault
 
-    # ── L2 / L3 干预概率 ─────────────────────────────────────────────
-    def l2_p_fault(self, intervened: Sequence[str], failure_node: str) -> float:
-        """P(Y | do(X=ok)) — 不锚定本次 U (U 取先验 b)。"""
+    # ── L2 / L3 干预概率 (精确枚举优先, 过大回落均值场乘积式) ──────────
+    def l2_p_fault(
+        self, intervened: Sequence[str], failure_node: str, *, max_vars: int = 20
+    ) -> float:
+        """P(Y | do(X=ok)) — 平均情形 (不锚定本次噪声)。精确边际干预, 过大回落乘积式。"""
+        exact = self.exact_intervene({}, intervened, failure_node, max_vars=max_vars)
+        if exact is not None:
+            return exact
         priors = {n: nd.base for n, nd in self.nodes.items()}
         return self.propagate(priors, intervened=intervened).get(failure_node, 0.0)
 
     def l3_p_fault(
-        self, intervened: Sequence[str], failure_node: str, u_posterior: dict[str, float]
+        self,
+        intervened: Sequence[str],
+        failure_node: str,
+        u_posterior: dict[str, float] | None = None,
+        *,
+        evidence: dict[str, str] | None = None,
+        max_vars: int = 20,
     ) -> float:
-        """P(Y | do(X=ok), U ~ P(U|e)) — 锚定本次溯因噪声。"""
+        """P(Y | do(X=ok), 锚定本次噪声)。
+
+        evidence 提供 → 精确 twin-network 反事实 (推荐, 过大回落);
+        否则用 u_posterior 走均值场乘积式传播 (旧口径, 向后兼容)。
+        """
+        if evidence is not None:
+            exact = self.exact_intervene(evidence, intervened, failure_node, max_vars=max_vars)
+            if exact is not None:
+                return exact
+        if u_posterior is None:
+            u_posterior = {n: nd.base for n, nd in self.nodes.items()}
         return self.propagate(u_posterior, intervened=intervened).get(failure_node, 0.0)
 
 
