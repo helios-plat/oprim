@@ -85,14 +85,20 @@ def _has_image(messages: list[dict[str, Any]]) -> bool:
     return False
 
 
+
+def _user_text(messages: list[dict[str, Any]]) -> str:
+    """仅取非 system 消息文本 (system 是常驻指令, 特征判定应只看真实输入)。"""
+    return " ".join(
+        str(m.get("content", "")) for m in messages
+        if isinstance(m.get("content"), str) and m.get("role") != "system")
+
+
 def _classify(messages: list[dict[str, Any]], tools: list | None,
               thresholds: dict[str, int]) -> str:
     """任务类型分类: vision > reason > code > tool > long > quick/text。"""
     if _has_image(messages):
         return "vision"
-    text = " ".join(
-        str(m.get("content", "")) for m in messages
-        if isinstance(m.get("content"), str))
+    text = _user_text(messages)
     if _REASON_HINTS.search(text):
         return "reason"
     if _CODE_HINTS.search(text):
@@ -154,8 +160,7 @@ def route_decision(
     route = _classify(messages, tools, thresholds)
 
     # ① Frontier 判定 (主线三刚需): 关键词 或 high 价值 + 高复杂度
-    text = " ".join(str(m.get("content", "")) for m in messages
-                    if isinstance(m.get("content"), str))
+    text = _user_text(messages)
     frontier_wanted = bool(_FRONTIER_HINTS.search(text)) or (
         priority == "high" and route in ("reason", "long", "tool"))
     if frontier_wanted:
