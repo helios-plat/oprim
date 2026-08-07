@@ -21,13 +21,15 @@ DEFAULT_MATRIX: dict[str, Any] = {
         "text": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
         "tool": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
         "code": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
-        "reason": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
+        "reason": {"provider": "openai", "model": "gpt-5.6-luna"},
         "long": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
         "vision": {"provider": "dashscope", "model": "qwen3.7-flash"},
     },
     "fallback": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
-    "frontier": {"provider": "opencode", "model": "opencode-go/deepseek-v4-pro"},
-    "upgrade_target": {"provider": "opencode", "model": "opencode-go/deepseek-v4-pro"},
+    "frontier": {"provider": "openai", "model": "gpt-5.6-luna"},
+    "upgrade_target": {"provider": "openai", "model": "gpt-5.6-luna"},
+    # 深度理解/规划层 (长程任务): 规划与聚合用强模型, 执行保持 flash
+    "planner": {"provider": "openai", "model": "gpt-5.6-luna"},
     "thresholds": {"long_tokens": 6000, "quick_tokens": 300},
     "cost_thresholds": {
         "quick": 0.0005, "text": 0.002, "tool": 0.005, "code": 0.005,
