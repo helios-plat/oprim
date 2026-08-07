@@ -368,3 +368,8 @@ from oprim._parallel_llm import (  # noqa: E402
     dispatch_parallel,
     split_prompt,
 )
+
+# 质量闸门 (分层路由 v2)
+from oprim._quality_gate import (  # noqa: E402
+    quality_check,
+)

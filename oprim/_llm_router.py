@@ -26,16 +26,29 @@ DEFAULT_MATRIX: dict[str, Any] = {
         "vision": {"provider": "dashscope", "model": "qwen3.7-flash"},
     },
     "fallback": {"provider": "deepseek", "model": "deepseek-v4-flash"},
+    "frontier": {"provider": "deepseek", "model": "deepseek-reasoner"},
+    "upgrade_target": {"provider": "deepseek", "model": "deepseek-reasoner"},
     "thresholds": {"long_tokens": 6000, "quick_tokens": 300},
+    "cost_thresholds": {
+        "quick": 0.0005, "text": 0.002, "tool": 0.005, "code": 0.005,
+        "reason": 0.01, "long": 0.05, "vision": 0.01, "frontier": 0.2,
+    },
+    "frontier_hints": [
+        "RCE", "安全审计", "渗透测试", "跨系统", "端到端交付",
+        "fan-out", "漏洞挖掘", "深度审计",
+    ],
     "parallelism": 4,
 }
 
 _ROUTER_FILE = Path.home() / ".veya" / "llm-router.json"
 
 # 档位特征 (关键词 → 档位)
-_CODE_HINTS = re.compile(r"```|\b(def|class|function|import|const|return)\b", re.IGNORECASE)
+_CODE_HINTS = re.compile(r"```|(def|class|function|import|const|return)", re.IGNORECASE)
 _REASON_HINTS = re.compile(
-    r"\b(证明|推导|为什么|原因|证明题|数学|calculate|prove|derive)\b",  # noqa: E501
+    r"(证明|推导|为什么|原因|证明题|数学|calculate|prove|derive)",  # noqa: E501
+    re.IGNORECASE)
+_FRONTIER_HINTS = re.compile(
+    r"(RCE|安全审计|渗透测试|跨系统|端到端交付|fan-out|漏洞挖掘|深度审计)",
     re.IGNORECASE)
 
 
@@ -113,24 +126,55 @@ def route_decision(
     messages: list[dict[str, Any]],
     tools: list | None = None,
     matrix: dict[str, Any] | None = None,
+    *,
+    priority: str = "normal",
+    budget: float | None = None,
 ) -> dict[str, Any]:
-    """主入口: 特征 → 档位 → 决策 {route, provider, model, reason}。
+    """主入口: 特征 → 档位 → 预算感知决策 (分层路由 v2)。
+
+    priority: high(高价值任务, 可走 frontier) | normal | low(预算紧缩, 锁廉价档)
+    budget: 单次调用成本上限 (USD); 超过档位成本阈值时降档
 
     永不抛异常: 矩阵损坏/未知档 → fallback。
     """
     m = matrix or load_matrix()
     routes = m.get("routes") or {}
     fallback = m.get("fallback") or DEFAULT_MATRIX["fallback"]
+    frontier = m.get("frontier") or DEFAULT_MATRIX["frontier"]
     thresholds = {**DEFAULT_MATRIX["thresholds"], **(m.get("thresholds") or {})}
+    cost_th = {**DEFAULT_MATRIX["cost_thresholds"],
+               **(m.get("cost_thresholds") or {})}
+    hints = m.get("frontier_hints") or DEFAULT_MATRIX["frontier_hints"]
 
     route = _classify(messages, tools, thresholds)
-    target = routes.get(route) or fallback
+
+    # ① Frontier 判定 (主线三刚需): 关键词 或 high 价值 + 高复杂度
+    text = " ".join(str(m.get("content", "")) for m in messages
+                    if isinstance(m.get("content"), str))
+    frontier_wanted = bool(_FRONTIER_HINTS.search(text)) or (
+        priority == "high" and route in ("reason", "long", "tool"))
+    if frontier_wanted:
+        route = "frontier"
+
+    # ② 预算紧缩 (主线二: 动态成本阈值): low 价值锁廉价档; 超预算降档
+    if priority == "low" and route not in ("quick", "text", "vision"):
+        route = "text"
+    if budget is not None and cost_th.get(route, 0.0) > budget:
+        route = "text" if route != "vision" else "vision"
+
+    target = None
+    if route == "frontier":
+        target = frontier
+    else:
+        target = routes.get(route) or fallback
+
     return {
         "route": route,
         "provider": target.get("provider", fallback["provider"]),
         "model": target.get("model", fallback["model"]),
-        "reason": f"route={route}",
+        "reason": f"route={route} priority={priority}",
         "tokens": _estimate_tokens(messages),
+        "cost_threshold": cost_th.get(route, 0.0),
     }
 
 
