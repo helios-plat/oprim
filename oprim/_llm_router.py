@@ -21,15 +21,19 @@ DEFAULT_MATRIX: dict[str, Any] = {
         "text": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
         "tool": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
         "code": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
-        "reason": {"provider": "openai", "model": "gpt-5.6-luna"},
+        "reason": {"provider": "openai", "model": "gpt-5.6-luna",
+                   "endpoint": "http://127.0.0.1:10100/v1"},
         "long": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
         "vision": {"provider": "dashscope", "model": "qwen3.7-flash"},
     },
     "fallback": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
-    "frontier": {"provider": "openai", "model": "gpt-5.6-luna"},
-    "upgrade_target": {"provider": "openai", "model": "gpt-5.6-luna"},
+    "frontier": {"provider": "openai", "model": "gpt-5.6-luna",
+                 "endpoint": "http://127.0.0.1:10100/v1"},
+    "upgrade_target": {"provider": "openai", "model": "gpt-5.6-luna",
+                       "endpoint": "http://127.0.0.1:10100/v1"},
     # 深度理解/规划层 (长程任务): 规划与聚合用强模型, 执行保持 flash
-    "planner": {"provider": "openai", "model": "gpt-5.6-luna"},
+    "planner": {"provider": "openai", "model": "gpt-5.6-luna",
+                "endpoint": "http://127.0.0.1:10100/v1"},
     "thresholds": {"long_tokens": 6000, "quick_tokens": 300},
     "cost_thresholds": {
         "quick": 0.0005, "text": 0.002, "tool": 0.005, "code": 0.005,
@@ -146,7 +150,6 @@ def route_decision(
     thresholds = {**DEFAULT_MATRIX["thresholds"], **(m.get("thresholds") or {})}
     cost_th = {**DEFAULT_MATRIX["cost_thresholds"],
                **(m.get("cost_thresholds") or {})}
-    hints = m.get("frontier_hints") or DEFAULT_MATRIX["frontier_hints"]
 
     route = _classify(messages, tools, thresholds)
 
@@ -164,11 +167,7 @@ def route_decision(
     if budget is not None and cost_th.get(route, 0.0) > budget:
         route = "text" if route != "vision" else "vision"
 
-    target = None
-    if route == "frontier":
-        target = frontier
-    else:
-        target = routes.get(route) or fallback
+    target = frontier if route == "frontier" else routes.get(route) or fallback
 
     return {
         "route": route,

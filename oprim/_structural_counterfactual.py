@@ -36,7 +36,7 @@ class SCMNode:
     """单个节点的噪声机制参数。"""
 
     name: str
-    base: float                            # b_X = P(U_X = 1) = 漏损/基础故障率
+    base: float  # b_X = P(U_X = 1) = 漏损/基础故障率
     transmissions: dict[str, float] = field(default_factory=dict)  # parent -> t
     parents: list[str] = field(default_factory=list)
 
@@ -45,7 +45,19 @@ class SCMNode:
 
 
 class StructuralSCM:
-    """显式外生噪声 SCM (二进制故障网络)。"""
+    """显式外生噪声 SCM (二进制故障网络)。
+
+    ⚠ 推断口径 = 均值场/乘积式**近似** (``INFERENCE``):
+      - ``propagate`` 的 OR 乘积式假设父节点边际独立 → 仅 polytree 精确;
+        reconvergent DAG (共享祖先) 上是近似。
+      - ``abduct`` 是均值场 MAP: 证据在多噪声源间歧义时回落先验,
+        对 explaining-away 欠捕捉 (L3 会偏保守)。
+      需要精确干预分布 P(Y|do(X)) 时, 走 ``_do_calculus_intervention`` 的
+      图割裂 + pgmpy VariableElimination 精确路径。
+    """
+
+    #: 推断口径标记 —— 调用方据此判断是否可接受近似 (对照 do-calculus 精确路径)。
+    INFERENCE: str = "mean_field_approx"
 
     def __init__(self, nodes: dict[str, SCMNode], graph: nx.DiGraph):
         self.nodes = nodes
@@ -53,8 +65,7 @@ class StructuralSCM:
 
     # ── 构造 ────────────────────────────────────────────────────────
     @classmethod
-    def from_graph(cls, dag: nx.DiGraph,
-                   cpd_map: dict[str, Any] | None = None) -> StructuralSCM:
+    def from_graph(cls, dag: nx.DiGraph, cpd_map: dict[str, Any] | None = None) -> StructuralSCM:
         """从因果 DAG (+ noisy-OR CPD 表) 构建显式噪声 SCM。
 
         cpd_map 缺省时用 p_fail/cond_fail 节点属性: 根节点 b=p_fail,
@@ -70,8 +81,7 @@ class StructuralSCM:
                 attrs = dag.nodes[name]
                 base = float(attrs.get("p_fail", 0.05))
                 trans = _transmissions_from_cond_fail(parents, attrs.get("cond_fail"))
-            nodes[name] = SCMNode(name=name, base=base, transmissions=trans,
-                                  parents=parents)
+            nodes[name] = SCMNode(name=name, base=base, transmissions=trans, parents=parents)
         return cls(nodes, dag)
 
     # ── 确定性传播 (给定 U 赋值, 全网络状态唯一) ─────────────────────
@@ -87,8 +97,7 @@ class StructuralSCM:
             state[name] = u or parent_hit
         return state
 
-    def consistent(self, u_assignment: dict[str, bool],
-                   evidence: dict[str, str]) -> bool:
+    def consistent(self, u_assignment: dict[str, bool], evidence: dict[str, str]) -> bool:
         """给定 U 赋值, 传播出的状态是否与证据相容 (证据值: 'ok'/'fault')。"""
         state = self.fault_state(u_assignment)
         for node, value in evidence.items():
@@ -118,13 +127,14 @@ class StructuralSCM:
                 elif ok0 and not ok1:
                     u_posterior[name] = 0.0
                 elif ok1 and ok0:
-                    u_posterior[name] = prior      # 证据对该噪声无信息
+                    u_posterior[name] = prior  # 证据对该噪声无信息
                 # else: 都不相容 (其余 U 夹持不合理) → 保持当前值
         return u_posterior
 
     # ── 概率传播 (OR 网络, O(V+E)) ───────────────────────────────────
-    def propagate(self, u_priors: dict[str, float],
-                  intervened: Sequence[str] = ()) -> dict[str, float]:
+    def propagate(
+        self, u_priors: dict[str, float], intervened: Sequence[str] = ()
+    ) -> dict[str, float]:
         """拓扑传播: P(X_fault) = 1 − (1−P(U_X))·Π_p(1 − t_{Xp}·P(p_fault))。
 
         intervened 中的节点被 do 为确定性 ok (P=0, 且其 U 不再生效)。
@@ -149,8 +159,9 @@ class StructuralSCM:
         priors = {n: nd.base for n, nd in self.nodes.items()}
         return self.propagate(priors, intervened=intervened).get(failure_node, 0.0)
 
-    def l3_p_fault(self, intervened: Sequence[str], failure_node: str,
-                   u_posterior: dict[str, float]) -> float:
+    def l3_p_fault(
+        self, intervened: Sequence[str], failure_node: str, u_posterior: dict[str, float]
+    ) -> float:
         """P(Y | do(X=ok), U ~ P(U|e)) — 锚定本次溯因噪声。"""
         return self.propagate(u_posterior, intervened=intervened).get(failure_node, 0.0)
 
@@ -158,6 +169,7 @@ class StructuralSCM:
 # ---------------------------------------------------------------------------
 # noisy-OR 参数恢复
 # ---------------------------------------------------------------------------
+
 
 def _recover_noisy_or(name: str, parents: list[str], cpd: Any) -> tuple[float, dict[str, float]]:
     """从 pgmpy TabularCPD 表恢复 (b, t)。
@@ -211,8 +223,7 @@ def _fault_index(states: Sequence[Any]) -> int | None:
     return None
 
 
-def _transmissions_from_cond_fail(parents: list[str],
-                                  cond_fail: Any) -> dict[str, float]:
+def _transmissions_from_cond_fail(parents: list[str], cond_fail: Any) -> dict[str, float]:
     """节点属性 cond_fail 兜底: {父状态组合: 概率} → 逐父 t (近似)。"""
     if not cond_fail or not parents:
         return {}
