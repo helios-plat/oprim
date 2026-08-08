@@ -472,6 +472,23 @@ from oprim._vlm_consensus import (  # noqa: E402
     vlm_consensus_decision,
 )
 
+# Agentic 参数优化循环 (语义化提议 + 测量迭代, optim-agent 提炼)
+from oprim._hp_search import (  # noqa: E402
+    HP_SCHEMA_VERSION,
+    HPSpaceError,
+    HPDist,
+    FloatDist,
+    IntDist,
+    CategoricalDist,
+    HPSpace,
+    HPTrial,
+    HPStudy,
+    AgentSampler,
+    RandomSampler,
+    create_hp_study,
+    space_from_json,
+)
+
 # 可执行 Spec 解析 (spec-kit 内化)
 from oprim._spec_parse import (  # noqa: E402
     SECTION_ALIASES,
