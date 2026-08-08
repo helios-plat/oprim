@@ -429,6 +429,49 @@ from oprim._quality_gate import (  # noqa: E402
     quality_check,
 )
 
+# 分阶段工作流状态机 (img2threejs workflow_state 提炼, 领域无关)
+from oprim._sculpt_pipeline import (  # noqa: E402
+    REFINE_ACTIONS,
+    SCHEMA_VERSION,
+    STEP_STATUSES,
+    SculptPipelineError,
+    load_pipeline_state,
+    new_pipeline_state,
+    pipeline_mark,
+    pipeline_status,
+    record_refinement,
+    save_pipeline_state,
+    set_current_pass,
+    validate_pipeline_state,
+)
+
+# 确定性视觉门 (Tier-1: mask IoU / 比例 / 颜色 ΔE, 纯像素)
+from oprim._silhouette_gate import (  # noqa: E402
+    ASPECT_RATIO_DELTA_THRESHOLD,
+    COLOR_DELTA_E_THRESHOLD,
+    MASK_GRID_SIZE,
+    SCALE_DELTA_THRESHOLD,
+    SILHOUETTE_IOU_THRESHOLD,
+    bilateral_symmetry_error,
+    bbox_of,
+    lab_distance,
+    load_mask,
+    per_part_color_delta,
+    proportion_delta,
+    run_silhouette_gate,
+    silhouette_iou,
+)
+
+# VLM 采样共识门 (模型意见受控注入: median + spread + 交叉核对)
+from oprim._vlm_consensus import (  # noqa: E402
+    DEFAULT_CRITERIA_MIN,
+    VARIANCE_SPREAD_MAX,
+    VLM_CRITERIA,
+    aggregate_vlm_samples,
+    run_vlm_consensus,
+    vlm_consensus_decision,
+)
+
 # 可执行 Spec 解析 (spec-kit 内化)
 from oprim._spec_parse import (  # noqa: E402
     SECTION_ALIASES,
