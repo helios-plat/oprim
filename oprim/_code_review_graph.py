@@ -103,6 +103,58 @@ def graph_ensure(repo_path: str = "", *, cwd: str = "") -> dict[str, Any]:
             "note": "图谱已构建" if built.get("ok") else f"构建失败: {built.get('error', '')}"}
 
 
+def graph_search(
+    query: str,
+    *,
+    kind: str | None = None,
+    limit: int | None = None,
+    cwd: str = "",
+) -> dict[str, Any]:
+    """图谱实体搜索 (FTS/语义混合): query → 匹配节点列表。
+
+    kind: File/Class/Function/Type/Test; limit: 返回上限。
+    输出归一: {status, search_mode, summary, results: [{name, qualified_name,
+    kind, file_path, line_start, line_end, language}]}
+    """
+    if not query.strip():
+        return {"ok": False, "error": "query 不能为空"}
+    args = ["search", query]
+    if kind:
+        args += ["--kind", kind]
+    if limit is not None:
+        args += ["--limit", str(int(limit))]
+    return _run(args, cwd=cwd)
+
+
+def graph_embed(*, cwd: str = "", provider: str = "local") -> dict[str, Any]:
+    """计算向量嵌入 (语义搜索增强): provider=local/openai/google/minimax。
+
+    未安装 embeddings 依赖 → 结构化错误 (语义搜索回退 FTS)。
+    """
+    return _run(["embed", "--provider", provider], cwd=cwd, timeout_s=300.0)
+
+
+def graph_semantic_search(
+    query: str,
+    *,
+    cwd: str = "",
+    kind: str | None = None,
+    limit: int | None = None,
+    ensure_embed: bool = False,
+) -> dict[str, Any]:
+    """语义搜索原语: 确保图就绪 → search (FTS 打底, 嵌入可用时语义增强)。
+
+    ensure_embed=True 时先尝试 embed (向量索引), 失败不阻断 (回退 FTS)。
+    """
+    st = graph_ensure(cwd=cwd)
+    if not st.get("ok"):
+        return {"ok": False, "error": f"图谱未就绪: {st.get('error', '')}"}
+    if ensure_embed:
+        graph_embed(cwd=cwd)  # 嵌入不可用 → 继续 FTS (不阻断)
+    return graph_search(query, kind=kind, limit=limit, cwd=cwd)
+
+
 __all__ = ["QUERY_TYPES", "crg_available", "graph_status", "graph_query",
            "graph_impact", "graph_dead_code", "graph_communities",
-           "graph_register", "graph_build", "graph_ensure"]
+           "graph_register", "graph_build", "graph_ensure",
+           "graph_search", "graph_embed", "graph_semantic_search"]
