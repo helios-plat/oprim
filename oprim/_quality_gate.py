@@ -33,7 +33,16 @@ def quality_check(result: dict[str, Any]) -> dict[str, Any]:
     """质量闸门: 返回 {ok, reason}。
 
     通过条件: 非空 + 无错误标记 + 长度 ≥ 3。
+    工具调用响应 (message.tool_calls 非空) 直接通过 — 模型把输出放
+    reasoning_content + tool_calls 时 content 为空是合法形态, 不可误判
+    低质量触发升级覆盖 (否则合法工具调用会被 upgrade 重试吞掉)。
     """
+    try:
+        msg = result["choices"][0].get("message") or {}
+    except (KeyError, IndexError, TypeError):
+        msg = {}
+    if msg.get("tool_calls"):
+        return {"ok": True, "reason": "tool_calls"}
     content = extract_content(result)
     if _EMPTYISH.match(content):
         return {"ok": False, "reason": "empty_response"}
