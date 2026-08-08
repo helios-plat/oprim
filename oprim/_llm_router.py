@@ -59,9 +59,15 @@ _FRONTIER_HINTS = re.compile(
 
 
 def _estimate_tokens(messages: list[dict[str, Any]]) -> int:
-    """粗略 token 估算 (chars/4, 中文偏保守用 /3 混合: 简单按 1 token ≈ 3.5 chars)。"""
+    """粗略 token 估算 (chars/4, 中文偏保守用 /3 混合: 简单按 1 token ≈ 3.5 chars)。
+
+    排除 system 常驻指令 (主脑 system prompt 数千字, 参与长度判定会把
+    简单问答误判成 long 并行档)。
+    """
     total = 0
     for m in messages:
+        if m.get("role") == "system":
+            continue
         content = m.get("content")
         if isinstance(content, str):
             total += len(content)
