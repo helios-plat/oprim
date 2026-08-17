@@ -6,13 +6,25 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import os
+import select
 import signal
+import time
 import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from ._exceptions import ShellOprimError
+
+
+def _allocate_pty() -> tuple[int, int]:
+    """Open a master/slave PTY pair. Same primitive spawn_pty and run_pty use."""
+    try:
+        import pty as _pty
+    except ImportError as e:
+        raise OSError("pty module not available on this platform") from e
+    return _pty.openpty()
 
 
 @dataclass
@@ -69,13 +81,8 @@ async def spawn_pty(
     if not Path(cwd).exists():
         raise FileNotFoundError(f"cwd does not exist: {cwd}")
 
-    try:
-        import pty as _pty
-    except ImportError as e:
-        raise OSError("pty module not available on this platform") from e
-
     env_dict: dict[str, str] = {**os.environ, **(env or {})}
-    master_fd, slave_fd = _pty.openpty()
+    master_fd, slave_fd = _allocate_pty()
 
     try:
         proc = await asyncio.create_subprocess_shell(
@@ -90,6 +97,107 @@ async def spawn_pty(
         os.close(slave_fd)
 
     return PtyHandle(pid=proc.pid, master_fd=master_fd, _proc=proc)
+
+
+def run_pty(
+    argv: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+    timeout_s: float = 30.0,
+) -> dict[str, Any]:
+    """One-shot argv exec attached to a PTY. No shell. stdout/stderr are merged.
+
+    This is the sandbox contract shape of spawn_pty: allocate the same
+    master/slave pair, run argv (not a shell string), collect until exit.
+    """
+    import subprocess
+
+    if not argv:
+        raise ValueError("argv must not be empty")
+    if not Path(cwd).exists():
+        raise FileNotFoundError(f"cwd does not exist: {cwd}")
+    if timeout_s <= 0:
+        raise ValueError(f"timeout_s must be > 0, got {timeout_s}")
+
+    env_dict = dict(env) if env is not None else dict(os.environ)
+    env_dict.setdefault("TERM", "xterm")
+    master_fd, slave_fd = _allocate_pty()
+    try:
+        proc = subprocess.Popen(
+            list(argv),
+            cwd=str(cwd),
+            env=env_dict,
+            stdin=slave_fd,
+            stdout=slave_fd,
+            stderr=slave_fd,
+            close_fds=True,
+        )
+    except FileNotFoundError:
+        os.close(master_fd)
+        os.close(slave_fd)
+        raise
+    os.close(slave_fd)
+
+    chunks: list[bytes] = []
+    deadline = time.monotonic() + timeout_s
+    timed_out = False
+    os.set_blocking(master_fd, False)
+    try:
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                timed_out = True
+                proc.kill()
+                break
+            ready, _, _ = select.select([master_fd], [], [], min(0.2, remaining))
+            if ready:
+                try:
+                    data = os.read(master_fd, 4096)
+                except OSError:
+                    break
+                if not data:
+                    break
+                chunks.append(data)
+            if proc.poll() is not None:
+                drain_until = time.monotonic() + 0.2
+                while time.monotonic() < drain_until:
+                    more, _, _ = select.select([master_fd], [], [], 0.05)
+                    if not more:
+                        break
+                    try:
+                        data = os.read(master_fd, 4096)
+                    except OSError:
+                        data = b""
+                    if not data:
+                        break
+                    chunks.append(data)
+                break
+    finally:
+        os.close(master_fd)
+
+    if timed_out:
+        with contextlib.suppress(Exception):
+            proc.wait(timeout=2)
+        return {
+            "ok": False,
+            "exit_code": 124,
+            "stdout": b"".join(chunks).decode("utf-8", errors="replace"),
+            "stderr": "",
+            "timed_out": True,
+            "error": "timed out",
+            "pty": True,
+        }
+    code = proc.wait()
+    return {
+        "ok": code == 0,
+        "exit_code": code,
+        "stdout": b"".join(chunks).decode("utf-8", errors="replace"),
+        "stderr": "",
+        "timed_out": False,
+        "error": "",
+        "pty": True,
+    }
 
 
 async def stream_stdout(

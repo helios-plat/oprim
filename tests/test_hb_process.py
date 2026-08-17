@@ -8,11 +8,12 @@ from pathlib import Path
 import pytest
 
 from oprim._hb_process import (
+    _JOBS,
     ProcHandle,
     PtyHandle,
-    _JOBS,
     kill_process,
     run_background,
+    run_pty,
     spawn_pty,
     stream_stdout,
     wait_with_timeout,
@@ -246,3 +247,32 @@ async def test_spawn_pty_empty_cmd(tmp_path: Path) -> None:
 async def test_spawn_pty_missing_cwd() -> None:
     with pytest.raises(FileNotFoundError):
         await spawn_pty("echo hi", cwd=Path("/nonexistent_xyz_99"))
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="PTY not available on Windows")
+def test_run_pty_isatty(tmp_path: Path) -> None:
+    rec = run_pty(
+        [sys.executable, "-c", "import sys; print('TTY' if sys.stdout.isatty() else 'PIPE')"],
+        cwd=tmp_path,
+        timeout_s=10,
+    )
+    assert rec["ok"] is True
+    assert rec["pty"] is True
+    assert "TTY" in rec["stdout"]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="PTY not available on Windows")
+def test_run_pty_timeout(tmp_path: Path) -> None:
+    rec = run_pty(
+        [sys.executable, "-c", "import time; time.sleep(30)"],
+        cwd=tmp_path,
+        timeout_s=0.4,
+    )
+    assert rec["ok"] is False
+    assert rec["timed_out"] is True
+    assert rec["pty"] is True
+
+
+def test_run_pty_empty_argv(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="empty"):
+        run_pty([], cwd=tmp_path)
