@@ -147,3 +147,45 @@ def test_docker_create_fails_honestly_when_unavailable() -> None:
     rec = sandbox_create(isolation="docker")
     assert rec["ok"] is False
     assert "docker" in rec["error"]
+
+
+def test_hosted_profile_forbids_process(monkeypatch) -> None:
+    monkeypatch.setenv("VEYA_SANDBOX_PROFILE", "hosted")
+    rec = sandbox_create(isolation="process")
+    assert rec["ok"] is False
+    assert "hosted profile forbids process" in rec["error"]
+
+
+def test_opensandbox_two_users_cannot_share(monkeypatch) -> None:
+    from oprim._opensandbox import LoopbackOpenSandboxDriver, set_opensandbox_driver
+
+    set_opensandbox_driver(LoopbackOpenSandboxDriver())
+    a = sandbox_create(isolation="opensandbox", owner_id="alice")
+    b = sandbox_create(isolation="opensandbox", owner_id="bob")
+    assert a["ok"] and b["ok"]
+    assert a["owner_id"] == "alice"
+    put = sandbox_put_file(a["sandbox_id"], "secret.txt", "alice-only")
+    assert put["ok"] is True
+    stolen = sandbox_get_file(a["sandbox_id"], "secret.txt", owner_id="bob")
+    assert stolen["ok"] is False
+    assert "not owned" in stolen["error"]
+    ran = sandbox_exec(
+        a["sandbox_id"],
+        [sys.executable, "-c", "print(1)"],
+        owner_id="bob",
+    )
+    assert ran["ok"] is False
+    assert "not owned" in ran["error"]
+    own = sandbox_get_file(a["sandbox_id"], "secret.txt", owner_id="alice")
+    assert own["content"] == "alice-only"
+    sandbox_destroy(a["sandbox_id"], owner_id="alice")
+    sandbox_destroy(b["sandbox_id"], owner_id="bob")
+
+
+def test_opensandbox_unavailable_fails_honestly() -> None:
+    from oprim._opensandbox import set_opensandbox_driver
+
+    set_opensandbox_driver(None)
+    rec = sandbox_create(isolation="opensandbox")
+    assert rec["ok"] is False
+    assert "opensandbox unavailable" in rec["error"]

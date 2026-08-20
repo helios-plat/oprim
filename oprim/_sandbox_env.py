@@ -11,6 +11,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from oprim._opensandbox import OpenSandboxBackend, reset_opensandbox_driver
 from oprim._sandbox_backends import (
     DockerBackend,
     MemoryBackend,
@@ -18,8 +19,9 @@ from oprim._sandbox_backends import (
     ProcessBackend,
     SandboxRecord,
 )
+from oprim._sandbox_profile import hosted_forbids_process
 
-_ISOLATIONS = frozenset({"memory", "process", "netns", "docker"})
+_ISOLATIONS = frozenset({"memory", "process", "netns", "docker", "opensandbox"})
 _LOCK = threading.Lock()
 _STORE: dict[str, SandboxRecord] = {}
 _BACKENDS = {
@@ -27,6 +29,7 @@ _BACKENDS = {
     "process": ProcessBackend(),
     "netns": NetnsBackend(),
     "docker": DockerBackend(),
+    "opensandbox": OpenSandboxBackend(),
 }
 
 
@@ -42,9 +45,16 @@ def _ok(record: SandboxRecord, **extra: Any) -> dict[str, Any]:
         "sandbox_id": record.sandbox_id,
         "isolation": record.isolation,
         "block_network": record.block_network,
+        "owner_id": record.owner_id,
     }
     rec.update(extra)
     return rec
+
+
+def _owner_denied(record: SandboxRecord, owner_id: str) -> bool:
+    if not owner_id or not record.owner_id:
+        return False
+    return owner_id != record.owner_id
 
 
 def _get(sandbox_id: str) -> SandboxRecord | None:
@@ -73,12 +83,18 @@ def sandbox_create(
     timeout_s: int = 3600,
     workspace: str | None = None,
     env: dict[str, str] | None = None,
+    owner_id: str = "",
 ) -> dict[str, Any]:
     """Create a sandbox. ``isolation`` is the requested backend."""
     if isolation not in _ISOLATIONS:
         return _fail(
             isolation=isolation,
             error=f"unknown isolation {isolation!r}; expected one of {sorted(_ISOLATIONS)}",
+        )
+    if isolation == "process" and hosted_forbids_process():
+        return _fail(
+            isolation=isolation,
+            error="hosted profile forbids process isolation",
         )
     backend = _BACKENDS[isolation]
     sandbox_id = uuid.uuid4().hex[:16]
@@ -91,6 +107,7 @@ def sandbox_create(
         timeout_s=timeout_s,
         workspace=workspace,
         env=env or {},
+        owner_id=owner_id,
     )
     if not created.get("ok"):
         return _fail(isolation=isolation, error=created.get("error") or "create failed")
@@ -108,6 +125,7 @@ def sandbox_exec(
     env: dict[str, str] | None = None,
     timeout_s: float = 30.0,
     pty: bool = False,
+    owner_id: str = "",
 ) -> dict[str, Any]:
     """Run ``argv`` inside an existing sandbox. ``pty=True`` is one-shot TTY, not attach."""
     record = _get(sandbox_id)
@@ -120,6 +138,18 @@ def sandbox_exec(
             "stderr": "",
             "timed_out": False,
             "error": f"unknown sandbox_id {sandbox_id}",
+            "pty": False,
+        }
+    if _owner_denied(record, owner_id):
+        return {
+            "ok": False,
+            "sandbox_id": sandbox_id,
+            "isolation": record.isolation,
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": "",
+            "timed_out": False,
+            "error": "sandbox not owned by this user",
             "pty": False,
         }
     if not argv:
@@ -155,10 +185,18 @@ def sandbox_exec(
     )
 
 
-def sandbox_put_file(sandbox_id: str, path: str, content: str | bytes) -> dict[str, Any]:
+def sandbox_put_file(
+    sandbox_id: str, path: str, content: str | bytes, *, owner_id: str = ""
+) -> dict[str, Any]:
     record = _get(sandbox_id)
     if record is None:
         return _fail(error=f"unknown sandbox_id {sandbox_id}")
+    if _owner_denied(record, owner_id):
+        return _fail(
+            isolation=record.isolation,
+            sandbox_id=sandbox_id,
+            error="sandbox not owned by this user",
+        )
     rel = _jail(path)
     if rel is None:
         return _fail(
@@ -178,10 +216,16 @@ def sandbox_put_file(sandbox_id: str, path: str, content: str | bytes) -> dict[s
     return _ok(record, path=rel, size=len(data))
 
 
-def sandbox_get_file(sandbox_id: str, path: str) -> dict[str, Any]:
+def sandbox_get_file(sandbox_id: str, path: str, *, owner_id: str = "") -> dict[str, Any]:
     record = _get(sandbox_id)
     if record is None:
         return _fail(error=f"unknown sandbox_id {sandbox_id}")
+    if _owner_denied(record, owner_id):
+        return _fail(
+            isolation=record.isolation,
+            sandbox_id=sandbox_id,
+            error="sandbox not owned by this user",
+        )
     rel = _jail(path)
     if rel is None:
         return _fail(
@@ -200,10 +244,16 @@ def sandbox_get_file(sandbox_id: str, path: str) -> dict[str, Any]:
     return _ok(record, path=rel, content=got["content"], size=len(got["content"]))
 
 
-def sandbox_list(sandbox_id: str, path: str = ".") -> dict[str, Any]:
+def sandbox_list(sandbox_id: str, path: str = ".", *, owner_id: str = "") -> dict[str, Any]:
     record = _get(sandbox_id)
     if record is None:
         return _fail(error=f"unknown sandbox_id {sandbox_id}")
+    if _owner_denied(record, owner_id):
+        return _fail(
+            isolation=record.isolation,
+            sandbox_id=sandbox_id,
+            error="sandbox not owned by this user",
+        )
     rel = "." if path in {"", "."} else _jail(path)
     if rel is None:
         return _fail(
@@ -222,10 +272,16 @@ def sandbox_list(sandbox_id: str, path: str = ".") -> dict[str, Any]:
     return _ok(record, path=rel, files=listed["files"])
 
 
-def sandbox_apply_patch(sandbox_id: str, patch: str) -> dict[str, Any]:
+def sandbox_apply_patch(sandbox_id: str, patch: str, *, owner_id: str = "") -> dict[str, Any]:
     record = _get(sandbox_id)
     if record is None:
         return _fail(error=f"unknown sandbox_id {sandbox_id}")
+    if _owner_denied(record, owner_id):
+        return _fail(
+            isolation=record.isolation,
+            sandbox_id=sandbox_id,
+            error="sandbox not owned by this user",
+        )
     backend = _BACKENDS[record.isolation]
     applied = backend.apply_patch(record, patch)
     if not applied.get("ok"):
@@ -237,7 +293,16 @@ def sandbox_apply_patch(sandbox_id: str, patch: str) -> dict[str, Any]:
     return _ok(record, changed=applied.get("changed") or [])
 
 
-def sandbox_destroy(sandbox_id: str) -> dict[str, Any]:
+def sandbox_destroy(sandbox_id: str, *, owner_id: str = "") -> dict[str, Any]:
+    record = _get(sandbox_id)
+    if record is None:
+        return _fail(error=f"unknown sandbox_id {sandbox_id}")
+    if _owner_denied(record, owner_id):
+        return _fail(
+            isolation=record.isolation,
+            sandbox_id=sandbox_id,
+            error="sandbox not owned by this user",
+        )
     with _LOCK:
         record = _STORE.pop(sandbox_id, None)
     if record is None:
@@ -265,3 +330,4 @@ def reset_sandbox_runtime() -> None:
         ids = list(_STORE.keys())
     for sandbox_id in ids:
         sandbox_destroy(sandbox_id)
+    reset_opensandbox_driver()

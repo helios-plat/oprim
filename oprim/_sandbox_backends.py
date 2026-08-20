@@ -26,6 +26,8 @@ class SandboxRecord:
     cpu: str = "1"
     memory: str = "512m"
     owned: bool = True
+    owner_id: str = ""
+    handle: Any = None
 
 
 def _text(data: bytes) -> str:
@@ -197,6 +199,7 @@ class MemoryBackend:
             workspace=root,
             env=_base_env(root, spec.get("env") or {}),
             owned=owned,
+            owner_id=str(spec.get("owner_id") or ""),
         )
         return {"ok": True, "record": record}
 
@@ -293,6 +296,7 @@ class ProcessBackend:
             cpu=spec.get("cpu") or "1",
             memory=spec.get("memory") or "512m",
             owned=owned,
+            owner_id=str(spec.get("owner_id") or ""),
         )
         return {"ok": True, "record": record}
 
@@ -477,6 +481,7 @@ class DockerBackend:
             cpu=spec.get("cpu") or "1",
             memory=spec.get("memory") or "512m",
             owned=owned,
+            owner_id=str(spec.get("owner_id") or ""),
         )
         return {"ok": True, "record": record}
 
