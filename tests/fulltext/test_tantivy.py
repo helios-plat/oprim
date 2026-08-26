@@ -79,7 +79,7 @@ class TestTantivyFulltextIndex:
 
     def test_unknown_provider_raises(self, tmp_path: Path):
         with pytest.raises(FulltextError, match="Unknown fulltext provider"):
-            open_fulltext_index(tmp_path / "idx", provider="elasticsearch")
+            open_fulltext_index(tmp_path / "idx", provider="nonexistent")
 
     def test_search_specific_fields(self, tmp_path: Path):
         idx = TantivyFulltextIndex(tmp_path / "idx")

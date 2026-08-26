@@ -10,6 +10,16 @@ import tantivy
 from oprim._logging import log as olog
 from oprim.errors import FulltextError
 
+# Re-export for backward compatibility
+from oprim.fulltext.elasticsearch import (
+    ElasticsearchFulltextIndex,
+    open_elasticsearch_index,
+)
+from oprim.fulltext.codegraph import (
+    CodeGraphFulltextIndex,
+    open_codegraph_index,
+)
+
 
 @dataclass
 class FulltextDoc:
@@ -110,12 +120,23 @@ class TantivyFulltextIndex:
 
 def open_fulltext_index(
     path: Path, provider: str = "tantivy"
-) -> TantivyFulltextIndex:
+) -> FulltextIndex:
     """Open or create a full-text index at *path*.
+
+    Args:
+        path: Path to the index directory (for Tantivy) or connection string (for Elasticsearch/CodeGraph)
+        provider: Either "tantivy", "elasticsearch", or "codegraph"
 
     Raises:
         FulltextError: unknown provider.
     """
-    if provider != "tantivy":
+    if provider == "tantivy":
+        return TantivyFulltextIndex(path)
+    elif provider == "elasticsearch":
+        # For Elasticsearch, path is treated as hosts string
+        return ElasticsearchFulltextIndex(hosts=str(path))
+    elif provider == "codegraph":
+        # For CodeGraph, path is treated as MCP URL
+        return CodeGraphFulltextIndex(mcp_url=str(path))
+    else:
         raise FulltextError(f"Unknown fulltext provider: {provider}")
-    return TantivyFulltextIndex(path)
