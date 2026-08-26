@@ -13,20 +13,20 @@ import re
 from pathlib import Path
 from typing import Any
 
-# 默认路由矩阵 (veya1.1 别名 → 档位 → provider/model)
+# 默认路由矩阵 (veya1.2 别名 → 档位 → provider/model)
 DEFAULT_MATRIX: dict[str, Any] = {
-    "alias": "veya1.1",
+    "alias": "veya1.2",
     "routes": {
-        "quick": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
-        "text": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
-        "tool": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
-        "code": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
+        "quick": {"provider": "veya1.2", "model": "veya1.2"},
+        "text": {"provider": "veya1.2", "model": "veya1.2"},
+        "tool": {"provider": "veya1.2", "model": "veya1.2"},
+        "code": {"provider": "veya1.2", "model": "veya1.2"},
         "reason": {"provider": "openai", "model": "gpt-5.6-luna",
                    "endpoint": "http://127.0.0.1:10100/v1"},
-        "long": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
+        "long": {"provider": "veya1.2", "model": "veya1.2"},
         "vision": {"provider": "dashscope", "model": "qwen3.7-flash"},
     },
-    "fallback": {"provider": "opencode", "model": "opencode-go/deepseek-v4-flash"},
+    "fallback": {"provider": "veya1.2", "model": "veya1.2"},
     "frontier": {"provider": "openai", "model": "gpt-5.6-luna",
                  "endpoint": "http://127.0.0.1:10100/v1"},
     "upgrade_target": {"provider": "openai", "model": "gpt-5.6-luna",
