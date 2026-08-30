@@ -5,6 +5,11 @@ from __future__ import annotations
 VERSION = "3.0.0"
 
 ELEMENTS: list[str] = [
+    # Action Gateway (PR-09)
+    "policy_match",
+    "audit_append",
+    "tool_invoke",
+    "side_effect_record",
     # Time Series (11)
     "log_returns",
     "cumulative_returns",
@@ -309,6 +314,7 @@ ELEMENTS: list[str] = [
 ]
 
 CATEGORIES: dict[str, list[str]] = {
+    "action_gateway": ["policy_match", "audit_append", "tool_invoke", "side_effect_record"],
     "time_series": [
         "log_returns",
         "cumulative_returns",
