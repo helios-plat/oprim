@@ -461,15 +461,16 @@ class DockerBackend:
                 "ok": False,
                 "error": (created.stderr or created.stdout or "docker create failed").strip(),
             }
-        started = subprocess.run(
-            ["docker", "start", name], capture_output=True, text=True, timeout=30
-        )
-        if started.returncode != 0:
-            subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=15)
-            return {
-                "ok": False,
-                "error": (started.stderr or started.stdout or "docker start failed").strip(),
-            }
+        if spec.get("start", True):
+            started = subprocess.run(
+                ["docker", "start", name], capture_output=True, text=True, timeout=30
+            )
+            if started.returncode != 0:
+                subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=15)
+                return {
+                    "ok": False,
+                    "error": (started.stderr or started.stdout or "docker start failed").strip(),
+                }
         record = SandboxRecord(
             sandbox_id=spec["sandbox_id"],
             isolation="docker",
@@ -556,5 +557,4 @@ class DockerBackend:
             )
         if record.owned:
             shutil.rmtree(record.workspace, ignore_errors=True)
-
 

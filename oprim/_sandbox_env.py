@@ -73,7 +73,7 @@ def _jail(relpath: str) -> str | None:
     return norm
 
 
-def sandbox_create(
+def _create_sandbox(
     *,
     isolation: str = "process",
     image: str = "",
@@ -84,8 +84,9 @@ def sandbox_create(
     workspace: str | None = None,
     env: dict[str, str] | None = None,
     owner_id: str = "",
+    start: bool = True,
 ) -> dict[str, Any]:
-    """Create a sandbox. ``isolation`` is the requested backend."""
+    """Internal sandbox creation shared by sandbox and computer atomics."""
     if isolation not in _ISOLATIONS:
         return _fail(
             isolation=isolation,
@@ -108,6 +109,7 @@ def sandbox_create(
         workspace=workspace,
         env=env or {},
         owner_id=owner_id,
+        start=start,
     )
     if not created.get("ok"):
         return _fail(isolation=isolation, error=created.get("error") or "create failed")
@@ -115,6 +117,33 @@ def sandbox_create(
     with _LOCK:
         _STORE[sandbox_id] = record
     return _ok(record)
+
+
+def sandbox_create(
+    *,
+    isolation: str = "process",
+    image: str = "",
+    block_network: bool = True,
+    cpu: str = "1",
+    memory: str = "512m",
+    timeout_s: int = 3600,
+    workspace: str | None = None,
+    env: dict[str, str] | None = None,
+    owner_id: str = "",
+) -> dict[str, Any]:
+    """Create and start a sandbox using the existing sandbox contract."""
+    return _create_sandbox(
+        isolation=isolation,
+        image=image,
+        block_network=block_network,
+        cpu=cpu,
+        memory=memory,
+        timeout_s=timeout_s,
+        workspace=workspace,
+        env=env,
+        owner_id=owner_id,
+        start=True,
+    )
 
 
 def sandbox_exec(
@@ -293,7 +322,7 @@ def sandbox_apply_patch(sandbox_id: str, patch: str, *, owner_id: str = "") -> d
     return _ok(record, changed=applied.get("changed") or [])
 
 
-def sandbox_destroy(sandbox_id: str, *, owner_id: str = "") -> dict[str, Any]:
+def _destroy_sandbox(sandbox_id: str, *, owner_id: str = "") -> dict[str, Any]:
     record = _get(sandbox_id)
     if record is None:
         return _fail(error=f"unknown sandbox_id {sandbox_id}")
@@ -317,6 +346,11 @@ def sandbox_destroy(sandbox_id: str, *, owner_id: str = "") -> dict[str, Any]:
     }
 
 
+def sandbox_destroy(sandbox_id: str, *, owner_id: str = "") -> dict[str, Any]:
+    """Destroy a sandbox."""
+    return _destroy_sandbox(sandbox_id, owner_id=owner_id)
+
+
 def sandbox_heartbeat(sandbox_id: str) -> dict[str, Any]:
     record = _get(sandbox_id)
     if record is None:
@@ -329,5 +363,5 @@ def reset_sandbox_runtime() -> None:
     with _LOCK:
         ids = list(_STORE.keys())
     for sandbox_id in ids:
-        sandbox_destroy(sandbox_id)
+        _destroy_sandbox(sandbox_id)
     reset_opensandbox_driver()

@@ -10,6 +10,13 @@ ELEMENTS: list[str] = [
     "audit_append",
     "tool_invoke",
     "side_effect_record",
+    # Computer Supervisor (PR-10)
+    "computer_create",
+    "computer_start",
+    "computer_status",
+    "computer_attach",
+    "computer_stop",
+    "computer_reset",
     # Time Series (11)
     "log_returns",
     "cumulative_returns",
