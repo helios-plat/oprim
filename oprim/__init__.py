@@ -168,6 +168,22 @@ from oprim._snapshot import (  # noqa: F401
 from oprim._truthfulness import check_strategyproof  # noqa: F401
 from oprim.agent_codegen import agent_codegen, agent_handoff_switch  # noqa: F401
 from oprim.browser_element_interact import browser_element_interact  # noqa: F401
+from oprim.browser import (  # noqa: F401
+    browser_attach,
+    browser_click,
+    browser_create,
+    browser_download,
+    browser_navigate,
+    browser_reset,
+    browser_screenshot,
+    browser_set_control_state,
+    browser_snapshot,
+    browser_start,
+    browser_status,
+    browser_stop,
+    browser_type,
+    browser_upload,
+)
 from oprim.code_graph_parse import code_graph_parse  # noqa: F401
 from oprim.graph_impact_analysis import graph_impact_analysis  # noqa: F401
 from oprim.p2p_mailbox import P2PMailbox  # noqa: F401
