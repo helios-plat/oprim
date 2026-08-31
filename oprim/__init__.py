@@ -12,15 +12,19 @@ from oprim._version import __version__
 _ELEMENT_MAP: dict[str, str] = {}
 _SUBMODULE_SET: set[str] = set()
 
+
 def _build_element_map() -> None:
     pkg_dir = Path(__file__).parent
     pkg_name = __package__ or "oprim"
     for py in sorted(pkg_dir.rglob("*.py")):
         rel_path = py.relative_to(pkg_dir)
-        if rel_path.parts == ("__init__.py",): continue
+        if rel_path.parts == ("__init__.py",):
+            continue
         mod_parts = list(rel_path.with_suffix("").parts)
-        if mod_parts[-1] == "__init__": mod_parts.pop()
-        if not mod_parts: continue
+        if mod_parts[-1] == "__init__":
+            mod_parts.pop()
+        if not mod_parts:
+            continue
         mod_path = pkg_name + "." + ".".join(mod_parts)
         stem = mod_parts[-1]
         _SUBMODULE_SET.add(stem)
@@ -32,14 +36,18 @@ def _build_element_map() -> None:
                     names.append(node.name)
                 elif isinstance(node, ast.ImportFrom) and rel_path.name == "__init__.py":
                     for alias in node.names:
-                        if alias.name != "*": names.append(alias.asname or alias.name)
+                        if alias.name != "*":
+                            names.append(alias.asname or alias.name)
                 for name in names:
                     if not name.startswith("_"):
                         if name not in _ELEMENT_MAP or (
-                            not mod_path.split(".")[-1].startswith("_") and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
+                            not mod_path.split(".")[-1].startswith("_")
+                            and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
                         ):
                             _ELEMENT_MAP[name] = mod_path
-        except Exception: continue
+        except Exception:
+            continue
+
 
 _build_element_map()
 
@@ -194,14 +202,19 @@ _ELEMENT_MAP.setdefault("p2p_mailbox", "oprim.p2p_mailbox")
 _ELEMENT_MAP.setdefault("task_router", "oprim.task_router")
 _ELEMENT_MAP.setdefault("agent_codegen", "oprim.agent_codegen")
 _ELEMENT_MAP.setdefault("agent_handoff_switch", "oprim.agent_codegen")
+
+
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
 def llm_summarize(*args, **kwargs):
     """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
     from oprim._llm_summarize import llm_summarize as _fn
+
     return _fn(*args, **kwargs)
 
+
 def __getattr__(name: str) -> Any:
-    if name == "__version__": return __version__
+    if name == "__version__":
+        return __version__
     if name in _ELEMENT_MAP:
         mod = importlib.import_module(_ELEMENT_MAP[name])
         return getattr(mod, name)
@@ -210,8 +223,10 @@ def __getattr__(name: str) -> Any:
         return importlib.import_module(f"{pkg_name}.{name}")
     raise AttributeError(f"module '{__name__}' has no attribute {name!r}")
 
+
 def __dir__() -> list[str]:
     return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
+
 
 __all__ = sorted(_ELEMENT_MAP.keys())
 
@@ -244,13 +259,22 @@ from oprim.llm._types import (
 # llm_complete: 惰性加载（依赖 obase）
 def llm_complete(*args, **kwargs):
     from oprim.llm._llm_complete import llm_complete as _fn
+
     return _fn(*args, **kwargs)
+
+
 def llm_stream(*args, **kwargs):
     from oprim.llm._llm_stream import llm_stream as _fn
+
     return _fn(*args, **kwargs)
+
+
 def embed_text(*args, **kwargs):
     from oprim.llm._embed_text import embed_text as _fn
+
     return _fn(*args, **kwargs)
+
+
 from oprim.prompt import (
     build_system_prompt,
     extract_thinking,
@@ -261,13 +285,21 @@ from oprim.prompt import (
 
 def image_generate(*args, **kwargs):
     from oprim.image_generate import image_generate as _fn
+
     return _fn(*args, **kwargs)
+
+
 def image_understand(*args, **kwargs):
     from oprim.image_understand import image_understand as _fn
+
     return _fn(*args, **kwargs)
+
+
 def tts_synthesize(*args, **kwargs):
     from oprim.tts_synthesize import tts_synthesize as _fn
+
     return _fn(*args, **kwargs)
+
 
 # --- Mneme elements (M-A batch) ---
 from oprim.compute_effortful_gain import compute_effortful_gain, compute_effortful_gain_from_arrays
@@ -292,13 +324,22 @@ from oprim.types import (
 # File parsers + structure extractor (restored exports)
 def file_parser_pdf(*args, **kwargs):
     from oprim._file_parser_pdf import file_parser_pdf as _fn
+
     return _fn(*args, **kwargs)
+
+
 def file_parser_epub(*args, **kwargs):
     from oprim._file_parser_epub import file_parser_epub as _fn
+
     return _fn(*args, **kwargs)
+
+
 def file_parser_html(*args, **kwargs):
     from oprim._file_parser_html import file_parser_html as _fn
+
     return _fn(*args, **kwargs)
+
+
 # from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
 from oprim._document_structure_extractor import (
     document_structure_extractor as document_structure_extractor,
@@ -308,10 +349,16 @@ from oprim._file_parser_plaintext import file_parser_plaintext as file_parser_pl
 
 def epub_toc_split(*args, **kwargs):
     from oprim._epub_toc_split import epub_toc_split as _fn
+
     return _fn(*args, **kwargs)
+
+
 def _get_EpubBook():
     from oprim._epub_toc_split import EpubBook
+
     return EpubBook
+
+
 # P-G6: adamic-adar similarity score
 from oprim._adamic_adar_score import adamic_adar_score
 
@@ -354,19 +401,19 @@ from oprim._text_clean_publish_noise import text_clean_publish_noise
 from oprim._type_affinity_score import type_affinity_score
 from oprim.soul_config_rewrite import soul_config_rewrite  # noqa: F401
 
-_ELEMENT_MAP.setdefault('soul_config_rewrite', 'oprim.soul_config_rewrite')
+_ELEMENT_MAP.setdefault("soul_config_rewrite", "oprim.soul_config_rewrite")
 
 from oprim.replay_step_record import replay_step_record  # noqa: F401
 
-_ELEMENT_MAP.setdefault('replay_step_record', 'oprim.replay_step_record')
+_ELEMENT_MAP.setdefault("replay_step_record", "oprim.replay_step_record")
 
 from oprim.kanban_task_update import kanban_task_update  # noqa: F401
 
-_ELEMENT_MAP.setdefault('kanban_task_update', 'oprim.kanban_task_update')
+_ELEMENT_MAP.setdefault("kanban_task_update", "oprim.kanban_task_update")
 
 from oprim.tmux_pane_create import tmux_pane_create  # noqa: F401
 
-_ELEMENT_MAP.setdefault('tmux_pane_create', 'oprim.tmux_pane_create')
+_ELEMENT_MAP.setdefault("tmux_pane_create", "oprim.tmux_pane_create")
 
 # ── Phase 4: 有限视距反事实滚动规划 ──────────────────────────────────
 # ── 贝叶斯优化规划 (RBF-GP + EI) ───────────────────────────────────────
@@ -514,3 +561,10 @@ from oprim._spec_parse import (  # noqa: E402
 
 # ── L3 反事实 SCM (显式外生噪声) + 条件 Cholesky 流机制 ─────────────────
 from oprim._structural_counterfactual import SCMNode, StructuralSCM  # noqa: F401
+
+# PR-12 provider execution atomics (explicitly pinned so package imports
+# resolve to functions rather than same-named lazy submodules).
+from oprim.pricing_lookup import pricing_lookup  # noqa: F401
+from oprim.provider_call import provider_call  # noqa: F401
+from oprim.provider_health_probe import provider_health_probe  # noqa: F401
+from oprim.usage_record import usage_record  # noqa: F401
