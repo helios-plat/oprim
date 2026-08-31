@@ -568,3 +568,29 @@ from oprim.pricing_lookup import pricing_lookup  # noqa: F401
 from oprim.provider_call import provider_call  # noqa: F401
 from oprim.provider_health_probe import provider_health_probe  # noqa: F401
 from oprim.usage_record import usage_record  # noqa: F401
+
+# PR-13 governed tool/MCP atomics.  Each function performs one injected
+# operation; approval, composition, and persistence remain in omodul/oservi.
+from oprim.credential_resolve import (  # noqa: F401
+    CredentialResolutionError,
+    credential_resolve,
+)
+from oprim.grant_check import grant_check  # noqa: F401
+from oprim.mcp_call import McpCallError, mcp_call  # noqa: F401
+from oprim.secret_read import SecretReadError, secret_read  # noqa: F401
+from oprim.tool_call import tool_call  # noqa: F401
+from oprim.tool_resolve import tool_resolve  # noqa: F401
+
+__all__.extend(
+    [
+        "CredentialResolutionError",
+        "credential_resolve",
+        "grant_check",
+        "McpCallError",
+        "mcp_call",
+        "SecretReadError",
+        "secret_read",
+        "tool_call",
+        "tool_resolve",
+    ]
+)
