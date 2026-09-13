@@ -218,6 +218,9 @@ def __getattr__(name: str) -> Any:
     if name in _ELEMENT_MAP:
         mod = importlib.import_module(_ELEMENT_MAP[name])
         return getattr(mod, name)
+    if name in _SILHOUETTE_EXPORTS:
+        mod = importlib.import_module("oprim._silhouette_gate")
+        return getattr(mod, name)
     if name in _SUBMODULE_SET:
         pkg_name = __package__ or "oprim"
         return importlib.import_module(f"{pkg_name}.{name}")
@@ -225,10 +228,31 @@ def __getattr__(name: str) -> Any:
 
 
 def __dir__() -> list[str]:
-    return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
+    return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + list(_SILHOUETTE_EXPORTS) + ["__version__"]))
 
 
 __all__ = sorted(_ELEMENT_MAP.keys())
+
+# Optional visual gate exports. Pillow is imported only when one of these
+# names is actually resolved or the visual gate is called.
+_SILHOUETTE_EXPORTS = frozenset(
+    {
+        "ASPECT_RATIO_DELTA_THRESHOLD",
+        "COLOR_DELTA_E_THRESHOLD",
+        "MASK_GRID_SIZE",
+        "SCALE_DELTA_THRESHOLD",
+        "SILHOUETTE_IOU_THRESHOLD",
+        "bilateral_symmetry_error",
+        "bbox_of",
+        "lab_distance",
+        "load_mask",
+        "per_part_color_delta",
+        "proportion_delta",
+        "run_silhouette_gate",
+        "silhouette_iou",
+    }
+)
+__all__ = sorted(set(__all__) | _SILHOUETTE_EXPORTS)
 
 # --- Explicit re-exports (Pinning) ---
 from oprim._exceptions import (
@@ -508,22 +532,7 @@ from oprim._sculpt_pipeline import (  # noqa: E402
     validate_pipeline_state,
 )
 
-# 确定性视觉门 (Tier-1: mask IoU / 比例 / 颜色 ΔE, 纯像素)
-from oprim._silhouette_gate import (  # noqa: E402
-    ASPECT_RATIO_DELTA_THRESHOLD,
-    COLOR_DELTA_E_THRESHOLD,
-    MASK_GRID_SIZE,
-    SCALE_DELTA_THRESHOLD,
-    SILHOUETTE_IOU_THRESHOLD,
-    bilateral_symmetry_error,
-    bbox_of,
-    lab_distance,
-    load_mask,
-    per_part_color_delta,
-    proportion_delta,
-    run_silhouette_gate,
-    silhouette_iou,
-)
+# 确定性视觉门通过 __getattr__ 惰性导出，避免 package import 加载 Pillow。
 
 # VLM 采样共识门 (模型意见受控注入: median + spread + 交叉核对)
 from oprim._vlm_consensus import (  # noqa: E402

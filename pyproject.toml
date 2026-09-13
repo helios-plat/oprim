@@ -33,6 +33,11 @@ dependencies = [
     "stripe>=11.0",
     "python-alipay-sdk>=3.3",
     "mcp>=1.0",
+    "structlog>=23.0",
+    # Required by the eagerly imported code-graph parser at package startup.
+    "tree-sitter>=0.23.0",
+    "tree-sitter-python>=0.23.0",
+    "networkx>=3.0",
 ]
 
 [project.optional-dependencies]

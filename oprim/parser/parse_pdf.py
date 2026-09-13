@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
@@ -11,19 +11,7 @@ import pymupdf4llm
 
 from oprim._logging import log as olog
 from oprim.errors import PDFParseError
-
-
-@dataclass
-class ParsedContent:
-    markdown: str
-    plaintext: str
-    page_count: int
-    images: list[dict] = field(default_factory=list)
-    tables: list[dict] = field(default_factory=list)
-    chapters: list[dict] = field(default_factory=list)
-    metadata: dict = field(default_factory=dict)
-    parser_name: str = ""
-    parse_quality_score: float = 0.0
+from oprim.parser._common import ParsedContent
 
 
 class PDFParser(Protocol):

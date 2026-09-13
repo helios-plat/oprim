@@ -8,7 +8,7 @@ import ebooklib
 from ebooklib import epub
 
 from oprim._logging import log as olog
-from oprim.parser.parse_pdf import ParsedContent
+from oprim.parser._common import ParsedContent
 
 
 def parse_epub(path: Path) -> ParsedContent:
