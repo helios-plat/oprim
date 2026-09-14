@@ -184,6 +184,7 @@ from oprim.browser import (  # noqa: F401
     browser_navigate,
     browser_reset,
     browser_screenshot,
+    browser_scroll,
     browser_set_control_state,
     browser_snapshot,
     browser_start,
@@ -191,7 +192,9 @@ from oprim.browser import (  # noqa: F401
     browser_stop,
     browser_type,
     browser_upload,
+    browser_wait,
 )
+from oprim.ast import ast_parse, ast_references, ast_symbols  # noqa: F401
 from oprim.code_graph_parse import code_graph_parse  # noqa: F401
 from oprim.graph_impact_analysis import graph_impact_analysis  # noqa: F401
 from oprim.p2p_mailbox import P2PMailbox  # noqa: F401

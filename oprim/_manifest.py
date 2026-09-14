@@ -32,6 +32,8 @@ ELEMENTS: list[str] = [
     "browser_download",
     "browser_upload",
     "browser_screenshot",
+    "browser_scroll",
+    "browser_wait",
     # Git atomic primitives (canonical owner: oprim.git)
     "git_status",
     "git_diff",
@@ -43,6 +45,10 @@ ELEMENTS: list[str] = [
     "git_stash",
     "git_worktree_create",
     "git_worktree_remove",
+    # Python syntax primitives (semantic resolution remains in LSP)
+    "ast_parse",
+    "ast_symbols",
+    "ast_references",
     # Time Series (11)
     "log_returns",
     "cumulative_returns",

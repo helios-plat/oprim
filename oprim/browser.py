@@ -18,6 +18,8 @@ from obase.browser import (
     BrowserSessionHandle,
     PlaywrightBrowserAdapter,
 )
+from obase.exceptions import ProviderNotFoundError
+from obase.provider_registry import ProviderRegistry
 
 _DEFAULT_ADAPTER: BrowserAdapter | None = None
 
@@ -25,7 +27,12 @@ _DEFAULT_ADAPTER: BrowserAdapter | None = None
 def _default_adapter() -> BrowserAdapter:
     global _DEFAULT_ADAPTER
     if _DEFAULT_ADAPTER is None:
-        _DEFAULT_ADAPTER = PlaywrightBrowserAdapter()
+        registry = ProviderRegistry.get()
+        try:
+            _DEFAULT_ADAPTER = registry.generic("browser", "default")
+        except ProviderNotFoundError:
+            _DEFAULT_ADAPTER = PlaywrightBrowserAdapter()
+            registry.register_generic("browser", "default", _DEFAULT_ADAPTER)
     return _DEFAULT_ADAPTER
 
 
@@ -187,6 +194,34 @@ async def browser_screenshot(
     return await _invoke("screenshot", _adapter(adapter).screenshot, handle, **kwargs)
 
 
+async def browser_scroll(
+    handle: BrowserSessionHandle | Mapping[str, Any],
+    *,
+    x: int = 0,
+    y: int = 0,
+    adapter: BrowserAdapter | None = None,
+) -> dict[str, Any]:
+    """Scroll the current viewport once."""
+    return await _invoke("scroll", _adapter(adapter).scroll, handle, x=x, y=y)
+
+
+async def browser_wait(
+    handle: BrowserSessionHandle | Mapping[str, Any],
+    *,
+    milliseconds: int,
+    adapter: BrowserAdapter | None = None,
+) -> dict[str, Any]:
+    """Wait once for a bounded duration."""
+    if milliseconds < 0 or milliseconds > 30_000:
+        return {
+            "ok": False,
+            "operation": "wait",
+            "status": "failed",
+            "error": "milliseconds must be between 0 and 30000",
+        }
+    return await _invoke("wait", _adapter(adapter).wait, handle, milliseconds)
+
+
 __all__ = [
     "browser_attach",
     "browser_click",
@@ -195,6 +230,7 @@ __all__ = [
     "browser_navigate",
     "browser_reset",
     "browser_screenshot",
+    "browser_scroll",
     "browser_set_control_state",
     "browser_snapshot",
     "browser_start",
@@ -202,4 +238,5 @@ __all__ = [
     "browser_stop",
     "browser_type",
     "browser_upload",
+    "browser_wait",
 ]
