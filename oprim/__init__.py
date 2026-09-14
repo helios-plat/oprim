@@ -38,6 +38,24 @@ __manifest__ = {
             "pillars": ["cost", "fingerprint", "trail", "report"],
         },
         {"name": "fixed_list", "kind": "oprim", "module": "oprim.fixed_list", "signature": "(symbols, *, venue, instrument_type, market_metadata=None) -> dict", "depends_on": [], "pillars": ["fingerprint"]},
+        {
+            "name": "style_marker_prompt", "kind": "oprim",
+            "module": "oprim.style_marker_prompt",
+            "signature": "(*, base_prompt, style) -> str",
+            "depends_on": [], "pillars": ["fingerprint"],
+        },
+        {
+            "name": "lighting_control_prompt", "kind": "oprim",
+            "module": "oprim.lighting_control_prompt",
+            "signature": "(*, base_prompt, lighting) -> str",
+            "depends_on": [], "pillars": ["fingerprint"],
+        },
+        {
+            "name": "asset_reference_inject", "kind": "oprim",
+            "module": "oprim.asset_reference_inject",
+            "signature": "(*, shot_spec, asset_refs, asset_loader) -> dict",
+            "depends_on": [], "pillars": ["fingerprint"],
+        },
     ],
 }
 
