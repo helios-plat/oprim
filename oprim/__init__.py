@@ -145,6 +145,7 @@ from oprim.file_type_detector import file_type_detector as file_type_detector
 from oprim.due_compute import due_compute
 from oprim.speech_to_math import speech_to_math
 from oprim.error_classify import error_classify
+from oprim.escalate_thinking_budget import escalate_thinking_budget
 
 # File parsers + structure extractor (restored exports)
 def file_parser_pdf(*args, **kwargs):
