@@ -1,6 +1,6 @@
 import pytest
 from datetime import date
-from oprim.parse_obsidian_tasks import parse_obsidian_tasks, ObsidianTask
+from oprim._parse_obsidian_tasks import ObsidianTask, parse_obsidian_tasks
 from oprim._exceptions import OprimError
 
 def test_parse_obsidian_tasks_basic():

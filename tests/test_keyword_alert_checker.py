@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.keyword_alert_checker import keyword_alert_checker
+from oprim._keyword_alert_checker import keyword_alert_checker
 
 
 def test_exact_match_found():

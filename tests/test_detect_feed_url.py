@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.detect_feed_url import detect_feed_url
+from oprim._detect_feed_url import detect_feed_url
 
 HTML_RSS = """\
 <html>

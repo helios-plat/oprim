@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from oprim.bootstrap import bootstrap
+from oprim._bootstrap import bootstrap
 
 
 class TestBootstrap:

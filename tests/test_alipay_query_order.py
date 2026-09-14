@@ -1,4 +1,4 @@
-"""Tests for oprim.alipay_query_order."""
+"""Tests for oprim._alipay_query_order."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oprim.alipay_create_qr_order import AlipayConfig
-from oprim.alipay_query_order import AlipayOrderStatus, alipay_query_order
-from oprim.alipay_create_qr_order import AlipayAPIError
+from oprim._alipay_create_qr_order import AlipayConfig
+from oprim._alipay_query_order import AlipayOrderStatus, alipay_query_order
+from oprim._alipay_create_qr_order import AlipayAPIError
 
 CONFIG = AlipayConfig(
     app_id="2021000000000000",
@@ -30,7 +30,7 @@ def _success_response(trade_status: str) -> dict[str, object]:
 
 @pytest.mark.asyncio
 async def test_query_order_wait_buyer_pay() -> None:
-    with patch("oprim.alipay_query_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_query_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_query.return_value = _success_response("WAIT_BUYER_PAY")
         mock_factory.return_value = mock_client
@@ -44,7 +44,7 @@ async def test_query_order_wait_buyer_pay() -> None:
 
 @pytest.mark.asyncio
 async def test_query_order_trade_success() -> None:
-    with patch("oprim.alipay_query_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_query_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_query.return_value = _success_response("TRADE_SUCCESS")
         mock_factory.return_value = mock_client
@@ -58,7 +58,7 @@ async def test_query_order_trade_success() -> None:
 
 @pytest.mark.asyncio
 async def test_query_order_trade_closed() -> None:
-    with patch("oprim.alipay_query_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_query_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_query.return_value = _success_response("TRADE_CLOSED")
         mock_factory.return_value = mock_client
@@ -70,7 +70,7 @@ async def test_query_order_trade_closed() -> None:
 
 @pytest.mark.asyncio
 async def test_query_order_trade_finished() -> None:
-    with patch("oprim.alipay_query_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_query_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_query.return_value = _success_response("TRADE_FINISHED")
         mock_factory.return_value = mock_client
@@ -82,7 +82,7 @@ async def test_query_order_trade_finished() -> None:
 
 @pytest.mark.asyncio
 async def test_query_order_api_error_raises() -> None:
-    with patch("oprim.alipay_query_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_query_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_query.return_value = {
             "sub_code": "ACQ.TRADE_NOT_EXIST",
@@ -96,7 +96,7 @@ async def test_query_order_api_error_raises() -> None:
 
 @pytest.mark.asyncio
 async def test_query_order_missing_trade_status_raises() -> None:
-    with patch("oprim.alipay_query_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_query_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_query.return_value = {}
         mock_factory.return_value = mock_client

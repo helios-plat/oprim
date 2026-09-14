@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.graph_traversal import graph_traversal
+from oprim._graph_traversal import graph_traversal
 
 # Simple graph: A->B->C->D, A->E
 GRAPH = {

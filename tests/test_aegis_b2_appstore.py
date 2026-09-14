@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from oprim import appstore_catalog_fetch
-from oprim.appstore_catalog_fetch import AppCatalogEntry
+from oprim._appstore_catalog_fetch import AppCatalogEntry
 from oprim._exceptions import OprimNotFoundError, OprimConnectionError, OprimTimeoutError
 
 

@@ -1,11 +1,11 @@
-"""Tests for oprim.vector_encode — ≥10 tests."""
+"""Tests for oprim._vector_encode — ≥10 tests."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from oprim.vector_encode import vector_encode
+from oprim._vector_encode import vector_encode
 
 
 # 1. Returns np.ndarray

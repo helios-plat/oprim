@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from oprim._exceptions import OprimError
-from oprim.llm_judge_rerank import LLMCaller
+from oprim._llm_judge_rerank import LLMCaller
 
 
 def llm_query_expand(

@@ -8,14 +8,14 @@ from unittest.mock import patch
 import pytest
 
 from oprim._macro_types import MacroDataPoint, MacroFetchError
-from oprim.fetch_macro_m2 import fetch_macro_m2
-from oprim.fetch_macro_pboc import fetch_macro_pboc
-from oprim.fetch_macro_cpi_ppi_pmi import fetch_macro_cpi_ppi_pmi
-from oprim.fetch_macro_lpr import fetch_macro_lpr
-from oprim.fetch_macro_rrr import fetch_macro_rrr
-from oprim.fetch_macro_yield_spread import fetch_macro_yield_spread
-from oprim.fetch_macro_calendar import fetch_macro_calendar
-from oprim.fetch_macro_policy_news import fetch_macro_policy_news
+from oprim._fetch_macro_m2 import fetch_macro_m2
+from oprim._fetch_macro_pboc import fetch_macro_pboc
+from oprim._fetch_macro_cpi_ppi_pmi import fetch_macro_cpi_ppi_pmi
+from oprim._fetch_macro_lpr import fetch_macro_lpr
+from oprim._fetch_macro_rrr import fetch_macro_rrr
+from oprim._fetch_macro_yield_spread import fetch_macro_yield_spread
+from oprim._fetch_macro_calendar import fetch_macro_calendar
+from oprim._fetch_macro_policy_news import fetch_macro_policy_news
 
 
 # ── shared helpers ────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim import fs_disk_usage, fs_inode_check, disk_usage
+from oprim._filesystem import disk_usage, fs_disk_usage, fs_inode_check
 from oprim._exceptions import OprimNotFoundError, OprimError
 
 

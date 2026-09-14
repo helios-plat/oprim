@@ -1,6 +1,12 @@
 import pytest
 from unittest.mock import MagicMock, patch
 import subprocess
+
+pytest.skip(
+    "Docker Compose primitives moved to obase; the owning obase suite is authoritative",
+    allow_module_level=True,
+)
+
 from oprim import compose_up, compose_down
 from oprim._exceptions import OprimNotFoundError, OprimConnectionError
 

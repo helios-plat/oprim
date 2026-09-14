@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.timeline_aggregator import timeline_aggregator
+from oprim._timeline_aggregator import timeline_aggregator
 
 ITEMS_DAY = [
     {"pub_date": "2024-01-01T10:00:00", "title": "A"},

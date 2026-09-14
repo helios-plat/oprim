@@ -1,11 +1,11 @@
-"""Tests for oprim.build_q_matrix — ≥12 tests."""
+"""Tests for oprim._build_q_matrix — ≥12 tests."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from oprim.build_q_matrix import build_q_matrix
+from oprim._build_q_matrix import build_q_matrix
 
 
 # ---------------------------------------------------------------------------

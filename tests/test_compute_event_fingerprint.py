@@ -1,4 +1,4 @@
-"""Tests for oprim.compute_event_fingerprint (oprim 2.24.0)."""
+"""Tests for oprim._compute_event_fingerprint (oprim 2.24.0)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import re
 
 import pytest
 
-from oprim.compute_event_fingerprint import compute_event_fingerprint
+from oprim._compute_event_fingerprint import compute_event_fingerprint
 
 _TYPE = "TypeError"
 _VALUE = "unsupported operand type(s) for +: 'int' and 'str'"
@@ -110,7 +110,7 @@ def test_all_none_optional_fields_deterministic() -> None:
 
 
 def test_dual_form_direct_import() -> None:
-    from oprim.compute_event_fingerprint import compute_event_fingerprint as cef
+    from oprim._compute_event_fingerprint import compute_event_fingerprint as cef
 
     assert callable(cef)
 

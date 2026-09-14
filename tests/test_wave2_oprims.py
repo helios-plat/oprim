@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from oprim.correlation_options import compute_option_skew_curve_data, compute_rolling_correlation_heatmap, OprimError
+from oprim._correlation_options import compute_option_skew_curve_data, compute_rolling_correlation_heatmap, OprimError
 
 
 def test_rolling_corr_basic():

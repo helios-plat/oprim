@@ -3,29 +3,25 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+import importlib.util
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from oprim._exceptions import OprimError
-from oprim.compute_seat_t3_return import SeatT3ReturnResult, compute_seat_t3_return
-from oprim.fetch_themes_daily import ThemeEntry, ThemesFetchError, fetch_themes_daily
-from oprim.theme_to_sw_industry_mapping import ThemeSWMapping, theme_to_sw_industry_mapping
-from oprim.fetch_sector_returns import SectorReturn, SectorFetchError, fetch_sector_returns
-from oprim.pe_ttm_lookback_safe import PETTMResult, pe_ttm_lookback_safe
-from oprim.stop_loss_compliance_check import StopLossResult, stop_loss_compliance_check
-from oprim.realtime_quote_redis_fetch import (
-    QuoteFetchError,
-    QuoteResult,
-    realtime_quote_redis_fetch,
-)
-from oprim.stamp_tax_rate_by_date import StampTaxResult, stamp_tax_rate_by_date
-from oprim.broker_export_render import BrokerExportResult, broker_export_render
-from oprim.compliance_disclaimer_inject import DISCLAIMER, compliance_disclaimer_inject
-from oprim.monthly_review_jinja2_render import RenderedReport, monthly_review_jinja2_render
-from oprim.train_val_oos_splitter import TrainValOOSSplit, train_val_oos_splitter
-from oprim.detect_volume_dryup_breakout import VolumeBreakoutResult, detect_volume_dryup_breakout
+from oprim._compute_seat_t3_return import SeatT3ReturnResult, compute_seat_t3_return
+from oprim._fetch_themes_daily import ThemeEntry, ThemesFetchError, fetch_themes_daily
+from oprim._theme_to_sw_industry_mapping import ThemeSWMapping, theme_to_sw_industry_mapping
+from oprim._fetch_sector_returns import SectorReturn, SectorFetchError, fetch_sector_returns
+from oprim._pe_ttm_lookback_safe import PETTMResult, pe_ttm_lookback_safe
+from oprim._stop_loss_compliance_check import StopLossResult, stop_loss_compliance_check
+from oprim._stamp_tax_rate_by_date import StampTaxResult, stamp_tax_rate_by_date
+from oprim._broker_export_render import BrokerExportResult, broker_export_render
+from oprim._compliance_disclaimer_inject import DISCLAIMER, compliance_disclaimer_inject
+from oprim._monthly_review_jinja2_render import RenderedReport, monthly_review_jinja2_render
+from oprim._train_val_oos_splitter import TrainValOOSSplit, train_val_oos_splitter
+from oprim._detect_volume_dryup_breakout import VolumeBreakoutResult, detect_volume_dryup_breakout
 
 
 # ── 1. compute_seat_t3_return ─────────────────────────────────────────────────
@@ -298,6 +294,10 @@ class TestStopLossComplianceCheck:
 # ── 7. realtime_quote_redis_fetch ────────────────────────────────────────────
 
 
+@pytest.mark.skipif(
+    importlib.util.find_spec("oprim.realtime_quote_redis_fetch") is None,
+    reason="realtime quote primitive moved out of oprim; covered by its owning package",
+)
 class TestRealtimeQuoteRedisFetch:
     def _make_redis(self, return_value):
         mock = AsyncMock()

@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import fitz
 import pytest
+
+pytest.importorskip("fitz", reason="PDF feature dependency is not installed")
+import fitz
 
 from oprim.classifier.detect_pdf_features import PDFFeatures, detect_pdf_features
 from oprim.errors import PDFParseError

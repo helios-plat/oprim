@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from oprim.audio_video_merge import AudioVideoMergeError, audio_video_merge
+from oprim._audio_video_merge import AudioVideoMergeError, audio_video_merge
 
 
 def _mock_ffmpeg_run():

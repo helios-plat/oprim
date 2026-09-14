@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 
 import pytest
+pytest.importorskip("PIL", reason="image feature dependency is not installed")
 from PIL import Image
 
 from oprim import thumbnail_generate

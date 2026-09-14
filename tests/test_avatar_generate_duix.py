@@ -1,4 +1,4 @@
-"""Tests for oprim.avatar_generate duix provider (M4 — ≥5 + regression)."""
+"""Tests for oprim._avatar_generate duix provider (M4 — ≥5 + regression)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from oprim.avatar_generate import AvatarGenError, avatar_generate
+from oprim._avatar_generate import AvatarGenError, avatar_generate
 
 
 @pytest.fixture()

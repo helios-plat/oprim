@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from oprim.audio_normalize import AudioNormalizeError, audio_normalize
+from oprim._audio_normalize import AudioNormalizeError, audio_normalize
 
 
 def _mock_ffmpeg_run():

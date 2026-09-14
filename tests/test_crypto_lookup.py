@@ -1,7 +1,7 @@
 """Tests for crypto_lookup oprims."""
 import pytest
 
-from oprim.crypto_lookup import (
+from oprim._crypto_lookup import (
     CryptoLookupError,
     regime_score,
     seasonality_score,

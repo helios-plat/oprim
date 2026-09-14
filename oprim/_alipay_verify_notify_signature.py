@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from alipay import AliPay
 
-from oprim.alipay_create_qr_order import AlipayConfig, AlipayError, _make_alipay_client
+from oprim._alipay_create_qr_order import AlipayConfig, AlipayError, _make_alipay_client
 
 
 class AlipayInvalidSignatureError(AlipayError): ...

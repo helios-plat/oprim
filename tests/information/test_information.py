@@ -1,9 +1,9 @@
-"""Tests for oprim.information module."""
+"""Tests for oprim._information module."""
 
 import numpy as np
 import pytest
 
-from oprim.information import ordinal_pattern, phase_randomize, shannon_entropy
+from oprim._information import ordinal_pattern, phase_randomize, shannon_entropy
 
 
 class TestShannonEntropy:

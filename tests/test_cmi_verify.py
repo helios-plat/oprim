@@ -1,9 +1,9 @@
-"""Tests for oprim.cmi_verify — ≥10 cases."""
+"""Tests for oprim._cmi_verify — ≥10 cases."""
 
 from __future__ import annotations
 
 import pytest
-from oprim.cmi_verify import cmi_verify
+from oprim._cmi_verify import cmi_verify
 
 
 # 1. Empty treatment group

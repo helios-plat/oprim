@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from oprim.llm_query_expand import llm_query_expand
+from oprim._llm_query_expand import llm_query_expand
 from oprim._exceptions import OprimError
 
 def test_llm_query_expand_basic():

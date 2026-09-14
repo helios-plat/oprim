@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from oprim.audio_mix import AudioMixError, audio_mix
+from oprim._audio_mix import AudioMixError, audio_mix
 
 
 @pytest.fixture()

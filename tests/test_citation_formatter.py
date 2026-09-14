@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.citation_formatter import citation_formatter
+from oprim._citation_formatter import citation_formatter
 
 BASE = {
     "authors": ["Smith, J."],

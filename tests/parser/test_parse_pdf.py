@@ -4,8 +4,10 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import fitz
 import pytest
+
+pytest.importorskip("fitz", reason="PDF feature dependency is not installed")
+import fitz
 
 from oprim.parser.parse_pdf import ParsedContent, parse_pdf
 from oprim.errors import PDFParseError

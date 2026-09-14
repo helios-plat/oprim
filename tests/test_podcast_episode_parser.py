@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.podcast_episode_parser import podcast_episode_parser
+from oprim._podcast_episode_parser import podcast_episode_parser
 
 VALID_PODCAST_RSS = """\
 <?xml version="1.0" encoding="UTF-8"?>

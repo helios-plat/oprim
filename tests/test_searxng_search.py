@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oprim.searxng_search import searxng_search
+from oprim._searxng_search import searxng_search
 
 MOCK_RESPONSE = {
     "results": [

@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import stripe as stripe_sdk
 
-from oprim.stripe_create_payment_intent import StripeAPIError, StripeConfig
-from oprim.stripe_refund_payment import stripe_refund_payment
+from oprim._stripe_create_payment_intent import StripeAPIError, StripeConfig
+from oprim._stripe_refund_payment import stripe_refund_payment
 
 CONFIG = StripeConfig(
     api_key="sk_test_fake_key",

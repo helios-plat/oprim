@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.io_write import (
+from oprim._io_write import (
     WriteError,
     clear_event,
     is_deduped,

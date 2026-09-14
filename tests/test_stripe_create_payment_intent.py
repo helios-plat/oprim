@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import stripe as stripe_sdk
 
-from oprim.stripe_create_payment_intent import (
+from oprim._stripe_create_payment_intent import (
     StripeAPIError,
     StripeConfig,
     StripePaymentIntent,

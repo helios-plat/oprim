@@ -1,5 +1,5 @@
 # tests/test_aegis_b5_dedup.py
-"""Tests for oprim.compute_dedup_key — time-bucket dedup key (B5)."""
+"""Tests for oprim._compute_dedup_key — time-bucket dedup key (B5)."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timezone
 
 import pytest
 
-from oprim.compute_dedup_key import compute_dedup_key
+from oprim._compute_dedup_key import compute_dedup_key
 
 # ---------------------------------------------------------------------------
 # Helpers

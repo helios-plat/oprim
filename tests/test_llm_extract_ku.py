@@ -1,9 +1,9 @@
-"""Tests for oprim.llm_extract_ku — uses stub path (no actual LLM)."""
+"""Tests for oprim._llm_extract_ku — uses stub path (no actual LLM)."""
 
 import uuid
 import pytest
-from oprim.llm_extract_ku import llm_extract_ku
-from oprim.ku_gate_validate import VALID_KNOWLEDGE_TYPES
+from oprim._llm_extract_ku import llm_extract_ku
+from oprim._ku_gate_validate import VALID_KNOWLEDGE_TYPES
 
 
 def test_returns_dict_with_all_required_ku_keys():

@@ -1,4 +1,4 @@
-"""Tests for oprim.http_post_webhook — single-shot webhook delivery (B2)."""
+"""Tests for oprim._http_post_webhook — single-shot webhook delivery (B2)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import httpx
 
-from oprim.http_post_webhook import MAX_RESPONSE_BODY_BYTES, WebhookResult, http_post_webhook
+from oprim._http_post_webhook import MAX_RESPONSE_BODY_BYTES, WebhookResult, http_post_webhook
 
 URL = "https://example.com/webhook"
 PAYLOAD = {"event": "test", "value": 42}

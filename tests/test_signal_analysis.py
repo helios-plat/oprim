@@ -2,7 +2,7 @@
 
 import pytest
 
-from oprim.signal_analysis import (bayesian_factor_posterior, divergence_score, abstain_decision, correlation_matrix, signal_temporal_decay, signal_rarity_weight, trend_sentiment_synergy, cross_timeframe_consistency, signal_failure_audit, pack_promotion_test, ic_oos_decay, factor_attribution, regime_conditional_ic, cross_sectional_rank, SignalAnalysisError)
+from oprim._signal_analysis import (bayesian_factor_posterior, divergence_score, abstain_decision, correlation_matrix, signal_temporal_decay, signal_rarity_weight, trend_sentiment_synergy, cross_timeframe_consistency, signal_failure_audit, pack_promotion_test, ic_oos_decay, factor_attribution, regime_conditional_ic, cross_sectional_rank, SignalAnalysisError)
 
 
 def test_bayesian_factor_posterior():

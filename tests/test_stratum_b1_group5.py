@@ -13,12 +13,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from oprim._exceptions import OprimError
-from oprim.cache_invalidate import _memory_cache, cache_invalidate
-from oprim.file_upload_handler import UploadResult, file_upload_handler
-from oprim.llm_summarize import SummarizeResult, llm_summarize
-from oprim.otp_generate import OTPResult, otp_generate, otp_verify
-from oprim.push_email import EmailResult, push_email
-from oprim.temp_file_manager import TempFileResult, _temp_registry, temp_file_manager
+from oprim._file_upload_handler import UploadResult, file_upload_handler
+from oprim._llm_summarize import SummarizeResult, llm_summarize
+from oprim._otp_generate import OTPResult, otp_generate, otp_verify
+from oprim._push_email import EmailResult, push_email
+from oprim._temp_file_manager import TempFileResult, _temp_registry, temp_file_manager
 
 
 # ---------------------------------------------------------------------------
@@ -91,6 +90,10 @@ class TestLlmSummarize:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skipif(
+    __import__("importlib.util").util.find_spec("oprim.cache_invalidate") is None,
+    reason="cache invalidation moved to obase; covered by obase.cache tests",
+)
 class TestCacheInvalidate:
     def setup_method(self) -> None:
         _memory_cache.clear()

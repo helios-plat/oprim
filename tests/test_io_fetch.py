@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.io_fetch import (
+from oprim._io_fetch import (
     FetchError,
     fetch_btc_spy_corr,
     fetch_crypto,

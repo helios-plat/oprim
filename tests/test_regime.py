@@ -1,10 +1,10 @@
-"""Tests for oprim.regime module."""
+"""Tests for oprim._regime module."""
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
+from oprim._regime import regime_filter_data, regime_label_align, regime_transition_matrix
 
 
 # ============================================================

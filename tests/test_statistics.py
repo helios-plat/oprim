@@ -1,4 +1,4 @@
-"""Tests for oprim.statistics module."""
+"""Tests for oprim._statistics module."""
 
 import warnings
 
@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from scipy import stats as sp_stats
 
-from oprim.statistics import (
+from oprim._statistics import (
     bayes_beta_update,
     bootstrap_ci,
     brier_score_decomposed,

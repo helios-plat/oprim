@@ -6,11 +6,11 @@ from datetime import date
 
 import pytest
 
-from oprim.compute_commission import compute_commission
-from oprim.compute_stamp_tax import compute_stamp_tax
-from oprim.detect_daily_limit_down import detect_daily_limit_down
-from oprim.detect_daily_limit_up import detect_daily_limit_up
-from oprim.t_plus_n_blocked import t_plus_n_blocked
+from oprim._compute_commission import compute_commission
+from oprim._compute_stamp_tax import compute_stamp_tax
+from oprim._detect_daily_limit_down import detect_daily_limit_down
+from oprim._detect_daily_limit_up import detect_daily_limit_up
+from oprim._t_plus_n_blocked import t_plus_n_blocked
 
 
 # ---------------------------------------------------------------------------

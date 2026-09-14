@@ -1,9 +1,9 @@
-"""Tests for oprim.topology module."""
+"""Tests for oprim._topology module."""
 
 import numpy as np
 import pytest
 
-from oprim.topology import persistence_landscape, takens_embed
+from oprim._topology import persistence_landscape, takens_embed
 
 
 class TestTakensEmbed:

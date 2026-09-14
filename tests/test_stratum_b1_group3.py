@@ -6,8 +6,13 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import psycopg
 import pytest
+
+pytest.importorskip("psycopg", reason="PostgreSQL feature dependency is not installed")
+pytest.importorskip(
+    "oprim.db_insert",
+    reason="persistence primitives moved to obase; covered by obase.persistence tests",
+)
 
 from oprim._db_types import AccessResult, WriteResult
 from oprim._exceptions import OprimError
@@ -17,7 +22,7 @@ from oprim.db_read import db_read
 from oprim.db_soft_delete import db_soft_delete
 from oprim.db_update import db_update
 from oprim.db_write import db_write
-from oprim.migration_runner import MigrationResult, migration_runner
+from oprim._migration_runner import MigrationResult, migration_runner
 
 DSN = "postgresql://test/testdb"
 

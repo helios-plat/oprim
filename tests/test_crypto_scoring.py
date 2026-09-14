@@ -1,10 +1,10 @@
-"""Tests for oprim.crypto_scoring — 17 crypto signal scoring primitives."""
+"""Tests for oprim._crypto_scoring — 17 crypto signal scoring primitives."""
 
 from __future__ import annotations
 
 import pytest
 
-from oprim.crypto_scoring import (
+from oprim._crypto_scoring import (
     CryptoScoringError,
     score_active_addresses_change,
     score_basis,

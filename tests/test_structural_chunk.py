@@ -1,7 +1,7 @@
 """Tests for oprim.structural_chunk."""
 
 import pytest
-from oprim.structural_chunk import structural_chunk
+from oprim._structural_chunk import structural_chunk
 
 
 def test_empty_text_returns_empty():

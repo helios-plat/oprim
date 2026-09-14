@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from oprim.llm_judge_rerank import llm_judge_rerank, RerankResult
+from oprim._llm_judge_rerank import llm_judge_rerank, RerankResult
 from oprim._exceptions import OprimError
 
 def test_llm_judge_rerank_basic():

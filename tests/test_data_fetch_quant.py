@@ -1,6 +1,6 @@
 """Tests for data_fetch and quant_analysis oprims."""
 import pytest
-from oprim.data_fetch import *  # noqa: F403, F405
+from oprim._data_fetch import *  # noqa: F403, F405
 from oprim.quant_analysis import *  # noqa: F403, F405
 
 

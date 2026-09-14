@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim import (
+from oprim._network import (
     network_port_check,
     network_http_health,
     network_dns_resolve,

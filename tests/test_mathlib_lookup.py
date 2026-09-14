@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from oprim._exceptions import OprimError
-from oprim.mathlib_lookup import mathlib_lookup
+from oprim._mathlib_lookup import mathlib_lookup
 
 
 def test_mathlib_lookup_unique_hit(mocker):

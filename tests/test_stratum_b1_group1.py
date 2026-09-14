@@ -11,11 +11,11 @@ import httpx
 import pytest
 
 from oprim._exceptions import OprimError
-from oprim.crypto_token_generate import crypto_token_generate
-from oprim.file_size_limiter import SizeLimitResult, file_size_limiter
+from oprim._crypto_token_generate import crypto_token_generate
+from oprim._file_size_limiter import SizeLimitResult, file_size_limiter
 from oprim.file_type_detector import FileTypeInfo, file_type_detector
-from oprim.http_post import HTTPResponse, http_post
-from oprim.template_render import template_render
+from oprim._http_post import HTTPResponse, http_post
+from oprim._template_render import template_render
 
 _MB = 1024 * 1024
 
@@ -255,7 +255,7 @@ def _make_response(
 class TestHttpPost:
     def test_200_returns_http_response(self) -> None:
         mock_resp = _make_response(200, json_body={"result": "ok"})
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_cls.return_value.__enter__.return_value.post.return_value = mock_resp
             result = http_post(url=URL, json_data={"key": "val"})
         assert result.status_code == 200
@@ -264,7 +264,7 @@ class TestHttpPost:
 
     def test_json_body_parsed(self) -> None:
         mock_resp = _make_response(200, json_body={"message": "hello"})
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_cls.return_value.__enter__.return_value.post.return_value = mock_resp
             result = http_post(url=URL, json_data={})
         assert isinstance(result.body, dict)
@@ -272,14 +272,14 @@ class TestHttpPost:
 
     def test_text_body_fallback(self) -> None:
         mock_resp = _make_response(200, text="plain text response")
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_cls.return_value.__enter__.return_value.post.return_value = mock_resp
             result = http_post(url=URL)
         assert isinstance(result.body, str)
         assert result.body == "plain text response"
 
     def test_timeout_raises_oprim_error(self) -> None:
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_cls.return_value.__enter__.return_value.post.side_effect = httpx.TimeoutException(
                 "timed out"
             )
@@ -287,7 +287,7 @@ class TestHttpPost:
                 http_post(url=URL)
 
     def test_connect_error_raises_oprim_error(self) -> None:
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_cls.return_value.__enter__.return_value.post.side_effect = httpx.ConnectError(
                 "connection refused"
             )
@@ -295,21 +295,21 @@ class TestHttpPost:
                 http_post(url=URL)
 
     def test_unexpected_exception_raises_oprim_error(self) -> None:
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_cls.return_value.__enter__.return_value.post.side_effect = RuntimeError("boom")
             with pytest.raises(OprimError, match="unexpected"):
                 http_post(url=URL)
 
     def test_headers_returned(self) -> None:
         mock_resp = _make_response(200, json_body={})
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_cls.return_value.__enter__.return_value.post.return_value = mock_resp
             result = http_post(url=URL)
         assert isinstance(result.headers, dict)
 
     def test_no_json_data_sends_none(self) -> None:
         mock_resp = _make_response(201, json_body={"created": True})
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_inst = mock_cls.return_value.__enter__.return_value
             mock_inst.post.return_value = mock_resp
             result = http_post(url=URL)
@@ -319,7 +319,7 @@ class TestHttpPost:
 
     def test_follow_redirects_true(self) -> None:
         mock_resp = _make_response(200, json_body={})
-        with patch("oprim.http_post.httpx.Client") as mock_cls:
+        with patch("oprim._http_post.httpx.Client") as mock_cls:
             mock_cls.return_value.__enter__.return_value.post.return_value = mock_resp
             http_post(url=URL)
         call_kwargs = mock_cls.call_args.kwargs

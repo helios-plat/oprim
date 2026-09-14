@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.fetch_rss_feed import _parse_rss_xml
+from oprim._fetch_rss_feed import _parse_rss_xml
 
 VALID_RSS = """\
 <?xml version="1.0" encoding="UTF-8"?>
@@ -121,14 +121,14 @@ class TestFetchRssFeedSSRF:
     """Verify that fetch_rss_feed uses SSRF-safe transport."""
 
     def test_file_scheme_rejected(self):
-        from oprim.fetch_rss_feed import fetch_rss_feed
+        from oprim._fetch_rss_feed import fetch_rss_feed
 
         result = fetch_rss_feed(url="file:///etc/passwd")
         assert result["error"] is not None
         assert "unsupported_scheme" in result["error"]
 
     def test_ftp_scheme_rejected(self):
-        from oprim.fetch_rss_feed import fetch_rss_feed
+        from oprim._fetch_rss_feed import fetch_rss_feed
 
         result = fetch_rss_feed(url="ftp://internal.corp/feed.rss")
         assert result["error"] is not None
@@ -137,7 +137,7 @@ class TestFetchRssFeedSSRF:
     def test_ssrf_blocked_private_ip(self):
         from unittest.mock import patch
         import socket
-        from oprim.fetch_rss_feed import fetch_rss_feed
+        from oprim._fetch_rss_feed import fetch_rss_feed
 
         # Simulate private-IP DNS resolution for a URL with http scheme
         private_addrinfo = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("192.168.1.1", 0))]
@@ -150,7 +150,7 @@ class TestFetchRssFeedSSRF:
         """fetch_rss_feed must import make_ssrf_safe_opener (not raw urlopen)."""
         import inspect
         from oprim import fetch_rss_feed as _mod
-        import oprim.fetch_rss_feed as rss_mod
+        import oprim._fetch_rss_feed as rss_mod
 
         source = inspect.getsource(rss_mod)
         assert "make_ssrf_safe_opener" in source
@@ -158,7 +158,7 @@ class TestFetchRssFeedSSRF:
 
     def test_http_scheme_accepted_with_mocked_fetch(self):
         from unittest.mock import MagicMock, patch
-        from oprim.fetch_rss_feed import fetch_rss_feed
+        from oprim._fetch_rss_feed import fetch_rss_feed
 
         mock_resp = MagicMock()
         mock_resp.read.return_value = VALID_RSS.encode()

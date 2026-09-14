@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from oprim.subtitle_burn import SubtitleBurnError, subtitle_burn
+from oprim._subtitle_burn import SubtitleBurnError, subtitle_burn
 
 
 def _mock_ffmpeg_run():

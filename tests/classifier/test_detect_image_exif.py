@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+pytest.importorskip("PIL", reason="image feature dependency is not installed")
 from PIL import Image
 
 from oprim.classifier.detect_image_exif import ImageExif, detect_image_exif

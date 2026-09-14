@@ -29,7 +29,7 @@ def _clean() -> None:  # type: ignore[misc]
 
 class TestImageToVideo:
     async def test_success(self, tmp_path: Path) -> None:
-        from oprim.image_to_video import image_to_video
+        from oprim._image_to_video import image_to_video
 
         img = tmp_path / "img.png"
         img.write_bytes(b"PNG")
@@ -45,7 +45,7 @@ class TestImageToVideo:
         assert result == out
 
     async def test_provider_not_found(self, tmp_path: Path) -> None:
-        from oprim.image_to_video import ImageToVideoProviderNotFoundError, image_to_video
+        from oprim._image_to_video import ImageToVideoProviderNotFoundError, image_to_video
 
         img = tmp_path / "img.png"
         img.write_bytes(b"PNG")
@@ -56,7 +56,7 @@ class TestImageToVideo:
             )
 
     async def test_image_not_found(self, tmp_path: Path) -> None:
-        from oprim.image_to_video import ImageToVideoError, image_to_video
+        from oprim._image_to_video import ImageToVideoError, image_to_video
 
         with pytest.raises(ImageToVideoError, match="not found"):
             await image_to_video(
@@ -65,7 +65,7 @@ class TestImageToVideo:
             )
 
     async def test_provider_failure(self, tmp_path: Path) -> None:
-        from oprim.image_to_video import ImageToVideoError, image_to_video
+        from oprim._image_to_video import ImageToVideoError, image_to_video
 
         img = tmp_path / "img.png"
         img.write_bytes(b"PNG")
@@ -81,7 +81,7 @@ class TestImageToVideo:
             )
 
     async def test_no_output_produced(self, tmp_path: Path) -> None:
-        from oprim.image_to_video import ImageToVideoError, image_to_video
+        from oprim._image_to_video import ImageToVideoError, image_to_video
 
         img = tmp_path / "img.png"
         img.write_bytes(b"PNG")
@@ -103,7 +103,7 @@ class TestImageToVideo:
 
 class TestFaceAnimation:
     async def test_success(self, tmp_path: Path) -> None:
-        from oprim.face_animation import face_animation
+        from oprim._face_animation import face_animation
 
         img = tmp_path / "face.png"
         img.write_bytes(b"PNG")
@@ -121,7 +121,7 @@ class TestFaceAnimation:
         assert result == out
 
     async def test_provider_not_found(self, tmp_path: Path) -> None:
-        from oprim.face_animation import FaceAnimationProviderNotFoundError, face_animation
+        from oprim._face_animation import FaceAnimationProviderNotFoundError, face_animation
 
         img = tmp_path / "f.png"
         img.write_bytes(b"x")
@@ -134,7 +134,7 @@ class TestFaceAnimation:
             )
 
     async def test_portrait_not_found(self, tmp_path: Path) -> None:
-        from oprim.face_animation import FaceAnimationError, face_animation
+        from oprim._face_animation import FaceAnimationError, face_animation
 
         audio = tmp_path / "a.wav"
         audio.write_bytes(b"x")
@@ -145,7 +145,7 @@ class TestFaceAnimation:
             )
 
     async def test_audio_not_found(self, tmp_path: Path) -> None:
-        from oprim.face_animation import FaceAnimationError, face_animation
+        from oprim._face_animation import FaceAnimationError, face_animation
 
         img = tmp_path / "f.png"
         img.write_bytes(b"x")
@@ -156,7 +156,7 @@ class TestFaceAnimation:
             )
 
     async def test_provider_failure(self, tmp_path: Path) -> None:
-        from oprim.face_animation import FaceAnimationError, face_animation
+        from oprim._face_animation import FaceAnimationError, face_animation
 
         img = tmp_path / "f.png"
         img.write_bytes(b"x")
@@ -180,7 +180,7 @@ class TestFaceAnimation:
 
 class TestMotionPromptTranslate:
     async def test_success(self) -> None:
-        from oprim.motion_prompt_translate import motion_prompt_translate
+        from oprim._motion_prompt_translate import motion_prompt_translate
 
         llm = lambda **kw: {"content": "smooth cinematic pan left"}  # noqa: E731
         result = await motion_prompt_translate(
@@ -189,13 +189,13 @@ class TestMotionPromptTranslate:
         assert "pan" in result
 
     async def test_empty_motion_raises(self) -> None:
-        from oprim.motion_prompt_translate import MotionTranslateError, motion_prompt_translate
+        from oprim._motion_prompt_translate import MotionTranslateError, motion_prompt_translate
 
         with pytest.raises(MotionTranslateError, match="must not be empty"):
             await motion_prompt_translate(natural_language_motion="", llm=lambda **kw: {})
 
     async def test_llm_failure(self) -> None:
-        from oprim.motion_prompt_translate import MotionTranslateError, motion_prompt_translate
+        from oprim._motion_prompt_translate import MotionTranslateError, motion_prompt_translate
 
         def _fail(**kw: Any) -> dict[str, Any]:
             raise RuntimeError("LLM down")
@@ -204,7 +204,7 @@ class TestMotionPromptTranslate:
             await motion_prompt_translate(natural_language_motion="zoom", llm=_fail)
 
     async def test_empty_llm_response(self) -> None:
-        from oprim.motion_prompt_translate import MotionTranslateError, motion_prompt_translate
+        from oprim._motion_prompt_translate import MotionTranslateError, motion_prompt_translate
 
         with pytest.raises(MotionTranslateError, match="empty translation"):
             await motion_prompt_translate(
@@ -212,7 +212,7 @@ class TestMotionPromptTranslate:
             )
 
     async def test_different_target_provider(self) -> None:
-        from oprim.motion_prompt_translate import motion_prompt_translate
+        from oprim._motion_prompt_translate import motion_prompt_translate
 
         calls: list[dict[str, Any]] = []
 
@@ -232,7 +232,7 @@ class TestMotionPromptTranslate:
 
 class TestAudienceSentimentAnalyze:
     async def test_success(self) -> None:
-        from oprim.audience_sentiment_analyze import audience_sentiment_analyze
+        from oprim._audience_sentiment_analyze import audience_sentiment_analyze
 
         resp = json.dumps({
             "positive_pct": 0.6, "negative_pct": 0.2,
@@ -243,7 +243,7 @@ class TestAudienceSentimentAnalyze:
         assert result.positive_pct == 0.6
 
     async def test_empty_comments(self) -> None:
-        from oprim.audience_sentiment_analyze import (
+        from oprim._audience_sentiment_analyze import (
             SentimentAnalyzeError,
             audience_sentiment_analyze,
         )
@@ -252,7 +252,7 @@ class TestAudienceSentimentAnalyze:
             await audience_sentiment_analyze(comments=[], llm=lambda **kw: {})
 
     async def test_llm_failure(self) -> None:
-        from oprim.audience_sentiment_analyze import (
+        from oprim._audience_sentiment_analyze import (
             SentimentAnalyzeError,
             audience_sentiment_analyze,
         )
@@ -264,7 +264,7 @@ class TestAudienceSentimentAnalyze:
             await audience_sentiment_analyze(comments=["x"], llm=_fail)
 
     async def test_invalid_json(self) -> None:
-        from oprim.audience_sentiment_analyze import (
+        from oprim._audience_sentiment_analyze import (
             SentimentAnalyzeError,
             audience_sentiment_analyze,
         )
@@ -275,7 +275,7 @@ class TestAudienceSentimentAnalyze:
             )
 
     async def test_validation_failure(self) -> None:
-        from oprim.audience_sentiment_analyze import (
+        from oprim._audience_sentiment_analyze import (
             SentimentAnalyzeError,
             audience_sentiment_analyze,
         )
@@ -293,7 +293,7 @@ class TestAudienceSentimentAnalyze:
 
 class TestAudienceFeedbackExtract:
     async def test_success(self) -> None:
-        from oprim.audience_feedback_extract import audience_feedback_extract
+        from oprim._audience_feedback_extract import audience_feedback_extract
 
         resp = json.dumps({
             "positive_points": ["clear"], "negative_points": ["fast"],
@@ -305,13 +305,13 @@ class TestAudienceFeedbackExtract:
         assert result.suggestions == ["slow down"]
 
     async def test_empty_comments(self) -> None:
-        from oprim.audience_feedback_extract import FeedbackExtractError, audience_feedback_extract
+        from oprim._audience_feedback_extract import FeedbackExtractError, audience_feedback_extract
 
         with pytest.raises(FeedbackExtractError, match="must not be empty"):
             await audience_feedback_extract(comments=[], llm=lambda **kw: {})
 
     async def test_llm_failure(self) -> None:
-        from oprim.audience_feedback_extract import FeedbackExtractError, audience_feedback_extract
+        from oprim._audience_feedback_extract import FeedbackExtractError, audience_feedback_extract
 
         def _fail(**kw: Any) -> dict[str, Any]:
             raise RuntimeError("down")
@@ -320,7 +320,7 @@ class TestAudienceFeedbackExtract:
             await audience_feedback_extract(comments=["x"], llm=_fail)
 
     async def test_invalid_json(self) -> None:
-        from oprim.audience_feedback_extract import FeedbackExtractError, audience_feedback_extract
+        from oprim._audience_feedback_extract import FeedbackExtractError, audience_feedback_extract
 
         with pytest.raises(FeedbackExtractError, match="invalid JSON"):
             await audience_feedback_extract(
@@ -328,7 +328,7 @@ class TestAudienceFeedbackExtract:
             )
 
     async def test_validation_failure(self) -> None:
-        from oprim.audience_feedback_extract import FeedbackExtractError, audience_feedback_extract
+        from oprim._audience_feedback_extract import FeedbackExtractError, audience_feedback_extract
 
         bad = json.dumps({"positive_points": 123})
         with pytest.raises(FeedbackExtractError, match="Validation failed"):
@@ -343,7 +343,7 @@ class TestAudienceFeedbackExtract:
 
 class TestYouTubeVideoStats:
     async def test_success(self) -> None:
-        from oprim.youtube_video_stats import youtube_video_stats
+        from oprim._youtube_video_stats import youtube_video_stats
 
         mock_stats = {
             "items": [{
@@ -363,7 +363,7 @@ class TestYouTubeVideoStats:
         assert result.duration_s == 90.0
 
     async def test_auth_failure(self) -> None:
-        from oprim.youtube_video_stats import YouTubeStatsError, youtube_video_stats
+        from oprim._youtube_video_stats import YouTubeStatsError, youtube_video_stats
 
         with patch("oprim._providers.youtube_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
@@ -376,7 +376,7 @@ class TestYouTubeVideoStats:
                 await youtube_video_stats(video_id="x", oauth_token="bad")
 
     async def test_video_not_found(self) -> None:
-        from oprim.youtube_video_stats import YouTubeStatsError, youtube_video_stats
+        from oprim._youtube_video_stats import YouTubeStatsError, youtube_video_stats
 
         with patch("oprim._providers.youtube_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
@@ -389,7 +389,7 @@ class TestYouTubeVideoStats:
                 await youtube_video_stats(video_id="nope", oauth_token="tok")
 
     async def test_rate_limit(self) -> None:
-        from oprim.youtube_video_stats import YouTubeStatsError, youtube_video_stats
+        from oprim._youtube_video_stats import YouTubeStatsError, youtube_video_stats
 
         with patch("oprim._providers.youtube_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
@@ -416,7 +416,7 @@ class TestYouTubeVideoStats:
 
 class TestYouTubeCommentsFetch:
     async def test_single_page(self) -> None:
-        from oprim.youtube_comments_fetch import youtube_comments_fetch
+        from oprim._youtube_comments_fetch import youtube_comments_fetch
 
         page_data = {
             "items": [{
@@ -441,7 +441,7 @@ class TestYouTubeCommentsFetch:
         assert result[0].text == "great"
 
     async def test_pagination(self) -> None:
-        from oprim.youtube_comments_fetch import youtube_comments_fetch
+        from oprim._youtube_comments_fetch import youtube_comments_fetch
 
         page1 = {
             "items": [{"id": "c1", "snippet": {"topLevelComment": {"snippet": {
@@ -472,7 +472,7 @@ class TestYouTubeCommentsFetch:
         assert len(result) == 2
 
     async def test_max_count_boundary(self) -> None:
-        from oprim.youtube_comments_fetch import youtube_comments_fetch
+        from oprim._youtube_comments_fetch import youtube_comments_fetch
 
         page = {"items": [
             {"id": f"c{i}", "snippet": {"topLevelComment": {"snippet": {
@@ -491,7 +491,7 @@ class TestYouTubeCommentsFetch:
         assert len(result) == 3
 
     async def test_auth_failure(self) -> None:
-        from oprim.youtube_comments_fetch import YouTubeCommentsError, youtube_comments_fetch
+        from oprim._youtube_comments_fetch import YouTubeCommentsError, youtube_comments_fetch
 
         with patch("oprim._providers.youtube_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
@@ -504,7 +504,7 @@ class TestYouTubeCommentsFetch:
                 await youtube_comments_fetch(video_id="x", oauth_token="bad")
 
     async def test_empty_comments(self) -> None:
-        from oprim.youtube_comments_fetch import youtube_comments_fetch
+        from oprim._youtube_comments_fetch import youtube_comments_fetch
 
         with patch("oprim._providers.youtube_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
@@ -523,7 +523,7 @@ class TestYouTubeCommentsFetch:
 
 class TestBilibiliVideoStats:
     async def test_success(self) -> None:
-        from oprim.bilibili_video_stats import bilibili_video_stats
+        from oprim._bilibili_video_stats import bilibili_video_stats
 
         mock_data = {"code": 0, "data": {"stat": {
             "view": 500, "like": 50, "coin": 10, "favorite": 20, "share": 5,
@@ -539,7 +539,7 @@ class TestBilibiliVideoStats:
         assert result.views == 500
 
     async def test_cookies_invalid(self) -> None:
-        from oprim.bilibili_video_stats import BilibiliStatsError, bilibili_video_stats
+        from oprim._bilibili_video_stats import BilibiliStatsError, bilibili_video_stats
 
         with patch("oprim._providers.bilibili_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
@@ -552,7 +552,7 @@ class TestBilibiliVideoStats:
                 await bilibili_video_stats(bvid="BV1xx", cookies={})
 
     async def test_rate_limit(self) -> None:
-        from oprim.bilibili_video_stats import BilibiliStatsError, bilibili_video_stats
+        from oprim._bilibili_video_stats import BilibiliStatsError, bilibili_video_stats
 
         with patch("oprim._providers.bilibili_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
@@ -569,7 +569,7 @@ class TestBilibiliVideoStats:
         assert s.bvid == "BV1"
 
     async def test_http_error(self) -> None:
-        from oprim.bilibili_video_stats import BilibiliStatsError, bilibili_video_stats
+        from oprim._bilibili_video_stats import BilibiliStatsError, bilibili_video_stats
 
         with patch("oprim._providers.bilibili_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
@@ -586,7 +586,7 @@ class TestBilibiliVideoStats:
 
 class TestBilibiliCommentsFetch:
     async def test_success(self) -> None:
-        from oprim.bilibili_comments_fetch import bilibili_comments_fetch
+        from oprim._bilibili_comments_fetch import bilibili_comments_fetch
 
         info_data = {"code": 0, "data": {"aid": 12345, "stat": {}}}
         comments_data = {"code": 0, "data": {
@@ -611,7 +611,7 @@ class TestBilibiliCommentsFetch:
         assert result[0].text == "hi"
 
     async def test_api_failure(self) -> None:
-        from oprim.bilibili_comments_fetch import (
+        from oprim._bilibili_comments_fetch import (
             BilibiliCommentsError,
             bilibili_comments_fetch,
         )
@@ -625,7 +625,7 @@ class TestBilibiliCommentsFetch:
                 await bilibili_comments_fetch(bvid="BV1xx", cookies={})
 
     async def test_empty_replies(self) -> None:
-        from oprim.bilibili_comments_fetch import bilibili_comments_fetch
+        from oprim._bilibili_comments_fetch import bilibili_comments_fetch
 
         info_data = {"code": 0, "data": {"aid": 1, "stat": {}}}
         comments_data = {"code": 0, "data": {"replies": None, "page": {"count": 0}}}
@@ -669,7 +669,7 @@ class TestBilibiliCommentsFetch:
 
 class TestVideoQualityMetrics:
     async def test_success(self, tmp_path: Path) -> None:
-        from oprim.video_quality_metrics import video_quality_metrics
+        from oprim._video_quality_metrics import video_quality_metrics
 
         video = tmp_path / "v.mp4"
         video.write_bytes(b"fake")
@@ -696,7 +696,7 @@ class TestVideoQualityMetrics:
         assert result.codec_audio == "aac"
 
     async def test_no_audio_stream(self, tmp_path: Path) -> None:
-        from oprim.video_quality_metrics import video_quality_metrics
+        from oprim._video_quality_metrics import video_quality_metrics
 
         video = tmp_path / "v.mp4"
         video.write_bytes(b"fake")
@@ -719,13 +719,13 @@ class TestVideoQualityMetrics:
         assert result.audio_lufs is None
 
     async def test_file_not_found(self, tmp_path: Path) -> None:
-        from oprim.video_quality_metrics import VideoQualityError, video_quality_metrics
+        from oprim._video_quality_metrics import VideoQualityError, video_quality_metrics
 
         with pytest.raises(VideoQualityError, match="not found"):
             await video_quality_metrics(video_path=tmp_path / "nope.mp4")
 
     async def test_ffprobe_missing(self, tmp_path: Path) -> None:
-        from oprim.video_quality_metrics import VideoQualityError, video_quality_metrics
+        from oprim._video_quality_metrics import VideoQualityError, video_quality_metrics
 
         video = tmp_path / "v.mp4"
         video.write_bytes(b"fake")
@@ -734,7 +734,7 @@ class TestVideoQualityMetrics:
                 await video_quality_metrics(video_path=video)
 
     async def test_ffprobe_failure(self, tmp_path: Path) -> None:
-        from oprim.video_quality_metrics import VideoQualityError, video_quality_metrics
+        from oprim._video_quality_metrics import VideoQualityError, video_quality_metrics
 
         video = tmp_path / "v.mp4"
         video.write_bytes(b"fake")
@@ -753,7 +753,7 @@ class TestVideoQualityMetrics:
 
 class TestVLMVideoAnalyze:
     async def test_success(self, tmp_path: Path) -> None:
-        from oprim.vlm_video_analyze import vlm_video_analyze
+        from oprim._vlm_video_analyze import vlm_video_analyze
 
         f = tmp_path / "frame.png"
         f.write_bytes(b"PNG")
@@ -768,13 +768,13 @@ class TestVLMVideoAnalyze:
         assert "walking" in result
 
     async def test_empty_frames(self, tmp_path: Path) -> None:
-        from oprim.vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
+        from oprim._vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
 
         with pytest.raises(VLMVideoAnalyzeError, match="frames must not be empty"):
             await vlm_video_analyze(provider="x", frames=[], prompt="x")
 
     async def test_empty_prompt(self, tmp_path: Path) -> None:
-        from oprim.vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
+        from oprim._vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
 
         f = tmp_path / "f.png"
         f.write_bytes(b"x")
@@ -782,7 +782,7 @@ class TestVLMVideoAnalyze:
             await vlm_video_analyze(provider="x", frames=[f], prompt="")
 
     async def test_frame_not_found(self, tmp_path: Path) -> None:
-        from oprim.vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
+        from oprim._vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
 
         with pytest.raises(VLMVideoAnalyzeError, match="Frame not found"):
             await vlm_video_analyze(
@@ -790,7 +790,7 @@ class TestVLMVideoAnalyze:
             )
 
     async def test_provider_not_found(self, tmp_path: Path) -> None:
-        from oprim.vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
+        from oprim._vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
 
         f = tmp_path / "f.png"
         f.write_bytes(b"x")
@@ -798,7 +798,7 @@ class TestVLMVideoAnalyze:
             await vlm_video_analyze(provider="nope", frames=[f], prompt="x")
 
     async def test_vlm_failure(self, tmp_path: Path) -> None:
-        from oprim.vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
+        from oprim._vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
 
         f = tmp_path / "f.png"
         f.write_bytes(b"x")

@@ -6,6 +6,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+pytest.skip(
+    "Docker primitives moved to obase; the owning obase suite is authoritative",
+    allow_module_level=True,
+)
+
 from oprim import (
     docker_container_inspect,
     docker_container_logs,

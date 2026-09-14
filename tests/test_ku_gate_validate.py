@@ -1,7 +1,7 @@
 """Tests for oprim.ku_gate_validate."""
 
 import pytest
-from oprim.ku_gate_validate import ku_gate_validate
+from oprim._ku_gate_validate import ku_gate_validate
 
 
 def _valid_proposition() -> dict:

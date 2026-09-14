@@ -6,8 +6,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import fitz
 import pytest
+
+pytest.importorskip("fitz", reason="PDF feature dependency is not installed")
+pytest.importorskip("ebooklib", reason="EPUB feature dependency is not installed")
+
+import fitz
 from ebooklib import epub
 
 from oprim._document_types import ImageRef, Page, ParsedDocument, Table

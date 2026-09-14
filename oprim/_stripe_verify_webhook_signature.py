@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import stripe as stripe_sdk
 
-from oprim.stripe_create_payment_intent import StripeConfig, StripeError
+from oprim._stripe_create_payment_intent import StripeConfig, StripeError
 
 
 class StripeInvalidSignatureError(StripeError): ...

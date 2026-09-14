@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import stripe as stripe_sdk
 
-from oprim.stripe_create_payment_intent import StripeConfig
-from oprim.stripe_verify_webhook_signature import (
+from oprim._stripe_create_payment_intent import StripeConfig
+from oprim._stripe_verify_webhook_signature import (
     StripeInvalidSignatureError,
     stripe_verify_webhook_signature,
 )

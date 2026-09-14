@@ -1,4 +1,4 @@
-"""B2 Caddy tests — caddy_admin_config / caddy_admin_routes alias /
+"""B2 Caddy tests — caddy_admin_config / caddy_routes_list /
 caddy_route_add_atomic / caddy_route_remove_atomic."""
 
 from __future__ import annotations
@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 
 from oprim import (
     caddy_admin_config,
-    caddy_admin_routes,
     caddy_route_add_atomic,
     caddy_route_remove_atomic,
     caddy_routes_list,
@@ -17,8 +16,8 @@ from oprim import (
 from oprim._exceptions import OprimConnectionError, OprimValidationError
 
 
-def test_caddy_admin_routes_is_alias():
-    assert caddy_admin_routes is caddy_routes_list
+def test_caddy_routes_list_is_public():
+    assert callable(caddy_routes_list)
 
 
 # ===== caddy_admin_config =====

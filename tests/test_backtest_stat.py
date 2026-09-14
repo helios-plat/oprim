@@ -1,9 +1,9 @@
-"""Tests for oprim.backtest_stat — ≥10 cases."""
+"""Tests for oprim._backtest_stat — ≥10 cases."""
 
 from __future__ import annotations
 
 import pytest
-from oprim.backtest_stat import backtest_stat
+from oprim._backtest_stat import backtest_stat
 
 
 # 1. Empty returns

@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("lancedb", reason="vector storage feature dependency is not installed")
+
 from oprim.vector_db.lancedb import LanceDBVectorDB, VectorRecord, open_vector_db
 from oprim.errors import VectorDBError
 
