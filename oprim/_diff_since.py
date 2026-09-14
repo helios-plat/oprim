@@ -5,26 +5,23 @@ Single subprocess family (git -C). Does not call other oprims.
 
 from __future__ import annotations
 
-import subprocess
+import asyncio
 from pathlib import Path
 from typing import Any
+
+from obase.git import run_git
 
 _MAX_DIFF_CHARS = 200_000
 
 
 def _git(repo: Path, *args: str, timeout: int = 60) -> tuple[int, str, str]:
     try:
-        proc = subprocess.run(
-            ["git", "-C", str(repo), *args],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
+        result = asyncio.run(run_git(list(args), cwd=repo, timeout=timeout))
     except FileNotFoundError:
         return 127, "", "git executable not found"
-    except subprocess.TimeoutExpired:
+    except TimeoutError:
         return 124, "", f"git {' '.join(args)} timed out"
-    return proc.returncode, proc.stdout or "", proc.stderr or ""
+    return result.returncode, result.stdout, result.stderr
 
 
 def diff_since(
