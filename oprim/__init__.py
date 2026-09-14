@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import ast
 import importlib
+import sys
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 from oprim._version import __version__
@@ -55,6 +57,26 @@ _build_element_map()
 # `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
 # __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
 _ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
+
+
+class _CompatibilityModule(ModuleType):
+    """Lazy alias for historical private-module import paths."""
+
+    def __init__(self, name: str, target: str) -> None:
+        super().__init__(name)
+        self._compat_target = target
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(importlib.import_module(self._compat_target), name)
+
+
+for _compat_path in Path(__file__).parent.glob("_*.py"):
+    if _compat_path.name != "__init__.py":
+        _compat_name = f"{__package__}.{_compat_path.stem[1:]}"
+        sys.modules.setdefault(
+            _compat_name,
+            _CompatibilityModule(_compat_name, f"{__package__}.{_compat_path.stem}"),
+        )
 
 # Real heavy-SDK modules (tree-sitter / networkx / playwright / subprocess)
 _ELEMENT_MAP.setdefault("code_graph_parse", "oprim.code_graph_parse")
@@ -597,3 +619,35 @@ __all__.extend(
         "tool_resolve",
     ]
 )
+
+# Historical exports whose canonical implementations moved to private oprim
+# modules or to obase.  These are aliases only; no new element is introduced.
+from obase.docker import (  # noqa: F401
+    compose_down,
+    compose_up,
+    docker_compose_down,
+    docker_compose_pull,
+    docker_compose_up,
+    docker_container_inspect,
+    docker_container_list,
+    docker_container_logs,
+    docker_container_restart,
+    docker_container_start,
+    docker_container_stats,
+    docker_container_stop,
+    docker_image_delete,
+    docker_image_list,
+    docker_image_pull,
+    docker_inspect,
+    docker_logs,
+    docker_network_list,
+    docker_ps,
+    docker_restart,
+    docker_stats,
+    docker_volume_delete,
+    docker_volume_list,
+)
+from oprim._caddy import caddy_admin_routes  # noqa: F401
+from oprim._filesystem import fs_disk_usage  # noqa: F401
+from oprim._network import network_dns_resolve, network_http_health, network_port_check  # noqa: F401
+from oprim._postgres import postgres_locks, postgres_long_running_queries  # noqa: F401

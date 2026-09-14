@@ -1,2 +1,3 @@
-from oprim._parse_obsidian_tasks import parse_obsidian_tasks
-__all__ = ["parse_obsidian_tasks"]
+from oprim._parse_obsidian_tasks import ObsidianTask, parse_obsidian_tasks
+
+__all__ = ["ObsidianTask", "parse_obsidian_tasks"]
