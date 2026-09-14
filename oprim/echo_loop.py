@@ -93,7 +93,7 @@ async def blind_listen_generate(
         perceived_difficulty=round(difficulty, 4),
         detected_kcs=detected_kcs,
         key_phrases=key_phrases,
-        estimated_duration_s=len(text) * 0.3,
+        estimated_duration_s=int(len(text) * 0.3),
         note=f"Estimated from {word_count} words",
     )
 
@@ -268,8 +268,8 @@ async def shadowing_evaluate(
             is_passing=overall >= 0.6,
         )
 
-    ref_words = set(reference_text.lower().split())
-    match_rate = len(ref_words & set(reference_text.lower().split())) / max(len(ref_words), 1)
+    # Without an ASR/pronunciation provider, audio bytes cannot prove a match.
+    match_rate = 0.5
 
     return ShadowingOutput(
         overall_score=round(match_rate, 4),
