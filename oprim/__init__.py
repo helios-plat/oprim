@@ -16,7 +16,7 @@ __manifest__ = {
         {
             "name": "video_generate",
             "kind": "oprim",
-            "module": "oprim.video_generate",
+            "module": "oprim._video_generate",
             "signature": "(request, /, *, provider, output_path) -> Path",
             "depends_on": ["obase.provider_registry"],
             "pillars": ["cost", "fingerprint", "trail", "report"],
@@ -24,7 +24,7 @@ __manifest__ = {
         {
             "name": "edge_tts_synthesize",
             "kind": "oprim",
-            "module": "oprim.edge_tts_synthesize",
+            "module": "oprim._edge_tts_synthesize",
             "signature": "(request, /, *, output_path) -> Path",
             "depends_on": ["obase.ffmpeg"],
             "pillars": ["cost", "fingerprint", "trail", "report"],
@@ -32,11 +32,12 @@ __manifest__ = {
         {
             "name": "avatar_generate",
             "kind": "oprim",
-            "module": "oprim.avatar_generate",
+            "module": "oprim._avatar_generate",
             "signature": "(request, /, *, provider, output_path) -> Path",
             "depends_on": ["obase.provider_registry"],
             "pillars": ["cost", "fingerprint", "trail", "report"],
         },
+        {"name": "fixed_list", "kind": "oprim", "module": "oprim.fixed_list", "signature": "(symbols, venue, instrument_type, *, market_metadata=None) -> dict", "depends_on": [], "pillars": ["fingerprint"]},
     ],
 }
 
