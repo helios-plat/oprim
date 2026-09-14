@@ -146,6 +146,7 @@ from oprim.due_compute import due_compute
 from oprim.speech_to_math import speech_to_math
 from oprim.error_classify import error_classify
 from oprim.escalate_thinking_budget import escalate_thinking_budget
+from oprim.fixed_list import fixed_list
 
 # File parsers + structure extractor (restored exports)
 def file_parser_pdf(*args, **kwargs):
