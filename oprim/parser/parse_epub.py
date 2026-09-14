@@ -4,10 +4,15 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-import ebooklib
-from ebooklib import epub
+try:
+    import ebooklib
+    from ebooklib import epub
+except ImportError:  # optional epub extra
+    ebooklib = None  # type: ignore[assignment]
+    epub = None  # type: ignore[assignment]
 
 from oprim._logging import log as olog
+from oprim._optional import require_optional
 from oprim.parser.parse_pdf import ParsedContent
 
 
@@ -19,6 +24,7 @@ def parse_epub(path: Path) -> ParsedContent:
         Exception: propagated from ebooklib on parse failure.
     """
     path = Path(path)
+    require_optional(ebooklib, feature="epub", extra="epub", package="ebooklib")
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
     try:

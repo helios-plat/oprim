@@ -4,9 +4,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import duckdb
+try:
+    import duckdb
+except ImportError:  # optional storage extra
+    duckdb = None  # type: ignore[assignment]
 
 from oprim._logging import log as olog
+from oprim._optional import require_optional
 from oprim.errors import MetaDBError
 
 
@@ -14,6 +18,7 @@ class MetaDB:
     """Thin wrapper around a DuckDB connection with migration support."""
 
     def __init__(self, path: Path) -> None:
+        require_optional(duckdb, feature="metadata storage", extra="storage", package="duckdb")
         self._path = Path(path)
         self._conn: duckdb.DuckDBPyConnection | None = None
 

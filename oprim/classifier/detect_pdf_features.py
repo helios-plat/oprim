@@ -4,9 +4,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import fitz
+try:
+    import fitz
+except ImportError:  # optional pdf extra
+    fitz = None  # type: ignore[assignment]
 
 from oprim._logging import log as olog
+from oprim._optional import require_optional
 from oprim.errors import PDFParseError
 
 _CJK_RANGES = [
@@ -41,6 +45,7 @@ def detect_pdf_features(path: Path, sample_chars: int = 1000) -> PDFFeatures:
         PDFParseError: PDF cannot be opened or is encrypted.
     """
     path = Path(path)
+    require_optional(fitz, feature="pdf", extra="pdf", package="PyMuPDF")
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
     try:

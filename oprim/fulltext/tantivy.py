@@ -5,11 +5,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-import tantivy
+try:
+    import tantivy
+except ImportError:  # optional storage extra
+    tantivy = None  # type: ignore[assignment]
 
 from oprim._logging import log as olog
+from oprim._optional import require_optional
 from oprim.errors import FulltextError
-
 
 _CJK_RE = None
 def _space_cjk(text: str) -> str:
@@ -51,6 +54,7 @@ class TantivyFulltextIndex:
     """Full-text index backed by Tantivy with id/title/content/tags fields."""
 
     def __init__(self, path: Path) -> None:
+        require_optional(tantivy, feature="fulltext", extra="storage", package="tantivy")
         self._path = Path(path)
         self._path.mkdir(parents=True, exist_ok=True)
 

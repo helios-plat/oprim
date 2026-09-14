@@ -4,12 +4,18 @@ from __future__ import annotations
 import time
 from collections.abc import Sequence
 
-import dashscope
-from dashscope import TextEmbedding
-
 from oprim._config import cfg
 from oprim._logging import log as olog
+from oprim._optional import require_optional
 from oprim.errors import EmbeddingError, QuotaExceededError
+
+try:
+    import dashscope
+except ImportError:  # optional llm extra
+    dashscope = None  # type: ignore[assignment]
+
+TextEmbedding = None
+
 
 _DASHSCOPE_EMBED_MODEL = "text-embedding-v3"
 _MAX_BATCH = 10          # DashScope hard limit per call
@@ -20,6 +26,12 @@ class Qwen3DashscopeEmbedder:
     """Embed texts via DashScope text-embedding-v3 with retry and cost tracking."""
 
     def __init__(self) -> None:
+        global TextEmbedding
+        require_optional(dashscope, feature="qwen", extra="llm", package="dashscope")
+        if TextEmbedding is None:
+            from dashscope import TextEmbedding as _TextEmbedding
+            TextEmbedding = _TextEmbedding
+        self._text_embedding = TextEmbedding
         api_key = cfg.get("DASHSCOPE_API_KEY")
         if api_key:
             dashscope.api_key = str(api_key)
@@ -44,7 +56,7 @@ class Qwen3DashscopeEmbedder:
         last_err: Exception | None = None
         for attempt in range(3):
             try:
-                resp = TextEmbedding.call(
+                resp = self._text_embedding.call(
                     model=_DASHSCOPE_EMBED_MODEL,
                     input=texts,
                     dimension=dim,
@@ -53,8 +65,6 @@ class Qwen3DashscopeEmbedder:
                     embeddings: list[list[float]] = [
                         item["embedding"] for item in resp.output["embeddings"]
                     ]
-                    total_tokens = sum(len(t) for t in texts)
-                    cost = total_tokens / 1000 * _COST_PER_1K_TOKENS
                     return embeddings
                 elif resp.status_code == 429:
                     raise QuotaExceededError(

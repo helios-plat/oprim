@@ -8,11 +8,19 @@ reads instead of a private DuckDB file.
 
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from oprim.meta_db.duckdb import MetaDB
-from oprim.meta_db.duckdb import open_meta_db as _open_duckdb
+if TYPE_CHECKING:
+    from oprim.meta_db.duckdb import MetaDB
 
 __all__ = ["MetaDB", "open_meta_db"]
+
+
+def __getattr__(name: str):
+    if name == "MetaDB":
+        from oprim.meta_db.duckdb import MetaDB
+        return MetaDB
+    raise AttributeError(name)
 
 
 def open_meta_db(path: Path):
@@ -22,4 +30,5 @@ def open_meta_db(path: Path):
         from oprim.meta_db.postgres import PgMetaDB
 
         return PgMetaDB(path)
+    from oprim.meta_db.duckdb import open_meta_db as _open_duckdb
     return _open_duckdb(path)

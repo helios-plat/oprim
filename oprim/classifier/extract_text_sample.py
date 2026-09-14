@@ -5,10 +5,15 @@ import re
 from pathlib import Path
 
 import chardet
-import fitz
+
+try:
+    import fitz
+except ImportError:
+    fitz = None  # type: ignore[assignment]
 import trafilatura
 
 from oprim._logging import log as olog
+from oprim._optional import require_optional
 from oprim.errors import UnsupportedFileTypeError
 
 _SUPPORTED_MIMES = frozenset({
@@ -33,6 +38,7 @@ def extract_text_sample(path: Path, mime: str, max_chars: int = 2000) -> str:
         raise FileNotFoundError(f"File not found: {path}")
 
     if mime == "application/pdf":
+        require_optional(fitz, feature="pdf", extra="pdf", package="PyMuPDF")
         return _from_pdf(path, max_chars)
     elif mime in ("text/plain", "text/markdown", "text/x-markdown"):
         return _from_text(path, max_chars)

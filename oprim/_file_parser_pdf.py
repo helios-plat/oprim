@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import fitz  # type: ignore[import-untyped]  # pymupdf
+try:
+    import fitz  # type: ignore[import-untyped]  # pymupdf
+except ImportError:
+    fitz = None  # type: ignore[assignment]
 
 from oprim._document_types import Page, ParsedDocument
 from oprim._exceptions import OprimError
+from oprim._optional import require_optional
 
 
 def file_parser_pdf(
@@ -34,6 +38,7 @@ def file_parser_pdf(
         >>> len(doc.pages) > 0
         True
     """
+    require_optional(fitz, feature="pdf", extra="pdf", package="PyMuPDF")
     if not file_path.exists():
         raise OprimError(f"file_not_found: {file_path}")
 

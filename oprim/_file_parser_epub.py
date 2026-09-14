@@ -4,12 +4,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import ebooklib  # type: ignore[import-untyped]
 from bs4 import BeautifulSoup
-from ebooklib import epub
+
+try:
+    import ebooklib  # type: ignore[import-untyped]
+    from ebooklib import epub
+except ImportError:  # optional epub extra
+    ebooklib = None  # type: ignore[assignment]
+    epub = None  # type: ignore[assignment]
 
 from oprim._document_types import Page, ParsedDocument
 from oprim._exceptions import OprimError
+from oprim._optional import require_optional
 
 
 def file_parser_epub(*, file_path: Path) -> ParsedDocument:
@@ -26,6 +32,7 @@ def file_parser_epub(*, file_path: Path) -> ParsedDocument:
     """
     if not file_path.exists():
         raise OprimError(f"file_not_found: {file_path}")
+    require_optional(ebooklib, feature="epub", extra="epub", package="ebooklib")
 
     try:
         book = epub.read_epub(str(file_path))
