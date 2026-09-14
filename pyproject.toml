@@ -8,7 +8,7 @@ version = "3.12.0"
 description = "Atomic operations library — Layer 1 meta-primitives for financial analysis"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 authors = [{ name = "Wiki" }]
 dependencies = [
     # 核心计算（轻量，所有环境必需）
