@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from oprim._detector_types import DetectorSignal, _now_utc
 from oprim._exceptions import OprimError
-from oprim.financial_metric_extraction import NewsItem, financial_metric_extraction
+from oprim._financial_metric_extraction import NewsItem, financial_metric_extraction
 
 
 class NewsShockConfig(BaseModel):

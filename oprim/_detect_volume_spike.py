@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from oprim._detector_types import DetectorSignal, _now_utc
 from oprim._exceptions import OprimError
-from oprim.volume_ratio import volume_ratio
+from oprim._volume_ratio import volume_ratio
 
 
 class VolumeSpikeConfig(BaseModel):

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from oprim._detector_types import DetectorSignal, _now_utc
 from oprim._exceptions import OprimError
-from oprim.limit_status_calc import limit_status_calc
+from oprim._limit_status_calc import limit_status_calc
 
 
 class LimitBoardExplosionConfig(BaseModel):
