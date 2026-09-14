@@ -32,6 +32,17 @@ ELEMENTS: list[str] = [
     "browser_download",
     "browser_upload",
     "browser_screenshot",
+    # Git atomic primitives (canonical owner: oprim.git)
+    "git_status",
+    "git_diff",
+    "git_show",
+    "git_apply",
+    "git_commit",
+    "git_branch",
+    "git_checkout",
+    "git_stash",
+    "git_worktree_create",
+    "git_worktree_remove",
     # Time Series (11)
     "log_returns",
     "cumulative_returns",
