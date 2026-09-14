@@ -37,7 +37,7 @@ __manifest__ = {
             "depends_on": ["obase.provider_registry"],
             "pillars": ["cost", "fingerprint", "trail", "report"],
         },
-        {"name": "fixed_list", "kind": "oprim", "module": "oprim.fixed_list", "signature": "(symbols, venue, instrument_type, *, market_metadata=None) -> dict", "depends_on": [], "pillars": ["fingerprint"]},
+        {"name": "fixed_list", "kind": "oprim", "module": "oprim.fixed_list", "signature": "(symbols, *, venue, instrument_type, market_metadata=None) -> dict", "depends_on": [], "pillars": ["fingerprint"]},
     ],
 }
 

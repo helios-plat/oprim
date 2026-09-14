@@ -4,7 +4,7 @@ from __future__ import annotations
 VALID_INSTRUMENT_TYPES = {"spot", "perpetual", "futures", "option", "index_future"}
 
 
-def fixed_list(symbols: list[str], venue: str, instrument_type: str, *, market_metadata: dict | None = None) -> dict:
+def fixed_list(symbols: list[str], *, venue: str, instrument_type: str, market_metadata: dict | None = None) -> dict:
     if not symbols:
         raise ValueError("symbols must be non-empty")
     if instrument_type not in VALID_INSTRUMENT_TYPES:
