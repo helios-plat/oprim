@@ -27,8 +27,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from obase.lsp import LspServerHandle
+
 from ._exceptions import OprimError
-from ._protocols import LspServerHandle
 
 # LSP 位置类型：(line, character) — 0-based
 Pos = tuple[int, int]
