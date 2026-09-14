@@ -6,6 +6,10 @@ import importlib
 from pathlib import Path
 from typing import Any
 from oprim._version import __version__
+__3o_canonical_exports__ = frozenset({
+    "video_generate", "edge_tts_synthesize", "avatar_generate", "fixed_list",
+    "style_marker_prompt", "lighting_control_prompt", "asset_reference_inject",
+})
 
 # Public-package contract for 3O consumers.  It describes only stable atomic
 # operations and intentionally contains no application-specific state.
