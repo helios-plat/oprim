@@ -150,20 +150,20 @@ def _dict_to_card(d: dict):
 
 def fsrs_new_card() -> dict:
     """创建新 FSRS 记忆卡片（委托 fsrs_engine，单源）。"""
-    from oprim.fsrs_engine import fsrs_new_card as _impl
+    from oprim._fsrs_engine import fsrs_new_card as _impl
     return _impl()
 
 def fsrs_review(*, card_dict: dict, rating: str, now: datetime | None = None) -> dict:
     """对卡片做一次复习（rating 为字符串，委托 fsrs_engine）。"""
     from fsrs import Rating
-    from oprim.fsrs_engine import fsrs_review as _impl
+    from oprim._fsrs_engine import fsrs_review as _impl
     r = {"Again": Rating.Again, "Hard": Rating.Hard,
          "Good": Rating.Good, "Easy": Rating.Easy}.get(rating, Rating.Good)
     return _impl(card_dict=card_dict, rating=r, now=now)
 
 def fsrs_retrievability(*, card_dict: dict, now: datetime | None = None) -> float:
     """当前可提取性 R ∈ [0,1]（委托 fsrs_engine）。"""
-    from oprim.fsrs_engine import fsrs_retrievability as _impl
+    from oprim._fsrs_engine import fsrs_retrievability as _impl
     return _impl(card_dict=card_dict, now=now)
 
 def fsrs_map_rating(
@@ -171,11 +171,11 @@ def fsrs_map_rating(
     struggled: bool = False, effortless: bool = False
 ) -> str:
     """表现映射为 FSRS Rating 字符串（决策委托 fsrs_engine，单源）。"""
-    from oprim.fsrs_engine import fsrs_map_rating as _impl
+    from oprim._fsrs_engine import fsrs_map_rating as _impl
     return _impl(is_correct=is_correct, used_answer=used_answer,
                  struggled=struggled, effortless=effortless).name
 
 def fsrs_due_date(*, card_dict: dict) -> str | None:
     """下次复习日期 ISO 字符串（委托 fsrs_engine）。"""
-    from oprim.fsrs_engine import fsrs_due_date as _impl
+    from oprim._fsrs_engine import fsrs_due_date as _impl
     return _impl(card_dict=card_dict)

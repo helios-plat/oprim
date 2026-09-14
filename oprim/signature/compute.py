@@ -16,8 +16,8 @@ from typing import Any
 
 import numpy as np
 
-from oprim.crypto.hashing import sha256_hash
-from oprim.serialization.canonical import canonical_json
+from oprim._crypto_hashing import sha256_hash
+from oprim._serialization_canonical import canonical_json
 
 
 def _compute_signature(increments: np.ndarray, depth: int) -> np.ndarray:

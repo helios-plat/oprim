@@ -33,7 +33,7 @@ async def ohlcv_fetch(
     if venue != "okx":
         raise OhlcvFetchError(f"Unsupported venue: {venue!r} (only 'okx' supported)")
 
-    from oprim.okx_rest_call import OkxRestError, okx_rest_call  # noqa: PLC0415
+    from oprim._okx_rest_call import OkxRestError, okx_rest_call  # noqa: PLC0415
 
     params: dict[str, Any] = {"instId": symbol, "bar": interval, "limit": str(limit)}
     if after is not None:

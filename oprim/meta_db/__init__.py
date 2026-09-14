@@ -9,8 +9,8 @@ reads instead of a private DuckDB file.
 import os
 from pathlib import Path
 
-from oprim.meta_db.duckdb import MetaDB
-from oprim.meta_db.duckdb import open_meta_db as _open_duckdb
+from oprim._meta_db_duckdb import MetaDB
+from oprim._meta_db_duckdb import open_meta_db as _open_duckdb
 
 __all__ = ["MetaDB", "open_meta_db"]
 
@@ -19,7 +19,7 @@ def open_meta_db(path: Path):
     """Open a MetaDB. Postgres backend when META_DB_BACKEND=postgres, else DuckDB."""
     backend = os.environ.get("META_DB_BACKEND", "duckdb").strip().lower()
     if backend in ("postgres", "pg", "postgresql"):
-        from oprim.meta_db.postgres import PgMetaDB
+        from oprim._meta_db_postgres import PgMetaDB
 
         return PgMetaDB(path)
     return _open_duckdb(path)

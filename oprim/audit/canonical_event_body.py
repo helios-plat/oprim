@@ -6,7 +6,7 @@ is computed over in vcp_silver_record, minus conformance_tier.
 """
 from __future__ import annotations
 
-from oprim.serialization import canonical_json
+from oprim._serialization_canonical import canonical_json
 
 SIGNATURE_EXCLUDED_FIELDS: frozenset[str] = frozenset({
     "signature",

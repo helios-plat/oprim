@@ -32,7 +32,7 @@ class PDFParser(Protocol):
 
 def _dispatch(path: Path, hint: dict | None) -> str:
     """Choose a parser based on PDF features."""
-    from oprim.classifier.detect_pdf_features import detect_pdf_features
+    from oprim._detect_pdf_features import detect_pdf_features
 
     features = detect_pdf_features(path)
     if hint and hint.get("language") == "zh" and features.has_cjk:
