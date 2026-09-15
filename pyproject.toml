@@ -50,6 +50,7 @@ storage = [
     "lancedb>=0.17",
     "tantivy>=0.22",
     "duckdb>=0.10",
+    "elasticsearch>=8.0",
 ]
 llm = [
     "dashscope>=1.14",
