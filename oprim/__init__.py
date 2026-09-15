@@ -622,7 +622,7 @@ __all__.extend(
 
 # Historical exports whose canonical implementations moved to private oprim
 # modules or to obase.  These are aliases only; no new element is introduced.
-from obase.docker import (  # noqa: F401
+from obase.docker import (  # noqa: E402, F401
     compose_down,
     compose_up,
     docker_compose_down,
@@ -647,7 +647,12 @@ from obase.docker import (  # noqa: F401
     docker_volume_delete,
     docker_volume_list,
 )
-from oprim._caddy import caddy_admin_routes  # noqa: F401
-from oprim._filesystem import fs_disk_usage  # noqa: F401
-from oprim._network import network_dns_resolve, network_http_health, network_port_check  # noqa: F401
-from oprim._postgres import postgres_locks, postgres_long_running_queries  # noqa: F401
+
+from oprim._caddy import caddy_admin_routes  # noqa: E402, F401
+from oprim._filesystem import fs_disk_usage  # noqa: E402, F401
+from oprim._network import (  # noqa: E402, F401
+    network_dns_resolve,
+    network_http_health,
+    network_port_check,
+)
+from oprim._postgres import postgres_locks, postgres_long_running_queries  # noqa: E402, F401

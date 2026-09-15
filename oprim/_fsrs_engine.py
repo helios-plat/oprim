@@ -4,8 +4,8 @@ from oprim.fsrs_engine import (
     fsrs_due_date,
     fsrs_map_rating,
     fsrs_new_card,
-    fsrs_review,
     fsrs_retrievability,
+    fsrs_review,
 )
 
 __all__ = [
