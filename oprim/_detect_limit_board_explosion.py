@@ -31,7 +31,7 @@ def detect_limit_board_explosion(
     *,
     close: list[float],
     volumes: list[float],
-    config: LimitBoardExplosionConfig = LimitBoardExplosionConfig(),
+    config: LimitBoardExplosionConfig | None = None,
 ) -> DetectorSignal | None:
     """Detect a 涨停炸板 (limit-up broken) event with volume surge.
 
@@ -62,6 +62,8 @@ def detect_limit_board_explosion(
         >>> sig = detect_limit_board_explosion(close=close, volumes=volumes,
         ...     config=LimitBoardExplosionConfig(limit_pct=0.10, vol_multiplier=2.0))
     """
+    if config is None:
+        config = LimitBoardExplosionConfig()
     n = len(close)
     if len(volumes) != n:
         raise OprimError(f"close and volumes must have equal length, got {n} vs {len(volumes)}")

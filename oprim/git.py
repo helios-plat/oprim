@@ -40,10 +40,10 @@ def _git(
             input=input_text,
             timeout=60,
         )
-    except FileNotFoundError:  # pragma: no cover
-        raise GitOprimError("git executable not found")
-    except subprocess.TimeoutExpired:  # pragma: no cover
-        raise GitOprimError(f"git command timed out: {' '.join(args)}")
+    except FileNotFoundError as e:  # pragma: no cover
+        raise GitOprimError("git executable not found") from e
+    except subprocess.TimeoutExpired as e:  # pragma: no cover
+        raise GitOprimError(f"git command timed out: {' '.join(args)}") from e
 
     if result.returncode != 0:
         raise GitOprimError(

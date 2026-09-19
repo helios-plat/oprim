@@ -46,7 +46,7 @@ async def multi_angle(
         "You are an image prompt engineer. Given a subject description and a list of "
         "viewing angles, generate a distinct image generation prompt for each angle. "
         f'Return STRICT JSON: {{"angle_prompts": '
-        f'{{{", ".join(repr(a) + ": str" for a in angles)}}}}} '
+        f"{{{', '.join(repr(a) + ': str' for a in angles)}}}}} "
         "where each value is a detailed image generation prompt."
     )
     messages = [

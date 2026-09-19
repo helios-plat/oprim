@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 from datetime import UTC, datetime, timedelta
 
@@ -223,11 +224,9 @@ def test_bkt_update_zero_mastery():
     # In code: p_obs = (p_eff * (1 - p_s)) / (p_eff * (1 - p_s) + (1 - p_eff) * p_g)
     # If p_eff=0 and p_g=0, it's 0/0.
     # But let's see how it behaves.
-    try:
-        bkt_update(state=state, is_correct=True)
-    except ZeroDivisionError:
+    with contextlib.suppress(ZeroDivisionError):
         # If it fails, we know we should fix it, but let's see current behavior
-        pass
+        bkt_update(state=state, is_correct=True)
 
 
 def test_fsrs_review_invalid_rating():

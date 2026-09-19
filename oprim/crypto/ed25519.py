@@ -26,11 +26,11 @@ if _GX % 2 != 0:
 _G = (_GX, _GY, 1, _GX * _GY % _P)
 
 
-def _point_add(P: tuple, Q: tuple) -> tuple:
-    a_val = (P[1] - P[0]) * (Q[1] - Q[0]) % _P
-    b_val = (P[1] + P[0]) * (Q[1] + Q[0]) % _P
-    c_val = 2 * P[3] * Q[3] * _D % _P
-    d_val = 2 * P[2] * Q[2] % _P
+def _point_add(p: tuple, q: tuple) -> tuple:
+    a_val = (p[1] - p[0]) * (q[1] - q[0]) % _P
+    b_val = (p[1] + p[0]) * (q[1] + q[0]) % _P
+    c_val = 2 * p[3] * q[3] * _D % _P
+    d_val = 2 * p[2] * q[2] % _P
     e_val, f_val, g_val, h_val = b_val - a_val, d_val - c_val, d_val + c_val, b_val + a_val
     return e_val * f_val % _P, g_val * h_val % _P, f_val * g_val % _P, e_val * h_val % _P
 

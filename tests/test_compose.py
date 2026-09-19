@@ -3,13 +3,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytest.skip(
-    "Docker Compose primitives moved to obase; the owning obase suite is authoritative",
-    allow_module_level=True,
-)
-
-from oprim import compose_down, compose_up
-from oprim._exceptions import OprimConnectionError, OprimNotFoundError
+try:
+    from oprim import compose_down, compose_up
+    from oprim._exceptions import OprimConnectionError, OprimNotFoundError
+except ImportError:
+    pytest.skip(
+        "Docker Compose primitives moved to obase; the owning obase suite is authoritative",
+        allow_module_level=True,
+    )
 
 
 @patch("os.path.exists")

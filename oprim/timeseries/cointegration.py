@@ -345,17 +345,17 @@ def johansen_cointegration(
         z2_aug = z2 if z2 is not None else np.ones((t_val, 1))
 
     # Regress Z0 and Y_lag on Z2_aug (partial out short-run dynamics)
-    def _resid(Y, X):  # pragma: no cover
+    def _resid(y, x):  # pragma: no cover
         """Return residuals of Y regressed on X."""
         coeffs, _ = (
-            _ols_fit(Y.T.ravel(), X) if Y.ndim == 1 else _ols_multi(Y, X)
+            _ols_fit(y.T.ravel(), x) if y.ndim == 1 else _ols_multi(y, x)
         )  # pragma: no cover
-        return Y - X @ coeffs  # pragma: no cover
+        return y - x @ coeffs  # pragma: no cover
 
-    def _ols_multi(Y, X):
+    def _ols_multi(y, x):
         """OLS for multivariate Y (n x m) on X (n x k). Returns coefficients (k x m)."""
-        coeffs, _, _, _ = np.linalg.lstsq(X, Y, rcond=None)
-        return coeffs, Y - X @ coeffs
+        coeffs, _, _, _ = np.linalg.lstsq(x, y, rcond=None)
+        return coeffs, y - x @ coeffs
 
     # Residuals of Z0 on Z2_aug
     coeffs_0, r0 = _ols_multi(z0, z2_aug)  # R0: (T, k)

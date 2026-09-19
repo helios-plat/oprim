@@ -274,7 +274,7 @@ def read_skill_frontmatter(skill_dir: str | Path) -> SkillMeta:
     except Exception as e:  # pragma: no cover
         raise ParseOprimError(
             f"frontmatter YAML parse error in '{skill_dir}'", cause=e
-        )  # pragma: no cover
+        ) from e  # pragma: no cover
 
     name = fm.get("name", "")
     if not name:

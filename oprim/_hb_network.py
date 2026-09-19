@@ -322,5 +322,5 @@ async def load_skill_raw(path: Path) -> str:
 
     try:
         return await loop.run_in_executor(None, _read)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"skill file not found: {path}")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"skill file not found: {path}") from e

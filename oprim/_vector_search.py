@@ -2,7 +2,7 @@
 
 通过注入的 store（obase.cognitive_store.MemoryStore / oskill.VectorStoreHandle
 兼容协议）执行近邻检索，输出标准化 dict 列表。适配两种调用形态：
-- keyword-only: store.search(*, vector, top_k, filter)
+- keyword-only: store.search(*, vector, top_k, filter_expr)
 - positional:   store.search(vector, *, top_k)
 
 Example:
@@ -59,7 +59,7 @@ async def vector_search(
     *,
     store: VectorSearchStore,
     top_k: int = 10,
-    filter: dict[str, Any] | None = None,  # noqa: A002 - 与 VectorStoreHandle 协议对齐
+    filter_expr: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """单次近邻检索。
 
@@ -67,7 +67,7 @@ async def vector_search(
         query_vector: 查询向量。
         store: 注入的检索存储（MemoryStore 兼容协议）。
         top_k: 返回条数上限。
-        filter: 元数据过滤条件（后端支持时生效）。
+        filter_expr: 元数据过滤条件（后端支持时生效）。
 
     Returns:
         按相似度降序的 dict 列表，每项含 chunk_id / content / score / path。
@@ -96,8 +96,8 @@ async def vector_search(
         )
         if keyword_style:
             kwargs: dict[str, Any] = {"vector": query_vector, "top_k": top_k}
-            if filter is not None and "filter" in sig.parameters:
-                kwargs["filter"] = filter
+            if filter_expr is not None and "filter_expr" in sig.parameters:
+                kwargs["filter_expr"] = filter_expr
             rows = await search_fn(**kwargs)
         else:
             rows = await search_fn(query_vector, top_k=top_k)

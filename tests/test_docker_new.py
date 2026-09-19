@@ -2,22 +2,23 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytest.skip(
-    "Docker primitives moved to obase; the owning obase suite is authoritative",
-    allow_module_level=True,
-)
+try:
+    import docker.errors
 
-import docker.errors
-
-from oprim import (
-    docker_container_list,
-    docker_image_delete,
-    docker_image_list,
-    docker_network_list,
-    docker_volume_delete,
-    docker_volume_list,
-)
-from oprim._exceptions import OprimConnectionError, OprimNotFoundError
+    from oprim import (
+        docker_container_list,
+        docker_image_delete,
+        docker_image_list,
+        docker_network_list,
+        docker_volume_delete,
+        docker_volume_list,
+    )
+    from oprim._exceptions import OprimConnectionError, OprimNotFoundError
+except ImportError:
+    pytest.skip(
+        "Docker primitives moved to obase; the owning obase suite is authoritative",
+        allow_module_level=True,
+    )
 
 
 @patch("docker.DockerClient")

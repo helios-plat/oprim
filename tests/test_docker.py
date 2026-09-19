@@ -6,23 +6,30 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytest.skip(
-    "Docker primitives moved to obase; the owning obase suite is authoritative",
-    allow_module_level=True,
-)
+try:
+    from oprim._docker import (
+        ContainerInfo,
+        ContainerOpResult,
+        ContainerStats,
+        ImagePullResult,
+        LogLine,
+    )
 
-from oprim._docker import ContainerInfo, ContainerOpResult, ContainerStats, ImagePullResult, LogLine
-
-from oprim import (
-    docker_container_inspect,
-    docker_container_logs,
-    docker_container_restart,
-    docker_container_start,
-    docker_container_stats,
-    docker_container_stop,
-    docker_image_pull,
-)
-from oprim._exceptions import OprimConnectionError, OprimNotFoundError
+    from oprim import (
+        docker_container_inspect,
+        docker_container_logs,
+        docker_container_restart,
+        docker_container_start,
+        docker_container_stats,
+        docker_container_stop,
+        docker_image_pull,
+    )
+    from oprim._exceptions import OprimAuthError, OprimConnectionError, OprimNotFoundError
+except ImportError:
+    pytest.skip(
+        "Docker primitives moved to obase; the owning obase suite is authoritative",
+        allow_module_level=True,
+    )
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -539,9 +546,6 @@ class TestDockerImagePull:
         ):
             docker_image_pull(image="nginx", tag="latest")
 
-
-# Fix: import OprimAuthError
-from oprim._exceptions import OprimAuthError
 
 # ---------------------------------------------------------------------------
 # docker_container_stats

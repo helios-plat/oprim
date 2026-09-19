@@ -738,7 +738,7 @@ class TestExtractThinking:
         assert not result.has_thinking
 
     def test_invalid_content_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(PromptOprimError):
             extract_thinking({"content": 42})
 
     def test_tool_use_blocks_ignored(self):

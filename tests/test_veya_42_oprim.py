@@ -187,11 +187,11 @@ class TestLlmEmbeddingVector:
         from oprim import vector_search
 
         class Store:
-            async def search(self, *, vector, top_k=5, filter=None):
-                assert filter == {"k": 1}
+            async def search(self, *, vector, top_k=5, filter_expr=None):
+                assert filter_expr == {"k": 1}
                 return [{"chunk_id": "c2", "content": "y", "score": 0.7}]
 
-        hits = await vector_search([1.0], store=Store(), filter={"k": 1})
+        hits = await vector_search([1.0], store=Store(), filter_expr={"k": 1})
         assert hits[0]["chunk_id"] == "c2"
 
     async def test_vector_search_validation(self):

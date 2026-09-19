@@ -288,11 +288,12 @@ def implied_volatility(
     else:
         intrinsic = max(k_val * math.exp(-r_val * t_val) - s_val * math.exp(-q_val * t_val), 0.0)
 
-    if market_price <= intrinsic and market_price < s_val * math.exp(-q_val * t_val):
-        # Price below intrinsic: no solution
-        # Allow very small tolerance
-        if market_price < intrinsic - 1e-8:
-            return float("nan")
+    if (
+        market_price <= intrinsic
+        and market_price < s_val * math.exp(-q_val * t_val)
+        and market_price < intrinsic - 1e-8
+    ):
+        return float("nan")
 
     def _bs_price_inline(sigma):
         """Inline BSM price computation (no import of black_scholes_price)."""

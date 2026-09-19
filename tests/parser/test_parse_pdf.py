@@ -197,7 +197,9 @@ class TestParsePDF:
         """Non-EPUB file passed as EPUB raises an exception (from ebooklib)."""
         f = tmp_path / "bad.epub"
         f.write_bytes(b"not real epub data at all")
+        import zipfile
+
         from oprim.parser.parse_epub import parse_epub
 
-        with pytest.raises(Exception):
+        with pytest.raises(zipfile.BadZipFile):
             parse_epub(f)

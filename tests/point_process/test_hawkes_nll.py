@@ -12,25 +12,25 @@ class TestHawkesNll:
     def test_returns_float(self):
         """hawkes_nll returns a Python float."""
         events = np.array([0.1, 0.5, 1.0, 2.3, 3.7])
-        result = hawkes_nll(self._default_params(), events, T=5.0)
+        result = hawkes_nll(self._default_params(), events, t=5.0)
         assert isinstance(result, float)
 
     def test_returns_finite_for_valid_input(self):
         """Valid event sequence with positive params → finite NLL."""
         events = np.array([0.1, 0.5, 1.2, 2.0, 3.1, 4.0])
-        result = hawkes_nll(self._default_params(), events, T=5.0)
+        result = hawkes_nll(self._default_params(), events, t=5.0)
         assert np.isfinite(result)
 
     def test_too_few_events_returns_penalty(self):
         """n < 2 events → returns 1e10 penalty."""
         events = np.array([1.0])
-        result = hawkes_nll(self._default_params(), events, T=5.0)
+        result = hawkes_nll(self._default_params(), events, t=5.0)
         assert result == 1e10
 
     def test_empty_events_returns_penalty(self):
         """Empty event array → returns 1e10 penalty."""
         events = np.array([])
-        result = hawkes_nll(self._default_params(), events, T=5.0)
+        result = hawkes_nll(self._default_params(), events, t=5.0)
         assert result == 1e10
 
     def test_nll_decreases_with_better_fit(self):
@@ -48,15 +48,15 @@ class TestHawkesNll:
         nll_bad = hawkes_nll(bad_params, events, t_val)
         assert nll_good < nll_bad
 
-    def test_nll_depends_on_T(self):
+    def test_nll_depends_on_t(self):
         """Longer observation window T changes the integral term → different NLL."""
         events = np.array([0.5, 1.0, 2.5, 3.0])
         p = self._default_params()
-        nll5 = hawkes_nll(p, events, T=5.0)
-        nll10 = hawkes_nll(p, events, T=10.0)
+        nll5 = hawkes_nll(p, events, t=5.0)
+        nll10 = hawkes_nll(p, events, t=10.0)
         assert nll5 != nll10
 
-    def test_A_recursive_accumulation(self):
+    def test_a_recursive_accumulation(self):
         """A_i = Σ_{j<i} exp(-β*(t_i - t_j)): for 2 events A[0]=0, A[1]=exp(-β*Δ)."""
         beta = 1.0
         events = np.array([0.0, 0.5])
@@ -69,6 +69,6 @@ class TestHawkesNll:
         """Log-parameterization ensures mu, alpha, beta > 0 for any real params."""
         params = np.array([-10.0, -10.0, -10.0])  # very small positive values
         events = np.array([0.1, 0.5, 1.0, 2.0])
-        result = hawkes_nll(params, events, T=3.0)
+        result = hawkes_nll(params, events, t=3.0)
         # Should return finite value or 1e10 penalty, not raise
         assert isinstance(result, float)

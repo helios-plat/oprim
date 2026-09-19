@@ -17,14 +17,16 @@ def _force_ipv4():
     """Monkey-patch socket.getaddrinfo to prefer IPv4 (OAPEN IPv6 unreachable from CN)."""
     _orig = socket.getaddrinfo
 
-    def ipv4_first(host, port, family=0, type=0, proto=0, flags=0):
+    def ipv4_first(host, port, family=0, sock_type=0, proto=0, flags=0):
         try:
             v4 = [
-                r for r in _orig(host, port, family, type, proto, flags) if r[0] == socket.AF_INET
+                r
+                for r in _orig(host, port, family, sock_type, proto, flags)
+                if r[0] == socket.AF_INET
             ]
-            return v4 if v4 else _orig(host, port, family, type, proto, flags)
+            return v4 if v4 else _orig(host, port, family, sock_type, proto, flags)
         except Exception:
-            return _orig(host, port, family, type, proto, flags)
+            return _orig(host, port, family, sock_type, proto, flags)
 
     socket.getaddrinfo = ipv4_first
     return _orig
@@ -55,13 +57,13 @@ def oapen_search(
             language=language,
             max_results=max_results,
             rate_limit_sleep=rate_limit_sleep,
-            SourceResult=SourceResult,
+            source_result=SourceResult,
         )
     finally:
         _restore_getaddrinfo(orig_getaddrinfo)
 
 
-def _oapen_search_inner(*, query, language, max_results, rate_limit_sleep, SourceResult):
+def _oapen_search_inner(*, query, language, max_results, rate_limit_sleep, source_result):
     if rate_limit_sleep > 0:
         time.sleep(rate_limit_sleep)
 
@@ -139,7 +141,7 @@ def _oapen_search_inner(*, query, language, max_results, rate_limit_sleep, Sourc
             continue
 
         results.append(
-            SourceResult(
+            source_result(
                 external_id=handle,
                 title=title,
                 download_url=pdf_url,

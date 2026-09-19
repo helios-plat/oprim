@@ -137,10 +137,8 @@ def _dtw_1d(x, y, window, metric):
         j_start = max(1, i - w)
         j_end = min(m, i + w)
         for j in range(j_start, j_end + 1):
-            if metric == "euclidean":
-                d = (x[i - 1] - y[j - 1]) ** 2  # squared
-            else:
-                d = abs(x[i - 1] - y[j - 1])
+            # squared when metric == "euclidean"
+            d = (x[i - 1] - y[j - 1]) ** 2 if metric == "euclidean" else abs(x[i - 1] - y[j - 1])
             cost[i, j] = d + min(cost[i - 1, j], cost[i, j - 1], cost[i - 1, j - 1])
 
     # Traceback

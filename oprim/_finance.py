@@ -349,7 +349,7 @@ def nelson_siegel_yield_curve(
         ss_tot = np.sum((yields - yields.mean()) ** 2)
         r_squared = 1 - ss_res / ss_tot if ss_tot > 0 else 0.0
     except Exception as e:
-        raise ValueError(f"Nelson-Siegel fit failed: {e}")
+        raise ValueError(f"Nelson-Siegel fit failed: {e}") from e
 
     return {
         "beta_0": float(beta0),

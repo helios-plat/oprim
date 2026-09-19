@@ -1279,7 +1279,7 @@ class TestNormalizeStopReason:
     def test_openai_length(self):
         assert normalize_stop_reason({"finish_reason": "length"}, provider="openai") == "max_tokens"
 
-    def test_google_STOP(self):
+    def test_google_stop(self):
         assert normalize_stop_reason({"finishReason": "STOP"}, provider="google") == "end_turn"
 
     def test_unknown_value(self):
@@ -1615,7 +1615,7 @@ class TestParseStopReason:
     def test_openai_stop(self):
         assert parse_stop_reason({"finish_reason": "stop"}, provider="openai") == "end_turn"
 
-    def test_google_STOP(self):
+    def test_google_stop(self):
         assert parse_stop_reason({"finishReason": "STOP"}, provider="google") == "end_turn"
 
     def test_unknown_provider_raises(self):
@@ -2054,7 +2054,7 @@ class TestRedactSecret:
 
 class TestMakeEvent:
     def test_creates_event(self):
-        ev = make_event(type="msg.created", payload={"k": "v"})
+        ev = make_event(event_type="msg.created", payload={"k": "v"})
         assert ev.type == "msg.created"
         assert ev.payload == {"k": "v"}
         assert isinstance(ev.id, str)
@@ -2062,7 +2062,7 @@ class TestMakeEvent:
 
     def test_empty_type_raises(self):
         with pytest.raises(ValueError, match="empty"):
-            make_event(type="", payload={})
+            make_event(event_type="", payload={})
 
 
 class TestSerializeDeserializeEvent:

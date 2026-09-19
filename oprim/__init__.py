@@ -57,6 +57,7 @@ _build_element_map()
 # __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
 _ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
 
+
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
 def llm_summarize(*args, **kwargs):
     """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
@@ -82,6 +83,7 @@ def __dir__() -> list[str]:
 
 
 __all__ = sorted(_ELEMENT_MAP.keys())
+
 
 # --- Lazy-load wrappers for obase-dependent functions ---
 def llm_complete(*args, **kwargs):

@@ -196,8 +196,8 @@ async def load_custom_tool(path: Path) -> Tool:
         # fallback: try JSON
         try:
             return _parse_json_tool(content, p)
-        except Exception:
-            raise ValueError(f"unsupported or unrecognizable tool file format: {p.suffix}")
+        except Exception as e:
+            raise ValueError(f"unsupported or unrecognizable tool file format: {p.suffix}") from e
 
     return await loop.run_in_executor(None, _load)
 

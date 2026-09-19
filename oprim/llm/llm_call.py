@@ -34,7 +34,7 @@ def _call_dashscope(prompt, model, temperature, max_tokens, system):
 
         import httpx
     except ImportError as e:
-        raise LLMError(f"httpx not installed: {e}")
+        raise LLMError(f"httpx not installed: {e}") from e
 
     api_key = cfg.get("DASHSCOPE_API_KEY") or os.getenv("DASHSCOPE_API_KEY", "")
     if not api_key:
@@ -69,10 +69,10 @@ def _call_dashscope(prompt, model, temperature, max_tokens, system):
         return LLMResponse(text=text, model=_model)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 429:
-            raise LLMRateLimitError(f"DashScope rate limit: {e}")
-        raise LLMError(f"DashScope HTTP error {e.response.status_code}: {e}")
+            raise LLMRateLimitError(f"DashScope rate limit: {e}") from e
+        raise LLMError(f"DashScope HTTP error {e.response.status_code}: {e}") from e
     except Exception as e:
-        raise LLMError(f"DashScope call failed: {e}")
+        raise LLMError(f"DashScope call failed: {e}") from e
 
 
 def _call_claude(prompt, model, temperature, max_tokens, system):

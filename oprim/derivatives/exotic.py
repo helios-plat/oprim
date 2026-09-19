@@ -19,30 +19,30 @@ from scipy.stats import norm
 
 
 def _bs_vanilla(
-    S: float, K: float, T: float, r: float, sigma: float, q: float, option_type: str
+    s: float, k: float, t: float, r: float, sigma: float, q: float, option_type: str
 ) -> float:
     """Black-Scholes vanilla price for parity relations."""
-    if T <= 0:
+    if t <= 0:
         if option_type == "call":
-            return max(S - K, 0.0)
-        return max(K - S, 0.0)
+            return max(s - k, 0.0)
+        return max(k - s, 0.0)
     if sigma <= 0:
         if option_type == "call":
-            return max(S * np.exp(-q * T) - K * np.exp(-r * T), 0.0)
-        return max(K * np.exp(-r * T) - S * np.exp(-q * T), 0.0)
-    d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    call = S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+            return max(s * np.exp(-q * t) - k * np.exp(-r * t), 0.0)
+        return max(k * np.exp(-r * t) - s * np.exp(-q * t), 0.0)
+    d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * np.sqrt(t))
+    d2 = d1 - sigma * np.sqrt(t)
+    call = s * np.exp(-q * t) * norm.cdf(d1) - k * np.exp(-r * t) * norm.cdf(d2)
     if option_type == "call":
         return float(call)
-    return float(call - S * np.exp(-q * T) + K * np.exp(-r * T))
+    return float(call - s * np.exp(-q * t) + k * np.exp(-r * t))
 
 
 def _barrier_cf(
-    S: float,
-    K: float,
-    H: float,
-    T: float,
+    s: float,
+    k: float,
+    h: float,
+    t: float,
     r: float,
     sigma: float,
     q: float,
@@ -51,108 +51,108 @@ def _barrier_cf(
     rebate: float,
 ) -> float:
     """Closed-form barrier option price using Reiner-Rubinstein (1991) formulas."""
-    if T <= 0:
-        intrinsic = max(S - K, 0.0) if option_type == "call" else max(K - S, 0.0)
+    if t <= 0:
+        intrinsic = max(s - k, 0.0) if option_type == "call" else max(k - s, 0.0)
         if "out" in barrier_type:
-            if "down" in barrier_type and S <= H:
+            if "down" in barrier_type and s <= h:
                 return rebate
-            if "up" in barrier_type and S >= H:
+            if "up" in barrier_type and s >= h:
                 return rebate
             return intrinsic
         else:  # in
-            if "down" in barrier_type and S <= H:
+            if "down" in barrier_type and s <= h:
                 return intrinsic
-            if "up" in barrier_type and S >= H:
+            if "up" in barrier_type and s >= h:
                 return intrinsic
             return rebate
 
     if sigma <= 0:
         # Zero vol: deterministic path
-        return _barrier_zero_vol(S, K, H, T, r, q, barrier_type, option_type, rebate)
+        return _barrier_zero_vol(s, k, h, t, r, q, barrier_type, option_type, rebate)
 
-    sqrt_t = np.sqrt(T)
+    sqrt_t = np.sqrt(t)
     mu = (r - q - 0.5 * sigma**2) / sigma**2
     lambda_val = np.sqrt(mu**2 + 2.0 * r / sigma**2)
 
-    x1 = np.log(S / K) / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t
-    x2 = np.log(S / H) / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t
-    y1 = np.log(H**2 / (S * K)) / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t
-    y2 = np.log(H / S) / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t
-    z = np.log(H / S) / (sigma * sqrt_t) + lambda_val * sigma * sqrt_t
+    x1 = np.log(s / k) / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t
+    x2 = np.log(s / h) / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t
+    y1 = np.log(h**2 / (s * k)) / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t
+    y2 = np.log(h / s) / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t
+    z = np.log(h / s) / (sigma * sqrt_t) + lambda_val * sigma * sqrt_t
 
     phi = 1.0 if option_type == "call" else -1.0
     eta: float  # direction multiplier: +1 for down barriers, -1 for up barriers
 
     cdf_fn = norm.cdf
-    disc_r = np.exp(-r * T)
-    disc_q = np.exp(-q * T)
+    disc_r = np.exp(-r * t)
+    disc_q = np.exp(-q * t)
 
     # Component functions from Reiner-Rubinstein (1991)
-    def A(phi_: float, x_: float) -> float:
+    def a(phi_: float, x_: float) -> float:
         return phi_ * (
-            S * disc_q * cdf_fn(phi_ * x_) - K * disc_r * cdf_fn(phi_ * (x_ - sigma * sqrt_t))
+            s * disc_q * cdf_fn(phi_ * x_) - k * disc_r * cdf_fn(phi_ * (x_ - sigma * sqrt_t))
         )
 
-    def B(phi_: float, x_: float) -> float:
+    def b(phi_: float, x_: float) -> float:
         return phi_ * (
-            S * disc_q * cdf_fn(phi_ * x_) - K * disc_r * cdf_fn(phi_ * (x_ - sigma * sqrt_t))
+            s * disc_q * cdf_fn(phi_ * x_) - k * disc_r * cdf_fn(phi_ * (x_ - sigma * sqrt_t))
         )
 
-    def C(phi_: float, eta_: float, y_: float) -> float:
+    def c(phi_: float, eta_: float, y_: float) -> float:
         return phi_ * (
-            S * disc_q * (H / S) ** (2.0 * (mu + 1.0)) * cdf_fn(eta_ * y_)
-            - K * disc_r * (H / S) ** (2.0 * mu) * cdf_fn(eta_ * (y_ - sigma * sqrt_t))
+            s * disc_q * (h / s) ** (2.0 * (mu + 1.0)) * cdf_fn(eta_ * y_)
+            - k * disc_r * (h / s) ** (2.0 * mu) * cdf_fn(eta_ * (y_ - sigma * sqrt_t))
         )
 
-    def D(phi_: float, eta_: float, y_: float) -> float:
+    def d(phi_: float, eta_: float, y_: float) -> float:
         return phi_ * (
-            S * disc_q * (H / S) ** (2.0 * (mu + 1.0)) * cdf_fn(eta_ * y_)
-            - K * disc_r * (H / S) ** (2.0 * mu) * cdf_fn(eta_ * (y_ - sigma * sqrt_t))
+            s * disc_q * (h / s) ** (2.0 * (mu + 1.0)) * cdf_fn(eta_ * y_)
+            - k * disc_r * (h / s) ** (2.0 * mu) * cdf_fn(eta_ * (y_ - sigma * sqrt_t))
         )
 
-    def E_rebate(eta_: float) -> float:
+    def e_rebate(eta_: float) -> float:
         return (
             rebate
             * disc_r
             * (
                 cdf_fn(eta_ * (x2 - sigma * sqrt_t))
-                - (H / S) ** (2.0 * mu) * cdf_fn(eta_ * (y2 - sigma * sqrt_t))
+                - (h / s) ** (2.0 * mu) * cdf_fn(eta_ * (y2 - sigma * sqrt_t))
             )
         )
 
-    def F_rebate(eta_: float) -> float:
+    def f_rebate(eta_: float) -> float:
         return rebate * (
-            (H / S) ** (mu + lambda_val) * cdf_fn(eta_ * z)
-            + (H / S) ** (mu - lambda_val) * cdf_fn(eta_ * (z - 2.0 * lambda_val * sigma * sqrt_t))
+            (h / s) ** (mu + lambda_val) * cdf_fn(eta_ * z)
+            + (h / s) ** (mu - lambda_val) * cdf_fn(eta_ * (z - 2.0 * lambda_val * sigma * sqrt_t))
         )
 
     # Use parity: out + in = vanilla; derive all 8 cases
-    vanilla = _bs_vanilla(S, K, T, r, sigma, q, option_type)
+    vanilla = _bs_vanilla(s, k, t, r, sigma, q, option_type)
 
     if barrier_type == "down_and_out":
-        if S <= H:
+        if s <= h:
             return rebate  # already knocked out
         eta = 1.0
         if option_type == "call":
-            if K >= H:
-                price = A(phi, x1) - C(phi, eta, y1) + E_rebate(eta)
+            if k >= h:
+                price = a(phi, x1) - c(phi, eta, y1) + e_rebate(eta)
             else:
-                price = B(phi, x2) - C(phi, eta, y1) + D(phi, eta, y2) + E_rebate(eta)
+                price = b(phi, x2) - c(phi, eta, y1) + d(phi, eta, y2) + e_rebate(eta)
         else:  # put
-            if K >= H:
-                price = A(phi, x1) - B(phi, x2) + C(phi, eta, y1) - D(phi, eta, y2) + E_rebate(eta)
+            if k >= h:
+                price = a(phi, x1) - b(phi, x2) + c(phi, eta, y1) - d(phi, eta, y2) + e_rebate(eta)
             else:
-                price = E_rebate(eta)
+                price = e_rebate(eta)
         return float(max(price, 0.0))
 
     elif barrier_type == "down_and_in":
-        if S <= H:
+        if s <= h:
             return vanilla  # already knocked in
         out_price = barrier_option_price(
-            S,
-            K,
-            H,
-            T,
+            s,
+            k,
+            h,
+            t,
             r,
             sigma,
             barrier_type="down_and_out",
@@ -161,34 +161,34 @@ def _barrier_cf(
             dividend_yield=q,
             method="closed_form",
         )["price"]
-        _barrier_cf(S, K, H, T, r, sigma, q, "down_and_out", option_type, rebate)
+        _barrier_cf(s, k, h, t, r, sigma, q, "down_and_out", option_type, rebate)
         # in + out = vanilla + rebate (the rebate is paid by the out)
-        return float(vanilla - out_price + rebate * np.exp(-r * T))
+        return float(vanilla - out_price + rebate * np.exp(-r * t))
 
     elif barrier_type == "up_and_out":
-        if S >= H:
+        if s >= h:
             return rebate  # already knocked out
         eta = -1.0
         if option_type == "call":
-            if K >= H:
-                price = E_rebate(eta)
+            if k >= h:
+                price = e_rebate(eta)
             else:
-                price = A(phi, x1) - B(phi, x2) + C(phi, eta, y1) - D(phi, eta, y2) + E_rebate(eta)
+                price = a(phi, x1) - b(phi, x2) + c(phi, eta, y1) - d(phi, eta, y2) + e_rebate(eta)
         else:  # put
-            if K >= H:
-                price = A(phi, x1) - C(phi, eta, y1) + E_rebate(eta)
+            if k >= h:
+                price = a(phi, x1) - c(phi, eta, y1) + e_rebate(eta)
             else:
-                price = B(phi, x2) - D(phi, eta, y2) + E_rebate(eta)
+                price = b(phi, x2) - d(phi, eta, y2) + e_rebate(eta)
         return float(max(price, 0.0))
 
     elif barrier_type == "up_and_in":
-        if S >= H:
+        if s >= h:
             return vanilla
         out_price = barrier_option_price(
-            S,
-            K,
-            H,
-            T,
+            s,
+            k,
+            h,
+            t,
             r,
             sigma,
             barrier_type="up_and_out",
@@ -197,30 +197,30 @@ def _barrier_cf(
             dividend_yield=q,
             method="closed_form",
         )["price"]
-        return float(vanilla - out_price + rebate * np.exp(-r * T))
+        return float(vanilla - out_price + rebate * np.exp(-r * t))
 
     return float("nan")  # unreachable
 
 
-def _barrier_zero_vol(S, K, H, T, r, q, barrier_type, option_type, rebate):
+def _barrier_zero_vol(s, k, h, t, r, q, barrier_type, option_type, rebate):
     """Barrier price under zero volatility: deterministic path."""
     # Forward price
-    fwd = S * np.exp((r - q) * T)
-    disc = np.exp(-r * T)
+    fwd = s * np.exp((r - q) * t)
+    disc = np.exp(-r * t)
     # Check if barrier is breached deterministically
-    breached = fwd <= H or S <= H if "down" in barrier_type else fwd >= H or S >= H
+    breached = fwd <= h or s <= h if "down" in barrier_type else fwd >= h or s >= h
 
     if "out" in barrier_type:
         if breached:
             return float(rebate * disc)
         if option_type == "call":
-            return float(max(fwd - K, 0.0) * disc)
-        return float(max(K - fwd, 0.0) * disc)
+            return float(max(fwd - k, 0.0) * disc)
+        return float(max(k - fwd, 0.0) * disc)
     else:  # in
         if breached:
             if option_type == "call":
-                return float(max(fwd - K, 0.0) * disc)
-            return float(max(K - fwd, 0.0) * disc)
+                return float(max(fwd - k, 0.0) * disc)
+            return float(max(k - fwd, 0.0) * disc)
         return float(rebate * disc)
 
 
@@ -373,9 +373,9 @@ def barrier_option_price(
 
 
 def _lookback_cf(
-    S: float,
-    K: float,
-    T: float,
+    s: float,
+    k: float,
+    t: float,
     r: float,
     sigma: float,
     q: float,
@@ -383,29 +383,29 @@ def _lookback_cf(
     strike_type: str,
 ) -> float:
     """Closed-form lookback using Goldman-Sosin-Gatto (1979) / Conze-Viswanathan (1991)."""
-    if T <= 0:
+    if t <= 0:
         if strike_type == "floating":
-            # At expiry, min = max = S; payoff = 0
+            # At expiry, min = max = s; payoff = 0
             return 0.0
         if option_type == "call":
-            return max(S - K, 0.0)
-        return max(K - S, 0.0)
+            return max(s - k, 0.0)
+        return max(k - s, 0.0)
 
     if sigma <= 0:
-        # Deterministic: S_T = S * exp((r-q)*T)
-        st_val = S * np.exp((r - q) * T)
-        disc = np.exp(-r * T)
+        # Deterministic: S_T = s * exp((r-q)*t)
+        st_val = s * np.exp((r - q) * t)
+        disc = np.exp(-r * t)
         if strike_type == "floating":
             if option_type == "call":
-                return float(max(st_val - S, 0.0) * disc)  # max(S_T - min, 0) ~ max(ST - S, 0)
-            return float(max(S - st_val, 0.0) * disc)
+                return float(max(st_val - s, 0.0) * disc)  # max(S_T - min, 0) ~ max(ST - s, 0)
+            return float(max(s - st_val, 0.0) * disc)
         if option_type == "call":
-            return float(max(st_val - K, 0.0) * disc)
-        return float(max(K - st_val, 0.0) * disc)
+            return float(max(st_val - k, 0.0) * disc)
+        return float(max(k - st_val, 0.0) * disc)
 
-    sqrt_t = np.sqrt(T)
-    disc_r = np.exp(-r * T)
-    disc_q = np.exp(-q * T)
+    sqrt_t = np.sqrt(t)
+    disc_r = np.exp(-r * t)
+    disc_q = np.exp(-q * t)
     b = r - q  # cost of carry
 
     def _phi(x: float) -> float:
@@ -413,59 +413,59 @@ def _lookback_cf(
 
     if strike_type == "floating":
         # Floating strike lookback
-        # Call: E[e^{-rT} * (S_T - min_{0,T} S_t)]
-        # Put:  E[e^{-rT} * (max_{0,T} S_t - S_T)]
+        # Call: E[e^{-rT} * (S_T - min_{0,t} S_t)]
+        # Put:  E[e^{-rT} * (max_{0,t} S_t - S_T)]
         # Conze & Viswanathan (1991) formulas
-        a1 = (np.log(S / S) + (b + 0.5 * sigma**2) * T) / (sigma * sqrt_t)
-        # Since m_0 = S (current price is the initial minimum/maximum)
-        # Use simplified form with M_0 = m_0 = S
+        a1 = (np.log(s / s) + (b + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
+        # Since m_0 = s (current price is the initial minimum/maximum)
+        # Use simplified form with M_0 = m_0 = s
         a1_c = (b + 0.5 * sigma**2) * sqrt_t / sigma
         a2_c = a1_c - sigma * sqrt_t
 
         if option_type == "call":
-            # Floating call = S*e^{-qT}*N(a1) - S*e^{-rT}*N(a2) + sigma^2/(2b) terms
+            # Floating call = s*e^{-qT}*N(a1) - s*e^{-rT}*N(a2) + sigma^2/(2b) terms
             if abs(b) > 1e-8:
-                S * disc_q * _phi(a1_c)
-                S * disc_r * _phi(a2_c)
-                (sigma**2 / (2.0 * b)) * S * (
-                    disc_r * _phi(a2_c) - disc_q * (b * T + 1.0) * _phi(-a1_c)
+                s * disc_q * _phi(a1_c)
+                s * disc_r * _phi(a2_c)
+                (sigma**2 / (2.0 * b)) * s * (
+                    disc_r * _phi(a2_c) - disc_q * (b * t + 1.0) * _phi(-a1_c)
                     # Actually use correct GSG formula:
                 )
                 # GSG (1979) floating call formula:
-                # C_float = S*e^{-qT}*N(a1) - S*e^{-rT}*(sigma^2/(2b))*N(-a1)
-                #         - S*e^{-rT}*N(a2) + S*e^{-rT}*(sigma^2/(2b))*N(-a2) [not exactly right]
+                # C_float = s*e^{-qT}*N(a1) - s*e^{-rT}*(sigma^2/(2b))*N(-a1)
+                #         - s*e^{-rT}*N(a2) + s*e^{-rT}*(sigma^2/(2b))*N(-a2) [not exactly right]
                 # Use Haug formulas directly:
-                # d1 = (ln(S/m) + (b+σ²/2)T)/(σ√T), with m=S → d1 = (b+σ²/2)√T/σ
+                # d1 = (ln(s/m) + (b+σ²/2)t)/(σ√t), with m=s → d1 = (b+σ²/2)√t/σ
                 d1 = (b + 0.5 * sigma**2) * sqrt_t / sigma
                 d2 = d1 - sigma * sqrt_t
                 price = (
-                    S * disc_q * _phi(d1)
-                    - S * disc_r * _phi(d2)
-                    + S
+                    s * disc_q * _phi(d1)
+                    - s * disc_r * _phi(d2)
+                    + s
                     * disc_r
                     * sigma**2
                     / (2.0 * b)
                     * (
-                        -_phi(-d1) * (S / S) ** (-2.0 * b / sigma**2)  # S/m = 1
+                        -_phi(-d1) * (s / s) ** (-2.0 * b / sigma**2)  # s/m = 1
                         + np.exp(0) * _phi(d2)
                     )
                 )
-                # Simplify with S/m = 1 → (S/m)^{-2b/σ²} = 1
+                # Simplify with s/m = 1 → (s/m)^{-2b/σ²} = 1
                 d1 = (b + 0.5 * sigma**2) * sqrt_t / sigma
                 d2 = d1 - sigma * sqrt_t
                 price = (
-                    S * disc_q * _phi(d1)
-                    - S * disc_r * _phi(d2)
-                    + S * disc_r * (sigma**2 / (2.0 * b)) * (_phi(d2) - _phi(-d1))
+                    s * disc_q * _phi(d1)
+                    - s * disc_r * _phi(d2)
+                    + s * disc_r * (sigma**2 / (2.0 * b)) * (_phi(d2) - _phi(-d1))
                 )
             else:
                 # b ≈ 0: use limit
                 d1 = 0.5 * sigma * sqrt_t
                 d2 = -0.5 * sigma * sqrt_t
                 price = (
-                    S * _phi(d1)
-                    - S * disc_r * _phi(d2)
-                    + S * disc_r * sigma * sqrt_t * norm.pdf(d1)
+                    s * _phi(d1)
+                    - s * disc_r * _phi(d2)
+                    + s * disc_r * sigma * sqrt_t * norm.pdf(d1)
                 )
             return float(max(price, 0.0))
 
@@ -474,105 +474,105 @@ def _lookback_cf(
                 d1 = (b + 0.5 * sigma**2) * sqrt_t / sigma
                 d2 = d1 - sigma * sqrt_t
                 price = (
-                    S * disc_r * _phi(-d2)
-                    - S * disc_q * _phi(-d1)
-                    + S * disc_r * (sigma**2 / (2.0 * b)) * (_phi(d2) - _phi(d1))
+                    s * disc_r * _phi(-d2)
+                    - s * disc_q * _phi(-d1)
+                    + s * disc_r * (sigma**2 / (2.0 * b)) * (_phi(d2) - _phi(d1))
                 )
             else:
                 d1 = 0.5 * sigma * sqrt_t
                 d2 = -0.5 * sigma * sqrt_t
                 price = (
-                    S * disc_r * _phi(d2)
-                    - S * _phi(-d1)
-                    + S * disc_r * sigma * sqrt_t * norm.pdf(d1)
+                    s * disc_r * _phi(d2)
+                    - s * _phi(-d1)
+                    + s * disc_r * sigma * sqrt_t * norm.pdf(d1)
                 )
             return float(max(price, 0.0))
 
     else:  # fixed strike
-        # Fixed strike lookback call: E[e^{-rT} * max(max_{0,T} S_t - K, 0)]
-        # Fixed strike lookback put:  E[e^{-rT} * max(K - min_{0,T} S_t, 0)]
+        # Fixed strike lookback call: E[e^{-rT} * max(max_{0,t} S_t - k, 0)]
+        # Fixed strike lookback put:  E[e^{-rT} * max(k - min_{0,t} S_t, 0)]
         if option_type == "call":
             # Conze & Viswanathan (1991) fixed call:
-            # Uses max M_0 = S (current price is initial running max)
-            m0 = S
-            if m0 > K:
+            # Uses max M_0 = s (current price is initial running max)
+            m0 = s
+            if m0 > k:
                 # Already in-the-money for the running max
-                d1 = (np.log(m0 / K) + (b + 0.5 * sigma**2) * T) / (sigma * sqrt_t)
+                d1 = (np.log(m0 / k) + (b + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
                 d2 = d1 - sigma * sqrt_t
-                a1 = (np.log(m0 / S) + (b + 0.5 * sigma**2) * T) / (sigma * sqrt_t)
+                a1 = (np.log(m0 / s) + (b + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
                 a2 = a1 - sigma * sqrt_t
                 if abs(b) > 1e-8:
-                    part1 = S * disc_q * _phi(a1) - K * disc_r * _phi(a2)
+                    part1 = s * disc_q * _phi(a1) - k * disc_r * _phi(a2)
                     part2 = (
                         (sigma**2 / (2.0 * b))
-                        * S
+                        * s
                         * disc_q
                         * (
-                            -((m0 / S) ** (-2.0 * b / sigma**2)) * _phi(-a1)
-                            + np.exp(b * T) * _phi(a1 - sigma * sqrt_t * (2.0 * b / sigma**2 + 1.0))
+                            -((m0 / s) ** (-2.0 * b / sigma**2)) * _phi(-a1)
+                            + np.exp(b * t) * _phi(a1 - sigma * sqrt_t * (2.0 * b / sigma**2 + 1.0))
                         )
                     )
                     price = part1 + part2
                 else:
-                    price = S * disc_q * _phi(a1) - K * disc_r * _phi(a2)
+                    price = s * disc_q * _phi(a1) - k * disc_r * _phi(a2)
             else:
                 # Standard formula
-                d1 = (np.log(S / K) + (b + 0.5 * sigma**2) * T) / (sigma * sqrt_t)
+                d1 = (np.log(s / k) + (b + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
                 d2 = d1 - sigma * sqrt_t
                 if abs(b) > 1e-8:
                     price = (
-                        S * disc_q * _phi(d1)
-                        - K * disc_r * _phi(d2)
-                        + S
+                        s * disc_q * _phi(d1)
+                        - k * disc_r * _phi(d2)
+                        + s
                         * disc_r
                         * (sigma**2 / (2.0 * b))
                         * (
-                            -((S / K) ** (-2.0 * b / sigma**2))
+                            -((s / k) ** (-2.0 * b / sigma**2))
                             * _phi(-d1 + 2.0 * b * sqrt_t / sigma)
-                            + np.exp(b * T) * _phi(d1)
+                            + np.exp(b * t) * _phi(d1)
                         )
                     )
                 else:
                     price = (
-                        S * disc_q * _phi(d1)
-                        - K * disc_r * _phi(d2)
-                        + S * disc_r * sigma * sqrt_t * norm.pdf(d1)
+                        s * disc_q * _phi(d1)
+                        - k * disc_r * _phi(d2)
+                        + s * disc_r * sigma * sqrt_t * norm.pdf(d1)
                     )
             return float(max(price, 0.0))
 
         else:  # put
-            m0 = S  # current running minimum
-            if m0 < K:
-                d1 = (np.log(m0 / K) + (b + 0.5 * sigma**2) * T) / (sigma * sqrt_t)
+            m0 = s  # current running minimum
+            if m0 < k:
+                d1 = (np.log(m0 / k) + (b + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
                 d2 = d1 - sigma * sqrt_t
-                a1 = (np.log(S / m0) - (b + 0.5 * sigma**2) * T) / (sigma * sqrt_t)
+                a1 = (np.log(s / m0) - (b + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
                 a2 = a1 + sigma * sqrt_t
                 if abs(b) > 1e-8:
-                    part1 = K * disc_r * _phi(-d2) - m0 * disc_q * _phi(-d1)
+                    part1 = k * disc_r * _phi(-d2) - m0 * disc_q * _phi(-d1)
                     price = part1
                 else:
-                    price = K * disc_r * _phi(-d2) - m0 * disc_q * _phi(-d1)
+                    price = k * disc_r * _phi(-d2) - m0 * disc_q * _phi(-d1)
             else:
-                # K <= m0: fixed put, standard formula
-                d1 = (np.log(S / K) + (b + 0.5 * sigma**2) * T) / (sigma * sqrt_t)
+                # k <= m0: fixed put, standard formula
+                d1 = (np.log(s / k) + (b + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
                 d2 = d1 - sigma * sqrt_t
                 if abs(b) > 1e-8:
                     price = (
-                        K * disc_r * _phi(-d2)
-                        - S * disc_q * _phi(-d1)
-                        + S
+                        k * disc_r * _phi(-d2)
+                        - s * disc_q * _phi(-d1)
+                        + s
                         * disc_r
                         * (sigma**2 / (2.0 * b))
                         * (
-                            (S / K) ** (-2.0 * b / sigma**2) * _phi(d1 - 2.0 * b * sqrt_t / sigma)
-                            - np.exp(b * T) * _phi(-d1)
+                            (s / k) ** (-2.0 * b / sigma**2) * _phi(d1 - 2.0 * b * sqrt_t / sigma)
+                            - np.exp(b * t) * _phi(-d1)
                         )
                     )
                 else:
                     price = (
-                        K * disc_r * _phi(-d2)
-                        - S * disc_q * _phi(-d1)
-                        + S * disc_r * sigma * sqrt_t * norm.pdf(d1)
+                        k * disc_r * _phi(-d2)
+                        - s * disc_q * _phi(-d1)
+                        + s * disc_r * sigma * sqrt_t * norm.pdf(d1)
                     )
             return float(max(price, 0.0))
 
@@ -608,7 +608,7 @@ def lookback_option_price(
         Default "call".
     strike_type : {"fixed", "floating"}
         Floating: payoff uses path min/max as effective strike.
-        Fixed: payoff uses path max/min vs fixed K.
+        Fixed: payoff uses path max/min vs fixed k.
     dividend_yield : float
         Continuous dividend yield. Default 0.0.
     method : {"closed_form", "monte_carlo"}

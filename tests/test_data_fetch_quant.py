@@ -2,8 +2,39 @@
 
 import pytest
 
-from oprim._data_fetch import *  # noqa: F403, F405
-from oprim.quant_analysis import *  # noqa: F403, F405
+from oprim._data_fetch import (
+    clean_ohlcv_outliers,
+    compute_microstructure_features,
+    compute_option_skew,
+    compute_slippage_estimate,
+    compute_spread,
+    compute_term_structure,
+    compute_volume_weighted_price,
+    cross_exchange_funding_diff,
+    fetch_order_book_depth,
+    merge_exchange_ohlcv,
+    nlp_sentiment_analysis,
+)
+from oprim.quant_analysis import (
+    compute_benchmark_metrics,
+    compute_drawdown_distribution,
+    compute_equity_curve,
+    compute_herfindahl_index,
+    compute_market_impact,
+    compute_mcmc_sample,
+    compute_monte_carlo_simulation,
+    compute_pnl_from_trades,
+    compute_portfolio_turnover,
+    compute_position_churn,
+    compute_position_risk,
+    compute_relative_performance,
+    compute_risk_exposure,
+    compute_shapley_decomposition,
+    compute_signal_crowding,
+    compute_uncertainty_threshold,
+    generate_bootstrap_samples,
+    split_train_test_time_series,
+)
 
 # --- data_fetch tests ---
 

@@ -5,14 +5,14 @@ from __future__ import annotations
 import numpy as np
 
 
-def _ols_fit(y: np.ndarray, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _ols_fit(y: np.ndarray, x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """OLS via numpy lstsq.
 
     Parameters
     ----------
     y : np.ndarray, shape (n,)
         Dependent variable.
-    X : np.ndarray, shape (n, k)
+    x : np.ndarray, shape (n, k)
         Design matrix (should include constant column if desired).
 
     Returns
@@ -20,8 +20,8 @@ def _ols_fit(y: np.ndarray, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     coefficients : np.ndarray, shape (k,)
     residuals : np.ndarray, shape (n,)
     """
-    coeffs, _, _, _ = np.linalg.lstsq(X, y, rcond=None)
-    residuals = y - X @ coeffs
+    coeffs, _, _, _ = np.linalg.lstsq(x, y, rcond=None)
+    residuals = y - x @ coeffs
     return coeffs, residuals
 
 

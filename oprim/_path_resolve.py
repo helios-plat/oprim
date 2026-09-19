@@ -34,6 +34,6 @@ def path_resolve(
         root = Path(sandbox_root).resolve()
         try:
             resolved.relative_to(root)
-        except ValueError:
-            raise PathSecurityError(f"path '{resolved}' is outside sandbox root '{root}'")
+        except ValueError as e:
+            raise PathSecurityError(f"path '{resolved}' is outside sandbox root '{root}'") from e
     return resolved

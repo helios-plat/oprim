@@ -89,4 +89,4 @@ class HttpResponse:
         try:
             return json.loads(self.text)
         except Exception as e:
-            raise RuntimeError(f"response is not valid JSON: {e}")
+            raise RuntimeError(f"response is not valid JSON: {e}") from e

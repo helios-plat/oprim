@@ -31,13 +31,13 @@ class ConicParams:
     standard_form: str = ""
 
 
-def _classify_by_discriminant(A: float, B: float, C: float) -> ConicType:
+def _classify_by_discriminant(a: float, b: float, c: float) -> ConicType:
     """Classify Ax^2 + Bxy + Cy^2 + ... by discriminant B^2 - 4AC."""
-    disc = B * B - 4 * A * C
+    disc = b * b - 4 * a * c
     if abs(disc) < 1e-10:
         return "parabola"
     elif disc < 0:
-        if abs(A - C) < 1e-10 and abs(B) < 1e-10:
+        if abs(a - c) < 1e-10 and abs(b) < 1e-10:
             return "circle"
         return "ellipse"
     else:

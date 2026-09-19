@@ -64,9 +64,7 @@ def _is_aux_node(title: str, content: str) -> bool:
         return True
     if any(aux in t for aux in _AUX_TITLES):
         return True
-    if len(content.strip()) < 2000:  # 内容极短，辅助页特征
-        return True
-    return False
+    return len(content.strip()) < 2000  # 内容极短，辅助页特征
 
 
 def epub_toc_split(*, file_path: Path) -> list[EpubBook]:

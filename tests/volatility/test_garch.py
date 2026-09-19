@@ -10,15 +10,15 @@ import pytest
 from oprim.volatility.garch import garch_fit, garch_forecast
 
 
-def _simulate_garch11(omega, alpha, beta, T, seed=42):
+def _simulate_garch11(omega, alpha, beta, n_bars, seed=42):
     """Simulate GARCH(1,1) returns."""
     rng = np.random.default_rng(seed)
-    sigma2 = np.zeros(T)
-    eps = np.zeros(T)
+    sigma2 = np.zeros(n_bars)
+    eps = np.zeros(n_bars)
     sigma2[0] = omega / (1 - alpha - beta)
-    for t in range(T):
+    for t in range(n_bars):
         eps[t] = math.sqrt(sigma2[t]) * rng.standard_normal()
-        if t < T - 1:
+        if t < n_bars - 1:
             sigma2[t + 1] = omega + alpha * eps[t] ** 2 + beta * sigma2[t]
     return eps, sigma2
 

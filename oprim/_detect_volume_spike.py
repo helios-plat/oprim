@@ -32,7 +32,7 @@ def detect_volume_spike(
     close: list[float],
     volumes: list[float],
     five_min_return: float,
-    config: VolumeSpikeConfig = VolumeSpikeConfig(),
+    config: VolumeSpikeConfig | None = None,
 ) -> DetectorSignal | None:
     """Detect an abnormal volume spike with price confirmation.
 
@@ -63,6 +63,8 @@ def detect_volume_spike(
         >>> sig is not None
         True
     """
+    if config is None:
+        config = VolumeSpikeConfig()
     if len(close) != len(volumes):
         raise OprimError(
             f"close and volumes must have equal length, got {len(close)} vs {len(volumes)}"

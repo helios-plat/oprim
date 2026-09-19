@@ -87,7 +87,7 @@ async def grade_question(
         return GradeResult(
             is_correct=data.get("is_correct", False), method="llm", reason=data.get("reason")
         )
-    except:
+    except Exception:
         return GradeResult(is_correct=False, method="llm", reason="LLM Parse Error")
 
 

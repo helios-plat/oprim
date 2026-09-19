@@ -25,7 +25,7 @@ def detect_hot_money_converge(
     seat_names: list[str],
     net_buy_total: float,
     known_tycoon_seats: list[str],
-    config: HotMoneyConvergeConfig = HotMoneyConvergeConfig(),
+    config: HotMoneyConvergeConfig | None = None,
 ) -> DetectorSignal | None:
     """Detect hot money (游资) convergence on a single stock.
 
@@ -60,6 +60,8 @@ def detect_hot_money_converge(
         >>> sig is not None
         True
     """
+    if config is None:
+        config = HotMoneyConvergeConfig()
     if not known_tycoon_seats:
         raise OprimError("known_tycoon_seats must not be empty")
 

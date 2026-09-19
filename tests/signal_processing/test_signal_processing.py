@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from oprim.signal_processing import (
-    H_change_rate_std,
     atr,
+    h_change_rate_std,
     hurst_exponent,
     linear_slope,
     orderbook_entropy,
@@ -159,25 +159,25 @@ class TestHChangeRateStd:
     def test_basic(self):
         """Known diff std: values = [0,1,2,3,4,5,6], window=6 -> diffs=[1,1,1,1,1,1] -> std=0."""
         values = np.arange(7, dtype=float)
-        result = H_change_rate_std(values, window=6)
+        result = h_change_rate_std(values, window=6)
         assert result == pytest.approx(0.0, abs=1e-12)
 
     def test_varying_diffs(self):
         """Non-constant diffs should have positive std."""
         values = np.array([1.0, 2.0, 4.0, 3.0, 5.0, 2.0, 6.0])
-        result = H_change_rate_std(values, window=6)
+        result = h_change_rate_std(values, window=6)
         assert result > 0
 
     def test_too_short_raises(self):
         """len < window + 1 raises ValueError."""
         with pytest.raises(ValueError, match="at least"):
-            H_change_rate_std(np.array([1.0, 2.0, 3.0]), window=6)
+            h_change_rate_std(np.array([1.0, 2.0, 3.0]), window=6)
 
     def test_uses_tail_segment(self):
         """Uses last window+1 values, not all data."""
         # Prefix is noisy, tail is constant -> std should be 0
         values = np.array([10.0, -10.0, 5.0, -5.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
-        result = H_change_rate_std(values, window=5)
+        result = h_change_rate_std(values, window=5)
         assert result == pytest.approx(0.0, abs=1e-12)
 
 

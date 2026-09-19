@@ -78,10 +78,10 @@ async def _transcribe_local(
 ) -> TranscriptResult:
     try:
         from faster_whisper import WhisperModel  # type: ignore[import]
-    except ImportError:
+    except ImportError as e:
         raise RuntimeError(
             "faster-whisper is not installed. Install with: pip install faster-whisper"
-        )
+        ) from e
 
     mp = Path(model_path)
     if not mp.exists():
@@ -117,8 +117,8 @@ async def _transcribe_dashscope(audio_path: Path, *, language: str) -> Transcrip
     try:
         import dashscope  # type: ignore[import]
         from dashscope.audio.asr import Recognition  # type: ignore[import]
-    except ImportError:
-        raise RuntimeError("dashscope is not installed. Install with: pip install dashscope")
+    except ImportError as e:
+        raise RuntimeError("dashscope is not installed. Install with: pip install dashscope") from e
 
     api_key = os.environ.get("DASHSCOPE_API_KEY", "")
     dashscope.api_key = api_key

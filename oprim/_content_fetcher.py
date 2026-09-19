@@ -406,8 +406,7 @@ def _try_archive(url: str) -> dict[str, Any] | None:
                 "strategy": "archive",
                 "title": _extract_title(body),
                 "content": (
-                    f"# {_extract_title(body)}\n\n"
-                    f"Source: {url} (via archive.today)\n\n{text}"
+                    f"# {_extract_title(body)}\n\nSource: {url} (via archive.today)\n\n{text}"
                 ),
                 "source_url": url,
             }
@@ -425,8 +424,7 @@ def _try_google_cache(url: str) -> dict[str, Any] | None:
                 "strategy": "google_cache",
                 "title": _extract_title(body),
                 "content": (
-                    f"# {_extract_title(body)}\n\n"
-                    f"Source: {url} (via Google Cache)\n\n{text}"
+                    f"# {_extract_title(body)}\n\nSource: {url} (via Google Cache)\n\n{text}"
                 ),
                 "source_url": url,
             }

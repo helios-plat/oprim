@@ -79,8 +79,8 @@ async def file_read_bytes(
     loop = asyncio.get_event_loop()
     try:
         return await loop.run_in_executor(None, _read)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"file not found: {path}")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"file not found: {path}") from e
     except PermissionError as e:
         raise PermissionError(f"permission denied: {path}") from e
 

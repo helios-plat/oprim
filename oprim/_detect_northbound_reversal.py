@@ -23,7 +23,7 @@ class NorthboundReversalConfig(BaseModel):
 def detect_northbound_reversal(
     *,
     flow_series: list[float],
-    config: NorthboundReversalConfig = NorthboundReversalConfig(),
+    config: NorthboundReversalConfig | None = None,
 ) -> DetectorSignal | None:
     """Detect a sudden reversal of northbound (沪深股通) capital flow.
 
@@ -52,6 +52,8 @@ def detect_northbound_reversal(
         >>> sig is not None
         True
     """
+    if config is None:
+        config = NorthboundReversalConfig()
     if len(flow_series) < 2:
         raise OprimError(f"flow_series must have ≥ 2 elements, got {len(flow_series)}")
 

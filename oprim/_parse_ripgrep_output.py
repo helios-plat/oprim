@@ -7,7 +7,7 @@ import json
 from ._hicode_types import Hit
 
 
-def parse_ripgrep_output(raw: str, *, format: str = "json") -> list[Hit]:
+def parse_ripgrep_output(raw: str, *, output_format: str = "json") -> list[Hit]:
     """Parse ``rg --json`` output into a list of :class:`~._hicode_types.Hit` objects.
 
     Only lines with ``"type": "match"`` are processed. Lines that are not
@@ -16,7 +16,7 @@ def parse_ripgrep_output(raw: str, *, format: str = "json") -> list[Hit]:
 
     Args:
         raw: Raw stdout from ``rg --json``.
-        format: Currently only ``"json"`` is supported (reserved for future use).
+        output_format: Currently only ``"json"`` is supported (reserved for future use).
 
     Returns:
         List of :class:`~._hicode_types.Hit` objects.

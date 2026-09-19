@@ -26,6 +26,7 @@ rollback + dispatch_intervention + execute_fn.
 
 from __future__ import annotations
 
+import contextlib
 import threading
 import time
 from collections.abc import Callable
@@ -119,7 +120,7 @@ def _log(
 ) -> None:
     if action_log is None:
         return
-    try:
+    with contextlib.suppress(Exception):  # 审计失败不阻断干预
         action_log.record(
             action=action,
             subject=token.subject,
@@ -127,8 +128,6 @@ def _log(
             outcome=outcome,
             detail=detail,
         )
-    except Exception:  # noqa: BLE001 — 审计失败不阻断干预
-        pass
 
 
 def circuit_break(

@@ -9,32 +9,33 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-pytest.skip(
-    "Docker primitives moved to obase; the owning obase suite is authoritative",
-    allow_module_level=True,
-)
+try:
+    from oprim._docker import (
+        compose_down,
+        compose_up,
+        docker_container_inspect,
+        docker_container_list,
+        docker_container_logs,
+        docker_container_restart,
+        docker_container_stats,
+    )
 
-from oprim._docker import (
-    compose_down,
-    compose_up,
-    docker_container_inspect,
-    docker_container_list,
-    docker_container_logs,
-    docker_container_restart,
-    docker_container_stats,
-)
-
-from oprim import (
-    docker_compose_down,
-    docker_compose_pull,
-    docker_compose_up,
-    docker_inspect,
-    docker_logs,
-    docker_ps,
-    docker_restart,
-    docker_stats,
-)
-from oprim._exceptions import OprimConnectionError, OprimNotFoundError
+    from oprim import (
+        docker_compose_down,
+        docker_compose_pull,
+        docker_compose_up,
+        docker_inspect,
+        docker_logs,
+        docker_ps,
+        docker_restart,
+        docker_stats,
+    )
+    from oprim._exceptions import OprimConnectionError, OprimNotFoundError
+except ImportError:
+    pytest.skip(
+        "Docker primitives moved to obase; the owning obase suite is authoritative",
+        allow_module_level=True,
+    )
 
 # ===== Alias identity tests =====
 

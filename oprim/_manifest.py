@@ -75,7 +75,7 @@ ELEMENTS: list[str] = [
     "atr",
     "hurst_exponent",
     "compute_dwt",
-    "H_change_rate_std",
+    "h_change_rate_std",
     "orderbook_entropy",
     # Topology (2)
     "takens_embed",
@@ -375,7 +375,7 @@ CATEGORIES: dict[str, list[str]] = {
         "atr",
         "hurst_exponent",
         "compute_dwt",
-        "H_change_rate_std",
+        "h_change_rate_std",
         "orderbook_entropy",
     ],
     "topology": ["takens_embed", "persistence_landscape"],

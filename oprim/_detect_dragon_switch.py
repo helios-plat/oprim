@@ -26,7 +26,7 @@ def detect_dragon_switch(
     *,
     top1_change_pct: float,
     new_top3_vol_ratios: list[float],
-    config: DragonSwitchConfig = DragonSwitchConfig(),
+    config: DragonSwitchConfig | None = None,
 ) -> DetectorSignal | None:
     """Detect a sector leadership rotation (龙头切换).
 
@@ -55,6 +55,8 @@ def detect_dragon_switch(
         >>> sig is not None
         True
     """
+    if config is None:
+        config = DragonSwitchConfig()
     if not new_top3_vol_ratios:
         raise OprimError("new_top3_vol_ratios must not be empty")
 

@@ -194,7 +194,7 @@ def compute_dwt(  # pragma: no cover
     }
 
 
-def H_change_rate_std(
+def h_change_rate_std(
     values: np.ndarray,
     window: int = 6,
 ) -> float:

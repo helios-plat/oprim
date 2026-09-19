@@ -8,6 +8,20 @@ import json
 
 import pytest
 
+from oprim._hevi_types import CanvasNode, Subject
+from oprim.adapt_prompt_for_provider import adapt_prompt_for_provider
+from oprim.canvas_edge_validate import COMPATIBLE, canvas_edge_validate
+from oprim.canvas_node_execute import CanvasNodeResult, canvas_node_execute
+from oprim.character_three_view import ThreeViewError, ThreeViewResult, character_three_view
+from oprim.inject_visual_style import inject_visual_style
+from oprim.multi_angle import MultiAngleResult, multi_angle
+from oprim.provider_health_check import provider_health_check
+from oprim.storyboard_grid import StoryboardGridResult, storyboard_grid
+from oprim.subject_create import subject_create
+from oprim.subject_retrieve import subject_retrieve
+from oprim.subject_update import subject_update
+from oprim.video_element_edit import video_element_edit
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -39,7 +53,6 @@ def make_error_caller(exc: Exception):
 # 1. storyboard_grid
 # ---------------------------------------------------------------------------
 
-from oprim.storyboard_grid import StoryboardGridResult, storyboard_grid
 
 _GRID_JSON = json.dumps(
     {
@@ -105,7 +118,6 @@ def test_storyboard_grid_empty_shots():
 # 2. multi_angle
 # ---------------------------------------------------------------------------
 
-from oprim.multi_angle import MultiAngleResult, multi_angle
 
 _ANGLE_JSON = json.dumps(
     {
@@ -161,8 +173,6 @@ def test_multi_angle_nonempty_prompts():
 # 3. inject_visual_style  (SYNC)
 # ---------------------------------------------------------------------------
 
-from oprim.inject_visual_style import inject_visual_style
-
 
 def test_inject_visual_style_is_sync():
     assert not inspect.iscoroutinefunction(inject_visual_style)
@@ -213,7 +223,6 @@ def test_inject_visual_style_camera_only():
 # 4. video_element_edit
 # ---------------------------------------------------------------------------
 
-from oprim.video_element_edit import video_element_edit
 
 _ELEMENTS = [
     {"id": "e0", "text": "Hello"},
@@ -365,11 +374,6 @@ def test_video_element_edit_original_not_mutated():
 # 5. subject_create / retrieve / update
 # ---------------------------------------------------------------------------
 
-from oprim._hevi_types import Subject
-from oprim.subject_create import subject_create
-from oprim.subject_retrieve import subject_retrieve
-from oprim.subject_update import subject_update
-
 
 def _make_subject(**overrides) -> Subject:
     defaults = dict(subject_id="s-001", name="Hero", description="A brave hero")
@@ -482,9 +486,6 @@ def test_subject_update_double_increment():
 # 6. canvas_node_execute
 # ---------------------------------------------------------------------------
 
-from oprim._hevi_types import CanvasNode
-from oprim.canvas_node_execute import CanvasNodeResult, canvas_node_execute
-
 
 def _make_node(**overrides) -> CanvasNode:
     defaults = dict(node_id="n-1", node_type="text", label="Test Node")
@@ -568,8 +569,6 @@ def test_canvas_node_execute_result_model():
 # 7. canvas_edge_validate  (SYNC)
 # ---------------------------------------------------------------------------
 
-from oprim.canvas_edge_validate import COMPATIBLE, canvas_edge_validate
-
 
 def test_canvas_edge_validate_is_sync():
     assert not inspect.iscoroutinefunction(canvas_edge_validate)
@@ -633,8 +632,6 @@ def test_canvas_edge_validate_symmetric_not_assumed():
 # 8. adapt_prompt_for_provider
 # ---------------------------------------------------------------------------
 
-from oprim.adapt_prompt_for_provider import adapt_prompt_for_provider
-
 
 def test_adapt_prompt_known_provider_wan22():
     result = asyncio.run(adapt_prompt_for_provider("a sunset", provider="wan22"))
@@ -675,8 +672,6 @@ def test_adapt_prompt_returns_dict_keys():
 # 9. provider_health_check
 # ---------------------------------------------------------------------------
 
-from oprim.provider_health_check import provider_health_check
-
 
 def test_provider_health_check_returns_bool():
     result = asyncio.run(provider_health_check("nonexistent_provider"))
@@ -715,7 +710,6 @@ def test_provider_health_check_false_for_numeric_name():
 # 10. character_three_view
 # ---------------------------------------------------------------------------
 
-from oprim.character_three_view import ThreeViewError, ThreeViewResult, character_three_view
 
 _THREE_VIEW_JSON = json.dumps(
     {

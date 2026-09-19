@@ -29,9 +29,9 @@ def parse_atom_feed(
     }
 
     try:
-        import defusedxml.ElementTree as ET  # type: ignore
+        import defusedxml.ElementTree as ElementTree  # type: ignore
 
-        root = ET.fromstring(xml)
+        root = ElementTree.fromstring(xml)
     except Exception as exc:
         result["error"] = f"xml_parse_error: {exc}"
         return result

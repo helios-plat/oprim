@@ -91,8 +91,8 @@ def bash_exec(
         )
     except FileNotFoundError as e:  # pragma: no cover
         raise ShellOprimError("shell not found", cause=e) from e
-    except subprocess.TimeoutExpired:
-        raise ShellOprimError(f"command timed out after {timeout}s: {command[:80]}")
+    except subprocess.TimeoutExpired as e:
+        raise ShellOprimError(f"command timed out after {timeout}s: {command[:80]}") from e
     except OSError as e:  # pragma: no cover
         raise ShellOprimError("cannot execute command", cause=e) from e
 

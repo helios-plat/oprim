@@ -298,8 +298,8 @@ def fs_inode_check(
         free = stat_vfs.f_ffree
         used = total - free
         pct = round(used / total * 100, 2) if total > 0 else 0.0
-    except AttributeError:
-        raise OprimError("fs_inode_check is not supported on this platform (no os.statvfs)")
+    except AttributeError as e:
+        raise OprimError("fs_inode_check is not supported on this platform (no os.statvfs)") from e
 
     return {
         "path": str(p),

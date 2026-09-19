@@ -79,9 +79,7 @@ class TestSubtitleBurn:
             patch("oprim.subtitle_burn.ffmpeg_run", side_effect=_fail),
             pytest.raises(SubtitleBurnError, match="FFmpeg subtitle burn failed"),
         ):
-            await subtitle_burn(
-                video_path=video, srt_paths=[srt], output_path=tmp_path / "out.mp4"
-            )
+            await subtitle_burn(video_path=video, srt_paths=[srt], output_path=tmp_path / "out.mp4")
 
     async def test_empty_srt_list_raises(self, tmp_path: Path) -> None:
         video = tmp_path / "video.mp4"

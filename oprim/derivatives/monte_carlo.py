@@ -15,15 +15,15 @@ from typing import Any, Literal
 import numpy as np
 
 
-def _bs_call_price(S: float, K: float, T: float, r: float, sigma: float, q: float) -> float:
+def _bs_call_price(s: float, k: float, t: float, r: float, sigma: float, q: float) -> float:
     """Closed-form Black-Scholes call price for control variate."""
     from scipy.stats import norm
 
-    if T <= 0 or sigma <= 0:
-        return max(S * np.exp(-q * T) - K * np.exp(-r * T), 0.0)
-    d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-    d2 = d1 - sigma * np.sqrt(T)
-    return float(S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2))
+    if t <= 0 or sigma <= 0:
+        return max(s * np.exp(-q * t) - k * np.exp(-r * t), 0.0)
+    d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * np.sqrt(t))
+    d2 = d1 - sigma * np.sqrt(t)
+    return float(s * np.exp(-q * t) * norm.cdf(d1) - k * np.exp(-r * t) * norm.cdf(d2))
 
 
 def mc_european_price(

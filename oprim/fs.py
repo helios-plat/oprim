@@ -52,8 +52,8 @@ def path_resolve(
         root = Path(sandbox_root).resolve()
         try:
             resolved.relative_to(root)
-        except ValueError:
-            raise PathSecurityError(f"path '{resolved}' is outside sandbox root '{root}'")
+        except ValueError as e:
+            raise PathSecurityError(f"path '{resolved}' is outside sandbox root '{root}'") from e
     return resolved
 
 
@@ -92,8 +92,8 @@ def file_read(
     p = Path(path)
     try:
         text = p.read_text(encoding=encoding, errors=errors)
-    except FileNotFoundError:
-        raise FileOprimError(f"file not found: {path}")
+    except FileNotFoundError as e:
+        raise FileOprimError(f"file not found: {path}") from e
     except OSError as e:  # pragma: no cover
         raise FileOprimError(f"cannot read '{path}'", cause=e) from e
 
@@ -262,8 +262,8 @@ def file_delete(path: str | Path, *, missing_ok: bool = False) -> bool:
     existed = p.exists()
     try:
         p.unlink(missing_ok=missing_ok)
-    except FileNotFoundError:
-        raise FileOprimError(f"file not found: {path}")
+    except FileNotFoundError as e:
+        raise FileOprimError(f"file not found: {path}") from e
     except OSError as e:  # pragma: no cover
         raise FileOprimError(f"cannot delete '{path}'", cause=e) from e
     return existed  # True if the file existed and was deleted

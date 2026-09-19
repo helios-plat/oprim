@@ -11,6 +11,7 @@ Example:
 
 from __future__ import annotations
 
+import contextlib
 import os
 import tempfile
 from pathlib import Path
@@ -71,10 +72,8 @@ async def file_write_atomic(
                 os.fsync(fh.fileno())
             os.replace(tmp_name, target)
         except BaseException:
-            try:
+            with contextlib.suppress(OSError):  # pragma: no cover
                 os.unlink(tmp_name)
-            except OSError:  # pragma: no cover
-                pass
             raise
     except FileOprimError:
         raise

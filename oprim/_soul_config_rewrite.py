@@ -11,6 +11,7 @@ Example:
 
 from __future__ import annotations
 
+import contextlib
 import os
 import tempfile
 from pathlib import Path
@@ -90,10 +91,8 @@ async def soul_config_rewrite(
                 os.fsync(fh.fileno())
             os.replace(tmp_name, target)
         except BaseException:
-            try:
+            with contextlib.suppress(OSError):  # pragma: no cover
                 os.unlink(tmp_name)
-            except OSError:  # pragma: no cover
-                pass
             raise
     except OSError as exc:
         raise FileOprimError(

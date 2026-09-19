@@ -51,8 +51,8 @@ def parse_tool_calls(raw: dict[str, Any], *, provider: str) -> list[ToolCall]:
                 # Should not happen with a well-formed response, but guard it.
                 try:
                     args = json.loads(args) if isinstance(args, str) else {}
-                except (json.JSONDecodeError, TypeError):
-                    raise ValueError(f"invalid args JSON for tool {name}")
+                except (json.JSONDecodeError, TypeError) as exc:
+                    raise ValueError(f"invalid args JSON for tool {name}") from exc
             result.append(ToolCall(id=call_id, name=name, args=args))
         return result
 
@@ -71,7 +71,7 @@ def parse_tool_calls(raw: dict[str, Any], *, provider: str) -> list[ToolCall]:
         else:
             try:
                 args = json.loads(raw_args)
-            except (json.JSONDecodeError, TypeError):
-                raise ValueError(f"invalid args JSON for tool {name}")
+            except (json.JSONDecodeError, TypeError) as exc:
+                raise ValueError(f"invalid args JSON for tool {name}") from exc
         result.append(ToolCall(id=call_id, name=name, args=args))
     return result

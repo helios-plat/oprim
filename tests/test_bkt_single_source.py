@@ -3,21 +3,21 @@
 防止未来有人在 bkt.py 里重新 fork 一份 BKT 算法（"改一份漏另一份"）。
 """
 
-import oprim._cognitive as Canon  # 唯一事实来源
-import oprim.bkt as B
-import oprim.cognitive as Pub  # 公开 re-export
+import oprim._cognitive as canonical  # 唯一事实来源
+import oprim.bkt as bkt_mod
+import oprim.cognitive as public  # 公开 re-export
 
 
 def test_bkt_is_single_source():
     # bkt.py 无前缀名 == canonical 实现本体
-    assert B.bkt_update is Canon.bkt_update
-    assert B.classify_error is Canon.bkt_classify_error
-    assert B.predict_correct is Canon.bkt_predict_correct
-    assert B.new_state_from_prior is Canon.bkt_new_state
-    assert B.exp_forgetting is Canon.exp_forgetting
-    assert B._item_adjust is Canon._item_adjust
+    assert bkt_mod.bkt_update is canonical.bkt_update
+    assert bkt_mod.classify_error is canonical.bkt_classify_error
+    assert bkt_mod.predict_correct is canonical.bkt_predict_correct
+    assert bkt_mod.new_state_from_prior is canonical.bkt_new_state
+    assert bkt_mod.exp_forgetting is canonical.exp_forgetting
+    assert bkt_mod._item_adjust is canonical._item_adjust
     # 公开 re-export 也指向同一本体
-    assert Pub.bkt_update is Canon.bkt_update
+    assert public.bkt_update is canonical.bkt_update
 
 
 def test_no_inline_algorithm_in_bkt_module():

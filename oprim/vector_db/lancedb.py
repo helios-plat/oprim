@@ -38,7 +38,7 @@ class VectorDB(Protocol):
         self,
         query_vec: list[float],
         top_k: int = 20,
-        filter: dict | None = None,
+        filter_expr: dict | None = None,
     ) -> list[VectorRecord]: ...
     def delete(self, ids: list[str]) -> None: ...
     def count(self) -> int: ...
@@ -137,7 +137,7 @@ class LanceDBVectorDB:
         self,
         query_vec: list[float],
         top_k: int = 20,
-        filter: dict | None = None,
+        filter_expr: dict | None = None,
     ) -> list[VectorRecord]:
         try:
             q = (

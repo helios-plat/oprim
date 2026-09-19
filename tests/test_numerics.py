@@ -195,7 +195,7 @@ class TestNumericsAcademic:
         expected = scipy_logsumexp(x, b=w)
         np.testing.assert_allclose(result, expected, rtol=1e-12)
 
-    def test_softmax_T1_vs_scipy(self):
+    def test_softmax_t1_vs_scipy(self):
         """softmax_safe(T=1) matches scipy.special.softmax exactly."""
         rng = np.random.default_rng(42)
         x = rng.normal(0, 3, 15)
@@ -203,7 +203,7 @@ class TestNumericsAcademic:
         expected = scipy_softmax(x)
         np.testing.assert_allclose(result, expected, rtol=1e-12)
 
-    def test_softmax_T05_manual(self):
+    def test_softmax_t05_manual(self):
         """softmax_safe(T=0.5) matches manual calculation."""
         x = np.array([1.0, 2.0, 3.0])
         result = softmax_safe(x, temperature=0.5)

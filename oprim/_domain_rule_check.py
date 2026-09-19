@@ -90,8 +90,7 @@ def domain_rule_check(
             violations.append(
                 {
                     "rule": (
-                        "Prefer .call{value: amount}('') over .transfer/.send "
-                        "(gas limit changes)."
+                        "Prefer .call{value: amount}('') over .transfer/.send (gas limit changes)."
                     ),
                     "severity": "warning",
                 }
@@ -114,8 +113,7 @@ def domain_rule_check(
             violations.append(
                 {
                     "rule": (
-                        "block.timestamp used without validation — "
-                        "susceptible to manipulation."
+                        "block.timestamp used without validation — susceptible to manipulation."
                     ),
                     "severity": "warning",
                 }

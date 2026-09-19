@@ -12,6 +12,7 @@ Example:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -97,9 +98,7 @@ async def docker_image_build(
 
     if on_log:
         for entry in logs:
-            try:
+            with contextlib.suppress(Exception):  # pragma: no cover - 回调不致命
                 on_log(entry)
-            except Exception:  # pragma: no cover - 回调不致命
-                pass
 
     return {"status": "ok", "image_id": image_id, "tags": tags, "logs": logs}
