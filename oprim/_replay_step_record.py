@@ -76,9 +76,7 @@ def replay_step_record(
         return {"status": "ok", "recorded": bool(recorded), "entry": entry, "path": None}
 
     if log_path is None:
-        raise ReplayRecordError(
-            "replay_step_record: need recorder or log_path to persist"
-        )
+        raise ReplayRecordError("replay_step_record: need recorder or log_path to persist")
 
     path = Path(log_path).expanduser()
     try:

@@ -44,12 +44,14 @@ def file_parser_epub(*, file_path: Path) -> ParsedDocument:
 
     # Build TOC title map
     toc_map: dict[str, str] = {}
+
     def _walk(nodes):
         for node in nodes:
             if hasattr(node, "href") and hasattr(node, "title"):
                 toc_map[node.href.split("#")[0]] = node.title
             if hasattr(node, "__iter__") and not hasattr(node, "href"):
                 _walk(node)
+
     _walk(book.toc)
 
     pages = []

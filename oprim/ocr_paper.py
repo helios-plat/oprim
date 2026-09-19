@@ -107,7 +107,10 @@ async def ocr_paper(
             },
             {
                 "type": "text",
-                "text": f"Extract all text and math from this image. Language: {inp.language}. Return JSON.",
+                "text": (
+                    f"Extract all text and math from this image. Language: {inp.language}. "
+                    "Return JSON."
+                ),
             },
         ]
     elif inp.image_b64:
@@ -122,7 +125,10 @@ async def ocr_paper(
             },
             {
                 "type": "text",
-                "text": f"Extract all text and math from this image. Language: {inp.language}. Return JSON.",
+                "text": (
+                    f"Extract all text and math from this image. Language: {inp.language}. "
+                    "Return JSON."
+                ),
             },
         ]
     else:

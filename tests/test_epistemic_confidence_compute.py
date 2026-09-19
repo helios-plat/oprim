@@ -22,8 +22,7 @@ def test_confidence_all_contradicted():
 def test_confidence_custom_weights():
     custom_weights = {"custom_grade": 0.5}
     result = epistemic_confidence_compute(
-        grades=["custom_grade", "custom_grade"],
-        weights=custom_weights
+        grades=["custom_grade", "custom_grade"], weights=custom_weights
     )
     assert result == 0.5
 
@@ -35,19 +34,13 @@ def test_confidence_unknown_grade():
 
 
 def test_confidence_unknown_grade_custom_fallback():
-    result = epistemic_confidence_compute(
-        grades=["proven", "unknown"],
-        unknown_grade_weight=0.5
-    )
+    result = epistemic_confidence_compute(grades=["proven", "unknown"], unknown_grade_weight=0.5)
     assert result == pytest.approx((1.0 + 0.5) / 2)
 
 
 def test_confidence_out_of_bounds_weights():
     with pytest.raises(ValueError, match="is out of bounds"):
-        epistemic_confidence_compute(
-            grades=["proven"],
-            weights={"proven": 1.5}
-        )
+        epistemic_confidence_compute(grades=["proven"], weights={"proven": 1.5})
 
 
 def test_confidence_single_element():

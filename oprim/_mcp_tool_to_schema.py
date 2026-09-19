@@ -1,4 +1,5 @@
 """Convert an McpToolSpec into an internal tool schema dict."""
+
 from __future__ import annotations
 
 from typing import Any

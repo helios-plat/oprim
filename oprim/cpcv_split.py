@@ -1,4 +1,5 @@
 """oprim.cpcv_split — Combinatorial Purged Cross-Validation splits."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -13,7 +14,8 @@ def cpcv_split(
     """Generate purged cross-validation folds with embargo gap.
 
     Divides *data* into *n_splits* contiguous folds.  Each fold acts as the
-    test set once; training uses all other folds minus *embargo* observations
+    test set once
+    training uses all other folds minus *embargo* observations
     adjacent to the test boundary (to prevent leakage).
 
     Args:
@@ -60,10 +62,12 @@ def cpcv_split(
 
         train_idx = list(range(0, embargo_start)) + list(range(embargo_end, n))
 
-        splits.append({
-            "fold": fold_idx,
-            "train_idx": train_idx,
-            "test_idx": test_idx,
-        })
+        splits.append(
+            {
+                "fold": fold_idx,
+                "train_idx": train_idx,
+                "test_idx": test_idx,
+            }
+        )
 
     return splits

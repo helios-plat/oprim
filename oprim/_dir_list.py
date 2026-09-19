@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import stat
+
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def dir_list(
     path: str | Path,
@@ -39,9 +41,8 @@ def dir_list(
             entries = [
                 child.relative_to(p)
                 for child in p.rglob("*")
-                if include_hidden or not any(
-                    part.startswith(".") for part in child.relative_to(p).parts
-                )
+                if include_hidden
+                or not any(part.startswith(".") for part in child.relative_to(p).parts)
             ]
         else:
             entries = [
@@ -50,6 +51,6 @@ def dir_list(
                 if include_hidden or not child.name.startswith(".")
             ]
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot list '{path}'", cause=e)
+        raise FileOprimError(f"cannot list '{path}'", cause=e) from e
 
     return sorted(entries)

@@ -1,4 +1,5 @@
 """Minimal structured logging for oprim knowledge sub-packages (stdlib only)."""
+
 from __future__ import annotations
 
 import json

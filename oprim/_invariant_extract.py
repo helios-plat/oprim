@@ -63,11 +63,7 @@ def invariant_extract(
             continue
         if isinstance(node, ast.Assert):
             invariants.append(ast.unparse(node.test))
-        elif (
-            isinstance(node, ast.If)
-            and node.body
-            and isinstance(node.body[0], ast.Raise)
-        ):
+        elif isinstance(node, ast.If) and node.body and isinstance(node.body[0], ast.Raise):
             invariants.append(f"Not({ast.unparse(node.test)})")
 
     return {"status": "success", "invariants": invariants}

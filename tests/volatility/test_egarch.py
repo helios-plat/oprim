@@ -1,4 +1,5 @@
 """Tests for oprim.volatility.egarch: egarch_fit, egarch_forecast."""
+
 import numpy as np
 import pytest
 
@@ -18,10 +19,7 @@ def _simulate_egarch(n=500, omega=-0.1, alpha=0.1, gamma=-0.05, beta=0.9, seed=0
         z = rng.standard_normal()
         eps[t - 1] = sigma * z
         log_sigma2[t] = (
-            omega
-            + alpha * (abs(z) - _SQRT_2_OVER_PI)
-            + gamma * z
-            + beta * log_sigma2[t - 1]
+            omega + alpha * (abs(z) - _SQRT_2_OVER_PI) + gamma * z + beta * log_sigma2[t - 1]
         )
     return eps[: n - 1]
 
@@ -29,8 +27,16 @@ def _simulate_egarch(n=500, omega=-0.1, alpha=0.1, gamma=-0.05, beta=0.9, seed=0
 def test_egarch_fit_returns_keys():
     x = _simulate_egarch(300)
     r = egarch_fit(x)
-    for key in ("params", "log_likelihood", "aic", "bic", "persistence",
-                "residuals", "conditional_variance", "converged"):
+    for key in (
+        "params",
+        "log_likelihood",
+        "aic",
+        "bic",
+        "persistence",
+        "residuals",
+        "conditional_variance",
+        "converged",
+    ):
         assert key in r
 
 
@@ -87,6 +93,7 @@ def test_egarch_captures_leverage():
 
 def test_egarch_warn_pq():
     import warnings
+
     x = _simulate_egarch(300)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
@@ -132,6 +139,7 @@ def test_egarch_forecast_all_positive():
 def test_egarch_fit_series_input():
     """Covers pd.Series branch (line 95)."""
     import pandas as pd
+
     x = _simulate_egarch(300)
     r = egarch_fit(pd.Series(x))
     assert "params" in r

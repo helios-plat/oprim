@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -39,7 +39,7 @@ def git_checkpoint_commit(
             "message": str,
         }
     """
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     full_message = f"[CHECKPOINT {timestamp}] {commit_message}"
 
     try:

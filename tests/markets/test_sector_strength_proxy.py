@@ -1,8 +1,9 @@
 """Tests for oprim.markets.sector_strength_proxy (A5)."""
 
 import warnings
-import numpy as np
+
 import pytest
+
 from oprim import sector_strength_proxy
 
 
@@ -40,5 +41,7 @@ class TestSectorStrengthProxy:
             sector_strength_proxy(returns=[0.01], scoring="invalid")
 
     def test_volume_adj_zero_volume(self) -> None:
-        score = sector_strength_proxy(returns=[0.01, 0.02], volumes=[0, 0], scoring="volume_adj_return")
+        score = sector_strength_proxy(
+            returns=[0.01, 0.02], volumes=[0, 0], scoring="volume_adj_return"
+        )
         assert 0 <= score <= 100

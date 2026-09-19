@@ -82,7 +82,8 @@ def rfc6962_inclusion_proof(leaves: list[bytes], leaf_index: int) -> list[bytes]
     Returns
     -------
     list[bytes]
-        Audit path; each element is a 32-byte sibling hash.
+        Audit path
+        each element is a 32-byte sibling hash.
 
     Raises
     ------

@@ -41,7 +41,8 @@ def detect_dragon_switch(
         config:              Threshold overrides.
 
     Returns:
-        :class:`~oprim._detector_types.DetectorSignal` on trigger; ``None`` otherwise.
+        :class:`~oprim._detector_types.DetectorSignal` on trigger
+        ``None`` otherwise.
 
     Raises:
         OprimError: If ``new_top3_vol_ratios`` is empty.

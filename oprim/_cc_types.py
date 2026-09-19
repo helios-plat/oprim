@@ -1,4 +1,5 @@
 """Shared type definitions for CC supplement elements (P-NEW1..8, K-NEW1)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

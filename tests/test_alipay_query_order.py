@@ -7,9 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oprim._alipay_create_qr_order import AlipayConfig
+from oprim._alipay_create_qr_order import AlipayAPIError, AlipayConfig
 from oprim._alipay_query_order import AlipayOrderStatus, alipay_query_order
-from oprim._alipay_create_qr_order import AlipayAPIError
 
 CONFIG = AlipayConfig(
     app_id="2021000000000000",

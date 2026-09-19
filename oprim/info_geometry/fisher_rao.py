@@ -24,9 +24,7 @@ def _validate_univariate_gaussian(dist: dict[str, Any], label: str) -> tuple[flo
     mu = float(dist["mean"])
     sigma = float(dist["std"])
     if sigma <= 0:
-        raise ValueError(
-            f"distribution_{label}: std must be positive, got {sigma}"
-        )
+        raise ValueError(f"distribution_{label}: std must be positive, got {sigma}")
     return mu, sigma
 
 
@@ -34,9 +32,7 @@ def _validate_categorical(dist: dict[str, Any], label: str) -> np.ndarray:
     probs = np.asarray(dist["probs"], dtype=float)
     total = probs.sum()
     if not math.isclose(total, 1.0, abs_tol=1e-6):
-        raise ValueError(
-            f"distribution_{label}: probs must sum to 1, got {total:.6f}"
-        )
+        raise ValueError(f"distribution_{label}: probs must sum to 1, got {total:.6f}")
     return probs
 
 
@@ -56,9 +52,7 @@ def _validate_multivariate_gaussian(
     return mean, cov
 
 
-def _fr_univariate_gaussian(
-    mu1: float, sigma1: float, mu2: float, sigma2: float
-) -> float:
+def _fr_univariate_gaussian(mu1: float, sigma1: float, mu2: float, sigma2: float) -> float:
     """Closed-form Fisher-Rao distance for univariate Gaussians (Rao 1945)."""
     inner = 1.0 + ((mu1 - mu2) ** 2 + 2.0 * (sigma1 - sigma2) ** 2) / (4.0 * sigma1 * sigma2)
     return math.sqrt(2.0) * math.acosh(inner)

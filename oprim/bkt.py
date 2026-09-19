@@ -20,15 +20,20 @@ BKT 知识追踪引擎 — 公开别名层（无前缀命名）
 
 from __future__ import annotations
 
+from oprim._cognitive import (
+    _GAMMA_GUESS as _GAMMA_GUESS,
+)
+from oprim._cognitive import (
+    _GAMMA_SLIP as _GAMMA_SLIP,
+)
+from oprim._cognitive import (
+    _item_adjust as _item_adjust,
+)
 from oprim._cognitive import (  # noqa: F401  (re-export 别名层)
     bkt_update as bkt_update,
-    bkt_classify_error as classify_error,
-    bkt_predict_correct as predict_correct,
-    bkt_new_state as new_state_from_prior,
+)
+from oprim._cognitive import (
     exp_forgetting as exp_forgetting,
-    _item_adjust as _item_adjust,
-    _GAMMA_SLIP as _GAMMA_SLIP,
-    _GAMMA_GUESS as _GAMMA_GUESS,
 )
 from oprim.types import KCState as KCState  # 历史可达性（部分调用方从此处取 KCState）
 
@@ -38,10 +43,26 @@ __manifest__ = {
     "updated_at": "2026-06-28",
     "single_source": "oprim._cognitive",
     "elements": [
-        {"name": "bkt_update", "layer": "oprim", "summary": "forgetting-aware BKT 更新（难度感知，别名→_cognitive）"},
-        {"name": "classify_error", "layer": "oprim", "summary": "答错时判定错误根因（别名→bkt_classify_error）"},
-        {"name": "predict_correct", "layer": "oprim", "summary": "预测下一题答对概率（别名→bkt_predict_correct）"},
+        {
+            "name": "bkt_update",
+            "layer": "oprim",
+            "summary": "forgetting-aware BKT 更新（难度感知，别名→_cognitive）",
+        },
+        {
+            "name": "classify_error",
+            "layer": "oprim",
+            "summary": "答错时判定错误根因（别名→bkt_classify_error）",
+        },
+        {
+            "name": "predict_correct",
+            "layer": "oprim",
+            "summary": "预测下一题答对概率（别名→bkt_predict_correct）",
+        },
         {"name": "exp_forgetting", "layer": "oprim", "summary": "指数遗忘近似（别名→_cognitive）"},
-        {"name": "new_state_from_prior", "layer": "oprim", "summary": "从 BKT 先验字典创建 KCState（别名→bkt_new_state）"},
+        {
+            "name": "new_state_from_prior",
+            "layer": "oprim",
+            "summary": "从 BKT 先验字典创建 KCState（别名→bkt_new_state）",
+        },
     ],
 }

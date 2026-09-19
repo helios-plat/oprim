@@ -23,7 +23,6 @@ from oprim.file_parser_markdown import file_parser_markdown
 from oprim.file_parser_pdf import file_parser_pdf
 from oprim.file_parser_plaintext import file_parser_plaintext
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

@@ -9,14 +9,10 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
-import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
-from obase.sympy_runtime import SymPyRuntime
-
 from oprim.types import SolveResult, SolveStep
-
 
 SequenceType = Literal["arithmetic", "geometric", "auto"]
 TaskType = Literal["nth_term", "sum", "type_check", "auto"]
@@ -26,9 +22,9 @@ TaskType = Literal["nth_term", "sum", "type_check", "auto"]
 class SequenceSolveInput:
     """Input for a sequence problem."""
 
-    terms: list[float]                  # known terms (at least 2)
-    n: int | None = None                # target index for nth_term
-    count: int | None = None            # number of terms for sum
+    terms: list[float]  # known terms (at least 2)
+    n: int | None = None  # target index for nth_term
+    count: int | None = None  # number of terms for sum
     task: TaskType = "auto"
     timeout: float = 5.0
 
@@ -37,7 +33,7 @@ def _detect_arithmetic(terms: list[float]) -> tuple[bool, float, float]:
     """Return (is_arith, first_term, common_diff)."""
     if len(terms) < 2:
         return False, 0.0, 0.0
-    diffs = [terms[i+1] - terms[i] for i in range(len(terms)-1)]
+    diffs = [terms[i + 1] - terms[i] for i in range(len(terms) - 1)]
     if all(abs(d - diffs[0]) < 1e-9 for d in diffs):
         return True, terms[0], diffs[0]
     return False, 0.0, 0.0
@@ -49,7 +45,7 @@ def _detect_geometric(terms: list[float]) -> tuple[bool, float, float]:
         return False, 0.0, 0.0
     if any(abs(t) < 1e-12 for t in terms[:-1]):
         return False, 0.0, 0.0
-    ratios = [terms[i+1] / terms[i] for i in range(len(terms)-1)]
+    ratios = [terms[i + 1] / terms[i] for i in range(len(terms) - 1)]
     if all(abs(r - ratios[0]) < 1e-9 for r in ratios):
         return True, terms[0], ratios[0]
     return False, 0.0, 0.0
@@ -113,7 +109,13 @@ def solve_sequence(inp: SequenceSolveInput) -> SolveResult:
 
         task = inp.task
         if task == "auto":
-            task = "nth_term" if inp.n is not None else "sum" if inp.count is not None else "type_check"
+            task = (
+                "nth_term"
+                if inp.n is not None
+                else "sum"
+                if inp.count is not None
+                else "type_check"
+            )
 
         if task == "type_check":
             answer = f"type: {seq_type}"

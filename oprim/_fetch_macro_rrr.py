@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from datetime import date
 from typing import Any, Literal
 
@@ -67,7 +68,7 @@ async def fetch_macro_rrr(
             continue
         obs_date = date.fromisoformat(str(raw_date)[:10])
         for indicator, col in (("rrr_large", _LARGE_COL), ("rrr_small", _SMALL_COL)):
-            try:
+            with contextlib.suppress(TypeError, ValueError, KeyError):
                 points.append(
                     MacroDataPoint(
                         indicator=indicator,
@@ -76,8 +77,6 @@ async def fetch_macro_rrr(
                         metadata=meta_base,
                     )
                 )
-            except (TypeError, ValueError, KeyError):
-                pass
 
     points.sort(key=lambda p: (p.date, p.indicator))
     return _filter_by_date(points, start_date, end_date)

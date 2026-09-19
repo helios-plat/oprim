@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 from datetime import date
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -89,7 +88,7 @@ def parse_obsidian_tasks(*, content: str | None = None) -> list[ObsidianTask]:
         tags = []
         for tag_match in TAGS_RE.finditer(raw_text):
             tags.append(tag_match.group(1))
-        
+
         # Clean text
         text = TAGS_RE.sub("", raw_text).strip()
         # Remove extra whitespace

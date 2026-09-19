@@ -369,7 +369,9 @@ def ewma_smooth(
 def realized_vol(
     returns: pd.Series,
     window: int = 20,
-    estimator: Literal["close_to_close", "garman_klass", "parkinson", "yang_zhang"] = "close_to_close",
+    estimator: Literal[
+        "close_to_close", "garman_klass", "parkinson", "yang_zhang"
+    ] = "close_to_close",
     annualization_factor: int = 252,
     ohlc: pd.DataFrame | None = None,
 ) -> pd.Series:
@@ -408,16 +410,16 @@ def realized_vol(
                 raise ValueError(f"ohlc must contain '{col}' column")
 
         h = np.log(ohlc["high"])
-        l = np.log(ohlc["low"])
+        low = np.log(ohlc["low"])
         o = np.log(ohlc["open"])
         c = np.log(ohlc["close"])
 
         if estimator == "garman_klass":
             # σ² = 0.5*(ln(H/L))² - (2ln2-1)*(ln(C/O))²
-            var = 0.5 * (h - l) ** 2 - (2 * np.log(2) - 1) * (c - o) ** 2
+            var = 0.5 * (h - low) ** 2 - (2 * np.log(2) - 1) * (c - o) ** 2
         elif estimator == "parkinson":
             # σ² = (1/(4*ln2))*(ln(H/L))²
-            var = (1 / (4 * np.log(2))) * (h - l) ** 2
+            var = (1 / (4 * np.log(2))) * (h - low) ** 2
         else:  # yang_zhang
             # Yang & Zhang 2000: σ²_yz = σ²_o + k·σ²_c + (1-k)·σ²_rs
             # σ²_o = overnight variance, σ²_c = close-to-close, σ²_rs = Rogers-Satchell
@@ -429,7 +431,7 @@ def realized_vol(
 
             # Rogers-Satchell intraday variance
             log_ho = h - o
-            log_lo = l - o
+            log_lo = low - o
             log_co = c - o
             rs_var = log_ho * (log_ho - log_co) + log_lo * (log_lo - log_co)
             rs_var = rs_var.rolling(window).mean()
@@ -543,12 +545,14 @@ def gap_detect(
     for i, d in enumerate(diffs):
         if d > threshold:
             severity = _classify_severity(d, severity_thresholds)
-            gaps.append({
-                "start_time": times[i],
-                "end_time": times[i + 1],
-                "gap_duration": d,
-                "severity": severity,
-            })
+            gaps.append(
+                {
+                    "start_time": times[i],
+                    "end_time": times[i + 1],
+                    "gap_duration": d,
+                    "severity": severity,
+                }
+            )
 
     return pd.DataFrame(gaps, columns=["start_time", "end_time", "gap_duration", "severity"])
 
@@ -616,7 +620,9 @@ def resample_align(
             resampled = resampler.mean()
         else:  # ohlc
             resampled = resampler.ohlc()
-            resampled.columns = ["_".join(c) if isinstance(c, tuple) else c for c in resampled.columns]
+            resampled.columns = [
+                "_".join(c) if isinstance(c, tuple) else c for c in resampled.columns
+            ]
 
         if forward_fill_limit is not None and forward_fill_limit > 0:
             resampled = resampled.ffill(limit=forward_fill_limit)
@@ -705,11 +711,13 @@ def purge_embargo_split(
             current = test_end
             continue
 
-        splits.append({
-            "train": train_idx,
-            "test": test_idx,
-            "embargo": embargo_idx,
-        })
+        splits.append(
+            {
+                "train": train_idx,
+                "test": test_idx,
+                "embargo": embargo_idx,
+            }
+        )
         current = test_end
 
     return splits

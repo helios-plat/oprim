@@ -1,6 +1,6 @@
 """Tests for oprim.point_process.hawkes_nll."""
+
 import numpy as np
-import pytest
 
 from oprim._point_process import hawkes_nll
 
@@ -39,13 +39,13 @@ class TestHawkesNll:
         # Simulate Poisson process (mu=2, alpha=0, beta=1) → Poisson(2)
         n_events = 40
         events = np.sort(rng.uniform(0, 10, n_events))
-        T = 10.0
+        t_val = 10.0
 
         good_params = np.array([np.log(2.0), np.log(0.01), np.log(1.0)])
         bad_params = np.array([np.log(0.001), np.log(5.0), np.log(0.01)])
 
-        nll_good = hawkes_nll(good_params, events, T)
-        nll_bad = hawkes_nll(bad_params, events, T)
+        nll_good = hawkes_nll(good_params, events, t_val)
+        nll_bad = hawkes_nll(bad_params, events, t_val)
         assert nll_good < nll_bad
 
     def test_nll_depends_on_T(self):
@@ -60,9 +60,9 @@ class TestHawkesNll:
         """A_i = Σ_{j<i} exp(-β*(t_i - t_j)): for 2 events A[0]=0, A[1]=exp(-β*Δ)."""
         beta = 1.0
         events = np.array([0.0, 0.5])
-        T = 1.0
+        t_val = 1.0
         params = np.array([np.log(1.0), np.log(0.5), np.log(beta)])
-        result = hawkes_nll(params, events, T)
+        result = hawkes_nll(params, events, t_val)
         assert np.isfinite(result)
 
     def test_log_params_ensure_positivity(self):

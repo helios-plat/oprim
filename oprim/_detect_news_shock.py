@@ -66,7 +66,8 @@ def detect_news_shock(
         config:          Threshold overrides.
 
     Returns:
-        :class:`~oprim._detector_types.DetectorSignal` on trigger; ``None`` otherwise.
+        :class:`~oprim._detector_types.DetectorSignal` on trigger
+        ``None`` otherwise.
 
     Raises:
         OprimError: If ``five_min_prices`` has fewer than 2 elements.

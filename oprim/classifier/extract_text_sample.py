@@ -1,4 +1,5 @@
 """Extract a short text sample from a file for classification purposes."""
+
 from __future__ import annotations
 
 import re
@@ -16,14 +17,16 @@ from oprim._logging import log as olog
 from oprim._optional import require_optional
 from oprim.errors import UnsupportedFileTypeError
 
-_SUPPORTED_MIMES = frozenset({
-    "application/pdf",
-    "text/plain",
-    "text/markdown",
-    "text/html",
-    "application/epub+zip",
-    "text/x-markdown",
-})
+_SUPPORTED_MIMES = frozenset(
+    {
+        "application/pdf",
+        "text/plain",
+        "text/markdown",
+        "text/html",
+        "application/epub+zip",
+        "text/x-markdown",
+    }
+)
 
 
 def extract_text_sample(path: Path, mime: str, max_chars: int = 2000) -> str:

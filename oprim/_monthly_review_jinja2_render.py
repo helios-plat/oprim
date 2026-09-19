@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -58,7 +58,7 @@ def monthly_review_jinja2_render(
         '月份: 2024-03'
     """
     try:
-        from jinja2 import Environment, FileSystemLoader, TemplateNotFound, TemplateError
+        from jinja2 import Environment, FileSystemLoader, TemplateError, TemplateNotFound
     except ImportError as exc:
         raise OprimError("jinja2 is required: pip install jinja2") from exc
 
@@ -80,5 +80,5 @@ def monthly_review_jinja2_render(
     return RenderedReport(
         content=content,
         template_name=template_name,
-        rendered_at=datetime.now(tz=timezone.utc),
+        rendered_at=datetime.now(tz=UTC),
     )

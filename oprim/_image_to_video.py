@@ -69,9 +69,7 @@ async def image_to_video(
     try:
         fn = ProviderRegistry.get().generic("image_to_video", provider)
     except ProviderNotFoundError as exc:
-        raise ImageToVideoProviderNotFoundError(
-            f"Provider not found: {provider!r}"
-        ) from exc
+        raise ImageToVideoProviderNotFoundError(f"Provider not found: {provider!r}") from exc
 
     try:
         await fn(

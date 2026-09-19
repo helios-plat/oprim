@@ -1,4 +1,5 @@
 """DuckDB-backed metadata store with migration support."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -27,9 +28,7 @@ class MetaDB:
             try:
                 self._conn = duckdb.connect(str(self._path))
             except Exception as e:
-                raise MetaDBError(
-                    f"Cannot connect to DuckDB at {self._path}: {e}"
-                ) from e
+                raise MetaDBError(f"Cannot connect to DuckDB at {self._path}: {e}") from e
         return self._conn
 
     def execute(self, sql: str, params: list[Any] | None = None):
@@ -58,9 +57,7 @@ class MetaDB:
             )
             """
         )
-        applied = {
-            r[0] for r in conn.execute("SELECT filename FROM _migrations").fetchall()
-        }
+        applied = {r[0] for r in conn.execute("SELECT filename FROM _migrations").fetchall()}
         sql_files = sorted(migrations_dir.glob("*.sql"))
         for f in sql_files:
             if f.name not in applied:
@@ -71,9 +68,7 @@ class MetaDB:
                         stmt = stmt.strip()
                         if stmt:
                             conn.execute(stmt)
-                    conn.execute(
-                        "INSERT INTO _migrations (filename) VALUES (?)", [f.name]
-                    )
+                    conn.execute("INSERT INTO _migrations (filename) VALUES (?)", [f.name])
                     olog.info("migration applied", file=f.name)
                 except Exception as e:
                     raise MetaDBError(f"Migration {f.name} failed: {e}") from e

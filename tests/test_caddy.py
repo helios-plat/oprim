@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -22,23 +23,13 @@ def _mock_resp(status_code: int = 200, json_data=None, headers=None):
     return resp
 
 
-VALID_CONFIG = {
-    "apps": {
-        "http": {
-            "servers": {
-                "srv0": {
-                    "listen": [":443"],
-                    "routes": []
-                }
-            }
-        }
-    }
-}
+VALID_CONFIG = {"apps": {"http": {"servers": {"srv0": {"listen": [":443"], "routes": []}}}}}
 
 
 # ---------------------------------------------------------------------------
 # caddy_admin_reload
 # ---------------------------------------------------------------------------
+
 
 class TestCaddyAdminReload:
     def test_successful_reload(self):
@@ -63,42 +54,51 @@ class TestCaddyAdminReload:
 
     def test_invalid_config_raises_validation_error(self):
         resp = _mock_resp(400)
-        with patch("oprim._caddy.httpx.post", return_value=resp):
-            with pytest.raises(OprimValidationError):
-                caddy_admin_reload(
-                    admin_url="http://localhost:2019",
-                    new_config={"invalid": True},
-                )
+        with (
+            patch("oprim._caddy.httpx.post", return_value=resp),
+            pytest.raises(OprimValidationError),
+        ):
+            caddy_admin_reload(
+                admin_url="http://localhost:2019",
+                new_config={"invalid": True},
+            )
 
     def test_connection_error(self):
-        with patch("oprim._caddy.httpx.post", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                caddy_admin_reload(
-                    admin_url="http://nonexistent:2019",
-                    new_config=VALID_CONFIG,
-                )
+        with (
+            patch("oprim._caddy.httpx.post", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            caddy_admin_reload(
+                admin_url="http://nonexistent:2019",
+                new_config=VALID_CONFIG,
+            )
 
     def test_caddy_server_error(self):
         resp = _mock_resp(500)
-        with patch("oprim._caddy.httpx.post", return_value=resp):
-            with pytest.raises(OprimConnectionError):
-                caddy_admin_reload(
-                    admin_url="http://localhost:2019",
-                    new_config=VALID_CONFIG,
-                )
+        with (
+            patch("oprim._caddy.httpx.post", return_value=resp),
+            pytest.raises(OprimConnectionError),
+        ):
+            caddy_admin_reload(
+                admin_url="http://localhost:2019",
+                new_config=VALID_CONFIG,
+            )
 
     def test_timeout_error(self):
-        with patch("oprim._caddy.httpx.post", side_effect=httpx.TimeoutException("timed out")):
-            with pytest.raises(OprimConnectionError):
-                caddy_admin_reload(
-                    admin_url="http://localhost:2019",
-                    new_config=VALID_CONFIG,
-                )
+        with (
+            patch("oprim._caddy.httpx.post", side_effect=httpx.TimeoutException("timed out")),
+            pytest.raises(OprimConnectionError),
+        ):
+            caddy_admin_reload(
+                admin_url="http://localhost:2019",
+                new_config=VALID_CONFIG,
+            )
 
 
 # ---------------------------------------------------------------------------
 # caddy_routes_list
 # ---------------------------------------------------------------------------
+
 
 class TestCaddyRoutesList:
     def _routes_data(self):
@@ -140,14 +140,18 @@ class TestCaddyRoutesList:
         assert result[0].target_upstream is None
 
     def test_connection_error(self):
-        with patch("oprim._caddy.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                caddy_routes_list(admin_url="http://nonexistent:2019")
+        with (
+            patch("oprim._caddy.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            caddy_routes_list(admin_url="http://nonexistent:2019")
 
     def test_server_error(self):
-        with patch("oprim._caddy.httpx.get", return_value=_mock_resp(500)):
-            with pytest.raises(OprimConnectionError):
-                caddy_routes_list(admin_url="http://localhost:2019")
+        with (
+            patch("oprim._caddy.httpx.get", return_value=_mock_resp(500)),
+            pytest.raises(OprimConnectionError),
+        ):
+            caddy_routes_list(admin_url="http://localhost:2019")
 
     def test_non_list_response_returns_empty(self):
         with patch("oprim._caddy.httpx.get", return_value=_mock_resp(200, {"routes": []})):
@@ -164,6 +168,7 @@ class TestCaddyRoutesList:
 # ---------------------------------------------------------------------------
 # caddy_certificates_status
 # ---------------------------------------------------------------------------
+
 
 class TestCaddyCertificatesStatus:
     def _cert_data(self, domain="example.com"):
@@ -205,8 +210,9 @@ class TestCaddyCertificatesStatus:
         assert result.issued is False
 
     def test_expiry_days_computed(self):
-        from datetime import datetime, timezone, timedelta
-        future_date = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+        from datetime import datetime, timedelta
+
+        future_date = (datetime.now(UTC) + timedelta(days=30)).isoformat()
         data = [{"names": ["example.com"], "issuer": "LE", "not_after": future_date}]
         with patch("oprim._caddy.httpx.get", return_value=_mock_resp(200, data)):
             result = caddy_certificates_status(
@@ -217,36 +223,46 @@ class TestCaddyCertificatesStatus:
         assert result.days_until_expiry > 0
 
     def test_connection_error(self):
-        with patch("oprim._caddy.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                caddy_certificates_status(
-                    admin_url="http://nonexistent:2019",
-                    domain="example.com",
-                )
+        with (
+            patch("oprim._caddy.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            caddy_certificates_status(
+                admin_url="http://nonexistent:2019",
+                domain="example.com",
+            )
 
     def test_server_error(self):
-        with patch("oprim._caddy.httpx.get", return_value=_mock_resp(500)):
-            with pytest.raises(OprimConnectionError):
-                caddy_certificates_status(
-                    admin_url="http://localhost:2019",
-                    domain="example.com",
-                )
+        with (
+            patch("oprim._caddy.httpx.get", return_value=_mock_resp(500)),
+            pytest.raises(OprimConnectionError),
+        ):
+            caddy_certificates_status(
+                admin_url="http://localhost:2019",
+                domain="example.com",
+            )
 
     def test_non_list_response_returns_not_issued(self):
         with patch("oprim._caddy.httpx.get", return_value=_mock_resp(200, {"not": "a list"})):
-            result = caddy_certificates_status(admin_url="http://localhost:2019", domain="example.com")
+            result = caddy_certificates_status(
+                admin_url="http://localhost:2019", domain="example.com"
+            )
         assert result.issued is False
 
     def test_wildcard_domain_match(self):
         data = [{"names": ["*.example.com"], "issuer": "LE", "not_after": None}]
         with patch("oprim._caddy.httpx.get", return_value=_mock_resp(200, data)):
-            result = caddy_certificates_status(admin_url="http://localhost:2019", domain="api.example.com")
+            result = caddy_certificates_status(
+                admin_url="http://localhost:2019", domain="api.example.com"
+            )
         assert result.issued is True
 
     def test_invalid_expiry_date_no_error(self):
         data = [{"names": ["example.com"], "issuer": "LE", "not_after": "not-a-date"}]
         with patch("oprim._caddy.httpx.get", return_value=_mock_resp(200, data)):
-            result = caddy_certificates_status(admin_url="http://localhost:2019", domain="example.com")
+            result = caddy_certificates_status(
+                admin_url="http://localhost:2019", domain="example.com"
+            )
         assert result.issued is True
         assert result.days_until_expiry is None
 
@@ -256,5 +272,7 @@ class TestCaddyCertificatesStatus:
             {"names": ["example.com"], "issuer": "LE", "not_after": None},
         ]
         with patch("oprim._caddy.httpx.get", return_value=_mock_resp(200, data)):
-            result = caddy_certificates_status(admin_url="http://localhost:2019", domain="example.com")
+            result = caddy_certificates_status(
+                admin_url="http://localhost:2019", domain="example.com"
+            )
         assert result.issued is True

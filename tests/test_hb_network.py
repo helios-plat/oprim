@@ -1,14 +1,15 @@
-"""Tests — H-B E组: 网络 IO 扩展 (validate_api_key / upload_share / revoke_share / fetch_models_dev / load_skill_raw)."""
+"""Tests — H-B E组: 网络 IO 扩展 (validate_api_key / upload_share /
+revoke_share / fetch_models_dev / load_skill_raw)."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from oprim._hb_network import (
-    ModelSpec,
     fetch_models_dev,
     load_skill_raw,
     revoke_share,
@@ -16,10 +17,10 @@ from oprim._hb_network import (
     validate_api_key,
 )
 
-
 # ---------------------------------------------------------------------------
 # validate_api_key
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_validate_api_key_empty() -> None:
@@ -36,7 +37,9 @@ async def test_validate_api_key_unknown_provider() -> None:
 @pytest.mark.asyncio
 @respx.mock
 async def test_validate_api_key_valid() -> None:
-    respx.get("https://api.anthropic.com/v1/models").mock(return_value=httpx.Response(200, json={"models": []}))
+    respx.get("https://api.anthropic.com/v1/models").mock(
+        return_value=httpx.Response(200, json={"models": []})
+    )
     result = await validate_api_key("sk-valid", provider="anthropic")
     assert result is True
 
@@ -60,6 +63,7 @@ async def test_validate_api_key_openai() -> None:
 # ---------------------------------------------------------------------------
 # upload_share
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_upload_share_empty_endpoint() -> None:
@@ -87,6 +91,7 @@ async def test_upload_share_success() -> None:
 @respx.mock
 async def test_upload_share_413() -> None:
     from oprim._exceptions import HttpOprimError
+
     respx.post("https://share.example.com/upload").mock(return_value=httpx.Response(413))
     with pytest.raises(HttpOprimError, match="413"):
         await upload_share({"big": "x" * 1000}, endpoint="https://share.example.com/upload")
@@ -96,7 +101,10 @@ async def test_upload_share_413() -> None:
 @respx.mock
 async def test_upload_share_failure() -> None:
     from oprim._exceptions import HttpOprimError
-    respx.post("https://share.example.com/upload").mock(return_value=httpx.Response(500, text="err"))
+
+    respx.post("https://share.example.com/upload").mock(
+        return_value=httpx.Response(500, text="err")
+    )
     with pytest.raises(HttpOprimError):
         await upload_share({}, endpoint="https://share.example.com/upload")
 
@@ -104,6 +112,7 @@ async def test_upload_share_failure() -> None:
 # ---------------------------------------------------------------------------
 # revoke_share
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 @respx.mock
@@ -130,7 +139,10 @@ async def test_revoke_share_idempotent_409() -> None:
 @respx.mock
 async def test_revoke_share_failure() -> None:
     from oprim._exceptions import HttpOprimError
-    respx.delete("https://share.example.com/s/bad").mock(return_value=httpx.Response(500, text="err"))
+
+    respx.delete("https://share.example.com/s/bad").mock(
+        return_value=httpx.Response(500, text="err")
+    )
     with pytest.raises(HttpOprimError):
         await revoke_share("https://share.example.com/s/bad")
 
@@ -139,13 +151,18 @@ async def test_revoke_share_failure() -> None:
 # fetch_models_dev
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 @respx.mock
 async def test_fetch_models_dev_dict_format() -> None:
     payload = {
         "anthropic": [
-            {"id": "claude-3-5-sonnet", "name": "Claude 3.5 Sonnet",
-             "context_length": 200000, "pricing": {"input": 3.0, "output": 15.0}}
+            {
+                "id": "claude-3-5-sonnet",
+                "name": "Claude 3.5 Sonnet",
+                "context_length": 200000,
+                "pricing": {"input": 3.0, "output": 15.0},
+            }
         ]
     }
     respx.get("https://models.dev/api/models.json").mock(
@@ -160,9 +177,7 @@ async def test_fetch_models_dev_dict_format() -> None:
 @pytest.mark.asyncio
 @respx.mock
 async def test_fetch_models_dev_empty() -> None:
-    respx.get("https://models.dev/api/models.json").mock(
-        return_value=httpx.Response(200, json={})
-    )
+    respx.get("https://models.dev/api/models.json").mock(return_value=httpx.Response(200, json={}))
     models = await fetch_models_dev()
     assert models == []
 
@@ -171,6 +186,7 @@ async def test_fetch_models_dev_empty() -> None:
 @respx.mock
 async def test_fetch_models_dev_network_error() -> None:
     from oprim._exceptions import HttpOprimError
+
     respx.get("https://models.dev/api/models.json").mock(
         side_effect=httpx.ConnectError("connection refused")
     )
@@ -182,6 +198,7 @@ async def test_fetch_models_dev_network_error() -> None:
 @respx.mock
 async def test_fetch_models_dev_http_error() -> None:
     from oprim._exceptions import HttpOprimError
+
     respx.get("https://models.dev/api/models.json").mock(
         return_value=httpx.Response(503, text="Service Unavailable")
     )
@@ -204,6 +221,7 @@ async def test_fetch_models_dev_list_format() -> None:
 # ---------------------------------------------------------------------------
 # load_skill_raw
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_load_skill_raw_normal(tmp_path: Path) -> None:

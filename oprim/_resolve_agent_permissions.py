@@ -1,4 +1,5 @@
 """Resolve a Persona's effective PermSet against a list of available tools."""
+
 from __future__ import annotations
 
 import fnmatch
@@ -18,8 +19,10 @@ def resolve_agent_permissions(persona: Persona, *, all_tools: list[Any]) -> Perm
     1. Set a default action for every tool based on ``persona.mode``:
 
        * ``"build"`` — every tool defaults to ``"allow"``.
-       * ``"plan"``  — ``read``/``grep``/``glob`` default to ``"allow"``;
-         ``edit``/``write``/``bash`` default to ``"deny"``; all others ``"ask"``.
+       * ``"plan"``  — ``read``/``grep``/``glob`` default to ``"allow"``
+
+         ``edit``/``write``/``bash`` default to ``"deny"``
+         all others ``"ask"``.
        * Any other mode — all tools default to ``"ask"``.
 
     2. Apply ``persona.deny`` patterns: any tool whose name matches at least

@@ -73,7 +73,7 @@ async def ast_parse_code(
     constants: list[dict[str, Any]] = []
 
     for node in tree.body:
-        if isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             functions.append(_fn_info(node))
         elif isinstance(node, ast.ClassDef):
             methods = [

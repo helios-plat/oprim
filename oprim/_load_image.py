@@ -1,14 +1,15 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import asyncio
+
 import base64
-import json
-import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
-from ._exceptions import FileOprimError, ParseOprimError, ShellOprimError
+
+from ._exceptions import FileOprimError, ParseOprimError
+
+_IMAGE_MIME: dict[str, str] = {}
+
 
 @dataclass
 class HookResult:
@@ -16,9 +17,11 @@ class HookResult:
     output: str
     exit_code: int
 
+
 @dataclass
 class ImageBlock:
     """Anthropic content block 格式的图片表示。"""
+
     type: str
     source_type: str
     media_type: str
@@ -26,9 +29,11 @@ class ImageBlock:
     path: str
     size_bytes: int
 
+
 @dataclass
 class SkillMeta:
     """Skill frontmatter 解析结果（渐进披露第 1 步，不含 body）。"""
+
     name: str
     description: str
     version: str
@@ -37,6 +42,7 @@ class SkillMeta:
     tags: list[str]
     raw: dict
     skill_dir: str
+
 
 def load_image(path: str | Path) -> ImageBlock:
     """单次读取图片文件，返回 base64 编码的 content block。
@@ -71,14 +77,13 @@ def load_image(path: str | Path) -> ImageBlock:
     ext = p.suffix.lower()
     if ext not in _IMAGE_MIME:
         raise ParseOprimError(
-            f"unsupported image format '{ext}': "
-            f"supported: {', '.join(_IMAGE_MIME)}"
+            f"unsupported image format '{ext}': supported: {', '.join(_IMAGE_MIME)}"
         )
 
     try:
         raw = p.read_bytes()
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read image '{path}'", cause=e)
+        raise FileOprimError(f"cannot read image '{path}'", cause=e) from e
 
     return ImageBlock(
         type="image",

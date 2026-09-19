@@ -6,6 +6,7 @@ Cox, J.C., Ross, S.A. & Rubinstein, M. (1979). Option Pricing: A Simplified
     Approach. Journal of Financial Economics, 7(3), 229-263.
 Jarrow, R. & Rudd, A. (1983). Option Pricing. Irwin, Homewood, Illinois.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -82,43 +83,48 @@ def binomial_tree_price(
     if method not in ("crr", "jarrow_rudd"):
         raise ValueError(f"method must be 'crr' or 'jarrow_rudd', got {method!r}")
 
-    S, K, T, r, sigma, q = spot, strike, time_to_expiry, risk_free_rate, volatility, dividend_yield
+    s_val, k_val, t_val, r_val, sigma_val, q_val = (
+        spot,
+        strike,
+        time_to_expiry,
+        risk_free_rate,
+        volatility,
+        dividend_yield,
+    )
 
     # Edge case: expiry at time 0
-    if T == 0:
-        if option_type == "call":
-            price = float(max(S - K, 0.0))
-        else:
-            price = float(max(K - S, 0.0))
+    if t_val == 0:
+        price = (
+            float(max(s_val - k_val, 0.0))
+            if option_type == "call"
+            else float(max(k_val - s_val, 0.0))
+        )
         result: dict[str, Any] = {"price": price, "method": method, "n_steps": n_steps}
         if exercise == "american":
             result["early_exercise_boundary"] = []
         return result
 
-    dt = T / n_steps
-    discount = np.exp(-r * dt)
+    dt = t_val / n_steps
+    discount = np.exp(-r_val * dt)
 
     # Tree parameters
     if method == "crr":
-        if sigma == 0:
-            u = np.exp(r * dt)
-            d = np.exp(-r * dt)
+        if sigma_val == 0:
+            u = np.exp(r_val * dt)
+            d = np.exp(-r_val * dt)
         else:
-            u = np.exp(sigma * np.sqrt(dt))
+            u = np.exp(sigma_val * np.sqrt(dt))
             d = 1.0 / u
         denom = u - d
-        if abs(denom) < 1e-12:
-            p = 0.5
-        else:
-            p = (np.exp((r - q) * dt) - d) / denom
+        p = 0.5 if abs(denom) < 1e-12 else (np.exp((r_val - q_val) * dt) - d) / denom
     else:  # jarrow_rudd
-        drift = (r - q - 0.5 * sigma**2) * dt
-        if sigma == 0:
+        drift = (r_val - q_val - 0.5 * sigma_val**2) * dt
+        if sigma_val == 0:
             u = np.exp(drift)
             d = np.exp(drift)
         else:
-            u = np.exp(drift + sigma * np.sqrt(dt))
-            d = np.exp(drift - sigma * np.sqrt(dt))
+            u = np.exp(drift + sigma_val * np.sqrt(dt))
+            d = np.exp(drift - sigma_val * np.sqrt(dt))
         # Risk-neutral probability for JR is 0.5 by construction
         p = 0.5
 
@@ -128,48 +134,49 @@ def binomial_tree_price(
 
     # Build terminal asset prices (vectorised)
     j = np.arange(n_steps + 1, dtype=float)
-    ST = S * (u ** (n_steps - j)) * (d**j)
+    st_val = s_val * (u ** (n_steps - j)) * (d**j)
 
     # Terminal payoffs
-    if option_type == "call":
-        payoffs = np.maximum(ST - K, 0.0)
-    else:
-        payoffs = np.maximum(K - ST, 0.0)
+    payoffs = (
+        np.maximum(st_val - k_val, 0.0)
+        if option_type == "call"
+        else np.maximum(k_val - st_val, 0.0)
+    )
 
     # Track early exercise boundary (critical spot at each time step, american only)
     early_exercise_boundary: list[float] = []
 
     # Backward induction
-    V = payoffs.copy()
+    v_val = payoffs.copy()
     for step in range(n_steps - 1, -1, -1):
         # Continuation value
-        V = discount * (p * V[:-1] + q_prob * V[1:])
+        v_val = discount * (p * v_val[:-1] + q_prob * v_val[1:])
 
         if exercise == "american":
             # Spot prices at this node
             j_nodes = np.arange(step + 1, dtype=float)
-            S_nodes = S * (u ** (step - j_nodes)) * (d**j_nodes)
+            s_nodes = s_val * (u ** (step - j_nodes)) * (d**j_nodes)
             if option_type == "call":
-                intrinsic = np.maximum(S_nodes - K, 0.0)
+                intrinsic = np.maximum(s_nodes - k_val, 0.0)
             else:
-                intrinsic = np.maximum(K - S_nodes, 0.0)
+                intrinsic = np.maximum(k_val - s_nodes, 0.0)
             # Exercise decision
-            exercise_mask = intrinsic > V
-            V = np.where(exercise_mask, intrinsic, V)
+            exercise_mask = intrinsic > v_val
+            v_val = np.where(exercise_mask, intrinsic, v_val)
 
             # Record the critical spot (lowest spot where early exercise is optimal)
             if np.any(exercise_mask):
                 # For puts: lowest S_node where exercise; for calls: highest
                 if option_type == "put":
-                    boundary = float(np.max(S_nodes[exercise_mask]))
+                    boundary = float(np.max(s_nodes[exercise_mask]))
                 else:
-                    boundary = float(np.min(S_nodes[exercise_mask]))
+                    boundary = float(np.min(s_nodes[exercise_mask]))
                 early_exercise_boundary.append(boundary)
             else:
                 early_exercise_boundary.append(float("nan"))
 
     result = {
-        "price": float(V[0]),
+        "price": float(v_val[0]),
         "method": method,
         "n_steps": n_steps,
     }

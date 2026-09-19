@@ -1,4 +1,5 @@
 """Pure-compute: truncate_output."""
+
 from __future__ import annotations
 
 

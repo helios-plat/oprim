@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from oprim._exceptions import OprimError
 
@@ -13,7 +13,8 @@ class PETTMResult(BaseModel):
     """lookback-safe TTM PE 结果.
 
     Attributes:
-        pe_ttm: TTM 市盈率; ``None`` 表示 TTM EPS ≤ 0 (负盈利/亏损).
+        pe_ttm: TTM 市盈率
+        ``None`` 表示 TTM EPS ≤ 0 (负盈利/亏损).
         eps_ttm: 滚动 4 季度 EPS 之和 (使用了 lag 后的合规数据).
         quarters_used: 实际用到的季度数 (≤4).
         as_of_date: 计算基准日.

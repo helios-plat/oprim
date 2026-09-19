@@ -1,2 +1,3 @@
-from oprim._kdj import kdj, KDJResult
+from oprim._kdj import KDJResult, kdj
+
 __all__ = ["kdj", "KDJResult"]

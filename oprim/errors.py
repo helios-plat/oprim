@@ -1,4 +1,5 @@
 """Stratum-domain error hierarchy for oprim knowledge-management sub-packages."""
+
 from __future__ import annotations
 
 

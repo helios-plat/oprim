@@ -54,8 +54,10 @@ async def audio_normalize(
         raise AudioNormalizeError(f"Input file not found: {input_path}")
 
     args = [
-        "-i", str(input_path),
-        "-af", f"loudnorm=I={target_lufs}:TP=-1.5:LRA=11",
+        "-i",
+        str(input_path),
+        "-af",
+        f"loudnorm=I={target_lufs}:TP=-1.5:LRA=11",
         str(output_path),
     ]
 

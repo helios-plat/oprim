@@ -20,32 +20,51 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from oprim import (
-    BudgetExceededError, ConversationSnapshot, EmbedResult,
-    HttpOprimError, HttpResponse, LLMOprimError, LLMResponse,
-    PromptOprimError, SearchOprimError, SearchResult,
-    SnapshotOprimError, StreamDelta, ThinkingResult,
-    build_system_prompt, embed_text, extract_thinking,
-    http_fetch, llm_complete, llm_stream, snapshot_conversation,
-    truncate_messages, web_search,
+    BudgetExceededError,
+    ConversationSnapshot,
+    EmbedResult,
+    HttpOprimError,
+    HttpResponse,
+    LLMOprimError,
+    LLMResponse,
+    PromptOprimError,
+    SearchOprimError,
+    SearchResult,
+    SnapshotOprimError,
+    StreamDelta,
+    ThinkingResult,
+    build_system_prompt,
+    embed_text,
+    extract_thinking,
+    http_fetch,
+    llm_complete,
+    llm_stream,
+    snapshot_conversation,
+    truncate_messages,
+    web_search,
 )
-
 
 # ===========================================================================
 # helpers
 # ===========================================================================
 
+
 def make_llm_caller(response: dict):
     """Mock LLMCaller Protocol（非流式）。"""
+
     async def caller(**kwargs):
         return response
+
     return caller
 
 
 def make_streaming_caller(deltas: list[dict]):
     """Mock StreamingLLMCaller Protocol。"""
+
     async def caller(**kwargs) -> AsyncIterator[dict]:
         for d in deltas:
             yield d
+
     return caller
 
 
@@ -54,6 +73,7 @@ def make_embed_caller(vector: list[float] | None = None, raises=None):
         if raises:
             raise raises
         return vector or [0.1] * 8
+
     return caller
 
 
@@ -62,6 +82,7 @@ def make_search_caller(results: list[dict] | None = None, raises=None):
         if raises:
             raise raises
         return results or []
+
     return caller
 
 
@@ -86,6 +107,7 @@ BASIC_RESPONSE = {
 # ===========================================================================
 # llm_complete 测试
 # ===========================================================================
+
 
 class TestLlmComplete:
     def test_returns_llm_response(self):
@@ -127,9 +149,7 @@ class TestLlmComplete:
     def test_invalid_role_raises(self):
         caller = make_llm_caller(BASIC_RESPONSE)
         with pytest.raises(LLMOprimError, match="role"):
-            asyncio.run(llm_complete(
-                [{"role": "invalid_role", "content": "hi"}], caller=caller
-            ))
+            asyncio.run(llm_complete([{"role": "invalid_role", "content": "hi"}], caller=caller))
 
     def test_budget_exceeded_raises(self):
         caller = make_llm_caller(BASIC_RESPONSE)
@@ -141,12 +161,14 @@ class TestLlmComplete:
     def test_caller_exception_wrapped(self):
         async def bad_caller(**kwargs):
             raise RuntimeError("provider 503")
+
         with pytest.raises(LLMOprimError, match="failed"):
             asyncio.run(llm_complete(BASIC_MESSAGES, caller=bad_caller))
 
     def test_non_dict_response_raises(self):
         async def bad_caller(**kwargs):
             return "not a dict"
+
         with pytest.raises(LLMOprimError, match="non-dict"):
             asyncio.run(llm_complete(BASIC_MESSAGES, caller=bad_caller))
 
@@ -158,19 +180,21 @@ class TestLlmComplete:
 
     def test_system_param_forwarded(self):
         received = {}
+
         async def capturing_caller(**kwargs):
             received.update(kwargs)
             return BASIC_RESPONSE
-        asyncio.run(llm_complete(BASIC_MESSAGES, caller=capturing_caller,
-                                  system="You are a helper"))
+
+        asyncio.run(
+            llm_complete(BASIC_MESSAGES, caller=capturing_caller, system="You are a helper")
+        )
         assert received.get("system") == "You are a helper"
 
     def test_custom_pricing(self):
         caller = make_llm_caller(BASIC_RESPONSE)
-        result = asyncio.run(llm_complete(
-            BASIC_MESSAGES, caller=caller,
-            pricing={"in": 1e-3, "out": 2e-3}
-        ))
+        result = asyncio.run(
+            llm_complete(BASIC_MESSAGES, caller=caller, pricing={"in": 1e-3, "out": 2e-3})
+        )
         # 10 * 1e-3 + 5 * 2e-3 = 0.02
         assert abs(result.cost_usd - 0.02) < 0.001
 
@@ -179,59 +203,78 @@ class TestLlmComplete:
 # llm_stream 测试
 # ===========================================================================
 
+
 class TestLlmStream:
     def test_yields_text_deltas(self):
-        caller = make_streaming_caller([
-            {"type": "text", "text": "Hello"},
-            {"type": "text", "text": " world"},
-        ])
+        caller = make_streaming_caller(
+            [
+                {"type": "text", "text": "Hello"},
+                {"type": "text", "text": " world"},
+            ]
+        )
+
         async def collect():
             deltas = []
             async for d in llm_stream(BASIC_MESSAGES, caller=caller):
                 deltas.append(d)
             return deltas
+
         deltas = asyncio.run(collect())
         texts = [d.text for d in deltas if d.type == "text"]
         assert "Hello" in texts and " world" in texts
 
     def test_yields_tool_use_delta(self):
-        caller = make_streaming_caller([
-            {"type": "tool_use", "id": "t1", "name": "bash", "input": {"cmd": "ls"}},
-        ])
+        caller = make_streaming_caller(
+            [
+                {"type": "tool_use", "id": "t1", "name": "bash", "input": {"cmd": "ls"}},
+            ]
+        )
+
         async def collect():
             async for d in llm_stream(BASIC_MESSAGES, caller=caller):
                 return d
+
         delta = asyncio.run(collect())
         assert delta.type == "tool_use"
         assert delta.tool_name == "bash"
 
     def test_yields_usage_delta(self):
-        caller = make_streaming_caller([
-            {"type": "usage", "usage": {"input_tokens": 10, "output_tokens": 5}},
-        ])
+        caller = make_streaming_caller(
+            [
+                {"type": "usage", "usage": {"input_tokens": 10, "output_tokens": 5}},
+            ]
+        )
+
         async def collect():
             async for d in llm_stream(BASIC_MESSAGES, caller=caller):
                 return d
+
         delta = asyncio.run(collect())
         assert delta.type == "usage"
         assert delta.input_tokens == 10
 
     def test_yields_stop_delta(self):
-        caller = make_streaming_caller([
-            {"type": "stop", "stop_reason": "end_turn"},
-        ])
+        caller = make_streaming_caller(
+            [
+                {"type": "stop", "stop_reason": "end_turn"},
+            ]
+        )
+
         async def collect():
             async for d in llm_stream(BASIC_MESSAGES, caller=caller):
                 return d
+
         delta = asyncio.run(collect())
         assert delta.type == "stop"
         assert delta.stop_reason == "end_turn"
 
     def test_empty_messages_raises(self):
         caller = make_streaming_caller([])
+
         async def run():
             async for _ in llm_stream([], caller=caller):
                 pass
+
         with pytest.raises(LLMOprimError, match="empty"):
             asyncio.run(run())
 
@@ -239,44 +282,56 @@ class TestLlmStream:
         async def bad_caller(**kwargs) -> AsyncIterator[dict]:
             raise RuntimeError("stream broken")
             yield {}  # make it a generator
+
         async def run():
             async for _ in llm_stream(BASIC_MESSAGES, caller=bad_caller):
                 pass
+
         with pytest.raises(LLMOprimError):
             asyncio.run(run())
 
     def test_thinking_delta(self):
-        caller = make_streaming_caller([
-            {"type": "thinking", "thinking": "Let me think..."},
-        ])
+        caller = make_streaming_caller(
+            [
+                {"type": "thinking", "thinking": "Let me think..."},
+            ]
+        )
+
         async def collect():
             async for d in llm_stream(BASIC_MESSAGES, caller=caller):
                 return d
+
         delta = asyncio.run(collect())
         assert delta.type == "thinking"
         assert "think" in delta.text
 
     def test_returns_stream_delta_objects(self):
         caller = make_streaming_caller([{"type": "text", "text": "ok"}])
+
         async def collect():
             results = []
             async for d in llm_stream(BASIC_MESSAGES, caller=caller):
                 results.append(d)
             return results
+
         results = asyncio.run(collect())
         assert all(isinstance(d, StreamDelta) for d in results)
 
     def test_skips_non_dict_items(self):
         """非 dict delta 被跳过，不报错。"""
-        caller = make_streaming_caller([
-            "not_a_dict",
-            {"type": "text", "text": "valid"},
-        ])
+        caller = make_streaming_caller(
+            [
+                "not_a_dict",
+                {"type": "text", "text": "valid"},
+            ]
+        )
+
         async def collect():
             results = []
             async for d in llm_stream(BASIC_MESSAGES, caller=caller):
                 results.append(d)
             return results
+
         results = asyncio.run(collect())
         assert len(results) == 1
         assert results[0].text == "valid"
@@ -285,6 +340,7 @@ class TestLlmStream:
 # ===========================================================================
 # embed_text 测试
 # ===========================================================================
+
 
 class TestEmbedText:
     def test_returns_embed_result(self):
@@ -321,6 +377,7 @@ class TestEmbedText:
     def test_invalid_vector_raises(self):
         async def bad_caller(*, text, model):
             return "not_a_list"
+
         with pytest.raises(LLMOprimError, match="invalid vector"):
             asyncio.run(embed_text("hello", caller=bad_caller))
 
@@ -334,14 +391,17 @@ class TestEmbedText:
 # http_fetch 测试
 # ===========================================================================
 
+
 class TestHttpFetch:
     def test_get_request(self):
         import httpx
+
         def handler(request):
             return httpx.Response(200, text="hello")
-        transport = httpx.MockTransport(handler)
+
+        httpx.MockTransport(handler)
+
         async def run():
-            import httpx as hx
             with patch("httpx.AsyncClient") as mock_cls:
                 client_inst = AsyncMock()
                 mock_cls.return_value.__aenter__ = AsyncMock(return_value=client_inst)
@@ -353,6 +413,7 @@ class TestHttpFetch:
                 resp_mock.url = "http://example.com"
                 client_inst.request = AsyncMock(return_value=resp_mock)
                 return await http_fetch("http://example.com")
+
         result = asyncio.run(run())
         assert result.status_code == 200
         assert result.text == "hello"
@@ -371,6 +432,7 @@ class TestHttpFetch:
                 resp_mock.url = "http://example.com/missing"
                 client_inst.request = AsyncMock(return_value=resp_mock)
                 return await http_fetch("http://example.com/missing")
+
         result = asyncio.run(run())
         assert result.status_code == 404
         assert result.ok is False
@@ -388,11 +450,13 @@ class TestHttpFetch:
                 resp_mock.url = "http://example.com"
                 client_inst.request = AsyncMock(return_value=resp_mock)
                 return await http_fetch("http://example.com", raise_on_error=True)
+
         with pytest.raises(HttpOprimError, match="500"):
             asyncio.run(run())
 
     def test_timeout_raises(self):
         import httpx
+
         async def run():
             with patch("httpx.AsyncClient") as mock_cls:
                 client_inst = AsyncMock()
@@ -402,6 +466,7 @@ class TestHttpFetch:
                     side_effect=httpx.TimeoutException("timeout", request=None)
                 )
                 return await http_fetch("http://slow.example.com", timeout=1)
+
         with pytest.raises(HttpOprimError, match="timed out"):
             asyncio.run(run())
 
@@ -418,12 +483,14 @@ class TestHttpFetch:
                 resp_mock.url = "http://example.com/api"
                 client_inst.request = AsyncMock(return_value=resp_mock)
                 return await http_fetch("http://example.com/api")
+
         result = asyncio.run(run())
         assert isinstance(result, HttpResponse)
         assert result.json()["key"] == "value"
 
     def test_json_body_sent(self):
         sent = {}
+
         async def run():
             with patch("httpx.AsyncClient") as mock_cls:
                 client_inst = AsyncMock()
@@ -434,17 +501,20 @@ class TestHttpFetch:
                 resp_mock.text = ""
                 resp_mock.headers = {}
                 resp_mock.url = "http://example.com"
+
                 async def capture_request(method, url, **kwargs):
                     sent.update(kwargs)
                     return resp_mock
+
                 client_inst.request = capture_request
-                return await http_fetch("http://example.com",
-                                        method="POST", body={"a": 1})
+                return await http_fetch("http://example.com", method="POST", body={"a": 1})
+
         asyncio.run(run())
         assert sent.get("json") == {"a": 1}
 
     def test_request_error_wrapped(self):
         import httpx
+
         async def run():
             with patch("httpx.AsyncClient") as mock_cls:
                 client_inst = AsyncMock()
@@ -454,6 +524,7 @@ class TestHttpFetch:
                     side_effect=httpx.RequestError("conn refused", request=None)
                 )
                 return await http_fetch("http://dead.example.com")
+
         with pytest.raises(HttpOprimError, match="failed"):
             asyncio.run(run())
 
@@ -462,11 +533,18 @@ class TestHttpFetch:
 # web_search 测试
 # ===========================================================================
 
+
 class TestWebSearch:
     def test_returns_results(self):
-        caller = make_search_caller([
-            {"title": "Python docs", "url": "https://docs.python.org", "snippet": "Official docs"},
-        ])
+        caller = make_search_caller(
+            [
+                {
+                    "title": "Python docs",
+                    "url": "https://docs.python.org",
+                    "snippet": "Official docs",
+                },
+            ]
+        )
         results = asyncio.run(web_search("python", client=caller))
         assert len(results) == 1
         assert results[0].title == "Python docs"
@@ -477,7 +555,9 @@ class TestWebSearch:
             asyncio.run(web_search("", client=caller))
 
     def test_top_k_limits(self):
-        caller = make_search_caller([{"title": f"r{i}", "url": f"u{i}", "snippet": ""} for i in range(10)])
+        caller = make_search_caller(
+            [{"title": f"r{i}", "url": f"u{i}", "snippet": ""} for i in range(10)]
+        )
         results = asyncio.run(web_search("q", client=caller, top_k=3))
         assert len(results) <= 3
 
@@ -492,19 +572,23 @@ class TestWebSearch:
         assert all(isinstance(r, SearchResult) for r in results)
 
     def test_rank_assigned(self):
-        caller = make_search_caller([
-            {"title": "a", "url": "u1", "snippet": ""},
-            {"title": "b", "url": "u2", "snippet": ""},
-        ])
+        caller = make_search_caller(
+            [
+                {"title": "a", "url": "u1", "snippet": ""},
+                {"title": "b", "url": "u2", "snippet": ""},
+            ]
+        )
         results = asyncio.run(web_search("q", client=caller))
         assert results[0].rank == 0
         assert results[1].rank == 1
 
     def test_non_dict_items_filtered(self):
-        caller = make_search_caller([
-            {"title": "good", "url": "u", "snippet": ""},
-            "bad_item",
-        ])
+        caller = make_search_caller(
+            [
+                {"title": "good", "url": "u", "snippet": ""},
+                "bad_item",
+            ]
+        )
         results = asyncio.run(web_search("q", client=caller))
         assert len(results) == 1
 
@@ -512,6 +596,7 @@ class TestWebSearch:
 # ===========================================================================
 # build_system_prompt 测试
 # ===========================================================================
+
 
 class TestBuildSystemPrompt:
     def test_default_build_mode(self):
@@ -564,6 +649,7 @@ class TestBuildSystemPrompt:
 # truncate_messages 测试
 # ===========================================================================
 
+
 class TestTruncateMessages:
     def test_short_messages_unchanged(self):
         msgs = [{"role": "user", "content": "hi"}]
@@ -610,6 +696,7 @@ class TestTruncateMessages:
 # ===========================================================================
 # extract_thinking 测试
 # ===========================================================================
+
 
 class TestExtractThinking:
     def test_extracts_thinking_block(self):
@@ -674,12 +761,11 @@ class TestExtractThinking:
 # snapshot_conversation 测試
 # ===========================================================================
 
+
 class TestSnapshotConversation:
     def test_returns_snapshot(self):
         store = make_persistence()
-        result = asyncio.run(snapshot_conversation(
-            BASIC_MESSAGES, store=store, session_id="s1"
-        ))
+        result = asyncio.run(snapshot_conversation(BASIC_MESSAGES, store=store, session_id="s1"))
         assert isinstance(result, ConversationSnapshot)
 
     def test_snapshot_id_unique(self):
@@ -689,24 +775,23 @@ class TestSnapshotConversation:
         assert s1.snapshot_id != s2.snapshot_id
 
     def test_message_count_correct(self):
-        msgs = [{"role": "user", "content": "a"},
-                {"role": "assistant", "content": "b"}]
+        msgs = [{"role": "user", "content": "a"}, {"role": "assistant", "content": "b"}]
         store = make_persistence()
         result = asyncio.run(snapshot_conversation(msgs, store=store))
         assert result.message_count == 2
 
     def test_session_id_in_store_key(self):
         store = make_persistence()
-        result = asyncio.run(snapshot_conversation(
-            BASIC_MESSAGES, store=store, session_id="my_session"
-        ))
+        result = asyncio.run(
+            snapshot_conversation(BASIC_MESSAGES, store=store, session_id="my_session")
+        )
         assert "my_session" in result.store_key
 
     def test_store_called_with_json(self):
         store = make_persistence()
         asyncio.run(snapshot_conversation(BASIC_MESSAGES, store=store))
         store.save.assert_called_once()
-        _, kwargs = store.save.call_args[0], store.save.call_args[1]
+        _, _kwargs = store.save.call_args[0], store.save.call_args[1]
         value = store.save.call_args[1]["value"]
         parsed = json.loads(value)
         assert parsed["messages"] == BASIC_MESSAGES

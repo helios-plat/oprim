@@ -137,7 +137,7 @@ class TestClipWithWarning:
 
     def test_logger(self):
         logger = logging.getLogger("test_clip")
-        handler = logging.handlers = []
+        logging.handlers = []
         x = np.zeros(10)
         x[0:8] = 100  # 80% will be clipped
         with warnings.catch_warnings(record=True) as w:

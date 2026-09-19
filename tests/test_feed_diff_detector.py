@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._feed_diff_detector import feed_diff_detector
 
 ITEM_A = {"guid": "http://example.com/1", "title": "Item 1"}

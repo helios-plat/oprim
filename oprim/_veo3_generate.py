@@ -2,7 +2,8 @@
 
 oprim 内置的 ltx2_cloud(fal-ai/ltx-video 基础版)写实/人体解剖弱(手崩、768x512
 低清)。Veo 3 写实与解剖最佳,支持原生音频与 negative_prompt,适合"真人一样"的需求。
-与 ltx2_cloud_generate / vibevoice_synthesize 并列作 video 原语;走 fal 队列
+与 ltx2_cloud_generate / vibevoice_synthesize 并列作 video 原语
+走 fal 队列
 (fal_queue_generate)。
 
 Example:
@@ -45,13 +46,15 @@ async def veo3_generate(
     Args:
         prompt: 文本提示。
         output_path: 产物落盘路径。
-        aspect_ratio: {"9:16","16:9","1:1"};非法值回退按 size 推导或 9:16。
+        aspect_ratio: {"9:16","16:9","1:1"}
+        非法值回退按 size 推导或 9:16。
         duration_s: 时长秒(下发为 "{int}s")。
         negative_prompt: 负向提示(非空才下发)。
         generate_audio: 是否请求原生音频。
         resolution: 分辨率档,如 "720p"。
         config: 覆盖 dict(FAL_API_KEY)。
-        _kw: registry 注入的其余 kw(如 size/mode/reference_image)一律忽略;
+        _kw: registry 注入的其余 kw(如 size/mode/reference_image)一律忽略
+
             仅 size 可参与 aspect_ratio 推导。
 
     Returns:

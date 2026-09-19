@@ -26,12 +26,12 @@ def _gjrgarch11_nll(params: np.ndarray, returns: np.ndarray) -> float:
     if alpha + gamma / 2.0 + beta >= 1.0:
         return 1e10
 
-    T = len(returns)
+    t_val = len(returns)
     eps = returns - mu
-    sigma2 = np.zeros(T)
+    sigma2 = np.zeros(t_val)
     sigma2[0] = max(np.var(returns), 1e-8)
 
-    for t in range(1, T):
+    for t in range(1, t_val):
         indicator = 1.0 if eps[t - 1] < 0 else 0.0
         sigma2[t] = (
             omega
@@ -112,24 +112,26 @@ def gjr_garch_fit(
             stacklevel=2,
         )
 
-    T = len(arr)
+    t_val = len(arr)
     mean_val = float(np.mean(arr))
     var_val = float(np.var(arr))
 
-    x0 = np.array([
-        var_val * 0.05,  # omega
-        0.05,  # alpha
-        0.10,  # gamma (asymmetry: should be positive for leverage effect)
-        0.80,  # beta
-        mean_val,  # mu
-    ])
+    x0 = np.array(
+        [
+            var_val * 0.05,  # omega
+            0.05,  # alpha
+            0.10,  # gamma (asymmetry: should be positive for leverage effect)
+            0.80,  # beta
+            mean_val,  # mu
+        ]
+    )
 
     bounds = [
         (1e-8, None),  # omega > 0
         (1e-8, 0.999),  # alpha >= 0
         (1e-8, 0.999),  # gamma >= 0
         (1e-8, 0.999),  # beta >= 0
-        (None, None),   # mu unrestricted
+        (None, None),  # mu unrestricted
     ]
 
     # Try multiple starting points
@@ -180,16 +182,21 @@ def gjr_garch_fit(
 
     # Compute final conditional variance series
     eps = arr - mu
-    sigma2 = np.zeros(T)
+    sigma2 = np.zeros(t_val)
     sigma2[0] = max(var_val, 1e-8)
-    for t in range(1, T):
+    for t in range(1, t_val):
         indicator = 1.0 if eps[t - 1] < 0 else 0.0
-        sigma2[t] = omega + alpha * eps[t - 1] ** 2 + gamma * indicator * eps[t - 1] ** 2 + beta * sigma2[t - 1]
+        sigma2[t] = (
+            omega
+            + alpha * eps[t - 1] ** 2
+            + gamma * indicator * eps[t - 1] ** 2
+            + beta * sigma2[t - 1]
+        )
 
     log_likelihood = float(-best_result.fun)
     k = 5
     aic = float(-2 * log_likelihood + 2 * k)
-    bic = float(-2 * log_likelihood + k * np.log(T))
+    bic = float(-2 * log_likelihood + k * np.log(t_val))
 
     persistence = float(alpha + gamma / 2.0 + beta)
     if persistence < 1.0:
@@ -256,10 +263,7 @@ def gjr_garch_forecast(
 
     # One-step: use last actual eps^2
     forecast_var[0] = (
-        omega
-        + alpha * last_eps2
-        + gamma * expected_neg_frac * last_eps2
-        + beta * last_sigma2
+        omega + alpha * last_eps2 + gamma * expected_neg_frac * last_eps2 + beta * last_sigma2
     )
 
     # Multi-step: E[sigma2_{t+h}] using long-run mean reversion

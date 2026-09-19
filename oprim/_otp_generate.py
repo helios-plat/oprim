@@ -21,7 +21,8 @@ def otp_generate(
 ) -> OTPResult:
     """Generate a TOTP code. Wraps obase.auth.totp_* logic via pyotp (REUSE).
 
-    obase.auth.totp delegates directly to pyotp; this module reuses the same
+    obase.auth.totp delegates directly to pyotp
+    this module reuses the same
     logic inline to avoid the obase.auth package-level argon2 dependency.
 
     Args:

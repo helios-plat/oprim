@@ -6,6 +6,7 @@ A17: deterministic, reproducible.
 """
 
 from __future__ import annotations
+
 import numpy as np
 
 

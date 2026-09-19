@@ -1,39 +1,47 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 import json
 import time
 import uuid
 from dataclasses import dataclass, field
 from typing import Any
+
 from ._exceptions import OprimError
 from ._protocols import PersistenceHandle
-from .text import count_tokens
+
 
 class PromptOprimError(OprimError):
     """prompt 构建 / 消息处理失败。"""
 
+
 class SnapshotOprimError(OprimError):
     """会话快照失败。"""
+
 
 @dataclass
 class ThinkingResult:
     """扩展思考提取结果。"""
+
     thinking: str
     text: str
     has_thinking: bool
     thinking_blocks: list[str] = field(default_factory=list)
     text_blocks: list[str] = field(default_factory=list)
 
+
 @dataclass
 class ConversationSnapshot:
     """会话快照结构。"""
+
     snapshot_id: str
     session_id: str
     message_count: int
     created_at: float
     store_key: str
     revision: str
+
 
 async def snapshot_conversation(
     messages: list[dict],
@@ -75,25 +83,28 @@ async def snapshot_conversation(
     ts = time.time()
 
     try:
-        payload = json.dumps({
-            "snapshot_id": snapshot_id,
-            "session_id": sid,
-            "messages": messages,
-            "message_count": len(messages),
-            "created_at": ts,
-            "metadata": metadata or {},
-        }, ensure_ascii=False)
+        payload = json.dumps(
+            {
+                "snapshot_id": snapshot_id,
+                "session_id": sid,
+                "messages": messages,
+                "message_count": len(messages),
+                "created_at": ts,
+                "metadata": metadata or {},
+            },
+            ensure_ascii=False,
+        )
     except (TypeError, ValueError) as e:
-        raise SnapshotOprimError("failed to serialize messages", cause=e)
+        raise SnapshotOprimError("failed to serialize messages", cause=e) from e
 
     store_key = f"session:{sid}:snapshot:{snapshot_id}"
 
     try:
         revision = await store.save(key=store_key, value=payload)
-    except (SnapshotOprimError,):
+    except SnapshotOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise SnapshotOprimError("failed to save snapshot to store", cause=e)
+        raise SnapshotOprimError("failed to save snapshot to store", cause=e) from e
 
     return ConversationSnapshot(
         snapshot_id=snapshot_id,

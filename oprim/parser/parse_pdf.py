@@ -1,4 +1,5 @@
 """PDF parser with provider dispatch."""
+
 from __future__ import annotations
 
 import os
@@ -128,7 +129,8 @@ def _parse_opendataloader(path: Path, *, hybrid: bool = False) -> ParsedContent:
     本地模式(快) + hybrid 模式(复杂页路由 docling-fast, 公式 LaTeX 提取需 hybrid
     server --enrich-formula 于 127.0.0.1:5002)。失败抛 PDFParseError(调用方回退)。
 
-    hint 支持: {"hybrid": true} 启用 hybrid; {"odl_formula": true} 公式提取。
+    hint 支持: {"hybrid": true} 启用 hybrid
+    {"odl_formula": true} 公式提取。
     """
     import subprocess
     import tempfile
@@ -141,7 +143,7 @@ def _parse_opendataloader(path: Path, *, hybrid: bool = False) -> ParsedContent:
             env = {
                 **os.environ,
                 "PATH": f"{Path.home() / 'jdk' / 'bin'}:"
-                        f"{str(Path(sys.executable).parent)}:{os.environ.get('PATH', '')}",
+                f"{str(Path(sys.executable).parent)}:{os.environ.get('PATH', '')}",
             }
             r = subprocess.run(cmd, capture_output=True, text=True, timeout=600, env=env)
             mds = sorted(Path(td).rglob("*.md"))
@@ -159,11 +161,13 @@ def _parse_opendataloader(path: Path, *, hybrid: bool = False) -> ParsedContent:
                 plaintext=md_text,
                 page_count=page_count,
                 tables=[{"md": m} for m in md_text.count("|---") * [None]][:0]
-                        or [{"count": md_text.count("|---")}],
-                metadata={"parser_name": "opendataloader",
-                          "hybrid": hybrid,
-                          "table_count": md_text.count("|---"),
-                          "cid_count": md_text.count("(cid:")},
+                or [{"count": md_text.count("|---")}],
+                metadata={
+                    "parser_name": "opendataloader",
+                    "hybrid": hybrid,
+                    "table_count": md_text.count("|---"),
+                    "cid_count": md_text.count("(cid:"),
+                },
                 parser_name="opendataloader",
             )
     except PDFParseError:
@@ -174,6 +178,7 @@ def _parse_opendataloader(path: Path, *, hybrid: bool = False) -> ParsedContent:
 
 def _parse_pymupdf4llm(path: Path, *, embed_images: bool = False) -> ParsedContent:
     import pymupdf4llm  # lazy: 仅该 provider 需要
+
     try:
         doc = fitz.open(str(path))
         if doc.is_encrypted:
@@ -191,9 +196,7 @@ def _parse_pymupdf4llm(path: Path, *, embed_images: bool = False) -> ParsedConte
             try:
                 result = doc[i].find_tables()
                 for t in result.tables:
-                    tables.append(
-                        {"page": i + 1, "rows": len(t.rows), "cols": len(t.header.cells)}
-                    )
+                    tables.append({"page": i + 1, "rows": len(t.rows), "cols": len(t.header.cells)})
             except Exception:
                 pass
 

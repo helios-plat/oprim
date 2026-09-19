@@ -10,12 +10,12 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from oprim._exceptions import OprimError
 from oprim._crypto_token_generate import crypto_token_generate
+from oprim._exceptions import OprimError
 from oprim._file_size_limiter import SizeLimitResult, file_size_limiter
-from oprim.file_type_detector import FileTypeInfo, file_type_detector
 from oprim._http_post import HTTPResponse, http_post
 from oprim._template_render import template_render
+from oprim.file_type_detector import FileTypeInfo, file_type_detector
 
 _MB = 1024 * 1024
 

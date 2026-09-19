@@ -90,11 +90,11 @@ def bash_exec(
             code=result.returncode,
         )
     except FileNotFoundError as e:  # pragma: no cover
-        raise ShellOprimError("shell not found", cause=e)
+        raise ShellOprimError("shell not found", cause=e) from e
     except subprocess.TimeoutExpired:
         raise ShellOprimError(f"command timed out after {timeout}s: {command[:80]}")
     except OSError as e:  # pragma: no cover
-        raise ShellOprimError("cannot execute command", cause=e)
+        raise ShellOprimError("cannot execute command", cause=e) from e
 
 
 @dataclass
@@ -144,7 +144,7 @@ async def bash_exec_stream(
             env=env,
         )
     except OSError as e:  # pragma: no cover
-        raise ShellOprimError("cannot start process", cause=e)
+        raise ShellOprimError("cannot start process", cause=e) from e
 
     queue: asyncio.Queue[StreamChunk | object] = asyncio.Queue()
 
@@ -154,11 +154,9 @@ async def bash_exec_stream(
             while True:
                 try:
                     line = await asyncio.wait_for(stream.readline(), timeout=timeout)
-                except asyncio.TimeoutError:  # pragma: no cover
+                except TimeoutError:  # pragma: no cover
                     # 超时：放 ShellOprimError 到 queue，让主循环抛出
-                    await queue.put(
-                        ShellOprimError(f"stream timeout after {timeout}s on {label}")
-                    )
+                    await queue.put(ShellOprimError(f"stream timeout after {timeout}s on {label}"))
                     return
                 if not line:
                     break

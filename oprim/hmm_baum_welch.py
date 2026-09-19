@@ -1,4 +1,5 @@
 """oprim.hmm_baum_welch — Fit a Gaussian HMM via the Baum-Welch algorithm."""
+
 from __future__ import annotations
 
 from typing import Any

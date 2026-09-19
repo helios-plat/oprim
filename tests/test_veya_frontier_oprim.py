@@ -50,7 +50,9 @@ class TestCausalGraphBuild:
         trail = [
             {"type": "action", "action": "read", "status": "success"},
             {
-                "type": "action", "action": "edit", "status": "failed",
+                "type": "action",
+                "action": "edit",
+                "status": "failed",
                 "output_refs": ["step_0_action"],
             },
         ]
@@ -78,11 +80,7 @@ class TestInvariantExtract:
         from oprim import invariant_extract
 
         code = (
-            "def f(x):\n"
-            "    assert x > 0\n"
-            "    if x < 0:\n"
-            "        raise ValueError()\n"
-            "    return x\n"
+            "def f(x):\n    assert x > 0\n    if x < 0:\n        raise ValueError()\n    return x\n"
         )
         r = invariant_extract(code)
         assert r["status"] == "success"
@@ -92,12 +90,7 @@ class TestInvariantExtract:
     def test_target_function_filter(self):
         from oprim import invariant_extract
 
-        code = (
-            "def good():\n"
-            "    assert a == 1\n"
-            "def bad():\n"
-            "    assert b == 2\n"
-        )
+        code = "def good():\n    assert a == 1\ndef bad():\n    assert b == 2\n"
         r = invariant_extract(code, target_function="good")
         assert r["invariants"] == ["a == 1"]
 

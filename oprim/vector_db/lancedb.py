@@ -1,4 +1,5 @@
 """LanceDB vector database implementation."""
+
 from __future__ import annotations
 
 import json
@@ -6,10 +7,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-import lancedb
+try:
+    import lancedb
+except ImportError:
+    lancedb = None  # type: ignore[assignment]
+import contextlib
+
 import pyarrow as pa
 
 from oprim._logging import log as olog
+from oprim._optional import require_optional
 from oprim.errors import VectorDBError
 
 # Call optimize() after this many upsert() calls to prevent fragment accumulation.
@@ -41,6 +48,7 @@ class LanceDBVectorDB:
     """LanceDB-backed vector store with merge-insert upsert semantics."""
 
     def __init__(self, db_path: Path, table_name: str, dim: int) -> None:
+        require_optional(lancedb, feature="vector storage", extra="storage", package="lancedb")
         self._path = Path(db_path)
         self._table_name = table_name
         self._dim = dim
@@ -68,13 +76,9 @@ class LanceDBVectorDB:
                     "metadata": pa.array([], type=pa.string()),
                 }
             )
-            return self._db.create_table(
-                self._table_name, data=empty, schema=self._schema
-            )
+            return self._db.create_table(self._table_name, data=empty, schema=self._schema)
         except Exception as e:
-            raise VectorDBError(
-                f"Failed to open/create table {self._table_name}: {e}"
-            ) from e
+            raise VectorDBError(f"Failed to open/create table {self._table_name}: {e}") from e
 
     def _warn_if_no_index(self) -> None:
         """Log a warning if the table has rows but no ANN index.
@@ -90,7 +94,7 @@ class LanceDBVectorDB:
                     table=self._table_name,
                     rows=stats["num_rows"],
                     hint="run tbl.create_index(metric='cosine', num_partitions=256, "
-                         "num_sub_vectors=128, vector_column_name='embedding') once",
+                    "num_sub_vectors=128, vector_column_name='embedding') once",
                 )
         except Exception:
             pass
@@ -137,8 +141,7 @@ class LanceDBVectorDB:
     ) -> list[VectorRecord]:
         try:
             q = (
-                self._tbl
-                .search(query_vec, vector_column_name="embedding")
+                self._tbl.search(query_vec, vector_column_name="embedding")
                 .metric("cosine")
                 .limit(top_k)
             )
@@ -146,10 +149,8 @@ class LanceDBVectorDB:
             results = []
             for row in rows:
                 meta: dict = {}
-                try:
+                with contextlib.suppress(Exception):
                     meta = json.loads(row["metadata"])
-                except Exception:
-                    pass
                 results.append(
                     VectorRecord(
                         id=row["id"],

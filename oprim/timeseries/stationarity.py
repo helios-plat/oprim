@@ -126,8 +126,11 @@ def adf_test(
         Deterministic terms: "c" (constant), "ct" (const+trend),
         "ctt" (const+trend+trend^2), "nc" (none).
     autolag : {"AIC", "BIC", "t-stat", None}
-        Lag selection criterion. AIC: minimize AIC; BIC: minimize BIC;
-        "t-stat": remove lags until last lag t-stat is significant at 10%;
+        Lag selection criterion. AIC: minimize AIC
+        BIC: minimize BIC
+
+        "t-stat": remove lags until last lag t-stat is significant at 10%
+
         None: use max_lag directly.
 
     Returns
@@ -175,10 +178,10 @@ def adf_test(
             t_stat_tmp, resids = _adf_statistic(arr, lags=lag, regression=regression)
             if np.isnan(t_stat_tmp):  # pragma: no cover
                 continue  # pragma: no cover
-            T = len(resids)
-            if T <= 0:  # pragma: no cover
+            t_val = len(resids)
+            if t_val <= 0:  # pragma: no cover
                 continue  # pragma: no cover
-            sigma2 = float(np.var(resids, ddof=0)) if T > 1 else np.inf
+            sigma2 = float(np.var(resids, ddof=0)) if t_val > 1 else np.inf
             if sigma2 <= 0:  # pragma: no cover
                 continue  # pragma: no cover
             # Number of parameters: 1 (rho) + deterministics + lag augmentations
@@ -187,15 +190,15 @@ def adf_test(
             k = 1 + det_count + lag
 
             if autolag == "AIC":
-                crit = np.log(sigma2) + 2 * k / T
+                crit = np.log(sigma2) + 2 * k / t_val
             elif autolag == "BIC":
-                crit = np.log(sigma2) + k * np.log(T) / T
+                crit = np.log(sigma2) + k * np.log(t_val) / t_val
             elif autolag == "t-stat":
                 # Use largest lag where t-stat is significant at 10%
                 # We compute for each lag later; for now track same as AIC
-                crit = np.log(sigma2) + 2 * k / T
+                crit = np.log(sigma2) + 2 * k / t_val
             else:  # pragma: no cover
-                crit = np.log(sigma2) + 2 * k / T
+                crit = np.log(sigma2) + 2 * k / t_val
 
             if crit < best_crit:
                 best_crit = crit
@@ -290,11 +293,11 @@ def kpss_test(
         e = arr - np.mean(arr)
     else:
         # Detrend: OLS with constant + trend
-        X = np.column_stack([np.ones(n), np.arange(1, n + 1, dtype=float)])
-        _, e = _ols_fit(arr, X)
+        x_mat = np.column_stack([np.ones(n), np.arange(1, n + 1, dtype=float)])
+        _, e = _ols_fit(arr, x_mat)
 
     # Step 2: Partial sums
-    S = np.cumsum(e)
+    s_val = np.cumsum(e)
 
     # Step 3: LM statistic
     # Long-run variance via Newey-West (Bartlett kernel)
@@ -307,12 +310,12 @@ def kpss_test(
     if sigma2 <= 0:
         sigma2 = 1e-10  # pragma: no cover
 
-    lm_stat = float(np.sum(S**2)) / (n**2 * sigma2)
+    lm_stat = float(np.sum(s_val**2)) / (n**2 * sigma2)
 
     cv = _KPSS_CV[regression]
 
     # p-value interpolation: KPSS rejects stationarity for LARGE values
-    kpss_table = sorted(cv.items(), key=lambda x: x[1])  # sort by cv value ascending
+    sorted(cv.items(), key=lambda x: x[1])  # sort by cv value ascending
     # (p_value, cv_value) pairs: at cv_0.01=0.739 significance level 0.01
     # Map: large stat → small p → reject stationarity
     # Interpolate from critical value table (approximate)

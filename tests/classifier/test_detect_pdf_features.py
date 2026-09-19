@@ -1,4 +1,5 @@
 """Tests for oprim.classifier.detect_pdf_features."""
+
 from __future__ import annotations
 
 from pathlib import Path

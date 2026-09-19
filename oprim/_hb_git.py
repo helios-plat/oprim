@@ -5,6 +5,7 @@ git_snapshot [BLOCK→就绪] / git_restore_snapshot [BLOCK→就绪]
 
 obase.git.run_git 已就位，[BLOCK] 全部实现。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -15,16 +16,16 @@ from pathlib import Path
 
 from ._exceptions import GitOprimError
 
-
 # ---------------------------------------------------------------------------
 # Types
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class StatusEntry:
     path: str
-    index: str      # staged status char: M/A/D/R/C/?/ (space)
-    worktree: str   # worktree status char
+    index: str  # staged status char: M/A/D/R/C/?/ (space)
+    worktree: str  # worktree status char
     old_path: str | None = None
 
 
@@ -53,7 +54,7 @@ class GitStatus:
 class FileChange:
     new_path: str
     old_path: str | None = None
-    status: str = ""   # A/M/D/R/C/B
+    status: str = ""  # A/M/D/R/C/B
     is_binary: bool = False
     additions: int = 0
     deletions: int = 0
@@ -89,6 +90,7 @@ SnapshotId = str
 # parse_git_status  [s] 纯计算
 # ---------------------------------------------------------------------------
 
+
 def parse_git_status(raw: str) -> GitStatus:
     """解析 `git status --porcelain=v1` 输出。
 
@@ -113,12 +115,14 @@ def parse_git_status(raw: str) -> GitStatus:
         old_path: str | None = None
         if " -> " in rest:
             old_path, rest = rest.split(" -> ", 1)
-        entries.append(StatusEntry(
-            path=rest.strip(),
-            index=index,
-            worktree=worktree,
-            old_path=old_path,
-        ))
+        entries.append(
+            StatusEntry(
+                path=rest.strip(),
+                index=index,
+                worktree=worktree,
+                old_path=old_path,
+            )
+        )
     return GitStatus(files=entries)
 
 
@@ -199,6 +203,7 @@ def parse_git_diff(raw: str) -> list[FileChange]:
 # parse_gitignore  [s] 纯计算
 # ---------------------------------------------------------------------------
 
+
 def parse_gitignore(content: str) -> list[GitIgnorePattern]:
     """解析 .gitignore 内容 → pattern 列表（纯计算）。
 
@@ -240,13 +245,15 @@ def parse_gitignore(content: str) -> list[GitIgnorePattern]:
         if pattern.startswith("/"):
             pattern = pattern[1:]
 
-        patterns.append(GitIgnorePattern(
-            raw=raw,
-            pattern=pattern,
-            negated=negated,
-            dir_only=dir_only,
-            anchored=anchored,
-        ))
+        patterns.append(
+            GitIgnorePattern(
+                raw=raw,
+                pattern=pattern,
+                negated=negated,
+                dir_only=dir_only,
+                anchored=anchored,
+            )
+        )
     return patterns
 
 
@@ -323,6 +330,7 @@ async def detect_project_type(root: Path) -> ProjectType:
 # git_current_branch  [obase.git.run_git 就绪]
 # ---------------------------------------------------------------------------
 
+
 async def git_current_branch(*, cwd: Path, timeout: float = 15) -> str:
     """当前 git 分支名。detached HEAD 返回 commit hash 短串。
 
@@ -365,6 +373,7 @@ async def git_current_branch(*, cwd: Path, timeout: float = 15) -> str:
 # git_snapshot  [obase.git.run_git 就绪]
 # ---------------------------------------------------------------------------
 
+
 async def git_snapshot(*, cwd: Path, timeout: float = 30) -> SnapshotId:
     """创建工作区快照（stash push），返回可恢复 SnapshotId。
 
@@ -404,6 +413,7 @@ async def git_snapshot(*, cwd: Path, timeout: float = 30) -> SnapshotId:
 # ---------------------------------------------------------------------------
 # git_restore_snapshot  [obase.git.run_git 就绪]
 # ---------------------------------------------------------------------------
+
 
 async def git_restore_snapshot(
     snap_id: SnapshotId,
@@ -451,6 +461,5 @@ async def git_restore_snapshot(
     )
     if not restore.ok:
         raise GitOprimError(
-            f"git_restore_snapshot failed (exit {restore.returncode}): "
-            f"{restore.stderr.strip()}"
+            f"git_restore_snapshot failed (exit {restore.returncode}): {restore.stderr.strip()}"
         )

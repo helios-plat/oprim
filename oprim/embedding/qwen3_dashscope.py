@@ -1,4 +1,5 @@
 """DashScope text-embedding-v3 embedder (Qwen3 model family)."""
+
 from __future__ import annotations
 
 import time
@@ -18,7 +19,7 @@ TextEmbedding = None
 
 
 _DASHSCOPE_EMBED_MODEL = "text-embedding-v3"
-_MAX_BATCH = 10          # DashScope hard limit per call
+_MAX_BATCH = 10  # DashScope hard limit per call
 _COST_PER_1K_TOKENS = 0.0007  # approximate USD
 
 
@@ -30,6 +31,7 @@ class Qwen3DashscopeEmbedder:
         require_optional(dashscope, feature="qwen", extra="llm", package="dashscope")
         if TextEmbedding is None:
             from dashscope import TextEmbedding as _TextEmbedding
+
             TextEmbedding = _TextEmbedding
         self._text_embedding = TextEmbedding
         api_key = cfg.get("DASHSCOPE_API_KEY")
@@ -67,13 +69,9 @@ class Qwen3DashscopeEmbedder:
                     ]
                     return embeddings
                 elif resp.status_code == 429:
-                    raise QuotaExceededError(
-                        f"DashScope quota exceeded: {resp.message}"
-                    )
+                    raise QuotaExceededError(f"DashScope quota exceeded: {resp.message}")
                 else:
-                    raise EmbeddingError(
-                        f"DashScope error {resp.status_code}: {resp.message}"
-                    )
+                    raise EmbeddingError(f"DashScope error {resp.status_code}: {resp.message}")
             except QuotaExceededError:
                 raise
             except Exception as e:

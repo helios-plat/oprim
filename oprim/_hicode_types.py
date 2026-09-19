@@ -1,4 +1,5 @@
 """Shared types for hicode batch H-A pure-compute oprim elements."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

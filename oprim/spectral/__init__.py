@@ -1,4 +1,5 @@
 """Spectral analysis primitives submodule."""
+
 from __future__ import annotations
 
 from oprim.spectral.eigengap import spectral_eigengap_detect

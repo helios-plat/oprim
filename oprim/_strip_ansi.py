@@ -1,4 +1,5 @@
 """Pure-compute: strip_ansi."""
+
 from __future__ import annotations
 
 import re
@@ -7,11 +8,11 @@ import re
 _ANSI_RE = re.compile(
     r"\x1b"
     r"(?:"
-    r"\[[0-9;]*[A-Za-z]"   # CSI sequences: ESC [ ... letter  (covers SGR, cursor moves, etc.)
+    r"\[[0-9;]*[A-Za-z]"  # CSI sequences: ESC [ ... letter  (covers SGR, cursor moves, etc.)
     r"|"
     r"\][^\x07\x1b]*(?:\x07|\x1b\\)"  # OSC sequences: ESC ] ... BEL or ST
     r"|"
-    r"[^[\]]"               # Two-char ESC sequences: ESC + single char (not [ or ])
+    r"[^[\]]"  # Two-char ESC sequences: ESC + single char (not [ or ])
     r")"
 )
 

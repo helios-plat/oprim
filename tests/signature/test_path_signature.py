@@ -20,9 +20,9 @@ def test_signature_compute_depth_1_returns_path_increments():
 def test_signature_compute_length_formula():
     # Length = sum d^k for k=0..N
     path = np.random.default_rng(0).normal(0, 1, (10, 3))  # d=3
-    d, N = 3, 4
-    r = path_signature_compute(path, truncation_depth=N, augment_with_time=False)
-    expected_length = sum(d**k for k in range(N + 1))  # 1 + 3 + 9 + 27 + 81 = 121
+    d, n_val = 3, 4
+    r = path_signature_compute(path, truncation_depth=n_val, augment_with_time=False)
+    expected_length = sum(d**k for k in range(n_val + 1))  # 1 + 3 + 9 + 27 + 81 = 121
     assert len(r["signature"]) == expected_length
 
 
@@ -71,9 +71,9 @@ def test_signature_compute_linear_path_simple_form():
     # For linear path from (0,0) to (a, b) in N steps:
     # Level 1 = [a, b]
     # Level 2 = outer product of [a, b] with [a, b] / 2 (for linear path)
-    N = 100
+    n_val = 100
     a, b = 2.0, 3.0
-    t = np.linspace(0, 1, N)
+    t = np.linspace(0, 1, n_val)
     path = np.column_stack([a * t, b * t])
     r = path_signature_compute(path, truncation_depth=2, augment_with_time=False)
     sig = r["signature"]

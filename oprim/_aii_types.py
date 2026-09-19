@@ -6,7 +6,7 @@ All types are frozen dataclasses to guarantee deterministic equality.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -24,7 +24,7 @@ class ClusterResult:
 
 @dataclass
 class GapReport:
-    high_miss_topics: list[dict]   # [{topic: str, miss_count: int}]
-    stale_unverified: list[str]    # ku_id list
-    isolated_kus: list[str]        # ku_ids with graph degree == 0
-    grade_imbalance: dict          # {domain: {grade: count}}
+    high_miss_topics: list[dict]  # [{topic: str, miss_count: int}]
+    stale_unverified: list[str]  # ku_id list
+    isolated_kus: list[str]  # ku_ids with graph degree == 0
+    grade_imbalance: dict  # {domain: {grade: count}}

@@ -64,7 +64,8 @@ async def fal_queue_generate(
         endpoint: fal 端点,如 "fal-ai/veo3/fast"。
         payload: 提交给该端点的 JSON body。
         output_path: 产物落盘路径。
-        timeout_s: 轮询总超时(秒);超过即抛 FalQueueError(治 fal 队列无限挂)。
+        timeout_s: 轮询总超时(秒)
+        超过即抛 FalQueueError(治 fal 队列无限挂)。
         config: 覆盖 dict(FAL_API_KEY),缺省回退 env/cfg。
 
     Returns:

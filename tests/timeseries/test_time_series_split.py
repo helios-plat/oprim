@@ -47,7 +47,9 @@ class TestTimeSeriesSplit:
 
     def test_short_dates_raises(self) -> None:
         with pytest.raises(ValueError, match="at least 3"):
-            time_series_split(dates=[date(2024, 1, 1), date(2024, 1, 2)], train_pct=0.6, val_pct=0.2)
+            time_series_split(
+                dates=[date(2024, 1, 1), date(2024, 1, 2)], train_pct=0.6, val_pct=0.2
+            )
 
     def test_invalid_ratio_raises(self) -> None:
         dates = _make_dates(date(2024, 1, 1), 100)

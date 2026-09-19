@@ -37,7 +37,8 @@ def detect_northbound_reversal(
         config:      Threshold overrides.
 
     Returns:
-        :class:`~oprim._detector_types.DetectorSignal` on trigger; ``None`` otherwise.
+        :class:`~oprim._detector_types.DetectorSignal` on trigger
+        ``None`` otherwise.
 
     Raises:
         OprimError: If ``flow_series`` has fewer than 2 elements.

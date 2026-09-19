@@ -26,7 +26,8 @@ def chandelier_exit(
     Uses _wilder_atr from oprim/technical/_base.py (H1 compliant — no import of sibling oprim.atr).
     First `period` positions are NaN.
 
-    Reference: Le Beau (1990s); "Computerized Trading".
+    Reference: Le Beau (1990s)
+    "Computerized Trading".
 
     Parameters
     ----------

@@ -1,11 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 import difflib
-import re
 from dataclasses import dataclass
-from pathlib import Path
+
 from ._exceptions import ParseOprimError
+
 
 @dataclass
 class Hunk:
@@ -16,11 +17,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def compute_diff(
     old: str,
@@ -53,10 +56,12 @@ def compute_diff(
         label_a = f"a/{path}" if path else "original"
         label_b = f"b/{path}" if path else "modified"
         diff = difflib.unified_diff(
-            old_lines, new_lines,
-            fromfile=label_a, tofile=label_b,
+            old_lines,
+            new_lines,
+            fromfile=label_a,
+            tofile=label_b,
             n=context_lines,
         )
         return "".join(diff)
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError("failed to compute diff", cause=e)
+        raise ParseOprimError("failed to compute diff", cause=e) from e

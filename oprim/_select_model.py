@@ -1,4 +1,5 @@
 """Select the best model from a catalog for a given task hint."""
+
 from __future__ import annotations
 
 from ._hicode_types import ModelSpec, TaskHint

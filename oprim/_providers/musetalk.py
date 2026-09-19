@@ -41,15 +41,23 @@ async def invoke(
         python = Path(shutil.which("python3") or "python3")
 
     cmd = [
-        str(python), str(script),
-        "--source_image", str(portrait_image),
-        "--audio", str(audio_path),
-        "--output", str(output_path),
-        "--fps", str(fps),
-        "--resolution", resolution,
+        str(python),
+        str(script),
+        "--source_image",
+        str(portrait_image),
+        "--audio",
+        str(audio_path),
+        "--output",
+        str(output_path),
+        "--fps",
+        str(fps),
+        "--resolution",
+        resolution,
     ]
     proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
     try:
         _, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout_s)

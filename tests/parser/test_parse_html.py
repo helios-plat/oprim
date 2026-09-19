@@ -1,4 +1,5 @@
 """Tests for oprim.parser.parse_html."""
+
 from __future__ import annotations
 
 from oprim.parser.parse_html import parse_html
@@ -60,8 +61,10 @@ class TestParseHTML:
 
     def test_trafilatura_failure_uses_readability(self, monkeypatch):
         import trafilatura
+
         def raise_err(*args, **kwargs):
             raise RuntimeError("trafilatura internal error")
+
         monkeypatch.setattr(trafilatura, "extract", raise_err)
         result = parse_html(_SAMPLE_HTML)
         assert isinstance(result, ParsedContent)
@@ -70,10 +73,13 @@ class TestParseHTML:
     def test_both_parsers_fail_returns_empty(self, monkeypatch):
         import trafilatura
         from readability import Document as _Doc
+
         def raise_trafi(*args, **kwargs):
             raise RuntimeError("trafilatura fail")
+
         def raise_read(*args, **kwargs):
             raise RuntimeError("readability fail")
+
         monkeypatch.setattr(trafilatura, "extract", raise_trafi)
         monkeypatch.setattr(_Doc, "summary", raise_read)
         result = parse_html(_SAMPLE_HTML)

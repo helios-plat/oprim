@@ -85,9 +85,7 @@ async def srt_translate(
         response = await llm(prompt=prompt)
         lines = [ln.strip() for ln in response.strip().split("\n") if ln.strip()]
         if len(lines) != len(texts):
-            raise SRTTranslateError(
-                f"LLM returned {len(lines)} lines, expected {len(texts)}"
-            )
+            raise SRTTranslateError(f"LLM returned {len(lines)} lines, expected {len(texts)}")
         translated_texts.extend(lines)
 
     # Write output SRT
@@ -101,9 +99,7 @@ async def srt_translate(
     return output_path
 
 
-_SRT_TIMESTAMP_RE = re.compile(
-    r"\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}"
-)
+_SRT_TIMESTAMP_RE = re.compile(r"\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}")
 
 
 def _parse_srt(path: Path) -> list[dict[str, str]]:

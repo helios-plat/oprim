@@ -39,7 +39,7 @@ def fetch_rss_feed(
         return result
 
     try:
-        from obase.http.dns_pinned_transport import SSRFBlockedError, make_ssrf_safe_opener
+        from obase.http.dns_pinned_transport import make_ssrf_safe_opener
 
         opener = make_ssrf_safe_opener(timeout=timeout)
         req = urllib.request.Request(url)

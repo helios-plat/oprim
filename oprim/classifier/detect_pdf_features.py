@@ -1,4 +1,5 @@
 """Detect structural features of a PDF file."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -14,11 +15,11 @@ from oprim._optional import require_optional
 from oprim.errors import PDFParseError
 
 _CJK_RANGES = [
-    (0x4E00, 0x9FFF),   # CJK Unified Ideographs
-    (0x3000, 0x303F),   # CJK Symbols and Punctuation
-    (0x3040, 0x30FF),   # Hiragana + Katakana
-    (0x3400, 0x4DBF),   # CJK Extension A
-    (0xF900, 0xFAFF),   # CJK Compatibility Ideographs
+    (0x4E00, 0x9FFF),  # CJK Unified Ideographs
+    (0x3000, 0x303F),  # CJK Symbols and Punctuation
+    (0x3040, 0x30FF),  # Hiragana + Katakana
+    (0x3400, 0x4DBF),  # CJK Extension A
+    (0xF900, 0xFAFF),  # CJK Compatibility Ideographs
 ]
 
 

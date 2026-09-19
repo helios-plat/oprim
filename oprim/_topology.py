@@ -37,7 +37,7 @@ def takens_embed(
     n = len(x) - (d - 1) * tau
     if n <= 0:
         raise ValueError(f"Series too short: len={len(x)}, d={d}, tau={tau}")
-    return np.stack([x[i * tau: i * tau + n] for i in range(d)], axis=1)
+    return np.stack([x[i * tau : i * tau + n] for i in range(d)], axis=1)
 
 
 def persistence_landscape(
@@ -71,7 +71,8 @@ def persistence_landscape(
     References
     ----------
     .. [1] Bubenik, P. (2015). Statistical topological data analysis using persistence landscapes.
-    .. [2] Extraction source: Selene project, sel_v2/offline/tda_calibration.py:persistence_diagram_to_landscape
+    .. [2] Extraction source: Selene project,
+       sel_v2/offline/tda_calibration.py:persistence_diagram_to_landscape
     """
     dgm = np.asarray(dgm, dtype=float)
     if len(dgm) == 0:

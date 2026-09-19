@@ -1,4 +1,5 @@
 """Serialize a list of Todo objects to a plain dict."""
+
 from __future__ import annotations
 
 from typing import Any

@@ -75,11 +75,15 @@ async def audio_mix(
     mix_inputs = "".join(f"[a{i}]" for i in range(n))
     filter_complex = ";".join(volume_filters) + f";{mix_inputs}amix=inputs={n}:duration=longest"
 
-    args.extend([
-        "-filter_complex", filter_complex,
-        "-ar", str(sample_rate),
-        str(output_path),
-    ])
+    args.extend(
+        [
+            "-filter_complex",
+            filter_complex,
+            "-ar",
+            str(sample_rate),
+            str(output_path),
+        ]
+    )
 
     try:
         await ffmpeg_run(args=args, timeout_s=timeout_s, expected_output=output_path)

@@ -10,13 +10,10 @@ Version: oprim v3.4.0
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
-from obase.sympy_runtime import SymPyRuntime, SymPyRuntimeError
-
 from oprim.types import SolveResult, SolveStep
-
 
 ConicType = Literal["circle", "ellipse", "parabola", "hyperbola", "degenerate", "unknown"]
 
@@ -49,15 +46,15 @@ def _classify_by_discriminant(A: float, B: float, C: float) -> ConicType:
 
 def _extract_circle_params(coeffs: dict) -> ConicParams:
     """Extract circle centre and radius from Ax^2 + Ay^2 + Dx + Ey + F = 0."""
-    A = coeffs.get("x2", 0.0)
-    D = coeffs.get("x", 0.0)
-    E = coeffs.get("y", 0.0)
-    F = coeffs.get("c", 0.0)
-    if abs(A) < 1e-12:
+    a_val = coeffs.get("x2", 0.0)
+    d_val = coeffs.get("x", 0.0)
+    e_val = coeffs.get("y", 0.0)
+    f_val = coeffs.get("c", 0.0)
+    if abs(a_val) < 1e-12:
         return ConicParams(conic_type="degenerate")
-    h = -D / (2 * A)
-    k = -E / (2 * A)
-    r2 = h * h + k * k - F / A
+    h = -d_val / (2 * a_val)
+    k = -e_val / (2 * a_val)
+    r2 = h * h + k * k - f_val / a_val
     if r2 < 0:
         return ConicParams(conic_type="degenerate")
     r = math.sqrt(r2)
@@ -72,26 +69,23 @@ def _extract_circle_params(coeffs: dict) -> ConicParams:
 
 def _extract_ellipse_params(coeffs: dict) -> ConicParams:
     """Extract ellipse parameters (simplified, no rotation)."""
-    A = coeffs.get("x2", 0.0)
-    C = coeffs.get("y2", 0.0)
-    D = coeffs.get("x", 0.0)
-    E = coeffs.get("y", 0.0)
-    F = coeffs.get("c", 0.0)
-    if abs(A) < 1e-12 or abs(C) < 1e-12:
+    a_val = coeffs.get("x2", 0.0)
+    c_val = coeffs.get("y2", 0.0)
+    d_val = coeffs.get("x", 0.0)
+    e_val = coeffs.get("y", 0.0)
+    f_val = coeffs.get("c", 0.0)
+    if abs(a_val) < 1e-12 or abs(c_val) < 1e-12:
         return ConicParams(conic_type="degenerate")
-    h = -D / (2 * A)
-    k = -E / (2 * C)
-    rhs = h * h * A + k * k * C - F
+    h = -d_val / (2 * a_val)
+    k = -e_val / (2 * c_val)
+    rhs = h * h * a_val + k * k * c_val - f_val
     if rhs <= 0:
         return ConicParams(conic_type="degenerate")
-    a2 = rhs / A
-    b2 = rhs / C
+    a2 = rhs / a_val
+    b2 = rhs / c_val
     a = math.sqrt(a2)
     b = math.sqrt(b2)
-    if a >= b:
-        e = math.sqrt(1 - b2 / a2)
-    else:
-        e = math.sqrt(1 - a2 / b2)
+    e = math.sqrt(1 - b2 / a2) if a >= b else math.sqrt(1 - a2 / b2)
     return ConicParams(
         conic_type="ellipse",
         center=(h, k),
@@ -103,20 +97,20 @@ def _extract_ellipse_params(coeffs: dict) -> ConicParams:
 
 def _extract_hyperbola_params(coeffs: dict) -> ConicParams:
     """Extract hyperbola parameters (simplified, no rotation)."""
-    A = coeffs.get("x2", 0.0)
-    C = coeffs.get("y2", 0.0)
-    D = coeffs.get("x", 0.0)
-    E = coeffs.get("y", 0.0)
-    F = coeffs.get("c", 0.0)
-    if abs(A) < 1e-12 or abs(C) < 1e-12:
+    a_val = coeffs.get("x2", 0.0)
+    c_val = coeffs.get("y2", 0.0)
+    d_val = coeffs.get("x", 0.0)
+    e_val = coeffs.get("y", 0.0)
+    f_val = coeffs.get("c", 0.0)
+    if abs(a_val) < 1e-12 or abs(c_val) < 1e-12:
         return ConicParams(conic_type="degenerate")
-    h = -D / (2 * A)
-    k = -E / (2 * C)
-    rhs = h * h * A + k * k * C - F
+    h = -d_val / (2 * a_val)
+    k = -e_val / (2 * c_val)
+    rhs = h * h * a_val + k * k * c_val - f_val
     if abs(rhs) < 1e-12:
         return ConicParams(conic_type="degenerate")
-    a2 = abs(rhs / A)
-    b2 = abs(rhs / C)
+    a2 = abs(rhs / a_val)
+    b2 = abs(rhs / c_val)
     a = math.sqrt(a2)
     b = math.sqrt(b2)
     e = math.sqrt(1 + b2 / a2)
@@ -133,6 +127,7 @@ def _parse_coefficients(expr_str: str) -> dict[str, float]:
     """Extract polynomial coefficients from expression string via SymPy."""
     try:
         import sympy as sp
+
         x, y = sp.symbols("x y")
         expr = sp.sympify(expr_str)
         poly = sp.Poly(sp.expand(expr), x, y)
@@ -205,21 +200,21 @@ def solve_conic(expression: str, *, timeout: float = 5.0) -> SolveResult:
                 error="Failed to parse expression coefficients",
             )
 
-        A = coeffs.get("x2", 0.0)
-        B = coeffs.get("xy", 0.0)
-        C = coeffs.get("y2", 0.0)
-        disc = B * B - 4 * A * C
+        a_val = coeffs.get("x2", 0.0)
+        b_val = coeffs.get("xy", 0.0)
+        c_val = coeffs.get("y2", 0.0)
+        disc = b_val * b_val - 4 * a_val * c_val
 
         steps.append(
             SolveStep(
                 step_number=2,
                 description="Compute discriminant B²-4AC",
-                expression=f"B²-4AC = {B}²-4·{A}·{C}",
+                expression=f"B²-4AC = {b_val}²-4·{a_val}·{c_val}",
                 result=f"{disc:.6g}",
             )
         )
 
-        conic_type = _classify_by_discriminant(A, B, C)
+        conic_type = _classify_by_discriminant(a_val, b_val, c_val)
 
         steps.append(
             SolveStep(
@@ -232,7 +227,7 @@ def solve_conic(expression: str, *, timeout: float = 5.0) -> SolveResult:
 
         # Extract parameters (only for axis-aligned conics without xy term)
         params: ConicParams
-        if abs(B) > 1e-10:
+        if abs(b_val) > 1e-10:
             params = ConicParams(
                 conic_type=conic_type,
                 discriminant=disc,
@@ -252,15 +247,12 @@ def solve_conic(expression: str, *, timeout: float = 5.0) -> SolveResult:
                 step_number=4,
                 description="Extract standard parameters",
                 expression=params.standard_form,
-                result=(
-                    f"center={params.center}, "
-                    f"radii={params.radii}, "
-                    f"e={params.eccentricity}"
-                ) if params.center else params.standard_form,
+                result=(f"center={params.center}, radii={params.radii}, e={params.eccentricity}")
+                if params.center
+                else params.standard_form,
             )
         )
 
-        import sympy as sp
         x_sym, y_sym = sp.symbols("x y")
         expr_sym = sp.sympify(expr_str)
         latex_str = sp.latex(expr_sym) + " = 0"

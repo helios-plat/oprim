@@ -1,4 +1,5 @@
 """make_image_part — construct an image Part."""
+
 from __future__ import annotations
 
 import base64

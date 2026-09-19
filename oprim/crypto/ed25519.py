@@ -27,28 +27,28 @@ _G = (_GX, _GY, 1, _GX * _GY % _P)
 
 
 def _point_add(P: tuple, Q: tuple) -> tuple:
-    A = (P[1] - P[0]) * (Q[1] - Q[0]) % _P
-    B = (P[1] + P[0]) * (Q[1] + Q[0]) % _P
-    C = 2 * P[3] * Q[3] * _D % _P
-    D = 2 * P[2] * Q[2] % _P
-    E, F, G, H = B - A, D - C, D + C, B + A
-    return E * F % _P, G * H % _P, F * G % _P, E * H % _P
+    a_val = (P[1] - P[0]) * (Q[1] - Q[0]) % _P
+    b_val = (P[1] + P[0]) * (Q[1] + Q[0]) % _P
+    c_val = 2 * P[3] * Q[3] * _D % _P
+    d_val = 2 * P[2] * Q[2] % _P
+    e_val, f_val, g_val, h_val = b_val - a_val, d_val - c_val, d_val + c_val, b_val + a_val
+    return e_val * f_val % _P, g_val * h_val % _P, f_val * g_val % _P, e_val * h_val % _P
 
 
-def _point_mul(k: int, P: tuple) -> tuple:
-    Q = (0, 1, 1, 0)
+def _point_mul(k: int, point: tuple) -> tuple:
+    q_val = (0, 1, 1, 0)
     while k > 0:
         if k & 1:
-            Q = _point_add(Q, P)
-        P = _point_add(P, P)
+            q_val = _point_add(q_val, point)
+        point = _point_add(point, point)
         k >>= 1
-    return Q
+    return q_val
 
 
-def _encode_point(P: tuple) -> bytes:
-    zinv = pow(P[2], _P - 2, _P)
-    x = P[0] * zinv % _P
-    y = P[1] * zinv % _P
+def _encode_point(point: tuple) -> bytes:
+    zinv = pow(point[2], _P - 2, _P)
+    x = point[0] * zinv % _P
+    y = point[1] * zinv % _P
     return int.to_bytes(y | ((x & 1) << 255), 32, "little")
 
 
@@ -152,12 +152,12 @@ def ed25519_sign(
         message = message.encode("utf-8")
     dom = _dom2(context)
     a, prefix = _expand_secret(private_key)
-    A = _encode_point(_point_mul(a, _G))
+    a_point = _encode_point(_point_mul(a, _G))
     r = int.from_bytes(hashlib.sha512(dom + prefix + message).digest(), "little") % _L
-    R_bytes = _encode_point(_point_mul(r, _G))
-    k = int.from_bytes(hashlib.sha512(dom + R_bytes + A + message).digest(), "little") % _L
+    r_bytes = _encode_point(_point_mul(r, _G))
+    k = int.from_bytes(hashlib.sha512(dom + r_bytes + a_point + message).digest(), "little") % _L
     s = (r + k * a) % _L
-    return R_bytes + s.to_bytes(32, "little")
+    return r_bytes + s.to_bytes(32, "little")
 
 
 def ed25519_verify(
@@ -191,9 +191,9 @@ def ed25519_verify(
         if len(signature) != 64 or len(public_key) != 32:
             return False
         dom = _dom2(context)
-        R = _decode_point(signature[:32])
-        A = _decode_point(public_key)
-        if R is None or A is None:
+        r_point = _decode_point(signature[:32])
+        a_point = _decode_point(public_key)
+        if r_point is None or a_point is None:
             return False
         s = int.from_bytes(signature[32:], "little")
         if s >= _L:
@@ -206,7 +206,7 @@ def ed25519_verify(
             % _L
         )
         lhs = _encode_point(_point_mul(8 * s, _G))
-        rhs = _encode_point(_point_add(_point_mul(8, R), _point_mul(8 * k, A)))
+        rhs = _encode_point(_point_add(_point_mul(8, r_point), _point_mul(8 * k, a_point)))
         return lhs == rhs
     except Exception:
         return False
@@ -270,7 +270,7 @@ def save_keypair_pem(
 
 
 def _parse_pem_text(text: str) -> bytes:
-    hex_data = "".join(l for l in text.strip().splitlines() if not l.startswith("---"))
+    hex_data = "".join(line for line in text.strip().splitlines() if not line.startswith("---"))
     return bytes.fromhex(hex_data)
 
 

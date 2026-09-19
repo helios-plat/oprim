@@ -25,17 +25,19 @@ async def mcp_list_tools(
     try:
         tools = await client.list_tools()
     except Exception as e:
-        raise McpOprimError("mcp_list_tools failed", cause=e)
+        raise McpOprimError("mcp_list_tools failed", cause=e) from e
 
     normalized = []
     for t in tools:
         if not isinstance(t, dict):
             continue
-        normalized.append({
-            "name": t.get("name", ""),
-            "description": t.get("description", ""),
-            "inputSchema": t.get("inputSchema") or t.get("input_schema") or {},
-        })
+        normalized.append(
+            {
+                "name": t.get("name", ""),
+                "description": t.get("description", ""),
+                "inputSchema": t.get("inputSchema") or t.get("input_schema") or {},
+            }
+        )
     return normalized
 
 
@@ -49,7 +51,7 @@ async def mcp_call_tool(
     try:
         result = await client.call_tool(name, arguments)
     except Exception as e:
-        raise McpOprimError(f"mcp_call_tool '{name}' failed", cause=e)
+        raise McpOprimError(f"mcp_call_tool '{name}' failed", cause=e) from e
 
     if not isinstance(result, dict):
         return {"content": [{"type": "text", "text": str(result)}], "isError": False}

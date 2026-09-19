@@ -1,8 +1,8 @@
 """Tests for lsm_american_price (Longstaff-Schwartz)."""
+
 from __future__ import annotations
 
 import pytest
-import numpy as np
 
 from oprim.derivatives.american import lsm_american_price
 from oprim.derivatives.binomial_tree import binomial_tree_price
@@ -13,10 +13,19 @@ from oprim.derivatives.black_scholes import black_scholes_price
 # Test 1: American put price >= European put (early exercise premium)
 # ---------------------------------------------------------------------------
 def test_american_put_ge_european():
-    S, K, T, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
-    amer = lsm_american_price(S, K, T, r, sigma, n_simulations=10000,
-                               n_time_steps=50, option_type="put", seed=42)
-    euro = black_scholes_price(S, K, T, r, sigma, option_type="put")
+    s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
+    amer = lsm_american_price(
+        s_val,
+        k_val,
+        t_val,
+        r,
+        sigma,
+        n_simulations=10000,
+        n_time_steps=50,
+        option_type="put",
+        seed=42,
+    )
+    euro = black_scholes_price(s_val, k_val, t_val, r, sigma, option_type="put")
     assert amer["price"] >= euro - 0.30  # allow MC variance (~2 std errors)  # allow small MC noise
 
 
@@ -24,11 +33,21 @@ def test_american_put_ge_european():
 # Test 2: American put price close to binomial tree reference
 # ---------------------------------------------------------------------------
 def test_american_put_close_to_binomial():
-    S, K, T, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
-    bt = binomial_tree_price(S, K, T, r, sigma, n_steps=500,
-                              option_type="put", exercise="american")["price"]
-    lsm = lsm_american_price(S, K, T, r, sigma, n_simulations=20000,
-                               n_time_steps=100, option_type="put", seed=7)
+    s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
+    bt = binomial_tree_price(
+        s_val, k_val, t_val, r, sigma, n_steps=500, option_type="put", exercise="american"
+    )["price"]
+    lsm = lsm_american_price(
+        s_val,
+        k_val,
+        t_val,
+        r,
+        sigma,
+        n_simulations=20000,
+        n_time_steps=100,
+        option_type="put",
+        seed=7,
+    )
     # LSM should be within 2-3% of binomial
     assert abs(lsm["price"] - bt) / bt < 0.05
 
@@ -37,10 +56,11 @@ def test_american_put_close_to_binomial():
 # Test 3: American call on non-dividend stock >= European call
 # ---------------------------------------------------------------------------
 def test_american_call_ge_european_call():
-    S, K, T, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
-    amer = lsm_american_price(S, K, T, r, sigma, n_simulations=10000,
-                               option_type="call", seed=1)
-    euro = black_scholes_price(S, K, T, r, sigma, option_type="call")
+    s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
+    amer = lsm_american_price(
+        s_val, k_val, t_val, r, sigma, n_simulations=10000, option_type="call", seed=1
+    )
+    euro = black_scholes_price(s_val, k_val, t_val, r, sigma, option_type="call")
     assert amer["price"] >= euro - 0.30  # allow MC variance (~2 std errors)
 
 
@@ -59,8 +79,7 @@ def test_lsm_return_keys():
 # Test 5: Standard error is positive
 # ---------------------------------------------------------------------------
 def test_lsm_standard_error_positive():
-    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                                 n_simulations=5000, seed=99)
+    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=5000, seed=99)
     assert result["standard_error"] > 0
 
 
@@ -78,9 +97,9 @@ def test_lsm_t0_returns_intrinsic():
 # Test 7: Laguerre basis gives plausible price
 # ---------------------------------------------------------------------------
 def test_lsm_laguerre_basis():
-    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                                 n_simulations=10000, basis_functions="laguerre",
-                                 seed=5)
+    result = lsm_american_price(
+        100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=10000, basis_functions="laguerre", seed=5
+    )
     # Price should be in plausible range
     assert 0.0 < result["price"] < 30.0
 
@@ -89,9 +108,9 @@ def test_lsm_laguerre_basis():
 # Test 8: Hermite basis gives plausible price
 # ---------------------------------------------------------------------------
 def test_lsm_hermite_basis():
-    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                                 n_simulations=10000, basis_functions="hermite",
-                                 seed=6)
+    result = lsm_american_price(
+        100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=10000, basis_functions="hermite", seed=6
+    )
     assert 0.0 < result["price"] < 30.0
 
 
@@ -116,8 +135,9 @@ def test_lsm_invalid_n_time_steps():
 # ---------------------------------------------------------------------------
 def test_lsm_early_exercise_frequency_range():
     # Deep ITM put: should have significant early exercise
-    result = lsm_american_price(100.0, 120.0, 1.0, 0.05, 0.20,
-                                 n_simulations=10000, option_type="put", seed=33)
+    result = lsm_american_price(
+        100.0, 120.0, 1.0, 0.05, 0.20, n_simulations=10000, option_type="put", seed=33
+    )
     assert 0.0 <= result["early_exercise_frequency"] <= 1.0
 
 
@@ -126,8 +146,9 @@ def test_lsm_early_exercise_frequency_range():
 # ---------------------------------------------------------------------------
 def test_lsm_exercise_boundary_length():
     n_steps = 30
-    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                                 n_time_steps=n_steps, n_simulations=5000, seed=77)
+    result = lsm_american_price(
+        100.0, 100.0, 1.0, 0.05, 0.20, n_time_steps=n_steps, n_simulations=5000, seed=77
+    )
     # boundary is recorded for steps 1..n-1 (n-1 steps)
     assert len(result["exercise_boundary"]) == n_steps - 1
 
@@ -172,24 +193,40 @@ def test_lsm_invalid_basis_functions():
 
 def test_lsm_laguerre_4_basis():
     """Test Laguerre with 4 basis functions to cover L3 and fallback branches."""
-    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                                 n_simulations=5000, basis_functions="laguerre",
-                                 n_basis=5, seed=42)
+    result = lsm_american_price(
+        100.0,
+        100.0,
+        1.0,
+        0.05,
+        0.20,
+        n_simulations=5000,
+        basis_functions="laguerre",
+        n_basis=5,
+        seed=42,
+    )
     assert result["price"] > 0
 
 
 def test_lsm_hermite_4_basis():
     """Test Hermite with 4 basis functions to cover H3 and fallback branches."""
-    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                                 n_simulations=5000, basis_functions="hermite",
-                                 n_basis=5, seed=42)
+    result = lsm_american_price(
+        100.0,
+        100.0,
+        1.0,
+        0.05,
+        0.20,
+        n_simulations=5000,
+        basis_functions="hermite",
+        n_basis=5,
+        seed=42,
+    )
     assert result["price"] > 0
 
 
 def test_lsm_low_n_sims_triggers_skip():
     """Very deep OTM put with few sims → many steps with n_itm < n_basis."""
-    result = lsm_american_price(200.0, 100.0, 0.5, 0.05, 0.10,
-                                 n_simulations=50, n_time_steps=20,
-                                 option_type="put", seed=0)
+    result = lsm_american_price(
+        200.0, 100.0, 0.5, 0.05, 0.10, n_simulations=50, n_time_steps=20, option_type="put", seed=0
+    )
     # Price should be near 0 for deep OTM put
     assert result["price"] >= 0

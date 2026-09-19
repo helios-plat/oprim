@@ -1,2 +1,6 @@
-class WhisperClient: pass
-class WhisperSegment: pass
+class WhisperClient:
+    pass
+
+
+class WhisperSegment:
+    pass

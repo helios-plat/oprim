@@ -1,4 +1,5 @@
 """Parse a raw dict into an Answer dataclass."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -30,15 +31,14 @@ def parse_question_answer(raw: dict[str, Any]) -> Answer:
     Returns
     -------
     Answer
-        Populated answer; index bounds are *not* validated here (the options
+        Populated answer
+        index bounds are *not* validated here (the options
         list is unavailable at this layer).
     """
     option_idx = raw.get("option_idx")
     text = raw.get("text")
 
     if option_idx is None and text is None:
-        raise ValueError(
-            "raw answer must contain at least one of 'option_idx' or 'text'"
-        )
+        raise ValueError("raw answer must contain at least one of 'option_idx' or 'text'")
 
     return Answer(option_idx=option_idx, text=text)

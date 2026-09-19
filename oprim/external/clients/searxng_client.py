@@ -1,2 +1,6 @@
-class SearxngClient: pass
-class WebSearchResult: pass
+class SearxngClient:
+    pass
+
+
+class WebSearchResult:
+    pass

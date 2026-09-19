@@ -1,51 +1,57 @@
 """Tests for mc_european_price and mc_asian_price."""
+
 from __future__ import annotations
 
 import pytest
-import numpy as np
 
-from oprim.derivatives.monte_carlo import mc_european_price, mc_asian_price
 from oprim.derivatives.black_scholes import black_scholes_price
-
+from oprim.derivatives.monte_carlo import mc_asian_price, mc_european_price
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _bs(S, K, T, r, sigma, option_type="call", q=0.0):
-    return black_scholes_price(S, K, T, r, sigma, option_type=option_type, dividend_yield=q)
+
+def _bs(s_val, k_val, t_val, r, sigma, option_type="call", q=0.0):
+    return black_scholes_price(
+        s_val, k_val, t_val, r, sigma, option_type=option_type, dividend_yield=q
+    )
 
 
 # ===========================================================================
 # mc_european_price tests (≥8)
 # ===========================================================================
 
+
 # Test 1: Price within 2 std errors of BS call
 def test_mc_european_call_near_bs():
-    S, K, T, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
-    bs = _bs(S, K, T, r, sigma, "call")
-    result = mc_european_price(S, K, T, r, sigma, n_simulations=50000, seed=42)
+    s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
+    bs = _bs(s_val, k_val, t_val, r, sigma, "call")
+    result = mc_european_price(s_val, k_val, t_val, r, sigma, n_simulations=50000, seed=42)
     se = result["standard_error"]
     assert abs(result["price"] - bs) <= 2.0 * se + 0.05
 
 
 # Test 2: Price within 2 std errors of BS put
 def test_mc_european_put_near_bs():
-    S, K, T, r, sigma = 100.0, 105.0, 1.0, 0.05, 0.25
-    bs = _bs(S, K, T, r, sigma, "put")
-    result = mc_european_price(S, K, T, r, sigma, n_simulations=50000,
-                                option_type="put", seed=99)
+    s_val, k_val, t_val, r, sigma = 100.0, 105.0, 1.0, 0.05, 0.25
+    bs = _bs(s_val, k_val, t_val, r, sigma, "put")
+    result = mc_european_price(
+        s_val, k_val, t_val, r, sigma, n_simulations=50000, option_type="put", seed=99
+    )
     se = result["standard_error"]
     assert abs(result["price"] - bs) <= 2.0 * se + 0.05
 
 
 # Test 3: Antithetic variates reduce standard error vs plain MC
 def test_antithetic_reduces_se():
-    S, K, T, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
-    res_anti = mc_european_price(S, K, T, r, sigma, n_simulations=10000,
-                                  antithetic=True, seed=1)
-    res_plain = mc_european_price(S, K, T, r, sigma, n_simulations=10000,
-                                   antithetic=False, seed=1)
+    s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
+    res_anti = mc_european_price(
+        s_val, k_val, t_val, r, sigma, n_simulations=10000, antithetic=True, seed=1
+    )
+    res_plain = mc_european_price(
+        s_val, k_val, t_val, r, sigma, n_simulations=10000, antithetic=False, seed=1
+    )
     # Antithetic SE should generally be <= plain (not guaranteed every seed, but with seed=1)
     # Just check both are positive and price is reasonable
     assert res_anti["standard_error"] > 0
@@ -101,8 +107,7 @@ def test_mc_european_invalid_volatility():
 
 # Test 9: Deep OTM call price is very small
 def test_mc_european_deep_otm_call_small():
-    result = mc_european_price(50.0, 200.0, 1.0, 0.05, 0.20,
-                                n_simulations=100000, seed=5)
+    result = mc_european_price(50.0, 200.0, 1.0, 0.05, 0.20, n_simulations=100000, seed=5)
     assert result["price"] < 0.50  # extremely OTM
 
 
@@ -110,23 +115,35 @@ def test_mc_european_deep_otm_call_small():
 # mc_asian_price tests (≥7)
 # ===========================================================================
 
+
 # Test 10: Arithmetic Asian call < vanilla European call (averaging reduces value)
 def test_mc_asian_arithmetic_call_le_european():
-    S, K, T, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
-    euro = mc_european_price(S, K, T, r, sigma, n_simulations=30000, seed=10)["price"]
-    asian = mc_asian_price(S, K, T, r, sigma, n_simulations=30000, seed=10,
-                            averaging="arithmetic", option_type="call")["price"]
+    s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
+    euro = mc_european_price(s_val, k_val, t_val, r, sigma, n_simulations=30000, seed=10)["price"]
+    asian = mc_asian_price(
+        s_val,
+        k_val,
+        t_val,
+        r,
+        sigma,
+        n_simulations=30000,
+        seed=10,
+        averaging="arithmetic",
+        option_type="call",
+    )["price"]
     # Asian call is cheaper than vanilla call
     assert asian <= euro + 0.10  # small tolerance for MC noise
 
 
 # Test 11: Geometric Asian price should be lower than arithmetic Asian price
 def test_mc_asian_geometric_le_arithmetic():
-    S, K, T, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
-    arith = mc_asian_price(S, K, T, r, sigma, n_simulations=30000, seed=11,
-                            averaging="arithmetic")["price"]
-    geom = mc_asian_price(S, K, T, r, sigma, n_simulations=30000, seed=11,
-                           averaging="geometric")["price"]
+    s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
+    arith = mc_asian_price(
+        s_val, k_val, t_val, r, sigma, n_simulations=30000, seed=11, averaging="arithmetic"
+    )["price"]
+    geom = mc_asian_price(
+        s_val, k_val, t_val, r, sigma, n_simulations=30000, seed=11, averaging="geometric"
+    )["price"]
     # geometric <= arithmetic by Jensen's inequality
     assert geom <= arith + 0.10
 
@@ -148,17 +165,25 @@ def test_mc_asian_t0_intrinsic():
 
 # Test 14: Floating strike call is non-negative
 def test_mc_asian_floating_call_nonneg():
-    result = mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                             n_simulations=10000, seed=22,
-                             strike_type="floating", option_type="call")
+    result = mc_asian_price(
+        100.0,
+        100.0,
+        1.0,
+        0.05,
+        0.20,
+        n_simulations=10000,
+        seed=22,
+        strike_type="floating",
+        option_type="call",
+    )
     assert result["price"] >= 0.0
 
 
 # Test 15: Put price is non-negative
 def test_mc_asian_put_nonneg():
-    result = mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                             n_simulations=10000, seed=33,
-                             option_type="put")
+    result = mc_asian_price(
+        100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=10000, seed=33, option_type="put"
+    )
     assert result["price"] >= 0.0
 
 
@@ -207,15 +232,24 @@ def test_mc_european_zero_sigma():
 
 
 def test_mc_european_control_variate():
-    result = mc_european_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                                n_simulations=5000, seed=1, control_variate=True)
+    result = mc_european_price(
+        100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=5000, seed=1, control_variate=True
+    )
     assert result["price"] >= 0
 
 
 def test_mc_asian_floating_put():
-    result = mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20,
-                             option_type="put", strike_type="floating",
-                             n_simulations=5000, seed=7)
+    result = mc_asian_price(
+        100.0,
+        100.0,
+        1.0,
+        0.05,
+        0.20,
+        option_type="put",
+        strike_type="floating",
+        n_simulations=5000,
+        seed=7,
+    )
     assert result["price"] >= 0
 
 
@@ -265,6 +299,7 @@ def test_mc_asian_invalid_strike_type():
 def test_mc_european_control_variate_t0():
     """Exercises _bs_call_price T<=0 branch."""
     from oprim.derivatives.monte_carlo import _bs_call_price
+
     val = _bs_call_price(110.0, 100.0, 0.0, 0.05, 0.20, 0.0)
     assert val == pytest.approx(10.0, abs=0.01)
 
@@ -272,5 +307,6 @@ def test_mc_european_control_variate_t0():
 def test_mc_european_control_variate_zero_sigma():
     """Exercises _bs_call_price sigma<=0 branch."""
     from oprim.derivatives.monte_carlo import _bs_call_price
+
     val = _bs_call_price(100.0, 95.0, 1.0, 0.05, 0.0, 0.0)
     assert val > 0

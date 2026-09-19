@@ -28,12 +28,15 @@ class TestRegimeFilterData:
     def test_soft_mode(self):
         idx = pd.date_range("2024-01-01", periods=4, freq="D")
         data = pd.DataFrame({"val": [1, 2, 3, 4]}, index=idx)
-        labels = pd.Series([
-            {"bull": 0.8, "bear": 0.2},
-            {"bull": 0.3, "bear": 0.7},
-            {"bull": 0.6, "bear": 0.4},
-            {"bull": 0.1, "bear": 0.9},
-        ], index=idx)
+        labels = pd.Series(
+            [
+                {"bull": 0.8, "bear": 0.2},
+                {"bull": 0.3, "bear": 0.7},
+                {"bull": 0.6, "bear": 0.4},
+                {"bull": 0.1, "bear": 0.9},
+            ],
+            index=idx,
+        )
         result = regime_filter_data(data, labels, "bull", mode="soft", min_probability=0.5)
         assert len(result) == 2  # indices 0 and 2
 
@@ -100,9 +103,7 @@ class TestRegimeTransitionMatrix:
         labels = pd.Series(["A", "B"] * 100)
         result = regime_transition_matrix(labels)
         # Should be approximately 50/50
-        np.testing.assert_allclose(
-            result["stationary_distribution"].values, [0.5, 0.5], atol=0.1
-        )
+        np.testing.assert_allclose(result["stationary_distribution"].values, [0.5, 0.5], atol=0.1)
 
 
 # ============================================================
@@ -197,10 +198,10 @@ class TestRegimeAcademicValidation:
         # Let's use: X (absorbing) where all X transitions are X->X
         labels = pd.Series(["X", "X", "X"])  # Only X, all self-transitions
         result = regime_transition_matrix(labels)
-        
+
         # X should have 1.0 self-transition probability
         assert result["transition_matrix"].loc["X", "X"] == 1.0
-        
+
         # Stationary distribution should be valid (sums to 1)
         assert result["stationary_distribution"].sum() == pytest.approx(1.0)
         # All values should be non-negative
@@ -214,18 +215,18 @@ class TestRegimeAcademicValidation:
         # P = [[0.7, 0.3], [0.4, 0.6]] (row-stochastic)
         # Expected stationary: solve pi = pi @ P -> pi = [0.571, 0.429]
         np.random.seed(42)
-        P_true = np.array([[0.7, 0.3], [0.4, 0.6]])  # row-stochastic
+        p_true = np.array([[0.7, 0.3], [0.4, 0.6]])  # row-stochastic
         states = ["bull", "bear"]
-        
+
         # Generate 1000 steps
         labels = []
         current = 0
         for _ in range(1000):
             labels.append(states[current])
-            current = 1 if np.random.random() < P_true[current, 1] else 0
-        
+            current = 1 if np.random.random() < p_true[current, 1] else 0
+
         result = regime_transition_matrix(pd.Series(labels))
-        
+
         # Stationary should be close to theoretical
         # pi_bull = P_bear_bull / (P_bear_bull + P_bull_bear) = 0.4 / (0.4 + 0.3) = 0.571
         stat = result["stationary_distribution"]
@@ -236,7 +237,7 @@ class TestRegimeAcademicValidation:
         # Transitions: A->B, B->B, B->A, A->A, A->A, A->B
         labels = pd.Series(["A", "B", "B", "A", "A", "A", "B"])
         result = regime_transition_matrix(labels)
-        
+
         # Manual count:
         # From A: A->B (1), A->A (2), A->B (1) = 4 transitions from A
         #   Actually: positions 0,3,4,5 are A
@@ -255,16 +256,16 @@ class TestRegimeAcademicValidation:
         """Test duration statistics match manual calculation."""
         labels = pd.Series(["A", "A", "B", "A", "A", "A", "B", "B"])
         result = regime_transition_matrix(labels)
-        
+
         # A durations: [2, 3], B durations: [1, 2]
         dur_a = result["duration_distribution"]["A"]
         dur_b = result["duration_distribution"]["B"]
-        
+
         assert dur_a["count"] == 2
         assert dur_a["mean"] == 2.5
         assert dur_a["min"] == 2
         assert dur_a["max"] == 3
-        
+
         assert dur_b["count"] == 2
         assert dur_b["mean"] == 1.5
 
@@ -272,7 +273,7 @@ class TestRegimeAcademicValidation:
         """Test stationary distribution for single-state chain."""
         labels = pd.Series(["A", "A", "A"])
         result = regime_transition_matrix(labels)
-        
+
         # Single state should have stationary = [1.0]
         assert result["stationary_distribution"]["A"] == pytest.approx(1.0)
 
@@ -284,38 +285,35 @@ class TestRegimePerformance:
     def test_label_align_ffill_performance(self):
         """ffill mode should handle n=10000 in < 1 second."""
         import time
-        
+
         regime_idx = pd.date_range("2020-01-01", periods=100, freq="D")
         labels = pd.Series(["bull", "bear"] * 50, index=regime_idx)
         target = pd.date_range("2020-01-01", "2047-05-01", freq="h")  # ~10000 points
-        
+
         start = time.perf_counter()
         result = regime_label_align(target, labels, method="ffill")
         elapsed = time.perf_counter() - start
-        
+
         assert elapsed < 1.0, f"ffill took {elapsed:.2f}s, should be < 1s"
         assert len(result) == len(target)
 
     def test_filter_data_soft_performance(self):
         """Soft mode should handle n=10000 in < 100ms."""
         import time
-        
+
         n = 10000
         idx = pd.date_range("2020-01-01", periods=n, freq="min")
         data = pd.DataFrame({"val": np.random.randn(n)}, index=idx)
-        
+
         # Create probability dicts
         probs = np.random.dirichlet([1, 1], size=n)
-        labels = pd.Series(
-            [{"bull": p[0], "bear": p[1]} for p in probs],
-            index=idx
-        )
-        
+        labels = pd.Series([{"bull": p[0], "bear": p[1]} for p in probs], index=idx)
+
         start = time.perf_counter()
-        result = regime_filter_data(data, labels, "bull", mode="soft")
+        regime_filter_data(data, labels, "bull", mode="soft")
         elapsed = time.perf_counter() - start
-        
-        assert elapsed < 0.1, f"soft mode took {elapsed*1000:.1f}ms, should be < 100ms"
+
+        assert elapsed < 0.1, f"soft mode took {elapsed * 1000:.1f}ms, should be < 100ms"
 
 
 class TestRegimeLabelAlignEdgeCases:

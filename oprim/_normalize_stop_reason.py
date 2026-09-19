@@ -1,4 +1,5 @@
 """Normalize provider-specific stop reasons to a unified StopReason."""
+
 from __future__ import annotations
 
 from typing import Any

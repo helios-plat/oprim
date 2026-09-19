@@ -1,4 +1,5 @@
 """oprim.multi_angle — Generate multi-angle image prompts for a subject."""
+
 from __future__ import annotations
 
 import json
@@ -44,7 +45,8 @@ async def multi_angle(
     system = (
         "You are an image prompt engineer. Given a subject description and a list of "
         "viewing angles, generate a distinct image generation prompt for each angle. "
-        f"Return STRICT JSON: {{\"angle_prompts\": {{{', '.join(repr(a)+': str' for a in angles)}}}}} "
+        f'Return STRICT JSON: {{"angle_prompts": '
+        f'{{{", ".join(repr(a) + ": str" for a in angles)}}}}} '
         "where each value is a detailed image generation prompt."
     )
     messages = [
@@ -66,9 +68,7 @@ async def multi_angle(
     )
     content = response.get("content", [])
     text = "".join(
-        b.get("text", "")
-        for b in content
-        if isinstance(b, dict) and b.get("type") == "text"
+        b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"
     )
     try:
         data = json.loads(text)

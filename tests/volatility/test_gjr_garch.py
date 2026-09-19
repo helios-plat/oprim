@@ -1,4 +1,5 @@
 """Tests for oprim.volatility.gjr_garch: gjr_garch_fit, gjr_garch_forecast."""
+
 import numpy as np
 import pytest
 
@@ -26,8 +27,16 @@ def _simulate_gjr_garch(n=500, omega=1e-5, alpha=0.05, gamma=0.10, beta=0.80, se
 def test_gjr_fit_returns_keys():
     x = _simulate_gjr_garch(300)
     r = gjr_garch_fit(x)
-    for key in ("params", "log_likelihood", "aic", "bic", "persistence",
-                "residuals", "conditional_variance", "converged"):
+    for key in (
+        "params",
+        "log_likelihood",
+        "aic",
+        "bic",
+        "persistence",
+        "residuals",
+        "conditional_variance",
+        "converged",
+    ):
         assert key in r
 
 
@@ -83,6 +92,7 @@ def test_gjr_leverage_detected():
 
 def test_gjr_warn_pq():
     import warnings
+
     x = _simulate_gjr_garch(300)
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
@@ -128,6 +138,7 @@ def test_gjr_forecast_expected_neg_frac_symmetric():
 def test_gjr_fit_series_input():
     """Covers pd.Series branch (line 100)."""
     import pandas as pd
+
     x = _simulate_gjr_garch(300)
     r = gjr_garch_fit(pd.Series(x))
     assert "params" in r
@@ -136,6 +147,7 @@ def test_gjr_fit_series_input():
 def test_gjr_nll_constraint_violation():
     """Trigger the constraint-violation return in _gjrgarch11_nll (line 23)."""
     from oprim.volatility.gjr_garch import _gjrgarch11_nll
+
     x = _simulate_gjr_garch(300)
     # omega <= 0 → should return 1e10
     params = np.array([-0.1, 0.05, 0.10, 0.80, 0.0])

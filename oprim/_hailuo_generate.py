@@ -1,8 +1,10 @@
 """oprim.hailuo_generate — MiniMax 海螺 02 standard (fal) 高写实视频原语。
 
-写实、性价比高。与 ltx2_cloud_generate 并列作 video 原语;走 fal 队列
+写实、性价比高。与 ltx2_cloud_generate 并列作 video 原语
+走 fal 队列
 (fal_queue_generate)。海螺 standard 端点为纯 t2v,不吃 aspect_ratio(由 prompt_optimizer
-优化);朝向如需可后续换 pro 档。
+优化)
+朝向如需可后续换 pro 档。
 
 Example:
     >>> import asyncio

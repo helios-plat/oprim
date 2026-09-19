@@ -12,7 +12,6 @@ from oprim._detect_daily_limit_down import detect_daily_limit_down
 from oprim._detect_daily_limit_up import detect_daily_limit_up
 from oprim._t_plus_n_blocked import t_plus_n_blocked
 
-
 # ---------------------------------------------------------------------------
 # detect_daily_limit_up — ≥7 tests
 # ---------------------------------------------------------------------------

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._fetch_rss_feed import _parse_rss_xml
 
 VALID_RSS = """\
@@ -135,8 +133,9 @@ class TestFetchRssFeedSSRF:
         assert "unsupported_scheme" in result["error"]
 
     def test_ssrf_blocked_private_ip(self):
-        from unittest.mock import patch
         import socket
+        from unittest.mock import patch
+
         from oprim._fetch_rss_feed import fetch_rss_feed
 
         # Simulate private-IP DNS resolution for a URL with http scheme
@@ -149,7 +148,7 @@ class TestFetchRssFeedSSRF:
     def test_uses_ssrf_safe_opener(self):
         """fetch_rss_feed must import make_ssrf_safe_opener (not raw urlopen)."""
         import inspect
-        from oprim import fetch_rss_feed as _mod
+
         import oprim._fetch_rss_feed as rss_mod
 
         source = inspect.getsource(rss_mod)
@@ -158,6 +157,7 @@ class TestFetchRssFeedSSRF:
 
     def test_http_scheme_accepted_with_mocked_fetch(self):
         from unittest.mock import MagicMock, patch
+
         from oprim._fetch_rss_feed import fetch_rss_feed
 
         mock_resp = MagicMock()

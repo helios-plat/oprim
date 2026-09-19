@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import json
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from oprim import appstore_catalog_fetch
 from oprim._appstore_catalog_fetch import AppCatalogEntry
-from oprim._exceptions import OprimNotFoundError, OprimConnectionError, OprimTimeoutError
+from oprim._exceptions import OprimConnectionError, OprimNotFoundError, OprimTimeoutError
 
 
 def _mock_response(status_code=200, data=None, text=""):
@@ -66,43 +66,51 @@ def test_appstore_catalog_fetch_env_vars():
 
 
 def test_appstore_catalog_fetch_404_raises_not_found():
-    with patch("httpx.get", return_value=_mock_response(404, text="not found")):
-        with pytest.raises(OprimNotFoundError, match="myapp"):
-            appstore_catalog_fetch(
-                catalog_url="http://appstore.internal/api/v1",
-                app_id="myapp",
-            )
+    with (
+        patch("httpx.get", return_value=_mock_response(404, text="not found")),
+        pytest.raises(OprimNotFoundError, match="myapp"),
+    ):
+        appstore_catalog_fetch(
+            catalog_url="http://appstore.internal/api/v1",
+            app_id="myapp",
+        )
 
 
 def test_appstore_catalog_fetch_500_raises_connection_error():
-    with patch("httpx.get", return_value=_mock_response(500, text="server error")):
-        with pytest.raises(OprimConnectionError):
-            appstore_catalog_fetch(
-                catalog_url="http://appstore.internal/api/v1",
-                app_id="myapp",
-            )
+    with (
+        patch("httpx.get", return_value=_mock_response(500, text="server error")),
+        pytest.raises(OprimConnectionError),
+    ):
+        appstore_catalog_fetch(
+            catalog_url="http://appstore.internal/api/v1",
+            app_id="myapp",
+        )
 
 
 def test_appstore_catalog_fetch_timeout():
     import httpx
 
-    with patch("httpx.get", side_effect=httpx.TimeoutException("timed out")):
-        with pytest.raises(OprimTimeoutError):
-            appstore_catalog_fetch(
-                catalog_url="http://appstore.internal/api/v1",
-                app_id="myapp",
-            )
+    with (
+        patch("httpx.get", side_effect=httpx.TimeoutException("timed out")),
+        pytest.raises(OprimTimeoutError),
+    ):
+        appstore_catalog_fetch(
+            catalog_url="http://appstore.internal/api/v1",
+            app_id="myapp",
+        )
 
 
 def test_appstore_catalog_fetch_connect_error():
     import httpx
 
-    with patch("httpx.get", side_effect=httpx.ConnectError("no route to host")):
-        with pytest.raises(OprimConnectionError):
-            appstore_catalog_fetch(
-                catalog_url="http://appstore.internal/api/v1",
-                app_id="myapp",
-            )
+    with (
+        patch("httpx.get", side_effect=httpx.ConnectError("no route to host")),
+        pytest.raises(OprimConnectionError),
+    ):
+        appstore_catalog_fetch(
+            catalog_url="http://appstore.internal/api/v1",
+            app_id="myapp",
+        )
 
 
 def test_appstore_catalog_fetch_sends_auth_token():

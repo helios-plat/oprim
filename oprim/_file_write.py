@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import stat
+
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def file_write(
     path: str | Path,
@@ -35,5 +37,5 @@ def file_write(
             p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, encoding=encoding)
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot write '{path}'", cause=e)
+        raise FileOprimError(f"cannot write '{path}'", cause=e) from e
     return p

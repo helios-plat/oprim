@@ -115,7 +115,7 @@ def regime_transition_matrix(
     if skipped_transitions > 0 and states is not None:
         warnings.warn(
             f"{skipped_transitions} transitions skipped due to unknown labels: {unknown_labels}",
-            stacklevel=2
+            stacklevel=2,
         )
 
     # Normalize to probabilities
@@ -202,14 +202,18 @@ def regime_label_align(
     if method == "ffill" and tolerance is None:
         # ffill without tolerance: allow unlimited forward-fill
         merged = pd.merge_asof(
-            target_df, label_df,
-            left_index=True, right_index=True,
+            target_df,
+            label_df,
+            left_index=True,
+            right_index=True,
             direction="backward",
         )
     else:
         merged = pd.merge_asof(
-            target_df, label_df,
-            left_index=True, right_index=True,
+            target_df,
+            label_df,
+            left_index=True,
+            right_index=True,
             direction="backward",
             tolerance=tolerance,
         )

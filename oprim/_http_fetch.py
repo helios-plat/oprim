@@ -1,8 +1,10 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 from ._exceptions import HttpOprimError
 from .llm._types import HttpResponse
+
 
 async def http_fetch(
     url: str,
@@ -41,7 +43,7 @@ async def http_fetch(
     try:
         import httpx
     except ImportError as e:  # pragma: no cover
-        raise HttpOprimError("httpx not installed: pip install httpx", cause=e)
+        raise HttpOprimError("httpx not installed: pip install httpx", cause=e) from e
 
     req_headers = dict(headers or {})
     req_content: bytes | None = None
@@ -68,9 +70,9 @@ async def http_fetch(
                 json=req_json,
             )
     except httpx.TimeoutException as e:
-        raise HttpOprimError(f"request timed out after {timeout}s: {url}", cause=e)
+        raise HttpOprimError(f"request timed out after {timeout}s: {url}", cause=e) from e
     except httpx.RequestError as e:
-        raise HttpOprimError(f"request failed: {url}", cause=e)
+        raise HttpOprimError(f"request failed: {url}", cause=e) from e
 
     result = HttpResponse(
         status_code=response.status_code,
@@ -80,8 +82,6 @@ async def http_fetch(
     )
 
     if raise_on_error and not result.ok:
-        raise HttpOprimError(
-            f"HTTP {result.status_code} for {url}: {result.text[:200]}"
-        )
+        raise HttpOprimError(f"HTTP {result.status_code} for {url}: {result.text[:200]}")
 
     return result

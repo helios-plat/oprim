@@ -43,14 +43,21 @@ async def invoke_local(
         python = Path(shutil.which("python3") or "python3")
 
     cmd = [
-        str(python), str(script),
-        "--image", str(reference_image),
-        "--prompt", motion_prompt,
-        "--duration", str(duration_s),
-        "--output", str(output_path),
+        str(python),
+        str(script),
+        "--image",
+        str(reference_image),
+        "--prompt",
+        motion_prompt,
+        "--duration",
+        str(duration_s),
+        "--output",
+        str(output_path),
     ]
     proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
     try:
         _, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout_s)

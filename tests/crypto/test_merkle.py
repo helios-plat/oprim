@@ -10,7 +10,6 @@ from oprim.crypto.merkle import (
     rfc6962_merkle_root,
 )
 
-
 # ---------------------------------------------------------------------------
 # rfc6962_merkle_root
 # ---------------------------------------------------------------------------
@@ -125,8 +124,7 @@ def test_inclusion_proof_rfc6962_test_vectors():
         root = rfc6962_merkle_root(leaves)
         for i in range(n):
             proof = rfc6962_inclusion_proof(leaves, i)
-            assert _verify_inclusion(leaves[i], i, n, proof, root), \
-                f"verify failed: n={n}, i={i}"
+            assert _verify_inclusion(leaves[i], i, n, proof, root), f"verify failed: n={n}, i={i}"
 
 
 def test_inclusion_proof_non_list_raises():

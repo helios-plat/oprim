@@ -1,4 +1,5 @@
 """Pure-compute: detect_edit_conflict."""
+
 from __future__ import annotations
 
 from ._hicode_types import Conflict, Edit

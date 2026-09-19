@@ -74,9 +74,7 @@ def granger_causality_test(
     if max_lag <= 0:
         raise ValueError(f"max_lag must be positive, got {max_lag}")
     if n_total < 2 * max_lag + 10:
-        raise ValueError(
-            f"Need at least {2*max_lag+10} observations, got {n_total}"
-        )
+        raise ValueError(f"Need at least {2 * max_lag + 10} observations, got {n_total}")
 
     # Build matrices for regression starting at index max_lag
     n_eff = n_total - max_lag  # effective sample size
@@ -88,17 +86,17 @@ def granger_causality_test(
     cols_r = [np.ones(n_eff)]
     for lag in range(1, max_lag + 1):
         cols_r.append(y_arr[max_lag - lag : n_total - lag])
-    X_r = np.column_stack(cols_r)
+    x_r = np.column_stack(cols_r)
 
     # Unrestricted model: add x_{t-1..max_lag}
     cols_u = list(cols_r)
     for lag in range(1, max_lag + 1):
         cols_u.append(x_arr[max_lag - lag : n_total - lag])
-    X_u = np.column_stack(cols_u)
+    x_u = np.column_stack(cols_u)
 
     # OLS fits
-    _, resid_r = _ols_fit(endog, X_r)
-    _, resid_u = _ols_fit(endog, X_u)
+    _, resid_r = _ols_fit(endog, x_r)
+    _, resid_u = _ols_fit(endog, x_u)
 
     ssr_r = float(np.sum(resid_r**2))
     ssr_u = float(np.sum(resid_u**2))
@@ -108,10 +106,7 @@ def granger_causality_test(
 
     if df_denom <= 0:
         raise ValueError("Too few degrees of freedom in unrestricted model")
-    if ssr_u <= 0:
-        f_stat = 0.0
-    else:
-        f_stat = float(((ssr_r - ssr_u) / df_num) / (ssr_u / df_denom))
+    f_stat = 0.0 if ssr_u <= 0 else float((ssr_r - ssr_u) / df_num / (ssr_u / df_denom))
 
     f_stat = max(f_stat, 0.0)
     p_value = float(stats.f.sf(f_stat, df_num, df_denom))

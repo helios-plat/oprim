@@ -1,6 +1,9 @@
 """oprim.subject_create — Create and persist a Subject record."""
+
 from __future__ import annotations
+
 from typing import Any
+
 from oprim._hevi_types import Subject
 
 
@@ -27,6 +30,7 @@ async def subject_create(subject: Subject, *, dsn: str | None = None, store: Any
 
     if dsn is not None:
         from obase.persistence import write_one
+
         await write_one(
             dsn=dsn,
             table="subjects",

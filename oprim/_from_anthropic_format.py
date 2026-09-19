@@ -1,4 +1,5 @@
 """Parse an Anthropic API response object into an internal Message."""
+
 from __future__ import annotations
 
 from typing import Any

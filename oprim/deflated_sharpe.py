@@ -1,4 +1,5 @@
 """oprim.deflated_sharpe — Deflated Sharpe Ratio (Bailey & Lopez de Prado 2014)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -46,12 +47,16 @@ def deflated_sharpe(
     # Expected max SR under H₀ (Eq. 3 from Bailey & Lopez de Prado 2014)
     euler_gamma = 0.5772156649015328
     e_max_sr = (
-        (1 - euler_gamma) * stats.norm.ppf(1 - 1.0 / n_trials)
-        + euler_gamma * stats.norm.ppf(1 - 1.0 / (n_trials * math.e))
-    ) if n_trials > 1 else 0.0
+        (
+            (1 - euler_gamma) * stats.norm.ppf(1 - 1.0 / n_trials)
+            + euler_gamma * stats.norm.ppf(1 - 1.0 / (n_trials * math.e))
+        )
+        if n_trials > 1
+        else 0.0
+    )
 
     # Skewness / kurtosis adjustment
-    T = len(returns) if returns else periods
+    t = len(returns) if returns else periods
     skew = 0.0
     kurt_excess = 0.0  # excess kurtosis (normal = 0)
     if returns and len(returns) >= 4:
@@ -60,11 +65,9 @@ def deflated_sharpe(
         kurt_excess = float(stats.kurtosis(arr, fisher=True))  # excess
 
     # Standard error of SR estimate (non-normal correction)
-    # σ(SR) ≈ sqrt((1 - skew*SR + (kurt+3-1)/4 * SR²) / T)
+    # σ(SR) ≈ sqrt((1 - skew*SR + (kurt+3-1)/4 * SR²) / t)
     kurt_normal_adj = kurt_excess + 3  # convert to non-excess for formula
-    variance_sr = (
-        1 - skew * sharpe + (kurt_normal_adj - 1) / 4.0 * sharpe**2
-    ) / max(T - 1, 1)
+    variance_sr = (1 - skew * sharpe + (kurt_normal_adj - 1) / 4.0 * sharpe**2) / max(t - 1, 1)
     sigma_sr = math.sqrt(max(variance_sr, 1e-12))
 
     deflated = sharpe - e_max_sr

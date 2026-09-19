@@ -7,6 +7,7 @@ Glasserman, P. (2004). Monte Carlo Methods in Financial Engineering.
 Hull, J.C. (2018). Options, Futures, and Other Derivatives (10th ed.).
     Pearson Education.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -17,13 +18,12 @@ import numpy as np
 def _bs_call_price(S: float, K: float, T: float, r: float, sigma: float, q: float) -> float:
     """Closed-form Black-Scholes call price for control variate."""
     from scipy.stats import norm
+
     if T <= 0 or sigma <= 0:
         return max(S * np.exp(-q * T) - K * np.exp(-r * T), 0.0)
     d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
-    return float(
-        S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-    )
+    return float(S * np.exp(-q * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2))
 
 
 def mc_european_price(
@@ -94,14 +94,22 @@ def mc_european_price(
     if option_type not in ("call", "put"):
         raise ValueError(f"option_type must be 'call' or 'put', got {option_type!r}")
 
-    S, K, T, r, sigma, q = spot, strike, time_to_expiry, risk_free_rate, volatility, dividend_yield
+    s_val, k_val, t_val, r_val, sigma_val, q_val = (
+        spot,
+        strike,
+        time_to_expiry,
+        risk_free_rate,
+        volatility,
+        dividend_yield,
+    )
 
     # Edge case: T=0
-    if T == 0:
-        if option_type == "call":
-            price = float(max(S - K, 0.0))
-        else:
-            price = float(max(K - S, 0.0))
+    if t_val == 0:
+        price = (
+            float(max(s_val - k_val, 0.0))
+            if option_type == "call"
+            else float(max(k_val - s_val, 0.0))
+        )
         return {
             "price": price,
             "standard_error": 0.0,
@@ -112,39 +120,39 @@ def mc_european_price(
 
     rng = np.random.default_rng(seed)
 
-    drift = (r - q - 0.5 * sigma**2) * T
-    vol_sqrt_T = sigma * np.sqrt(T)
+    drift = (r_val - q_val - 0.5 * sigma_val**2) * t_val
+    vol_sqrt_t = sigma_val * np.sqrt(t_val)
 
     method_parts = []
 
     if antithetic:
         half_n = n_simulations // 2 if n_simulations > 1 else 1
-        Z = rng.standard_normal(half_n)
-        Z_full = np.concatenate([Z, -Z])
+        z_val = rng.standard_normal(half_n)
+        z_full = np.concatenate([z_val, -z_val])
         method_parts.append("antithetic")
     else:
-        Z_full = rng.standard_normal(n_simulations)
+        z_full = rng.standard_normal(n_simulations)
 
-    n_used = len(Z_full)
+    n_used = len(z_full)
 
-    if sigma == 0:
-        ST = S * np.exp(drift * np.ones(n_used))
+    if sigma_val == 0:
+        st_val = s_val * np.exp(drift * np.ones(n_used))
     else:
-        ST = S * np.exp(drift + vol_sqrt_T * Z_full)
+        st_val = s_val * np.exp(drift + vol_sqrt_t * z_full)
 
     # Discounted payoff
-    disc = np.exp(-r * T)
+    disc = np.exp(-r_val * t_val)
     if option_type == "call":
-        payoffs = disc * np.maximum(ST - K, 0.0)
+        payoffs = disc * np.maximum(st_val - k_val, 0.0)
     else:
-        payoffs = disc * np.maximum(K - ST, 0.0)
+        payoffs = disc * np.maximum(k_val - st_val, 0.0)
 
-    if control_variate and sigma > 0:
+    if control_variate and sigma_val > 0:
         # Control variate: use log(ST/S) as normal control
         # E[ST] = S * exp((r-q)*T)
-        ST_mean_analytic = S * np.exp((r - q) * T)
-        beta = -np.cov(payoffs, ST)[0, 1] / np.var(ST)
-        payoffs_cv = payoffs + beta * (ST - ST_mean_analytic)
+        st_mean_analytic = s_val * np.exp((r_val - q_val) * t_val)
+        beta = -np.cov(payoffs, st_val)[0, 1] / np.var(st_val)
+        payoffs_cv = payoffs + beta * (st_val - st_mean_analytic)
         payoffs = payoffs_cv
         method_parts.append("control_variate")
 
@@ -241,10 +249,21 @@ def mc_asian_price(
     if strike_type not in ("fixed", "floating"):
         raise ValueError(f"strike_type must be 'fixed' or 'floating', got {strike_type!r}")
 
-    S, K, T, r, sigma, q = spot, strike, time_to_expiry, risk_free_rate, volatility, dividend_yield
+    s_val, k_val, t_val, r_val, sigma_val, q_val = (
+        spot,
+        strike,
+        time_to_expiry,
+        risk_free_rate,
+        volatility,
+        dividend_yield,
+    )
 
-    if T == 0:
-        price = float(max(S - K, 0.0)) if option_type == "call" else float(max(K - S, 0.0))
+    if t_val == 0:
+        price = (
+            float(max(s_val - k_val, 0.0))
+            if option_type == "call"
+            else float(max(k_val - s_val, 0.0))
+        )
         return {
             "price": price,
             "standard_error": 0.0,
@@ -253,20 +272,20 @@ def mc_asian_price(
         }
 
     rng = np.random.default_rng(seed)
-    dt = T / n_averaging_dates
-    drift = (r - q - 0.5 * sigma**2) * dt
-    vol_sqrt_dt = sigma * np.sqrt(dt)
+    dt = t_val / n_averaging_dates
+    drift = (r_val - q_val - 0.5 * sigma_val**2) * dt
+    vol_sqrt_dt = sigma_val * np.sqrt(dt)
 
     # Simulate paths: shape (n_simulations, n_averaging_dates)
-    Z = rng.standard_normal((n_simulations, n_averaging_dates))
+    z_val = rng.standard_normal((n_simulations, n_averaging_dates))
     # Log increments
-    log_increments = drift + vol_sqrt_dt * Z
+    log_increments = drift + vol_sqrt_dt * z_val
     # Cumulative log paths → asset prices at each date
     log_paths = np.cumsum(log_increments, axis=1)
-    paths = S * np.exp(log_paths)  # shape (n_sims, n_dates)
+    paths = s_val * np.exp(log_paths)  # shape (n_sims, n_dates)
 
     # Terminal price
-    ST = paths[:, -1]
+    st_val = paths[:, -1]
 
     # Compute average
     if averaging == "arithmetic":
@@ -275,17 +294,17 @@ def mc_asian_price(
         avg = np.exp(np.mean(np.log(paths), axis=1))
 
     # Payoff
-    disc = np.exp(-r * T)
+    disc = np.exp(-r_val * t_val)
     if strike_type == "fixed":
         if option_type == "call":
-            payoffs = disc * np.maximum(avg - K, 0.0)
+            payoffs = disc * np.maximum(avg - k_val, 0.0)
         else:
-            payoffs = disc * np.maximum(K - avg, 0.0)
+            payoffs = disc * np.maximum(k_val - avg, 0.0)
     else:  # floating
         if option_type == "call":
-            payoffs = disc * np.maximum(ST - avg, 0.0)
+            payoffs = disc * np.maximum(st_val - avg, 0.0)
         else:
-            payoffs = disc * np.maximum(avg - ST, 0.0)
+            payoffs = disc * np.maximum(avg - st_val, 0.0)
 
     price_est = float(np.mean(payoffs))
     se = float(np.std(payoffs, ddof=1) / np.sqrt(n_simulations))

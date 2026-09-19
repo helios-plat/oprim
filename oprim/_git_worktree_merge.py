@@ -57,14 +57,26 @@ async def git_worktree_merge(
     # 1) 切到 target 并更新
     checkout = await run_git(["checkout", target], cwd=repo_path, timeout=timeout)
     if not checkout.ok:
-        return {"status": "error", "merged": False, "branch": branch, "target": target,
-                "conflicts": [], "detail": checkout.stderr.strip()}
+        return {
+            "status": "error",
+            "merged": False,
+            "branch": branch,
+            "target": target,
+            "conflicts": [],
+            "detail": checkout.stderr.strip(),
+        }
 
     # 2) fast-forward 尝试
     ff = await run_git(["merge", "--ff-only", branch], cwd=repo_path, timeout=timeout)
     if ff.ok:
-        return {"status": "merged", "merged": True, "branch": branch, "target": target,
-                "conflicts": [], "detail": "fast-forward"}
+        return {
+            "status": "merged",
+            "merged": True,
+            "branch": branch,
+            "target": target,
+            "conflicts": [],
+            "detail": "fast-forward",
+        }
 
     # 3) 常规 merge（--no-edit 用默认信息）
     args = ["merge", "--no-edit"]
@@ -73,12 +85,24 @@ async def git_worktree_merge(
     args.append(branch)
     merge = await run_git(args, cwd=repo_path, timeout=timeout)
     if merge.ok:
-        return {"status": "merged", "merged": True, "branch": branch, "target": target,
-                "conflicts": [], "detail": "merge commit"}
+        return {
+            "status": "merged",
+            "merged": True,
+            "branch": branch,
+            "target": target,
+            "conflicts": [],
+            "detail": "merge commit",
+        }
 
     # 4) 冲突：列出冲突文件并中止
     combined = merge.stdout + "\n" + merge.stderr
     conflicts = [ln for ln in combined.splitlines() if "CONFLICT" in ln]
     await run_git(["merge", "--abort"], cwd=repo_path, timeout=timeout)
-    return {"status": "conflict", "merged": False, "branch": branch, "target": target,
-            "conflicts": conflicts, "detail": combined.strip()}
+    return {
+        "status": "conflict",
+        "merged": False,
+        "branch": branch,
+        "target": target,
+        "conflicts": conflicts,
+        "detail": combined.strip(),
+    }

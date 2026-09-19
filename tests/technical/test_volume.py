@@ -1,4 +1,5 @@
 """Tests for oprim.technical.volume: obv, mfi."""
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -16,6 +17,7 @@ def _make_data(n=100, seed=42):
 
 
 # ---------- OBV ----------
+
 
 def test_obv_starts_at_zero():
     _, _, c, v = _make_data()
@@ -65,39 +67,40 @@ def test_obv_length_mismatch_raises():
 
 # ---------- MFI ----------
 
+
 def test_mfi_output_shape():
-    h, l, c, v = _make_data(100)
-    result = mfi(h, l, c, v)
+    h, low, c, v = _make_data(100)
+    result = mfi(h, low, c, v)
     assert len(result) == 100
 
 
 def test_mfi_nan_prefix():
-    h, l, c, v = _make_data(100)
-    result = mfi(h, l, c, v, period=14)
+    h, low, c, v = _make_data(100)
+    result = mfi(h, low, c, v, period=14)
     arr = np.array(result)
     assert np.all(np.isnan(arr[:14]))
     assert np.isfinite(arr[14])
 
 
 def test_mfi_normalized_range():
-    h, l, c, v = _make_data(100)
-    result = mfi(h, l, c, v, normalize=True)
+    h, low, c, v = _make_data(100)
+    result = mfi(h, low, c, v, normalize=True)
     arr = np.array(result)
     valid = arr[~np.isnan(arr)]
     assert np.all((valid >= 0) & (valid <= 1))
 
 
 def test_mfi_unnormalized_range():
-    h, l, c, v = _make_data(100)
-    result = mfi(h, l, c, v, normalize=False)
+    h, low, c, v = _make_data(100)
+    result = mfi(h, low, c, v, normalize=False)
     arr = np.array(result)
     valid = arr[~np.isnan(arr)]
     assert np.all((valid >= 0) & (valid <= 100))
 
 
 def test_mfi_series_input():
-    h, l, c, v = _make_data(50)
-    result = mfi(pd.Series(h), pd.Series(l), pd.Series(c), pd.Series(v))
+    h, low, c, v = _make_data(50)
+    result = mfi(pd.Series(h), pd.Series(low), pd.Series(c), pd.Series(v))
     assert isinstance(result, pd.Series)
 
 
@@ -107,15 +110,15 @@ def test_mfi_empty_raises():
 
 
 def test_mfi_invalid_period_raises():
-    h, l, c, v = _make_data(50)
+    h, low, c, v = _make_data(50)
     with pytest.raises(ValueError, match="period"):
-        mfi(h, l, c, v, period=0)
+        mfi(h, low, c, v, period=0)
 
 
 def test_mfi_length_mismatch_raises():
-    h, l, c, v = _make_data(50)
+    h, low, c, v = _make_data(50)
     with pytest.raises(ValueError, match="same length"):
-        mfi(h, l[:30], c, v)
+        mfi(h, low[:30], c, v)
 
 
 def test_mfi_all_positive_flow():
@@ -123,10 +126,10 @@ def test_mfi_all_positive_flow():
     n = 30
     # Strictly increasing typical prices (ensures no negative flow)
     h = np.arange(1.0, n + 1) + 1.0
-    l = np.arange(1.0, n + 1) - 0.5
+    low = np.arange(1.0, n + 1) - 0.5
     c = np.arange(1.0, n + 1)
     v = np.ones(n) * 1000
-    result = mfi(h, l, c, v, period=5, normalize=True)
+    result = mfi(h, low, c, v, period=5, normalize=True)
     arr = np.array(result)
     valid = arr[~np.isnan(arr)]
     assert np.all(valid == pytest.approx(1.0))

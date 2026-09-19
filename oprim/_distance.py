@@ -148,9 +148,11 @@ def _dtw_1d(x, y, window, metric):
     i, j = n, m
     while i > 0 and j > 0:
         path.append((i - 1, j - 1))
-        candidates = [(cost[i - 1, j - 1], i - 1, j - 1),
-                      (cost[i - 1, j], i - 1, j),
-                      (cost[i, j - 1], i, j - 1)]
+        candidates = [
+            (cost[i - 1, j - 1], i - 1, j - 1),
+            (cost[i - 1, j], i - 1, j),
+            (cost[i, j - 1], i, j - 1),
+        ]
         _, i, j = min(candidates, key=lambda c: c[0])
     path.reverse()
 
@@ -233,24 +235,26 @@ def cosine_similarity_batch(
         indices = np.argsort(-similarities, axis=1)[:, :top_k]
         scores = np.take_along_axis(similarities, indices, axis=1)
         # Keep at least 1D when top_k=1
-        return scores.squeeze(0) if scores.shape[0] == 1 else scores, indices.squeeze(0) if indices.shape[0] == 1 else indices
+        return scores.squeeze(0) if scores.shape[0] == 1 else scores, indices.squeeze(
+            0
+        ) if indices.shape[0] == 1 else indices
 
     return similarities.squeeze(0) if similarities.shape[0] == 1 else similarities
 
 
 def euclidean_distance_matrix(
-    X: np.ndarray,
-    Y: np.ndarray | None = None,
+    x: np.ndarray,
+    y: np.ndarray | None = None,
     weights: np.ndarray | None = None,
 ) -> np.ndarray:
     """Compute pairwise Euclidean distance matrix.
 
     Parameters
     ----------
-    X : np.ndarray
+    x : np.ndarray
         Shape (n, d).
-    Y : np.ndarray | None
-        Shape (m, d). If None, compute X vs X.
+    y : np.ndarray | None
+        Shape (m, d). If None, compute x vs x.
     weights : np.ndarray | None
         Feature weights. Shape (d,).
 
@@ -259,24 +263,24 @@ def euclidean_distance_matrix(
     np.ndarray
         Distance matrix shape (n, m).
     """
-    X = np.asarray(X, dtype=np.float64)
-    if X.ndim == 1:
-        X = X.reshape(-1, 1)
+    x = np.asarray(x, dtype=np.float64)
+    if x.ndim == 1:
+        x = x.reshape(-1, 1)
 
-    if Y is None:
-        Y = X
+    if y is None:
+        y = x
     else:
-        Y = np.asarray(Y, dtype=np.float64)
-        if Y.ndim == 1:
-            Y = Y.reshape(-1, 1)
+        y = np.asarray(y, dtype=np.float64)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
 
     if weights is not None:
         weights = np.asarray(weights, dtype=np.float64)
         w_sqrt = np.sqrt(weights)
-        X = X * w_sqrt
-        Y = Y * w_sqrt
+        x = x * w_sqrt
+        y = y * w_sqrt
 
-    return cdist(X, Y, metric="euclidean")
+    return cdist(x, y, metric="euclidean")
 
 
 def symmetric_kl_divergence(
@@ -331,7 +335,9 @@ def distributional_distance(
     sample_a: np.ndarray | pd.Series,
     sample_b: np.ndarray | pd.Series,
     *,
-    metric: Literal["wasserstein_1", "kolmogorov_smirnov", "cramer_von_mises", "energy"] = "wasserstein_1",
+    metric: Literal[
+        "wasserstein_1", "kolmogorov_smirnov", "cramer_von_mises", "energy"
+    ] = "wasserstein_1",
     weights_a: np.ndarray | None = None,
     weights_b: np.ndarray | None = None,
 ) -> float:
@@ -400,7 +406,9 @@ def distributional_distance(
         )
 
 
-def _weighted_ecdf(values: np.ndarray, weights: np.ndarray | None, eval_points: np.ndarray) -> np.ndarray:
+def _weighted_ecdf(
+    values: np.ndarray, weights: np.ndarray | None, eval_points: np.ndarray
+) -> np.ndarray:
     """Evaluate weighted ECDF at eval_points (sorted unique values)."""
     n = values.size
     sort_idx = np.argsort(values)
@@ -460,15 +468,9 @@ def _energy_distance(
     weights_b: np.ndarray | None,
 ) -> float:
     """Energy distance: 2*E[|X-Y|] - E[|X-X'|] - E[|Y-Y'|]."""
-    if weights_a is not None:
-        wa = weights_a / weights_a.sum()
-    else:
-        wa = np.ones(a.size) / a.size
+    wa = weights_a / weights_a.sum() if weights_a is not None else np.ones(a.size) / a.size
 
-    if weights_b is not None:
-        wb = weights_b / weights_b.sum()
-    else:
-        wb = np.ones(b.size) / b.size
+    wb = weights_b / weights_b.sum() if weights_b is not None else np.ones(b.size) / b.size
 
     # E[|X-Y|]: weighted mean of |a_i - b_j|
     cross_diffs = np.abs(a[:, None] - b[None, :])

@@ -83,8 +83,8 @@ def bootstrap_ci(
         jack_mean = jack_stats.mean()
         # BCa acceleration: a = sum((jack_mean - jack_i)^3) / (6 * sum((jack_mean - jack_i)^2)^1.5)
         diff = jack_mean - jack_stats
-        num = np.sum(diff ** 3)
-        den = 6 * (np.sum(diff ** 2) ** 1.5)
+        num = np.sum(diff**3)
+        den = 6 * (np.sum(diff**2) ** 1.5)
         a = num / den if den != 0 else 0.0
 
         z_alpha_low = stats.norm.ppf(alpha / 2)
@@ -173,9 +173,17 @@ def distribution_summary(
     n = int(valid.size)
 
     if n == 0:
-        result = {"mean": np.nan, "median": np.nan, "std": np.nan,
-                  "skew": np.nan, "kurtosis_excess": np.nan,
-                  "n": 0, "n_nan": n_nan, "min": np.nan, "max": np.nan}
+        result = {
+            "mean": np.nan,
+            "median": np.nan,
+            "std": np.nan,
+            "skew": np.nan,
+            "kurtosis_excess": np.nan,
+            "n": 0,
+            "n_nan": n_nan,
+            "min": np.nan,
+            "max": np.nan,
+        }
         for p in percentiles:
             result[f"q_{p}"] = np.nan
         return result
@@ -185,7 +193,9 @@ def distribution_summary(
         "median": float(np.median(valid)),
         "std": float(np.std(valid, ddof=1)) if n > 1 else 0.0,
         "skew": float(stats.skew(valid, bias=False)) if n > 2 else np.nan,
-        "kurtosis_excess": float(stats.kurtosis(valid, fisher=True, bias=False)) if n > 3 else np.nan,
+        "kurtosis_excess": float(stats.kurtosis(valid, fisher=True, bias=False))
+        if n > 3
+        else np.nan,
         "n": n,
         "n_nan": n_nan,
         "min": float(np.min(valid)),
@@ -269,14 +279,17 @@ def kolmogorov_smirnov_test(
         sample_b_arr = np.asarray(sample_b, dtype=np.float64)
         sample_b_arr = sample_b_arr[~np.isnan(sample_b_arr)]
         stat, p = stats.ks_2samp(sample_a, sample_b_arr, alternative=alternative)
-        return {"statistic": float(stat), "p_value": float(p),
-                "n_a": len(sample_a), "n_b": len(sample_b_arr)}
+        return {
+            "statistic": float(stat),
+            "p_value": float(p),
+            "n_a": len(sample_a),
+            "n_b": len(sample_b_arr),
+        }
     else:  # one_sample
         if sample_b is None:
             sample_b = "norm"
         stat, p = stats.kstest(sample_a, sample_b, alternative=alternative)
-        return {"statistic": float(stat), "p_value": float(p),
-                "n_a": len(sample_a), "n_b": 0}
+        return {"statistic": float(stat), "p_value": float(p), "n_a": len(sample_a), "n_b": 0}
 
 
 def mann_kendall_trend(
@@ -304,8 +317,14 @@ def mann_kendall_trend(
     n = len(data)
 
     if n < 3:
-        return {"trend": "no_trend", "p_value": 1.0, "tau": 0.0,
-                "z_score": 0.0, "slope": 0.0, "n": n}
+        return {
+            "trend": "no_trend",
+            "p_value": 1.0,
+            "tau": 0.0,
+            "z_score": 0.0,
+            "slope": 0.0,
+            "n": n,
+        }
 
     # Vectorized S statistic using broadcasting
     # S = sum_{i<j} sign(x_j - x_i)
@@ -361,10 +380,7 @@ def mann_kendall_trend(
     slope = float(np.median(slopes))
 
     # Determine trend
-    if p_value <= alpha:
-        trend = "increasing" if z > 0 else "decreasing"
-    else:
-        trend = "no_trend"
+    trend = ("increasing" if z > 0 else "decreasing") if p_value <= alpha else "no_trend"
 
     return {
         "trend": trend,
@@ -664,7 +680,7 @@ def percentile_value(
     n = len(data)
     result = np.full(n, np.nan)
     for i in range(window, n):
-        seg = data[i - window: i]
+        seg = data[i - window : i]
         valid = seg[np.isfinite(seg)]
         if len(valid) >= 10:
             result[i] = float(np.quantile(valid, q, method=method))

@@ -29,7 +29,7 @@ def backlink_resolver(
 
     try:
         compiled = re.compile(link_pattern)
-    except re.error as exc:
+    except re.error:
         # Return empty result with no error field (per spec — no error key defined)
         return {
             "forward_links": {},

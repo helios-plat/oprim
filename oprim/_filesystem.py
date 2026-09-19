@@ -64,10 +64,12 @@ def disk_usage(
     Args:
         path: 文件系统路径
         threshold_percent: 可选使用率告警阈值(0-100). 给定时结果的 over_threshold 置为
-            used_percent >= threshold_percent;不给则 over_threshold 为 None(未评估).
+            used_percent >= threshold_percent
+            不给则 over_threshold 为 None(未评估).
 
     Returns:
-        DiskUsage 含 total / used / free bytes 和使用率;给定阈值时含 over_threshold.
+        DiskUsage 含 total / used / free bytes 和使用率
+        给定阈值时含 over_threshold.
 
     Raises:
         OprimNotFoundError: path 不存在
@@ -143,14 +145,16 @@ def archive_to_targz(
                     for file_path in sorted(src.rglob("*")):
                         # Use relative path from src's parent to keep the src dir name in archive
                         # or relative to src to put contents in root.
-                        # dir_archive_to_targz used relative_to(src), so let's stick to that for dir contents.
+                        # dir_archive_to_targz used relative_to(src), so let's stick to that
+                        # for dir contents.
                         rel = file_path.relative_to(src)
                         if any(_matches_any(part, excludes) for part in rel.parts):
                             continue
                         if not follow_symlinks and file_path.is_symlink():
                             continue
 
-                        # If we want multiple sources to coexist, we should probably keep their names
+                        # If we want multiple sources to coexist, we should probably keep
+                        # their names
                         # But dir_archive_to_targz logic was rel = file_path.relative_to(src)
                         # and arcname = str(rel). This means if sources=[dir1, dir2], their contents
                         # will be mixed in the root of the archive.
@@ -282,7 +286,7 @@ def fs_inode_check(
         raise OprimNotFoundError(f"Path not found: {path}")
 
     try:
-        st = shutil.disk_usage(str(p))  # total/used/free bytes
+        shutil.disk_usage(str(p))  # total/used/free bytes
     except Exception as exc:
         raise OprimError(f"Failed to stat path: {exc}") from exc
 

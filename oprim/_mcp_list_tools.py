@@ -1,12 +1,16 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 from typing import Any
+
 from ._exceptions import OprimError
 from ._protocols import McpClientHandle
 
+
 class McpOprimError(OprimError):
     """MCP 请求失败。"""
+
 
 async def mcp_list_tools(
     *,
@@ -34,16 +38,18 @@ async def mcp_list_tools(
     try:
         tools = await client.list_tools()
     except Exception as e:
-        raise McpOprimError("mcp_list_tools failed", cause=e)
+        raise McpOprimError("mcp_list_tools failed", cause=e) from e
 
     # 标准化字段名（MCP 规范用 inputSchema，部分实现用 input_schema）
     normalized = []
     for t in tools:
         if not isinstance(t, dict):
             continue
-        normalized.append({
-            "name": t.get("name", ""),
-            "description": t.get("description", ""),
-            "inputSchema": t.get("inputSchema") or t.get("input_schema") or {},
-        })
+        normalized.append(
+            {
+                "name": t.get("name", ""),
+                "description": t.get("description", ""),
+                "inputSchema": t.get("inputSchema") or t.get("input_schema") or {},
+            }
+        )
     return normalized

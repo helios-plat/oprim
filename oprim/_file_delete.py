@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import stat
+
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def file_delete(path: str | Path, *, missing_ok: bool = False) -> bool:
     """单次原子删除文件（不删目录）。
@@ -31,5 +33,5 @@ def file_delete(path: str | Path, *, missing_ok: bool = False) -> bool:
     except FileNotFoundError:
         raise FileOprimError(f"file not found: {path}")
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot delete '{path}'", cause=e)
+        raise FileOprimError(f"cannot delete '{path}'", cause=e) from e
     return existed  # True if the file existed and was deleted

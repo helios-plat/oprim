@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -66,14 +65,16 @@ class TestInvokeLocal:
         mock_proc.communicate = AsyncMock(return_value=(b"", b""))
         mock_proc.kill = MagicMock()
 
-        with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
-            with patch("asyncio.wait_for", return_value=(b"", b"")):
-                result = await invoke_local(
-                    portrait_image=portrait,
-                    audio_path=audio,
-                    output_path=output,
-                    vendor_dir=vendor_dir,
-                )
+        with (
+            patch("asyncio.create_subprocess_exec", return_value=mock_proc),
+            patch("asyncio.wait_for", return_value=(b"", b"")),
+        ):
+            result = await invoke_local(
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=output,
+                vendor_dir=vendor_dir,
+            )
         assert result == output
 
     async def test_subprocess_nonzero_exit_raises_error(self, tmp_path: Path, setup) -> None:
@@ -85,15 +86,17 @@ class TestInvokeLocal:
         mock_proc.communicate = AsyncMock(return_value=(b"", b"GPU OOM error"))
         mock_proc.kill = MagicMock()
 
-        with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
-            with patch("asyncio.wait_for", return_value=(b"", b"GPU OOM error")):
-                with pytest.raises(LongCatAvatarError, match="exited 1"):
-                    await invoke_local(
-                        portrait_image=portrait,
-                        audio_path=audio,
-                        output_path=output,
-                        vendor_dir=vendor_dir,
-                    )
+        with (
+            patch("asyncio.create_subprocess_exec", return_value=mock_proc),
+            patch("asyncio.wait_for", return_value=(b"", b"GPU OOM error")),
+            pytest.raises(LongCatAvatarError, match="exited 1"),
+        ):
+            await invoke_local(
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=output,
+                vendor_dir=vendor_dir,
+            )
 
     async def test_subprocess_timeout_raises_error(self, tmp_path: Path, setup) -> None:
         """asyncio.TimeoutError raises LongCatAvatarError about timeout."""
@@ -104,16 +107,18 @@ class TestInvokeLocal:
         mock_proc.communicate = AsyncMock(return_value=(b"", b""))
         mock_proc.kill = MagicMock()
 
-        with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
-            with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
-                with pytest.raises(LongCatAvatarError, match="timed out"):
-                    await invoke_local(
-                        portrait_image=portrait,
-                        audio_path=audio,
-                        output_path=output,
-                        vendor_dir=vendor_dir,
-                        timeout_s=0.001,
-                    )
+        with (
+            patch("asyncio.create_subprocess_exec", return_value=mock_proc),
+            patch("asyncio.wait_for", side_effect=TimeoutError()),
+            pytest.raises(LongCatAvatarError, match="timed out"),
+        ):
+            await invoke_local(
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=output,
+                vendor_dir=vendor_dir,
+                timeout_s=0.001,
+            )
 
 
 class TestInvokeCloud:

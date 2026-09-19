@@ -1,4 +1,5 @@
 """Tests for oprim.classifier.extract_text_sample."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -57,7 +58,10 @@ class TestExtractTextSample:
 
     def test_pdf_fitz_exception_returns_empty(self, simple_pdf: Path, monkeypatch):
         import fitz
-        monkeypatch.setattr(fitz, "open", lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("fitz fail")))
+
+        monkeypatch.setattr(
+            fitz, "open", lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("fitz fail"))
+        )
         result = extract_text_sample(simple_pdf, "application/pdf")
         assert result == ""
 
@@ -69,6 +73,7 @@ class TestExtractTextSample:
 
     def test_text_bad_encoding_falls_back_to_utf8(self, tmp_path: Path, monkeypatch):
         import chardet
+
         f = tmp_path / "data.txt"
         f.write_bytes(b"hello world")
         monkeypatch.setattr(chardet, "detect", lambda x: {"encoding": "invalid-codec-xxx"})

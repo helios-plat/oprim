@@ -24,13 +24,13 @@ def preserve_indentation(original: str, *, new: str) -> str:
     result = []
     for line in new_lines:
         stripped_line = line.rstrip("\n\r")
-        ending = line[len(stripped_line):]
+        ending = line[len(stripped_line) :]
         if not stripped_line.strip():
             result.append(line)
             continue
         # Remove new's own base indent, add original's base indent
         if stripped_line.startswith(new_base):
-            relative = stripped_line[len(new_base):]
+            relative = stripped_line[len(new_base) :]
         else:
             relative = stripped_line.lstrip()
         result.append(base_indent + relative + ending)

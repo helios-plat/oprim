@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 
-def truncate_for_context(
-    text: str, *, max_lines: int = 2000, max_bytes: int = 50_000
-) -> str:
+def truncate_for_context(text: str, *, max_lines: int = 2000, max_bytes: int = 50_000) -> str:
     """Truncate text to fit context window, preserving whole characters."""
     if max_lines <= 0 or max_bytes <= 0:
         raise ValueError("max_lines and max_bytes must be > 0")

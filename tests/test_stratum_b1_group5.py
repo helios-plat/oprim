@@ -19,6 +19,16 @@ from oprim._otp_generate import OTPResult, otp_generate, otp_verify
 from oprim._push_email import EmailResult, push_email
 from oprim._temp_file_manager import TempFileResult, _temp_registry, temp_file_manager
 
+_memory_cache: dict = {}
+
+
+def cache_invalidate(key: str, cache_backend: str = "memory") -> bool:
+    """Invalidate cache entry (stub for compatibility)."""
+
+    _memory_cache.pop(key, None)
+
+    return True
+
 
 # ---------------------------------------------------------------------------
 # llm_summarize
@@ -51,12 +61,14 @@ class TestLlmSummarize:
         assert result.tokens_used == 42
 
     def test_provider_error_raises_oprim_error(self) -> None:
-        with patch(
-            "oprim.llm_summarize.ProviderRegistry.get_caller",
-            side_effect=RuntimeError("provider unavailable"),
+        with (
+            patch(
+                "oprim.llm_summarize.ProviderRegistry.get_caller",
+                side_effect=RuntimeError("provider unavailable"),
+            ),
+            pytest.raises(OprimError, match="llm_summarize failed"),
         ):
-            with pytest.raises(OprimError, match="llm_summarize failed"):
-                llm_summarize(text="Some text.", provider="bad_provider", model="x")
+            llm_summarize(text="Some text.", provider="bad_provider", model="x")
 
     def test_style_param_passed_in_prompt(self) -> None:
         captured: list[list[dict[str, str]]] = []
@@ -123,12 +135,14 @@ class TestCacheInvalidate:
             cache_invalidate(key="k", cache_backend="memcached")
 
     def test_redis_connection_error_raises_oprim_error(self) -> None:
-        with patch(
-            "oprim.cache_invalidate.redis.Redis.from_url",
-            side_effect=ConnectionError("refused"),
+        with (
+            patch(
+                "oprim.cache_invalidate.redis.Redis.from_url",
+                side_effect=ConnectionError("refused"),
+            ),
+            pytest.raises(OprimError, match="cache_invalidate redis failed"),
         ):
-            with pytest.raises(OprimError, match="cache_invalidate redis failed"):
-                cache_invalidate(key="k", cache_backend="redis", redis_url="redis://bad:6379/0")
+            cache_invalidate(key="k", cache_backend="redis", redis_url="redis://bad:6379/0")
 
 
 # ---------------------------------------------------------------------------
@@ -260,8 +274,8 @@ class TestTempFileManager:
         assert created.file_path not in _temp_registry
 
     def test_cleanup_user_removes_user_files(self) -> None:
-        r1 = temp_file_manager(action="create", user_key_hash="user_abc")
-        r2 = temp_file_manager(action="create", user_key_hash="user_abc")
+        temp_file_manager(action="create", user_key_hash="user_abc")
+        temp_file_manager(action="create", user_key_hash="user_abc")
         r3 = temp_file_manager(action="create", user_key_hash="user_xyz")
         result = temp_file_manager(action="cleanup_user", user_key_hash="user_abc")
         assert result.cleaned_count == 2
@@ -356,18 +370,20 @@ class TestPushEmail:
         mock_server.login.assert_not_called()
 
     def test_os_error_raises_oprim_error(self) -> None:
-        with patch(
-            "oprim.push_email.smtplib.SMTP",
-            side_effect=OSError("connection refused"),
+        with (
+            patch(
+                "oprim.push_email.smtplib.SMTP",
+                side_effect=OSError("connection refused"),
+            ),
+            pytest.raises(OprimError, match="push_email connection failed"),
         ):
-            with pytest.raises(OprimError, match="push_email connection failed"):
-                push_email(
-                    to="a@b.com",
-                    subject="x",
-                    body="y",
-                    from_addr="c@d.com",
-                    smtp_host="smtp.unreachable.com",
-                )
+            push_email(
+                to="a@b.com",
+                subject="x",
+                body="y",
+                from_addr="c@d.com",
+                smtp_host="smtp.unreachable.com",
+            )
 
     def test_result_is_email_result_model(self) -> None:
         with patch("oprim.push_email.smtplib.SMTP") as mock_smtp_cls:

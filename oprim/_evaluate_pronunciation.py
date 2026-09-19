@@ -3,7 +3,8 @@
 COMPLIANCE NOTICE: Callers are responsible for registering a provider that has
 completed filing (备案) with China's Cyberspace Administration (CAC). Recommended
 providers: 讯飞开放平台 / 腾讯云 / 阿里云 AI. This library does NOT hard-code any
-specific provider; service selection is delegated entirely to the caller.
+specific provider
+service selection is delegated entirely to the caller.
 
 Prohibition: LLM MUST NOT be used to simulate pronunciation scores. All scores
 must originate from a genuine acoustic model exposed through the registered provider.

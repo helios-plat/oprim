@@ -1,6 +1,8 @@
 """Tests for oprim.volatility.garch_fit and garch_forecast."""
+
 import math
 import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -28,9 +30,15 @@ class TestGARCHFit:
         r = rng.standard_normal(200) * 0.01
         result = garch_fit(r)
         expected_keys = {
-            "params", "log_likelihood", "aic", "bic",
-            "persistence", "unconditional_variance", "converged",
-            "residuals", "conditional_variance",
+            "params",
+            "log_likelihood",
+            "aic",
+            "bic",
+            "persistence",
+            "unconditional_variance",
+            "converged",
+            "residuals",
+            "conditional_variance",
         }
         assert set(result.keys()) == expected_keys
         assert set(result["params"].keys()) >= {"omega", "alpha", "beta", "mu"}
@@ -61,9 +69,9 @@ class TestGARCHFit:
         result = garch_fit(r)
         ll = result["log_likelihood"]
         k = 4
-        T = 200
+        t_val = 200
         assert result["aic"] == pytest.approx(-2 * ll + 2 * k, rel=1e-8)
-        assert result["bic"] == pytest.approx(-2 * ll + k * math.log(T), rel=1e-8)
+        assert result["bic"] == pytest.approx(-2 * ll + k * math.log(t_val), rel=1e-8)
 
     def test_garch_fit_converged_flag(self):
         """converged key is bool."""
@@ -150,6 +158,7 @@ class TestGARCHForecast:
     def test_garch_forecast_does_not_import_fit(self):
         """garch_forecast does not call garch_fit at runtime."""
         import inspect
+
         source = inspect.getsource(garch_forecast)
         # Must not call garch_fit (with open paren)
         assert "garch_fit(" not in source

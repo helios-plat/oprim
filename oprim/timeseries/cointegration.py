@@ -141,13 +141,13 @@ def engle_granger_cointegration(
 
     # Step 1: OLS regression
     if trend == "c":
-        X = np.column_stack([np.ones(n), x_arr])
+        x_mat = np.column_stack([np.ones(n), x_arr])
     elif trend == "ct":
-        X = np.column_stack([np.ones(n), np.arange(1, n + 1, dtype=float), x_arr])
+        x_mat = np.column_stack([np.ones(n), np.arange(1, n + 1, dtype=float), x_arr])
     else:  # nc
-        X = x_arr.reshape(-1, 1)
+        x_mat = x_arr.reshape(-1, 1)
 
-    coeffs, residuals = _ols_fit(y_arr, X)
+    coeffs, residuals = _ols_fit(y_arr, x_mat)
     intercept = float(coeffs[0]) if trend != "nc" else 0.0
     slope = float(coeffs[-1])
 
@@ -309,48 +309,47 @@ def johansen_cointegration(
         raise ValueError(f"Insufficient observations for Johansen test: {n}")
 
     # Step 1: Compute first differences
-    dY = np.diff(arr, axis=0)  # (n-1, k)
+    dy = np.diff(arr, axis=0)  # (n-1, k)
 
     # Step 2: Set up lagged differences and levels
     p = k_ar_diff
     # Need obs from index p onwards in dY
     # Effective sample starts at index p (in dY indexing)
-    T = n - 1 - p  # effective sample size
+    t_val = n - 1 - p  # effective sample size
 
-    if k >= T:
-        raise ValueError(f"Too few effective observations: T={T}, k={k}")
+    if k >= t_val:
+        raise ValueError(f"Too few effective observations: T={t_val}, k={k}")
 
     # Lagged levels: Y_{t-1} at time t (for t=p+1..n-1 in dY indexing: dY[p:])
-    Y_lag = arr[p : n - 1]  # shape (T, k)
+    y_lag = arr[p : n - 1]  # shape (T, k)
 
     # Lagged differences (p lags)
     # dY_lag_i is dY[p-i : n-1-i] for lag i=1..p
-    Z2 = None
+    z2 = None
     if p > 0:
         lag_cols = []
         for i in range(1, p + 1):
-            lag_cols.append(dY[p - i : n - 1 - i])  # shape (T, k)
-        Z2 = np.hstack(lag_cols)  # shape (T, p*k)
+            lag_cols.append(dy[p - i : n - 1 - i])  # shape (T, k)
+        z2 = np.hstack(lag_cols)  # shape (T, p*k)
 
     # Dependent variable: dY[p:]
-    Z0 = dY[p:]  # shape (T, k)
+    z0 = dy[p:]  # shape (T, k)
 
     # Step 3: Add deterministic terms and regress out
     if det_order == 0:
         # Constant restricted to VECM (unrestricted constant)
         # Add constant to Z2 (or create if p=0)
-        const = np.ones((T, 1))
-        if Z2 is not None:
-            Z2_aug = np.hstack([Z2, const])
-        else:
-            Z2_aug = const
+        const = np.ones((t_val, 1))
+        z2_aug = np.hstack([z2, const]) if z2 is not None else const
     else:
-        Z2_aug = Z2 if Z2 is not None else np.ones((T, 1))
+        z2_aug = z2 if z2 is not None else np.ones((t_val, 1))
 
     # Regress Z0 and Y_lag on Z2_aug (partial out short-run dynamics)
     def _resid(Y, X):  # pragma: no cover
         """Return residuals of Y regressed on X."""
-        coeffs, _ = _ols_fit(Y.T.ravel(), X) if Y.ndim == 1 else _ols_multi(Y, X)  # pragma: no cover
+        coeffs, _ = (
+            _ols_fit(Y.T.ravel(), X) if Y.ndim == 1 else _ols_multi(Y, X)
+        )  # pragma: no cover
         return Y - X @ coeffs  # pragma: no cover
 
     def _ols_multi(Y, X):
@@ -359,27 +358,27 @@ def johansen_cointegration(
         return coeffs, Y - X @ coeffs
 
     # Residuals of Z0 on Z2_aug
-    coeffs_0, R0 = _ols_multi(Z0, Z2_aug)  # R0: (T, k)
+    coeffs_0, r0 = _ols_multi(z0, z2_aug)  # R0: (T, k)
     # Residuals of Y_lag on Z2_aug
-    coeffs_1, R1 = _ols_multi(Y_lag, Z2_aug)  # R1: (T, k)
+    coeffs_1, r1 = _ols_multi(y_lag, z2_aug)  # R1: (T, k)
 
     # Step 4: Compute moment matrices
-    S00 = (R0.T @ R0) / T  # (k, k)
-    S01 = (R0.T @ R1) / T  # (k, k)
-    S11 = (R1.T @ R1) / T  # (k, k)
+    s00 = (r0.T @ r0) / t_val  # (k, k)
+    s01 = (r0.T @ r1) / t_val  # (k, k)
+    s11 = (r1.T @ r1) / t_val  # (k, k)
 
     # Step 5: Solve generalized eigenvalue problem
     # S01 @ inv(S11) @ S01.T @ v = lambda * S00 @ v
     # Equivalent: inv(S00) @ S01 @ inv(S11) @ S01.T @ v = lambda * v
     try:
-        S11_inv = np.linalg.inv(S11)
-        S00_inv = np.linalg.inv(S00)
+        s11_inv = np.linalg.inv(s11)
+        s00_inv = np.linalg.inv(s00)
     except np.linalg.LinAlgError:  # pragma: no cover
-        S11_inv = np.linalg.pinv(S11)  # pragma: no cover
-        S00_inv = np.linalg.pinv(S00)  # pragma: no cover
+        s11_inv = np.linalg.pinv(s11)  # pragma: no cover
+        s00_inv = np.linalg.pinv(s00)  # pragma: no cover
 
-    M = S00_inv @ S01 @ S11_inv @ S01.T
-    eigenvalues, eigenvectors = np.linalg.eig(M)
+    m_mat = s00_inv @ s01 @ s11_inv @ s01.T
+    eigenvalues, eigenvectors = np.linalg.eig(m_mat)
 
     # Keep real parts (should be real in theory)
     eigenvalues = np.real(eigenvalues)
@@ -397,13 +396,13 @@ def johansen_cointegration(
     # Trace_r = -T * sum(log(1 - lambda_i), i=r..k-1)
     trace_stats = np.zeros(k)
     for r in range(k):
-        trace_stats[r] = float(-T * np.sum(np.log(1.0 - eigenvalues_clipped[r:])))
+        trace_stats[r] = float(-t_val * np.sum(np.log(1.0 - eigenvalues_clipped[r:])))
 
     # Max eigenvalue statistics
     # MaxEig_r = -T * log(1 - lambda_{r+1})
     maxeig_stats = np.zeros(k)
     for r in range(k):
-        maxeig_stats[r] = float(-T * np.log(1.0 - eigenvalues_clipped[r]))
+        maxeig_stats[r] = float(-t_val * np.log(1.0 - eigenvalues_clipped[r]))
 
     # Step 7: Determine cointegration rank using trace test at 5%
     # Look up critical values
@@ -429,13 +428,11 @@ def johansen_cointegration(
         "cointegration_rank": int(cointegration_rank),
         "cointegrating_vectors": cointegrating_vectors,
         "critical_values_trace": {
-            r: {"90%": cvs[0], "95%": cvs[1], "99%": cvs[2]}
-            for r, cvs in cv_trace.items()
+            r: {"90%": cvs[0], "95%": cvs[1], "99%": cvs[2]} for r, cvs in cv_trace.items()
         },
         "critical_values_maxeig": {
-            r: {"90%": cvs[0], "95%": cvs[1], "99%": cvs[2]}
-            for r, cvs in cv_maxeig.items()
+            r: {"90%": cvs[0], "95%": cvs[1], "99%": cvs[2]} for r, cvs in cv_maxeig.items()
         },
-        "n_obs": int(T),
+        "n_obs": int(t_val),
         "n_vars": int(k),
     }

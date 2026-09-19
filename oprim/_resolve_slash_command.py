@@ -1,4 +1,5 @@
 """P-NEW3 resolve_slash_command — map /command input to a registered SkillRef."""
+
 from __future__ import annotations
 
 from typing import Any

@@ -20,10 +20,10 @@ from pathlib import Path
 
 from ._exceptions import ParseOprimError
 
-
 # ---------------------------------------------------------------------------
 # parse_unified_diff
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class Hunk:
@@ -111,6 +111,7 @@ def parse_unified_diff(diff_text: str) -> list[FileDiff]:
 # compute_diff
 # ---------------------------------------------------------------------------
 
+
 def compute_diff(
     old: str,
     new: str,
@@ -142,13 +143,15 @@ def compute_diff(
         label_a = f"a/{path}" if path else "original"
         label_b = f"b/{path}" if path else "modified"
         diff = difflib.unified_diff(
-            old_lines, new_lines,
-            fromfile=label_a, tofile=label_b,
+            old_lines,
+            new_lines,
+            fromfile=label_a,
+            tofile=label_b,
             n=context_lines,
         )
         return "".join(diff)
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError("failed to compute diff", cause=e)
+        raise ParseOprimError("failed to compute diff", cause=e) from e
 
 
 # ---------------------------------------------------------------------------
@@ -156,34 +159,49 @@ def compute_diff(
 # ---------------------------------------------------------------------------
 
 _EXT_MAP: dict[str, str] = {
-    ".py": "python", ".pyi": "python",
-    ".js": "javascript", ".mjs": "javascript", ".cjs": "javascript",
-    ".ts": "typescript", ".tsx": "typescript",
+    ".py": "python",
+    ".pyi": "python",
+    ".js": "javascript",
+    ".mjs": "javascript",
+    ".cjs": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
     ".jsx": "javascript",
     ".go": "go",
     ".rs": "rust",
     ".java": "java",
     ".kt": "kotlin",
-    ".c": "c", ".h": "c",
-    ".cpp": "cpp", ".cc": "cpp", ".cxx": "cpp", ".hpp": "cpp",
+    ".c": "c",
+    ".h": "c",
+    ".cpp": "cpp",
+    ".cc": "cpp",
+    ".cxx": "cpp",
+    ".hpp": "cpp",
     ".cs": "csharp",
     ".rb": "ruby",
     ".php": "php",
     ".swift": "swift",
-    ".sh": "bash", ".bash": "bash",
+    ".sh": "bash",
+    ".bash": "bash",
     ".zsh": "zsh",
     ".fish": "fish",
     ".sql": "sql",
-    ".html": "html", ".htm": "html",
-    ".css": "css", ".scss": "scss", ".sass": "sass",
+    ".html": "html",
+    ".htm": "html",
+    ".css": "css",
+    ".scss": "scss",
+    ".sass": "sass",
     ".json": "json",
-    ".yaml": "yaml", ".yml": "yaml",
+    ".yaml": "yaml",
+    ".yml": "yaml",
     ".toml": "toml",
     ".xml": "xml",
-    ".md": "markdown", ".mdx": "markdown",
+    ".md": "markdown",
+    ".mdx": "markdown",
     ".rst": "rst",
     ".tex": "latex",
-    ".r": "r", ".R": "r",
+    ".r": "r",
+    ".R": "r",
     ".lua": "lua",
     ".vim": "vim",
     ".dockerfile": "dockerfile",
@@ -227,7 +245,7 @@ def detect_language(
     try:
         p = Path(path)
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError(f"invalid path: {path}", cause=e)
+        raise ParseOprimError(f"invalid path: {path}", cause=e) from e
 
     # 精确文件名匹配
     if p.name in _FILENAME_MAP:
@@ -257,6 +275,7 @@ def detect_language(
 # ---------------------------------------------------------------------------
 # html_to_markdown
 # ---------------------------------------------------------------------------
+
 
 def html_to_markdown(html: str) -> str:
     """将 HTML 字符串转换为 Markdown 格式（纯计算）。
@@ -289,22 +308,31 @@ def html_to_markdown(html: str) -> str:
             text = re.sub(
                 rf"<h{i}[^>]*>(.*?)</h{i}>",
                 lambda m, n=i: f"\n{'#' * n} {m.group(1).strip()}\n",
-                text, flags=re.DOTALL | re.IGNORECASE,
+                text,
+                flags=re.DOTALL | re.IGNORECASE,
             )
 
         # 代码块
         text = re.sub(
             r"<pre[^>]*><code[^>]*>(.*?)</code></pre>",
             lambda m: f"\n```\n{m.group(1)}\n```\n",
-            text, flags=re.DOTALL | re.IGNORECASE,
+            text,
+            flags=re.DOTALL | re.IGNORECASE,
         )
         text = re.sub(r"<code[^>]*>(.*?)</code>", r"`\1`", text, flags=re.DOTALL | re.IGNORECASE)
 
         # 链接
-        text = re.sub(r'<a[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>', r"[\2](\1)", text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(
+            r'<a[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>',
+            r"[\2](\1)",
+            text,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
 
         # 粗体/斜体
-        text = re.sub(r"<strong[^>]*>(.*?)</strong>", r"**\1**", text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(
+            r"<strong[^>]*>(.*?)</strong>", r"**\1**", text, flags=re.DOTALL | re.IGNORECASE
+        )
         text = re.sub(r"<b[^>]*>(.*?)</b>", r"**\1**", text, flags=re.DOTALL | re.IGNORECASE)
         text = re.sub(r"<em[^>]*>(.*?)</em>", r"*\1*", text, flags=re.DOTALL | re.IGNORECASE)
         text = re.sub(r"<i[^>]*>(.*?)</i>", r"*\1*", text, flags=re.DOTALL | re.IGNORECASE)
@@ -332,7 +360,7 @@ def html_to_markdown(html: str) -> str:
         return text.strip() + "\n"
 
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError("html_to_markdown failed", cause=e)
+        raise ParseOprimError("html_to_markdown failed", cause=e) from e
 
 
 # ---------------------------------------------------------------------------
@@ -344,8 +372,8 @@ _DEFAULT_PATTERNS: list[str] = [
     r"(?i)(password|passwd|pwd)\s*[:=]\s*['\"]?(\S{6,})['\"]?",
     r"(?i)(token|auth[_-]?token|access[_-]?token)\s*[:=]\s*['\"]?([A-Za-z0-9_\-\.]{16,})['\"]?",
     r"(?i)(secret[_-]?key|secret)\s*[:=]\s*['\"]?([A-Za-z0-9_\-]{16,})['\"]?",
-    r"sk-[A-Za-z0-9]{32,}",           # OpenAI style
-    r"ghp_[A-Za-z0-9]{36}",           # GitHub PAT
+    r"sk-[A-Za-z0-9]{32,}",  # OpenAI style
+    r"ghp_[A-Za-z0-9]{36}",  # GitHub PAT
     r"Bearer\s+[A-Za-z0-9_\-\.]{20,}",
 ]
 
@@ -378,20 +406,23 @@ def redact_secrets(
     try:
         for pat in active:
             compiled = re.compile(pat)
+
             # 若有捕获组，替换 group(2)（值部分）；否则替换整个匹配
             def _repl(m: re.Match) -> str:  # type: ignore[type-arg]
                 if m.lastindex and m.lastindex >= 2:
                     return m.group(0).replace(m.group(2), replacement)
                 return replacement
+
             result = compiled.sub(_repl, result)
     except re.error as e:
-        raise ParseOprimError(f"invalid pattern: {e}", cause=e)
+        raise ParseOprimError(f"invalid pattern: {e}", cause=e) from e
     return result
 
 
 # ---------------------------------------------------------------------------
 # count_tokens
 # ---------------------------------------------------------------------------
+
 
 def count_tokens(
     messages: list[dict] | str,
@@ -424,11 +455,12 @@ def count_tokens(
             text = messages
         else:
             import json
+
             text = json.dumps(messages, ensure_ascii=False)
         # ~4 chars/token 近似；Claude 实际约 3.5-4.5
         return max(1, len(text) // 4)
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError("count_tokens failed", cause=e)
+        raise ParseOprimError("count_tokens failed", cause=e) from e
 
 
 # ---------------------------------------------------------------------------
@@ -471,10 +503,7 @@ def estimate_cost(
         0.0105
     """
     try:
-        if pricing is not None:
-            p = pricing
-        else:
-            p = _DEFAULT_PRICING.get(model, _FALLBACK_PRICING)
+        p = pricing if pricing is not None else _DEFAULT_PRICING.get(model, _FALLBACK_PRICING)
         return in_tokens * p["in"] + out_tokens * p["out"]
     except (KeyError, TypeError) as e:  # pragma: no cover
-        raise ParseOprimError("invalid pricing format", cause=e)
+        raise ParseOprimError("invalid pricing format", cause=e) from e

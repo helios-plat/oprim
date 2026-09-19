@@ -11,6 +11,7 @@ Hull, J.C. (2018). Options, Futures, and Other Derivatives (10th ed.).
 Manaster, S. & Koehler, G. (1982). The Calculation of Implied Variances from
     the Black-Scholes Model. Journal of Finance, 37(1), 227-230.
 """
+
 from __future__ import annotations
 
 import math
@@ -62,31 +63,45 @@ def black_scholes_price(
 
     References
     ----------
-    Black & Scholes (1973); Merton (1973).
+    Black & Scholes (1973)
+    Merton (1973).
     """
     if spot < 0 or strike < 0 or time_to_expiry < 0 or volatility < 0:
         raise ValueError("spot, strike, time_to_expiry, volatility must all be >= 0")
     if option_type not in ("call", "put"):
         raise ValueError(f"option_type must be 'call' or 'put', got '{option_type}'")
 
-    S, K, T, r, sigma, q = spot, strike, time_to_expiry, risk_free_rate, volatility, dividend_yield
+    s_val, k_val, t_val, r_val, sigma_val, q_val = (
+        spot,
+        strike,
+        time_to_expiry,
+        risk_free_rate,
+        volatility,
+        dividend_yield,
+    )
 
     # Handle T=0 edge case: intrinsic value
-    if T == 0:
+    if t_val == 0:
         if option_type == "call":
-            return float(max(S - K, 0.0))
+            return float(max(s_val - k_val, 0.0))
         else:
-            return float(max(K - S, 0.0))
+            return float(max(k_val - s_val, 0.0))
 
     # Handle sigma=0 edge case: discounted intrinsic
-    if sigma == 0:
+    if sigma_val == 0:
         if option_type == "call":
-            return float(max(S * math.exp(-q * T) - K * math.exp(-r * T), 0.0))
+            return float(
+                max(s_val * math.exp(-q_val * t_val) - k_val * math.exp(-r_val * t_val), 0.0)
+            )
         else:
-            return float(max(K * math.exp(-r * T) - S * math.exp(-q * T), 0.0))
+            return float(
+                max(k_val * math.exp(-r_val * t_val) - s_val * math.exp(-q_val * t_val), 0.0)
+            )
 
-    d1, d2 = _d1_d2(S, K, T, r, sigma, q)
-    return float(_bs_price_from_d1d2(S, K, T, r, sigma, q, d1, d2, option_type))
+    d1, d2 = _d1_d2(s_val, k_val, t_val, r_val, sigma_val, q_val)
+    return float(
+        _bs_price_from_d1d2(s_val, k_val, t_val, r_val, sigma_val, q_val, d1, d2, option_type)
+    )
 
 
 def black_scholes_greeks(
@@ -131,18 +146,26 @@ def black_scholes_greeks(
     if option_type not in ("call", "put"):
         raise ValueError(f"option_type must be 'call' or 'put', got '{option_type}'")
 
-    S, K, T, r, sigma, q = (
-        spot, strike, time_to_expiry, risk_free_rate, volatility, dividend_yield
+    s_val, k_val, t_val, r_val, sigma_val, q_val = (
+        spot,
+        strike,
+        time_to_expiry,
+        risk_free_rate,
+        volatility,
+        dividend_yield,
     )
 
     phi = norm.pdf  # standard normal PDF
-    N = norm.cdf   # standard normal CDF
+    cdf_fn = norm.cdf  # standard normal CDF
 
-    if T == 0 or sigma == 0:
-        if option_type == "call":
-            delta = 1.0 if S > K else 0.0
-        else:
-            delta = -1.0 if S < K else 0.0
+    if t_val == 0 or sigma_val == 0:
+        delta = (
+            (1.0 if s_val > k_val else 0.0)
+            if option_type == "call"
+            else -1.0
+            if s_val < k_val
+            else 0.0
+        )
         return {
             "delta": float(delta),
             "gamma": 0.0,
@@ -151,31 +174,31 @@ def black_scholes_greeks(
             "rho": 0.0,
         }
 
-    d1, d2 = _d1_d2(S, K, T, r, sigma, q)
+    d1, d2 = _d1_d2(s_val, k_val, t_val, r_val, sigma_val, q_val)
 
-    exp_qT = math.exp(-q * T)
-    exp_rT = math.exp(-r * T)
-    sqrt_T = math.sqrt(T)
+    exp_qt = math.exp(-q_val * t_val)
+    exp_rt = math.exp(-r_val * t_val)
+    sqrt_t = math.sqrt(t_val)
 
-    gamma = float(exp_qT * phi(d1) / (S * sigma * sqrt_T))
-    vega = float(S * exp_qT * phi(d1) * sqrt_T)
+    gamma = float(exp_qt * phi(d1) / (s_val * sigma_val * sqrt_t))
+    vega = float(s_val * exp_qt * phi(d1) * sqrt_t)
 
     if option_type == "call":
-        delta = float(exp_qT * N(d1))
+        delta = float(exp_qt * cdf_fn(d1))
         theta = float(
-            -(S * exp_qT * phi(d1) * sigma / (2.0 * sqrt_T))
-            - r * K * exp_rT * N(d2)
-            + q * S * exp_qT * N(d1)
+            -(s_val * exp_qt * phi(d1) * sigma_val / (2.0 * sqrt_t))
+            - r_val * k_val * exp_rt * cdf_fn(d2)
+            + q_val * s_val * exp_qt * cdf_fn(d1)
         )
-        rho = float(K * T * exp_rT * N(d2))
+        rho = float(k_val * t_val * exp_rt * cdf_fn(d2))
     else:  # put
-        delta = float(-exp_qT * N(-d1))
+        delta = float(-exp_qt * cdf_fn(-d1))
         theta = float(
-            -(S * exp_qT * phi(d1) * sigma / (2.0 * sqrt_T))
-            + r * K * exp_rT * N(-d2)
-            - q * S * exp_qT * N(-d1)
+            -(s_val * exp_qt * phi(d1) * sigma_val / (2.0 * sqrt_t))
+            + r_val * k_val * exp_rt * cdf_fn(-d2)
+            - q_val * s_val * exp_qt * cdf_fn(-d1)
         )
-        rho = float(-K * T * exp_rT * N(-d2))
+        rho = float(-k_val * t_val * exp_rt * cdf_fn(-d2))
 
     return {
         "delta": delta,
@@ -247,19 +270,25 @@ def implied_volatility(
     if option_type not in ("call", "put"):
         raise ValueError(f"option_type must be 'call' or 'put', got '{option_type}'")
 
-    S, K, T, r, q = spot, strike, time_to_expiry, risk_free_rate, dividend_yield
+    s_val, k_val, t_val, r_val, q_val = (
+        spot,
+        strike,
+        time_to_expiry,
+        risk_free_rate,
+        dividend_yield,
+    )
 
     # T=0: no volatility solution
-    if T <= 0:
+    if t_val <= 0:
         return float("nan")
 
     # Check intrinsic value lower bound
     if option_type == "call":
-        intrinsic = max(S * math.exp(-q * T) - K * math.exp(-r * T), 0.0)
+        intrinsic = max(s_val * math.exp(-q_val * t_val) - k_val * math.exp(-r_val * t_val), 0.0)
     else:
-        intrinsic = max(K * math.exp(-r * T) - S * math.exp(-q * T), 0.0)
+        intrinsic = max(k_val * math.exp(-r_val * t_val) - s_val * math.exp(-q_val * t_val), 0.0)
 
-    if market_price <= intrinsic and market_price < S * math.exp(-q * T):
+    if market_price <= intrinsic and market_price < s_val * math.exp(-q_val * t_val):
         # Price below intrinsic: no solution
         # Allow very small tolerance
         if market_price < intrinsic - 1e-8:
@@ -269,26 +298,28 @@ def implied_volatility(
         """Inline BSM price computation (no import of black_scholes_price)."""
         if sigma <= 0:  # pragma: no cover
             if option_type == "call":  # pragma: no cover
-                return max(S * math.exp(-q * T) - K * math.exp(-r * T), 0.0)
+                return max(s_val * math.exp(-q_val * t_val) - k_val * math.exp(-r_val * t_val), 0.0)
             else:  # pragma: no cover
-                return max(K * math.exp(-r * T) - S * math.exp(-q * T), 0.0)
-        log_SK = math.log(S / K)
-        d1 = (log_SK + (r - q + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
-        d2 = d1 - sigma * math.sqrt(T)
-        exp_qT = math.exp(-q * T)
-        exp_rT = math.exp(-r * T)
-        call = S * exp_qT * norm.cdf(d1) - K * exp_rT * norm.cdf(d2)
+                return max(k_val * math.exp(-r_val * t_val) - s_val * math.exp(-q_val * t_val), 0.0)
+        log_sk = math.log(s_val / k_val)
+        d1 = (log_sk + (r_val - q_val + 0.5 * sigma**2) * t_val) / (sigma * math.sqrt(t_val))
+        d2 = d1 - sigma * math.sqrt(t_val)
+        exp_qt = math.exp(-q_val * t_val)
+        exp_rt = math.exp(-r_val * t_val)
+        call = s_val * exp_qt * norm.cdf(d1) - k_val * exp_rt * norm.cdf(d2)
         if option_type == "call":
             return float(call)
         else:
-            return float(call - S * exp_qT + K * exp_rT)
+            return float(call - s_val * exp_qt + k_val * exp_rt)
 
     def _vega_inline(sigma):
         """Inline vega computation."""
         if sigma <= 0:  # pragma: no cover
             return 0.0  # pragma: no cover
-        d1 = (math.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
-        return float(S * math.exp(-q * T) * norm.pdf(d1) * math.sqrt(T))
+        d1 = (math.log(s_val / k_val) + (r_val - q_val + 0.5 * sigma**2) * t_val) / (
+            sigma * math.sqrt(t_val)
+        )
+        return float(s_val * math.exp(-q_val * t_val) * norm.pdf(d1) * math.sqrt(t_val))
 
     objective = lambda sig: _bs_price_inline(sig) - market_price  # noqa: E731
 

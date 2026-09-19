@@ -1,4 +1,5 @@
 """Comprehensive pytest tests for hicode batch H-A oprim elements."""
+
 from __future__ import annotations
 
 import base64
@@ -137,6 +138,7 @@ from oprim._parse_unified_diff import Hunk
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _text_msg(text: str, role: str = "user", pinned: bool = False) -> Message:
     return Message(role=role, parts=[Part(type="text", text=text)], pinned=pinned)
 
@@ -155,6 +157,7 @@ def _make_session(msgs=None) -> Session:
 # ===========================================================================
 # Group A — File utilities
 # ===========================================================================
+
 
 class TestFileReadRange:
     def test_normal_range(self):
@@ -192,7 +195,7 @@ class TestDetectEncoding:
         assert detect_encoding(b"\xfe\xffhello") == "utf-16-be"
 
     def test_valid_utf8_no_bom(self):
-        assert detect_encoding("hello world".encode("utf-8")) == "utf-8"
+        assert detect_encoding(b"hello world") == "utf-8"
 
     def test_invalid_utf8_falls_back_to_latin1(self):
         # \xff\xfe is UTF-16-LE BOM
@@ -244,7 +247,7 @@ class TestIsBinary:
         assert is_binary(b"") is False
 
     def test_utf8_multibyte_not_false_positive(self):
-        text = "中文内容".encode("utf-8")
+        text = "中文内容".encode()
         assert is_binary(text) is False
 
 
@@ -362,6 +365,7 @@ class TestPreserveIndentation:
 # Group B — Edit / search / tree utilities
 # ===========================================================================
 
+
 class TestApplyStringReplace:
     def test_single_replace(self):
         assert apply_string_replace("aXb", old="X", new="Y") == "aYb"
@@ -404,14 +408,7 @@ class TestVerifyUniqueMatch:
 class TestApplyPatch:
     def test_simple_patch(self):
         original = "hello\nworld\n"
-        patch = (
-            "--- a/file\n"
-            "+++ b/file\n"
-            "@@ -1,2 +1,2 @@\n"
-            "-hello\n"
-            "+goodbye\n"
-            " world\n"
-        )
+        patch = "--- a/file\n+++ b/file\n@@ -1,2 +1,2 @@\n-hello\n+goodbye\n world\n"
         result = apply_patch(original, patch=patch)
         assert result == "goodbye\nworld\n"
 
@@ -421,35 +418,19 @@ class TestApplyPatch:
 
     def test_pure_add(self):
         original = "line1\nline2\n"
-        patch = (
-            "--- a/f\n+++ b/f\n"
-            "@@ -2,1 +2,2 @@\n"
-            " line2\n"
-            "+line3\n"
-        )
+        patch = "--- a/f\n+++ b/f\n@@ -2,1 +2,2 @@\n line2\n+line3\n"
         result = apply_patch(original, patch=patch)
         assert "line3" in result
 
     def test_pure_delete(self):
         original = "keep\ndelete_me\nkeep2\n"
-        patch = (
-            "--- a/f\n+++ b/f\n"
-            "@@ -1,3 +1,2 @@\n"
-            " keep\n"
-            "-delete_me\n"
-            " keep2\n"
-        )
+        patch = "--- a/f\n+++ b/f\n@@ -1,3 +1,2 @@\n keep\n-delete_me\n keep2\n"
         result = apply_patch(original, patch=patch)
         assert "delete_me" not in result
 
     def test_mismatch_raises(self):
         original = "hello\n"
-        patch = (
-            "--- a/f\n+++ b/f\n"
-            "@@ -1,1 +1,1 @@\n"
-            "-wrong_line\n"
-            "+new_line\n"
-        )
+        patch = "--- a/f\n+++ b/f\n@@ -1,1 +1,1 @@\n-wrong_line\n+new_line\n"
         with pytest.raises(ValueError):
             apply_patch(original, patch=patch)
 
@@ -533,15 +514,17 @@ class TestDetectEditConflict:
 
 class TestParseRipgrepOutput:
     def _make_match(self, path, line_no, col, text):
-        return json.dumps({
-            "type": "match",
-            "data": {
-                "path": {"text": path},
-                "line_number": line_no,
-                "submatches": [{"start": col}],
-                "lines": {"text": text + "\n"},
-            },
-        })
+        return json.dumps(
+            {
+                "type": "match",
+                "data": {
+                    "path": {"text": path},
+                    "line_number": line_no,
+                    "submatches": [{"start": col}],
+                    "lines": {"text": text + "\n"},
+                },
+            }
+        )
 
     def test_single_match(self):
         raw = self._make_match("foo.py", 3, 5, "some text")
@@ -733,6 +716,7 @@ class TestStripAnsi:
 # Group C — Process / Shell
 # ===========================================================================
 
+
 class TestParseExitSignal:
     def test_zero_success(self):
         info = parse_exit_signal(0)
@@ -811,6 +795,7 @@ class TestDetectShell:
 # ===========================================================================
 # Group D — Web / URL
 # ===========================================================================
+
 
 class TestExtractMainContent:
     def test_basic_html(self):
@@ -894,6 +879,7 @@ class TestResolveRedirect:
 # ===========================================================================
 # Group E — Todo
 # ===========================================================================
+
 
 class TestTodoSerialize:
     def test_empty(self):
@@ -1005,6 +991,7 @@ class TestTodoDiff:
 # ===========================================================================
 # Group F — Session
 # ===========================================================================
+
 
 class TestNewSessionId:
     def test_unique(self):
@@ -1124,6 +1111,7 @@ class TestComputeSessionFingerprint:
 # Group G — Provider format conversions
 # ===========================================================================
 
+
 class TestToAnthropicFormat:
     def test_text_message(self):
         msgs = [Message(role="user", parts=[Part(type="text", text="hi")])]
@@ -1228,9 +1216,7 @@ class TestFromOpenAIFormat:
         raw = {
             "role": "assistant",
             "content": None,
-            "tool_calls": [
-                {"id": "c1", "function": {"name": "fn", "arguments": '{"k":"v"}'}}
-            ],
+            "tool_calls": [{"id": "c1", "function": {"name": "fn", "arguments": '{"k":"v"}'}}],
         }
         msg = from_openai_format(raw)
         tc_parts = [p for p in msg.parts if p.type == "tool_call"]
@@ -1358,9 +1344,12 @@ class TestInjectCacheControl:
     def test_idempotent(self):
         payload = {
             "messages": [
-                {"role": "user", "content": [
-                    {"type": "text", "cache_control": {"type": "ephemeral"}},
-                ]},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "cache_control": {"type": "ephemeral"}},
+                    ],
+                },
             ]
         }
         result = inject_cache_control(payload, provider="anthropic")
@@ -1406,6 +1395,7 @@ class TestSplitSystemMessage:
 # ===========================================================================
 # Group H — Part / Message constructors
 # ===========================================================================
+
 
 class TestMakeTextPart:
     def test_creates_text_part(self):
@@ -1550,6 +1540,7 @@ class TestMergeStreamingParts:
 # Group I — System prompt / tool schema
 # ===========================================================================
 
+
 class TestBuildSystemPrompt:
     def test_basic(self):
         result = build_system_prompt(agent="You are helpful", project_ctx="", tools=[])
@@ -1678,6 +1669,7 @@ class TestBuildToolSchema:
 # Group J — Compaction
 # ===========================================================================
 
+
 class TestSelectCompactionWindow:
     def test_normal(self):
         msgs = [_text_msg(f"m{i}") for i in range(20)]
@@ -1776,6 +1768,7 @@ class TestBuildCompactionPrompt:
 # ===========================================================================
 # Group K — Config
 # ===========================================================================
+
 
 class TestResolveConfigPaths:
     def test_returns_three_paths(self):
@@ -1882,6 +1875,7 @@ class TestResolveConfigPathRefs:
 # ===========================================================================
 # Group L — Permissions / skill
 # ===========================================================================
+
 
 class TestParseSkillMd:
     def _make(self, name="my-skill", desc="Does stuff", body="Body text"):
@@ -2007,6 +2001,7 @@ class TestResolveAgentPermissions:
 # Group M — Share / Event
 # ===========================================================================
 
+
 class TestSerializeSharePayload:
     def test_basic(self):
         msg = Message(role="user", parts=[Part(type="text", text="hello")])
@@ -2117,13 +2112,26 @@ class TestEventShouldSync:
 # Group N — Model selection / subagent / MCP / question
 # ===========================================================================
 
+
 class TestSelectModel:
     def _catalog(self):
         return [
-            ModelSpec(id="cheap", name="Cheap", provider="p", supports_tools=True,
-                      supports_vision=False, cost_per_input_token=0.001),
-            ModelSpec(id="vision", name="Vision", provider="p", supports_tools=True,
-                      supports_vision=True, cost_per_input_token=0.005),
+            ModelSpec(
+                id="cheap",
+                name="Cheap",
+                provider="p",
+                supports_tools=True,
+                supports_vision=False,
+                cost_per_input_token=0.001,
+            ),
+            ModelSpec(
+                id="vision",
+                name="Vision",
+                provider="p",
+                supports_tools=True,
+                supports_vision=True,
+                cost_per_input_token=0.005,
+            ),
         ]
 
     def test_needs_tools(self):
@@ -2163,9 +2171,13 @@ class TestFilterCuratedModels:
 class TestResolveModelCapabilities:
     def test_maps_fields(self):
         model = ModelSpec(
-            id="m", name="M", provider="p",
-            supports_tools=True, supports_vision=True,
-            supports_reasoning=False, context_length=128000,
+            id="m",
+            name="M",
+            provider="p",
+            supports_tools=True,
+            supports_vision=True,
+            supports_reasoning=False,
+            context_length=128000,
         )
         caps = resolve_model_capabilities(model)
         assert caps.tools is True
@@ -2269,6 +2281,7 @@ class TestParseQuestionAnswer:
 # Group O — Token estimation
 # ===========================================================================
 
+
 class TestEstimateTokens:
     def test_empty(self):
         assert estimate_tokens("", model="claude-3") == 0
@@ -2319,16 +2332,20 @@ class TestCountMessageTokens:
 class TestMatchWildcardPattern:
     def test_star_matches_any(self):
         from oprim import match_wildcard_pattern
+
         assert match_wildcard_pattern("hello.py", pattern="*.py") is True
 
     def test_question_single_char(self):
         from oprim import match_wildcard_pattern
+
         assert match_wildcard_pattern("abc", pattern="a?c") is True
 
     def test_no_match(self):
         from oprim import match_wildcard_pattern
+
         assert match_wildcard_pattern("foo.txt", pattern="*.py") is False
 
     def test_exact_match(self):
         from oprim import match_wildcard_pattern
+
         assert match_wildcard_pattern("exact", pattern="exact") is True

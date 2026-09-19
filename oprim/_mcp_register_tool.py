@@ -63,9 +63,7 @@ def mcp_register_tool(
     if not description:
         raise OprimValidationError("mcp_register_tool: description must not be empty")
     if not isinstance(input_schema, dict) or "type" not in input_schema:
-        raise OprimValidationError(
-            "mcp_register_tool: input_schema must be a JSON Schema object"
-        )
+        raise OprimValidationError("mcp_register_tool: input_schema must be a JSON Schema object")
     if server is None:
         raise OprimValidationError("mcp_register_tool: server must be injected")
 

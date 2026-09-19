@@ -74,7 +74,8 @@ def ema(
     Matches pd.Series.ewm(span=window, adjust=<adjust>).mean() exactly.
     First value is P_0 (not NaN) for adjust=False.
 
-    Reference: Pandas EMA documentation; standard finance textbook.
+    Reference: Pandas EMA documentation
+    standard finance textbook.
 
     Parameters
     ----------
@@ -121,7 +122,8 @@ def vwap(
     If window is int: rolling VWAP over last `window` bars.
     Returns NaN where total volume is zero or window not yet filled.
 
-    Reference: Berkowitz, Logue, Noser (1988); standard market microstructure.
+    Reference: Berkowitz, Logue, Noser (1988)
+    standard market microstructure.
 
     Parameters
     ----------
@@ -193,7 +195,8 @@ def macd(
 
     Uses _ema_recursive helper (H1 compliant — no import of sibling oprim.ema).
 
-    Reference: Appel (1979); standard TA textbook.
+    Reference: Appel (1979)
+    standard TA textbook.
 
     Parameters
     ----------
@@ -208,15 +211,19 @@ def macd(
 
     Returns
     -------
-    dict with keys 'macd', 'signal', 'histogram'; each same length as input.
+    dict with keys 'macd', 'signal', 'histogram'
+    each same length as input.
 
     Raises
     ------
     ValueError
         If fast_period >= slow_period, or any period is non-positive.
     """
-    for name, val in [("fast_period", fast_period), ("slow_period", slow_period),
-                      ("signal_period", signal_period)]:
+    for name, val in [
+        ("fast_period", fast_period),
+        ("slow_period", slow_period),
+        ("signal_period", signal_period),
+    ]:
         if not isinstance(val, int) or val <= 0:
             raise ValueError(f"{name} must be a positive integer, got {val!r}")
     if fast_period >= slow_period:

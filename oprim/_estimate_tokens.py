@@ -1,4 +1,5 @@
 """LLM token estimation without an external tokenizer."""
+
 from __future__ import annotations
 
 

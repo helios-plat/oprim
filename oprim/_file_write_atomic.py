@@ -52,9 +52,7 @@ async def file_write_atomic(
         except OSError as exc:
             raise FileOprimError(f"file_write_atomic: cannot resolve {target}", cause=exc) from exc
         if not str(resolved).startswith(str(root)):
-            raise PathSecurityError(
-                f"file_write_atomic: {target} escapes sandbox_root {root}"
-            )
+            raise PathSecurityError(f"file_write_atomic: {target} escapes sandbox_root {root}")
 
     if target.exists() and not overwrite:
         raise FileOprimError(f"file_write_atomic: target exists and overwrite=False: {target}")

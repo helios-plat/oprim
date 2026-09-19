@@ -1,13 +1,11 @@
 """Tests for validate_html."""
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from oprim._validate_html import validate_html
 
 
 class TestValidateHtml:
-
     def test_clean_html_passes(self):
         html = "<div><p>Hello world</p><span class='note'>safe</span></div>"
         result = validate_html(html=html)
@@ -74,7 +72,7 @@ class TestValidateHtml:
         assert "external_iframe" in result.violations
 
     def test_multiple_violations_all_reported(self):
-        html = '<div onclick="eval(fetch(\'x\'))">click</div>'
+        html = "<div onclick=\"eval(fetch('x'))\">click</div>"
         result = validate_html(html=html)
         assert result.is_safe is False
         assert len(result.violations) >= 2

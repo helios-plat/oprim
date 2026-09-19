@@ -5,6 +5,7 @@ References
 Marchenko, V. A., & Pastur, L. A. (1967). Distribution of eigenvalues for some
     sets of random matrices. Mathematics of the USSR-Sbornik, 1(4), 457-483.
 """
+
 from __future__ import annotations
 
 import math

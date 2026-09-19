@@ -24,11 +24,11 @@ def _egarch11_nll(params: np.ndarray, returns: np.ndarray) -> float:
     # Stability: |beta| < 1
     if abs(beta) >= 1.0:
         return 1e10
-    T = len(returns)
+    t_val = len(returns)
     eps = returns - mu
-    log_sigma2 = np.zeros(T)
+    log_sigma2 = np.zeros(t_val)
     log_sigma2[0] = np.log(max(np.var(returns), 1e-8))
-    for t in range(1, T):
+    for t in range(1, t_val):
         sigma_prev = np.exp(0.5 * log_sigma2[t - 1])
         if sigma_prev <= 0:
             return 1e10  # pragma: no cover
@@ -107,18 +107,20 @@ def egarch_fit(
             stacklevel=2,
         )
 
-    T = len(arr)
+    t_val = len(arr)
     mean_val = float(np.mean(arr))
     var_val = float(np.var(arr))
 
     # Initial guess
-    x0 = np.array([
-        np.log(max(var_val, 1e-8)) * 0.05,  # omega
-        0.1,   # alpha
-        -0.1,  # gamma (leverage: negative for typical equity)
-        0.85,  # beta
-        mean_val,  # mu
-    ])
+    x0 = np.array(
+        [
+            np.log(max(var_val, 1e-8)) * 0.05,  # omega
+            0.1,  # alpha
+            -0.1,  # gamma (leverage: negative for typical equity)
+            0.85,  # beta
+            mean_val,  # mu
+        ]
+    )
 
     # Try multiple starting points
     best_result = None
@@ -166,9 +168,9 @@ def egarch_fit(
 
     # Compute final conditional variance series
     eps = arr - mu
-    log_sigma2 = np.zeros(T)
+    log_sigma2 = np.zeros(t_val)
     log_sigma2[0] = np.log(max(float(np.var(arr)), 1e-8))
-    for t in range(1, T):
+    for t in range(1, t_val):
         sigma_prev = np.exp(0.5 * log_sigma2[t - 1])
         z_prev = eps[t - 1] / max(sigma_prev, 1e-10)
         log_sigma2[t] = (
@@ -182,7 +184,7 @@ def egarch_fit(
     log_likelihood = float(-best_result.fun)
     k = 5
     aic = float(-2 * log_likelihood + 2 * k)
-    bic = float(-2 * log_likelihood + k * np.log(T))
+    bic = float(-2 * log_likelihood + k * np.log(t_val))
 
     return {
         "params": params,
@@ -237,10 +239,7 @@ def egarch_forecast(
 
     # One-step: use actual last_z
     forecast_log_var[0] = (
-        omega
-        + alpha * (abs(last_z) - _SQRT_2_OVER_PI)
-        + gamma * last_z
-        + beta * last_log_variance
+        omega + alpha * (abs(last_z) - _SQRT_2_OVER_PI) + gamma * last_z + beta * last_log_variance
     )
 
     # Multi-step: E[log_sigma2_{t+h}] using analytical recursion
@@ -250,8 +249,7 @@ def egarch_forecast(
     for h in range(1, horizon):
         if abs(beta) < 1.0:
             forecast_log_var[h] = (
-                omega * (1.0 - beta**h) / (1.0 - beta)
-                + beta**h * last_log_variance
+                omega * (1.0 - beta**h) / (1.0 - beta) + beta**h * last_log_variance
             )
         else:
             forecast_log_var[h] = forecast_log_var[h - 1]

@@ -1,4 +1,5 @@
 """Integration tests for oprim.vector_db.lancedb (uses tmp_path)."""
+
 from __future__ import annotations
 
 import random
@@ -8,8 +9,8 @@ import pytest
 
 pytest.importorskip("lancedb", reason="vector storage feature dependency is not installed")
 
-from oprim.vector_db.lancedb import LanceDBVectorDB, VectorRecord, open_vector_db
 from oprim.errors import VectorDBError
+from oprim.vector_db.lancedb import LanceDBVectorDB, VectorRecord, open_vector_db
 
 DIM = 16  # small dimension for fast tests
 
@@ -26,8 +27,7 @@ class TestLanceDBVectorDB:
     def test_upsert_and_count(self, tmp_path: Path):
         db = open_vector_db(tmp_path / "db", "test_table", dim=DIM)
         records = [
-            VectorRecord(id=f"doc_{i}", embedding=_rand_vec(), metadata={"n": i})
-            for i in range(5)
+            VectorRecord(id=f"doc_{i}", embedding=_rand_vec(), metadata={"n": i}) for i in range(5)
         ]
         db.upsert(records)
         assert db.count() == 5
@@ -53,8 +53,7 @@ class TestLanceDBVectorDB:
     def test_search_respects_top_k(self, tmp_path: Path):
         db = open_vector_db(tmp_path / "db", "test_table", dim=DIM)
         records = [
-            VectorRecord(id=f"doc_{i}", embedding=_rand_vec(), metadata={})
-            for i in range(20)
+            VectorRecord(id=f"doc_{i}", embedding=_rand_vec(), metadata={}) for i in range(20)
         ]
         db.upsert(records)
         results = db.search(_rand_vec(), top_k=3)
@@ -80,7 +79,9 @@ class TestLanceDBVectorDB:
 
     def test_delete_removes_records(self, tmp_path: Path):
         db = open_vector_db(tmp_path / "db", "test_table", dim=DIM)
-        db.upsert([VectorRecord(id=f"doc_{i}", embedding=_rand_vec(), metadata={}) for i in range(5)])
+        db.upsert(
+            [VectorRecord(id=f"doc_{i}", embedding=_rand_vec(), metadata={}) for i in range(5)]
+        )
         assert db.count() == 5
         db.delete(["doc_0", "doc_1"])
         assert db.count() == 3
@@ -105,32 +106,44 @@ class TestLanceDBVectorDB:
             open_vector_db(tmp_path / "db", "table", dim=DIM, provider="qdrant")
 
     def test_upsert_error_raises_vectordberror(self, tmp_path: Path):
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
+
         db = open_vector_db(tmp_path / "db", "test_table", dim=DIM)
         records = [VectorRecord(id="r1", embedding=_rand_vec(), metadata={})]
         # Mock the internal table merge_insert to raise
-        with patch.object(db._tbl, "merge_insert", side_effect=RuntimeError("lancedb boom")):
-            with pytest.raises(VectorDBError, match="Upsert failed"):
-                db.upsert(records)
+        with (
+            patch.object(db._tbl, "merge_insert", side_effect=RuntimeError("lancedb boom")),
+            pytest.raises(VectorDBError, match="Upsert failed"),
+        ):
+            db.upsert(records)
 
     def test_search_error_raises_vectordberror(self, tmp_path: Path):
         from unittest.mock import patch
+
         db = open_vector_db(tmp_path / "db", "test_table", dim=DIM)
-        with patch.object(db._tbl, "search", side_effect=RuntimeError("search boom")):
-            with pytest.raises(VectorDBError, match="Search failed"):
-                db.search(_rand_vec())
+        with (
+            patch.object(db._tbl, "search", side_effect=RuntimeError("search boom")),
+            pytest.raises(VectorDBError, match="Search failed"),
+        ):
+            db.search(_rand_vec())
 
     def test_delete_error_raises_vectordberror(self, tmp_path: Path):
         from unittest.mock import patch
+
         db = open_vector_db(tmp_path / "db", "test_table", dim=DIM)
         db.upsert([VectorRecord(id="r1", embedding=_rand_vec(), metadata={})])
-        with patch.object(db._tbl, "delete", side_effect=RuntimeError("delete boom")):
-            with pytest.raises(VectorDBError, match="Delete failed"):
-                db.delete(["r1"])
+        with (
+            patch.object(db._tbl, "delete", side_effect=RuntimeError("delete boom")),
+            pytest.raises(VectorDBError, match="Delete failed"),
+        ):
+            db.delete(["r1"])
 
     def test_count_error_raises_vectordberror(self, tmp_path: Path):
         from unittest.mock import patch
+
         db = open_vector_db(tmp_path / "db", "test_table", dim=DIM)
-        with patch.object(db._tbl, "count_rows", side_effect=RuntimeError("count boom")):
-            with pytest.raises(VectorDBError, match="Count failed"):
-                db.count()
+        with (
+            patch.object(db._tbl, "count_rows", side_effect=RuntimeError("count boom")),
+            pytest.raises(VectorDBError, match="Count failed"),
+        ):
+            db.count()

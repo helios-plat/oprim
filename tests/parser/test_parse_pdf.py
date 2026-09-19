@@ -1,4 +1,5 @@
 """Tests for oprim.parser.parse_pdf."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,8 +10,8 @@ import pytest
 pytest.importorskip("fitz", reason="PDF feature dependency is not installed")
 import fitz
 
-from oprim.parser.parse_pdf import ParsedContent, parse_pdf
 from oprim.errors import PDFParseError
+from oprim.parser.parse_pdf import ParsedContent, parse_pdf
 
 
 class TestParsePDF:
@@ -96,55 +97,81 @@ class TestParsePDF:
 
     def test_dispatch_mineru_with_mocked_cjk_features(self, simple_pdf: Path):
         from oprim.classifier.detect_pdf_features import PDFFeatures
+
         mock_features = PDFFeatures(
-            page_count=1, first_page_text="测试", has_cjk=True,
-            is_scanned=False, has_tables=False, is_two_column=False,
+            page_count=1,
+            first_page_text="测试",
+            has_cjk=True,
+            is_scanned=False,
+            has_tables=False,
+            is_two_column=False,
         )
-        with patch("oprim.classifier.detect_pdf_features.detect_pdf_features", return_value=mock_features):
+        with patch(
+            "oprim.classifier.detect_pdf_features.detect_pdf_features", return_value=mock_features
+        ):
             result = parse_pdf(simple_pdf, provider="auto", hint={"language": "zh"})
         # mineru → marker → pymupdf4llm fallback chain
         assert result.parser_name == "pymupdf4llm"
 
     def test_dispatch_marker_with_mocked_scanned_features(self, simple_pdf: Path):
         from oprim.classifier.detect_pdf_features import PDFFeatures
+
         mock_features = PDFFeatures(
-            page_count=1, first_page_text="", has_cjk=False,
-            is_scanned=True, has_tables=False, is_two_column=False,
+            page_count=1,
+            first_page_text="",
+            has_cjk=False,
+            is_scanned=True,
+            has_tables=False,
+            is_two_column=False,
         )
-        with patch("oprim.classifier.detect_pdf_features.detect_pdf_features", return_value=mock_features):
+        with patch(
+            "oprim.classifier.detect_pdf_features.detect_pdf_features", return_value=mock_features
+        ):
             result = parse_pdf(simple_pdf, provider="auto")
         # marker not installed → fallback to pymupdf4llm
         assert result.parser_name == "pymupdf4llm"
 
     def test_pymupdf4llm_exception_raises_pdfparseerror(self, simple_pdf: Path):
-        with patch("oprim.parser.parse_pdf.fitz.open", side_effect=RuntimeError("fitz boom")):
-            with pytest.raises(PDFParseError, match="pymupdf4llm failed"):
-                parse_pdf(simple_pdf, provider="pymupdf4llm")
+        with (
+            patch("oprim.parser.parse_pdf.fitz.open", side_effect=RuntimeError("fitz boom")),
+            pytest.raises(PDFParseError, match="pymupdf4llm failed"),
+        ):
+            parse_pdf(simple_pdf, provider="pymupdf4llm")
 
     def test_mineru_with_magic_pdf_mocked_raises_pdfparseerror(self, simple_pdf: Path):
         """When magic_pdf is importable, mineru raises NotImplementedError → PDFParseError."""
         import sys
-        with patch.dict(sys.modules, {"magic_pdf": MagicMock()}):
-            with pytest.raises(PDFParseError, match="mineru failed"):
-                parse_pdf(simple_pdf, provider="mineru")
+
+        with (
+            patch.dict(sys.modules, {"magic_pdf": MagicMock()}),
+            pytest.raises(PDFParseError, match="mineru failed"),
+        ):
+            parse_pdf(simple_pdf, provider="mineru")
 
     def test_marker_installed_but_fails(self, simple_pdf: Path):
         import sys
+
         mock_marker_convert = MagicMock(side_effect=RuntimeError("marker internal error"))
         mock_marker_models = MagicMock(return_value=MagicMock())
         mock_marker_pkg = MagicMock()
         mock_marker_pkg.convert.convert_single_pdf = mock_marker_convert
         mock_marker_pkg.models.load_all_models = mock_marker_models
-        with patch.dict(sys.modules, {
-            "marker": MagicMock(),
-            "marker.convert": mock_marker_pkg.convert,
-            "marker.models": mock_marker_pkg.models,
-        }):
-            with pytest.raises(PDFParseError, match="marker failed"):
-                parse_pdf(simple_pdf, provider="marker")
+        with (
+            patch.dict(
+                sys.modules,
+                {
+                    "marker": MagicMock(),
+                    "marker.convert": mock_marker_pkg.convert,
+                    "marker.models": mock_marker_pkg.models,
+                },
+            ),
+            pytest.raises(PDFParseError, match="marker failed"),
+        ):
+            parse_pdf(simple_pdf, provider="marker")
 
     def test_marker_installed_and_succeeds(self, simple_pdf: Path):
         import sys
+
         mock_full_text = "# Mocked Marker Output\nContent here."
         mock_images = []
         mock_meta = {"title": "test"}
@@ -154,11 +181,14 @@ class TestParsePDF:
         mock_marker_convert.convert_single_pdf = mock_convert_fn
         mock_marker_models = MagicMock()
         mock_marker_models.load_all_models = mock_models_fn
-        with patch.dict(sys.modules, {
-            "marker": MagicMock(),
-            "marker.convert": mock_marker_convert,
-            "marker.models": mock_marker_models,
-        }):
+        with patch.dict(
+            sys.modules,
+            {
+                "marker": MagicMock(),
+                "marker.convert": mock_marker_convert,
+                "marker.models": mock_marker_models,
+            },
+        ):
             result = parse_pdf(simple_pdf, provider="marker")
         assert result.parser_name == "marker"
         assert result.markdown == mock_full_text
@@ -168,5 +198,6 @@ class TestParsePDF:
         f = tmp_path / "bad.epub"
         f.write_bytes(b"not real epub data at all")
         from oprim.parser.parse_epub import parse_epub
+
         with pytest.raises(Exception):
             parse_epub(f)

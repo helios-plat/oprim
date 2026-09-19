@@ -1,4 +1,5 @@
 """oprim.storyboard_grid — Generate a grid of storyboard frames via LLM."""
+
 from __future__ import annotations
 
 import json
@@ -46,10 +47,7 @@ async def storyboard_grid(
     messages = [
         {
             "role": "user",
-            "content": (
-                f"Script:\n{script_text}\n\n"
-                f"Generate a {shots}-shot storyboard grid."
-            ),
+            "content": (f"Script:\n{script_text}\n\nGenerate a {shots}-shot storyboard grid."),
         }
     ]
 
@@ -61,9 +59,7 @@ async def storyboard_grid(
     )
     content = response.get("content", [])
     text = "".join(
-        b.get("text", "")
-        for b in content
-        if isinstance(b, dict) and b.get("type") == "text"
+        b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"
     )
     try:
         data = json.loads(text)

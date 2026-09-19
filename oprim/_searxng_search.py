@@ -8,8 +8,8 @@ Falls back to empty results if searxng is unreachable (no raise).
 from __future__ import annotations
 
 import json
-import urllib.request
 import urllib.parse
+import urllib.request
 
 
 def searxng_search(

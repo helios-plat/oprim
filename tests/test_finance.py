@@ -87,6 +87,7 @@ class TestSharpeRatio:
     def test_risk_free_mismatch_warning(self):
         """Index mismatch should warn."""
         import warnings
+
         rng = np.random.default_rng(42)
         returns = pd.Series(rng.normal(0.001, 0.02, 100), index=range(100))
         rf = pd.Series(np.full(50, 0.0001), index=range(50, 100))
@@ -125,10 +126,12 @@ class TestBetaAlphaOLS:
 
     def test_multi_factor(self):
         rng = np.random.default_rng(42)
-        factors = pd.DataFrame({
-            "mkt": rng.normal(0.001, 0.02, 100),
-            "smb": rng.normal(0, 0.01, 100),
-        })
+        factors = pd.DataFrame(
+            {
+                "mkt": rng.normal(0.001, 0.02, 100),
+                "smb": rng.normal(0, 0.01, 100),
+            }
+        )
         asset = pd.Series(
             0.0005 + 1.0 * factors["mkt"] + 0.5 * factors["smb"] + rng.normal(0, 0.005, 100)
         )
@@ -157,8 +160,8 @@ class TestBetaAlphaOLS:
 
         result = beta_alpha_ols(pd.Series(asset), pd.Series(market), min_samples=10)
 
-        X = sm.add_constant(market)
-        model = sm.OLS(asset, X).fit()
+        x_mat = sm.add_constant(market)
+        model = sm.OLS(asset, x_mat).fit()
         np.testing.assert_allclose(result["alpha"], model.params[0], rtol=1e-9)
         np.testing.assert_allclose(result["beta"], model.params[1], rtol=1e-9)
 
@@ -189,6 +192,7 @@ class TestValueAtRisk:
     def test_small_sample_warning(self):
         """n < 30 should warn."""
         import warnings
+
         returns = pd.Series(np.random.default_rng(42).normal(0, 0.02, 25))
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")

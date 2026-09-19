@@ -65,8 +65,8 @@ def test_sabr_time_scaling():
 
 @pytest.mark.academic_reference
 def test_sabr_hagan_2002_atm_formula():
-    F, K, T = 100.0, 100.0, 1.0
+    f_val, k_val, t_val = 100.0, 100.0, 1.0
     alpha, beta = 0.2, 0.5
-    expected_atm = alpha / (F ** (1 - beta))
-    r = sabr_implied_volatility(F, K, T, alpha=alpha, beta=beta, rho=0.0, nu=0.0)
+    expected_atm = alpha / (f_val ** (1 - beta))
+    r = sabr_implied_volatility(f_val, k_val, t_val, alpha=alpha, beta=beta, rho=0.0, nu=0.0)
     np.testing.assert_allclose(r["implied_volatility"], expected_atm, rtol=0.01)

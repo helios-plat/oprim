@@ -1,4 +1,5 @@
 """Tests for oprim.spectral.spectral_eigengap_detect."""
+
 from __future__ import annotations
 
 import numpy as np

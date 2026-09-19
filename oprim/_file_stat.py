@@ -1,9 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 import stat
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def file_stat(path: str | Path) -> dict[str, object]:
     """单次原子获取文件元数据。
@@ -40,7 +43,7 @@ def file_stat(path: str | Path) -> dict[str, object]:
     try:
         s = p.stat()
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot stat '{path}'", cause=e)
+        raise FileOprimError(f"cannot stat '{path}'", cause=e) from e
     return {
         "exists": True,
         "is_file": p.is_file(),

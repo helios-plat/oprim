@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -37,4 +37,4 @@ class DetectorSignal(BaseModel):
 
 def _now_utc() -> datetime:
     """Return current UTC datetime."""
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)

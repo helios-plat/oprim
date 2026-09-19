@@ -1,13 +1,20 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-from .._exceptions import OprimError, LLMOprimError, BudgetExceededError, PromptOprimError, SearchOprimError, HttpOprimError, SnapshotOprimError
-from ._types import LLMResponse, StreamDelta, EmbedResult, ConversationSnapshot, ThinkingResult, SearchResult, HttpResponse
-import json
+
 from collections.abc import AsyncIterator
 from typing import Any
-from .._protocols import EmbedCaller, StreamingLLMCaller
+
+from .._exceptions import (
+    LLMOprimError,
+)
+from .._protocols import StreamingLLMCaller
+from ._types import (
+    StreamDelta,
+)
 from ._utils import _validate_messages
+
+
 async def llm_stream(
     messages: list[dict],
     *,
@@ -61,8 +68,11 @@ async def llm_stream(
             delta_type = raw_delta.get("type", "")
 
             if delta_type in ("text_delta", "content_block_delta"):
-                yield StreamDelta(type="text", text=raw_delta.get("text", "")  # pragma: no cover
-                                  or raw_delta.get("delta", {}).get("text", ""))
+                yield StreamDelta(
+                    type="text",
+                    text=raw_delta.get("text", "")  # pragma: no cover
+                    or raw_delta.get("delta", {}).get("text", ""),
+                )
 
             elif delta_type == "text":
                 yield StreamDelta(type="text", text=raw_delta.get("text", ""))
@@ -76,9 +86,9 @@ async def llm_stream(
                 )
 
             elif delta_type in ("thinking", "thinking_delta"):
-                yield StreamDelta(type="thinking",
-                                  text=raw_delta.get("thinking", "")
-                                  or raw_delta.get("text", ""))
+                yield StreamDelta(
+                    type="thinking", text=raw_delta.get("thinking", "") or raw_delta.get("text", "")
+                )
 
             elif delta_type in ("usage", "message_delta"):
                 usage = raw_delta.get("usage", raw_delta)
@@ -94,7 +104,7 @@ async def llm_stream(
                     stop_reason=raw_delta.get("stop_reason", raw_delta.get("finish_reason", "")),
                 )
 
-    except (LLMOprimError,):
+    except LLMOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise LLMOprimError("llm_stream failed", cause=e)
+        raise LLMOprimError("llm_stream failed", cause=e) from e

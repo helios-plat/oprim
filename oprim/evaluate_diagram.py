@@ -77,9 +77,9 @@ _EVAL_SYSTEM = (
     "You are a math teacher evaluating a student's hand-drawn diagram. "
     "Assess whether the diagram correctly represents the mathematical concept "
     "and contains all required elements. "
-    "Return JSON: {\"is_correct\": bool, \"score\": float 0-1, "
-    '"missing_elements\": [str], "extra_elements\": [str], '
-    '"feedback\": str, "suggestions\": [str]}.'
+    'Return JSON: {"is_correct": bool, "score": float 0-1, '
+    '"missing_elements": [str], "extra_elements": [str], '
+    '"feedback": str, "suggestions": [str]}.'
 )
 
 

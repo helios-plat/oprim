@@ -86,9 +86,12 @@ async def video_recompose(
     vf = f"crop={target_width}:{target_height},scale={target_width}:{target_height}"
 
     args = [
-        "-i", str(input_path),
-        "-vf", vf,
-        "-c:a", "copy",
+        "-i",
+        str(input_path),
+        "-vf",
+        vf,
+        "-c:a",
+        "copy",
         str(output_path),
     ]
 
@@ -103,10 +106,14 @@ async def video_recompose(
 async def _probe_dimensions(path: Path) -> tuple[int, int]:
     """Get video width and height via ffprobe."""
     cmd = [
-        "ffprobe", "-v", "quiet",
-        "-print_format", "json",
+        "ffprobe",
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
         "-show_streams",
-        "-select_streams", "v:0",
+        "-select_streams",
+        "v:0",
         str(path),
     ]
     proc = await asyncio.create_subprocess_exec(

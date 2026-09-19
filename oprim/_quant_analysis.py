@@ -1,4 +1,5 @@
 """Quantitative analysis oprims — backtest, risk, portfolio computation primitives."""
+
 from __future__ import annotations
 
 import math
@@ -60,7 +61,9 @@ def compute_drawdown_distribution(*, equity_curve: list[float]) -> dict:
     return {"max_dd": round(max_dd, 6), "avg_dd": round(avg_dd, 6), "dd_count": len(drawdowns)}
 
 
-def compute_market_impact(*, order_size: float, avg_daily_volume: float, volatility: float) -> float:
+def compute_market_impact(
+    *, order_size: float, avg_daily_volume: float, volatility: float
+) -> float:
     """Estimate market impact using square-root model.
 
     Example:
@@ -73,7 +76,9 @@ def compute_market_impact(*, order_size: float, avg_daily_volume: float, volatil
     return round(volatility * math.sqrt(participation), 6)
 
 
-def generate_bootstrap_samples(*, data: list[float], n_samples: int = 1000, sample_size: int | None = None) -> list[list[float]]:
+def generate_bootstrap_samples(
+    *, data: list[float], n_samples: int = 1000, sample_size: int | None = None
+) -> list[list[float]]:
     """Generate bootstrap resamples from data.
 
     Example:
@@ -84,11 +89,15 @@ def generate_bootstrap_samples(*, data: list[float], n_samples: int = 1000, samp
     return [random.choices(data, k=size) for _ in range(n_samples)]
 
 
-def compute_monte_carlo_simulation(*, mean_return: float, std_return: float, n_periods: int = 252, n_paths: int = 1000) -> dict:
+def compute_monte_carlo_simulation(
+    *, mean_return: float, std_return: float, n_periods: int = 252, n_paths: int = 1000
+) -> dict:
     """Run Monte Carlo simulation for return paths.
 
     Example:
-        >>> r = compute_monte_carlo_simulation(mean_return=0.001, std_return=0.02, n_periods=30, n_paths=100)
+        >>> r = compute_monte_carlo_simulation(
+        ...     mean_return=0.001, std_return=0.02, n_periods=30, n_paths=100
+        ... )
         >>> len(r['terminal_values']) == 100
         True
     """
@@ -106,11 +115,15 @@ def compute_monte_carlo_simulation(*, mean_return: float, std_return: float, n_p
     }
 
 
-def compute_benchmark_metrics(*, strategy_returns: list[float], benchmark_returns: list[float]) -> dict:
+def compute_benchmark_metrics(
+    *, strategy_returns: list[float], benchmark_returns: list[float]
+) -> dict:
     """Compute strategy vs benchmark relative metrics.
 
     Example:
-        >>> compute_benchmark_metrics(strategy_returns=[0.01, 0.02], benchmark_returns=[0.005, 0.01])
+        >>> compute_benchmark_metrics(
+        ...     strategy_returns=[0.01, 0.02], benchmark_returns=[0.005, 0.01]
+        ... )
         {'alpha': ..., 'beta': ..., 'tracking_error': ...}
     """
     n = min(len(strategy_returns), len(benchmark_returns))
@@ -126,10 +139,17 @@ def compute_benchmark_metrics(*, strategy_returns: list[float], benchmark_return
     excess = [s[i] - b[i] for i in range(n)]
     te = (sum((e - sum(excess) / n) ** 2 for e in excess) / (n - 1)) ** 0.5
     ir = (sum(excess) / n) / te if te > 0 else 0
-    return {"alpha": round(alpha, 6), "beta": round(beta, 4), "tracking_error": round(te, 6), "info_ratio": round(ir, 4)}
+    return {
+        "alpha": round(alpha, 6),
+        "beta": round(beta, 4),
+        "tracking_error": round(te, 6),
+        "info_ratio": round(ir, 4),
+    }
 
 
-def compute_relative_performance(*, strategy_curve: list[float], benchmark_curve: list[float]) -> list[float]:
+def compute_relative_performance(
+    *, strategy_curve: list[float], benchmark_curve: list[float]
+) -> list[float]:
     """Compute relative performance (strategy / benchmark).
 
     Example:
@@ -137,7 +157,10 @@ def compute_relative_performance(*, strategy_curve: list[float], benchmark_curve
         [1.0, 1.0476]
     """
     n = min(len(strategy_curve), len(benchmark_curve))
-    return [round(strategy_curve[i] / benchmark_curve[i], 6) if benchmark_curve[i] != 0 else 1.0 for i in range(n)]
+    return [
+        round(strategy_curve[i] / benchmark_curve[i], 6) if benchmark_curve[i] != 0 else 1.0
+        for i in range(n)
+    ]
 
 
 def split_train_test_time_series(*, data: list, train_ratio: float = 0.7) -> tuple[list, list]:
@@ -151,11 +174,15 @@ def split_train_test_time_series(*, data: list, train_ratio: float = 0.7) -> tup
     return data[:split_idx], data[split_idx:]
 
 
-def compute_portfolio_turnover(*, weights_before: dict[str, float], weights_after: dict[str, float]) -> float:
+def compute_portfolio_turnover(
+    *, weights_before: dict[str, float], weights_after: dict[str, float]
+) -> float:
     """Compute portfolio turnover (sum of absolute weight changes / 2).
 
     Example:
-        >>> compute_portfolio_turnover(weights_before={"A": 0.5, "B": 0.5}, weights_after={"A": 0.7, "B": 0.3})
+        >>> compute_portfolio_turnover(
+        ...     weights_before={"A": 0.5, "B": 0.5}, weights_after={"A": 0.7, "B": 0.3}
+        ... )
         0.2
     """
     all_assets = set(weights_before) | set(weights_after)
@@ -174,16 +201,23 @@ def compute_position_churn(*, position_history: list[dict[str, float]]) -> float
         return 0.0
     turnovers = []
     for i in range(1, len(position_history)):
-        t = compute_portfolio_turnover(weights_before=position_history[i - 1], weights_after=position_history[i])
+        t = compute_portfolio_turnover(
+            weights_before=position_history[i - 1], weights_after=position_history[i]
+        )
         turnovers.append(t)
     return round(sum(turnovers) / len(turnovers), 6)
 
 
-def compute_risk_exposure(*, positions: dict[str, float], factor_loadings: dict[str, dict[str, float]]) -> dict[str, float]:
+def compute_risk_exposure(
+    *, positions: dict[str, float], factor_loadings: dict[str, dict[str, float]]
+) -> dict[str, float]:
     """Compute portfolio risk factor exposures.
 
     Example:
-        >>> compute_risk_exposure(positions={"BTC": 0.6, "ETH": 0.4}, factor_loadings={"BTC": {"market": 1.2}, "ETH": {"market": 1.5}})
+        >>> compute_risk_exposure(
+        ...     positions={"BTC": 0.6, "ETH": 0.4},
+        ...     factor_loadings={"BTC": {"market": 1.2}, "ETH": {"market": 1.5}},
+        ... )
         {'market': 1.32}
     """
     factors: dict[str, float] = {}
@@ -194,7 +228,9 @@ def compute_risk_exposure(*, positions: dict[str, float], factor_loadings: dict[
     return {k: round(v, 6) for k, v in factors.items()}
 
 
-def compute_position_risk(*, position_size: float, volatility: float, confidence: float = 0.95) -> dict:
+def compute_position_risk(
+    *, position_size: float, volatility: float, confidence: float = 0.95
+) -> dict:
     """Compute position-level VaR and expected shortfall.
 
     Example:
@@ -207,16 +243,22 @@ def compute_position_risk(*, position_size: float, volatility: float, confidence
     return {"var_95": round(var, 2), "es_95": round(es, 2)}
 
 
-def compute_mcmc_sample(*, log_posterior_fn: Any, initial: list[float], n_samples: int = 1000, step_size: float = 0.1) -> list[list[float]]:
+def compute_mcmc_sample(
+    *, log_posterior_fn: Any, initial: list[float], n_samples: int = 1000, step_size: float = 0.1
+) -> list[list[float]]:
     """Generate MCMC samples using Metropolis-Hastings.
 
     Example:
-        >>> samples = compute_mcmc_sample(log_posterior_fn=lambda x: -sum(xi**2 for xi in x), initial=[0.0], n_samples=100)
+        >>> samples = compute_mcmc_sample(
+        ...     log_posterior_fn=lambda x: -sum(xi**2 for xi in x),
+        ...     initial=[0.0],
+        ...     n_samples=100,
+        ... )
         >>> len(samples) == 100
         True
     """
     current = list(initial)
-    dim = len(current)
+    len(current)
     samples = []
     current_lp = log_posterior_fn(current)
     for _ in range(n_samples):
@@ -229,7 +271,9 @@ def compute_mcmc_sample(*, log_posterior_fn: Any, initial: list[float], n_sample
     return samples
 
 
-def compute_shapley_decomposition(*, contributions: dict[str, float], total: float) -> dict[str, float]:
+def compute_shapley_decomposition(
+    *, contributions: dict[str, float], total: float
+) -> dict[str, float]:
     """Compute Shapley-value-style attribution (simplified marginal contribution).
 
     Example:
@@ -283,7 +327,9 @@ def compute_shapley_values(
     Example:
         >>> agg = lambda d: (d.get("a",0)*d.get("b",0)) ** 0.5  # non-linear
         >>> sv = compute_shapley_values(features={"a":4.0,"b":9.0}, aggregate_fn=agg)
-        >>> round(sv["a"] + sv["b"] + sv["baseline"] + sv["residual"], 6) == round(agg({"a":4.0,"b":9.0}),6)
+        >>> round(
+        ...     sv["a"] + sv["b"] + sv["baseline"] + sv["residual"], 6
+        ... ) == round(agg({"a":4.0,"b":9.0}),6)
         True
     """
     import random as _random
@@ -313,6 +359,7 @@ def compute_shapley_values(
                 f"exact method infeasible for n={n} (2^{n} coalitions); use monte_carlo"
             )
         from itertools import permutations as _perms
+
         all_perms = list(_perms(dims))
         for perm in all_perms:
             present: set[str] = set()
@@ -320,7 +367,7 @@ def compute_shapley_values(
             for d in perm:
                 present.add(d)
                 cur = _coalition_value(present)
-                shapley[d] += (cur - prev)
+                shapley[d] += cur - prev
                 prev = cur
         for d in dims:
             shapley[d] /= len(all_perms)
@@ -334,7 +381,7 @@ def compute_shapley_values(
             for d in perm:
                 present.add(d)
                 cur = _coalition_value(present)
-                shapley[d] += (cur - prev)
+                shapley[d] += cur - prev
                 prev = cur
         for d in dims:
             shapley[d] /= n_samples
@@ -371,7 +418,11 @@ def compute_signal_crowding(*, signal_counts: dict[str, int], total_participants
     ratios = {k: v / total_participants for k, v in signal_counts.items()}
     dominant = max(ratios, key=ratios.get)  # type: ignore[arg-type]
     hhi = sum(r**2 for r in ratios.values())
-    return {"crowding_ratio": round(ratios[dominant], 4), "dominant": dominant, "hhi": round(hhi, 4)}
+    return {
+        "crowding_ratio": round(ratios[dominant], 4),
+        "dominant": dominant,
+        "hhi": round(hhi, 4),
+    }
 
 
 def compute_uncertainty_threshold(*, uncertainties: list[float], percentile: float = 0.9) -> float:

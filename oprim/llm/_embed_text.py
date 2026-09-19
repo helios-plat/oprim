@@ -1,12 +1,15 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-from .._exceptions import OprimError, LLMOprimError, BudgetExceededError, PromptOprimError, SearchOprimError, HttpOprimError, SnapshotOprimError
-from ._types import LLMResponse, StreamDelta, EmbedResult, ConversationSnapshot, ThinkingResult, SearchResult, HttpResponse
-import json
-from collections.abc import AsyncIterator
-from typing import Any
-from .._protocols import EmbedCaller, StreamingLLMCaller
+
+from .._exceptions import (
+    LLMOprimError,
+)
+from .._protocols import EmbedCaller
+from ._types import (
+    EmbedResult,
+)
+
 
 async def embed_text(
     text: str,
@@ -39,10 +42,10 @@ async def embed_text(
 
     try:
         vector = await caller(text=text, model=model)
-    except (LLMOprimError,):
+    except LLMOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise LLMOprimError("embed_text call failed", cause=e)
+        raise LLMOprimError("embed_text call failed", cause=e) from e
 
     if not isinstance(vector, list) or not vector:
         raise LLMOprimError(

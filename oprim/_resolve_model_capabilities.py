@@ -1,4 +1,5 @@
 """Resolve a ModelSpec into a Capabilities dataclass."""
+
 from __future__ import annotations
 
 from ._hicode_types import Capabilities, ModelSpec

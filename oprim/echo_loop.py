@@ -19,16 +19,17 @@ Echo-Loop 学习闭环原语实现（oprim 层）
 from __future__ import annotations
 
 import re
-from typing import Optional
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # ──────────────────────────────────────────────────────────────────────────────
 # T.1 盲听 (Blind Listen) — 完整听一遍，感知整体难度
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class BlindListenInput(BaseModel):
     """盲听阶段输入。"""
+
     audio_url: str = ""
     audio_b64: str = ""
     transcript: str = ""  # 原始文本
@@ -39,6 +40,7 @@ class BlindListenInput(BaseModel):
 
 class BlindListenOutput(BaseModel):
     """盲听阶段输出 — 感知难度打分。"""
+
     perceived_difficulty: float = Field(ge=0.0, le=1.0)  # 0-1，1=最难
     detected_kcs: list[str] = Field(default_factory=list)  # 检测到的KC
     key_phrases: list[str] = Field(default_factory=list)  # 关键短语
@@ -48,10 +50,10 @@ class BlindListenOutput(BaseModel):
 
 async def blind_listen_generate(
     *,
-    audio_b64: Optional[str] = None,
-    audio_url: Optional[str] = None,
+    audio_b64: str | None = None,
+    audio_url: str | None = None,
     transcript: str = "",
-    reference_kc_ids: Optional[list[str]] = None,
+    reference_kc_ids: list[str] | None = None,
     language: str = "en",
 ) -> BlindListenOutput:
     """
@@ -73,10 +75,7 @@ async def blind_listen_generate(
         estimated_duration_s: 估计时长
     """
     if not audio_b64 and not audio_url:
-        return BlindListenOutput(
-            perceived_difficulty=0.5,
-            note="No audio provided"
-        )
+        return BlindListenOutput(perceived_difficulty=0.5, note="No audio provided")
 
     text = transcript or ""
     word_count = len(text.split())
@@ -84,7 +83,7 @@ async def blind_listen_generate(
 
     difficulty = min(1.0, max(0.0, (avg_word_length / 10.0) + (word_count / 1000.0)))
 
-    sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
+    sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
     key_phrases = sorted(sentences, key=len, reverse=True)[:3]
 
     detected_kcs = reference_kc_ids or []
@@ -102,15 +101,18 @@ async def blind_listen_generate(
 # T.2 精听 (Intensive Listen) — 逐句听懂，标记重点难句
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class IntensiveListenInput(BaseModel):
     """精听阶段输入。"""
+
     transcript: str  # 完整文本
-    blind_listen_output: Optional[dict] = None  # 前一步结果
+    blind_listen_output: dict | None = None  # 前一步结果
     language: str = "en"
 
 
 class IntensiveListenOutput(BaseModel):
     """精听阶段输出 — 逐句解析。"""
+
     sentences: list[dict] = Field(default_factory=list)  # 按句解析结果
     difficult_sentences: list[dict] = Field(default_factory=list)  # 标记难句
     intent_labels: list[str] = Field(default_factory=list)  # 意图标签
@@ -120,7 +122,7 @@ class IntensiveListenOutput(BaseModel):
 async def intensive_listen_parse(
     *,
     transcript: str,
-    blind_listen_output: Optional[dict] = None,
+    blind_listen_output: dict | None = None,
     language: str = "en",
 ) -> IntensiveListenOutput:
     """
@@ -141,12 +143,14 @@ async def intensive_listen_parse(
     if not transcript:
         return IntensiveListenOutput(sentences=[], difficult_sentences=[])
 
-    raw_sentences = re.split(r'(?<=[.!?])\s+', transcript.strip())
+    raw_sentences = re.split(r"(?<=[.!?])\s+", transcript.strip())
     sentences_data = []
     difficult_sentences = []
 
     overall_difficulty = 0.5
-    if blind_listen_output and isinstance(blind_listen_output.get("perceived_difficulty"), (int, float)):
+    if blind_listen_output and isinstance(
+        blind_listen_output.get("perceived_difficulty"), (int, float)
+    ):
         overall_difficulty = blind_listen_output["perceived_difficulty"]
 
     for idx, sentence in enumerate(raw_sentences):
@@ -155,7 +159,11 @@ async def intensive_listen_parse(
             continue
 
         word_count = len(sentence_clean.split())
-        avg_word_len = sum(len(w) for w in sentence_clean.split()) / max(word_count, 1) if word_count > 0 else 0
+        avg_word_len = (
+            sum(len(w) for w in sentence_clean.split()) / max(word_count, 1)
+            if word_count > 0
+            else 0
+        )
         sent_difficulty = min(1.0, max(0.0, 0.3 * (word_count / 15) + 0.7 * (avg_word_len / 8)))
 
         is_difficult = sent_difficulty > (0.4 + overall_difficulty * 0.3)
@@ -171,12 +179,14 @@ async def intensive_listen_parse(
         sentences_data.append(sent_data)
 
         if is_difficult:
-            difficult_sentences.append({
-                "index": idx,
-                "text": sentence_clean,
-                "difficulty": round(sent_difficulty, 4),
-                "reason": "high_complexity" if word_count > 20 else "rare_words",
-            })
+            difficult_sentences.append(
+                {
+                    "index": idx,
+                    "text": sentence_clean,
+                    "difficulty": round(sent_difficulty, 4),
+                    "reason": "high_complexity" if word_count > 20 else "rare_words",
+                }
+            )
 
     intent_labels = list(dict.fromkeys(s["intent"] for s in sentences_data))
 
@@ -209,15 +219,18 @@ def _classify_sentence_intent(text: str) -> str:
 # T.3 跟读 (Shadowing) — 模仿语音语调，训练发音能力
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class ShadowingInput(BaseModel):
     """跟读阶段输入。"""
+
     reference_text: str  # 原文
     student_audio_b64: str  # 学生录音
-    pronunciation_scores: Optional[dict] = None  # 发音分数 (如有)
+    pronunciation_scores: dict | None = None  # 发音分数 (如有)
 
 
 class ShadowingOutput(BaseModel):
     """跟读阶段输出 — 评估结果。"""
+
     overall_score: float = Field(ge=0.0, le=1.0)  # 总分
     fluency_match: float = Field(ge=0.0, le=1.0)  # 流畅度匹配
     intonation_match: float = Field(ge=0.0, le=1.0)  # 语调匹配
@@ -231,7 +244,7 @@ async def shadowing_evaluate(
     *,
     reference_text: str,
     student_audio_b64: str,
-    pronunciation_scores: Optional[dict] = None,
+    pronunciation_scores: dict | None = None,
 ) -> ShadowingOutput:
     """
     跟读 Stage 3: 模仿语音语调，训练发音能力。
@@ -254,9 +267,9 @@ async def shadowing_evaluate(
     """
     if pronunciation_scores:
         overall = (
-            pronunciation_scores.get("overall", 0.5) * 0.4 +
-            pronunciation_scores.get("fluency", 0.5) * 0.3 +
-            pronunciation_scores.get("accuracy", 0.5) * 0.3
+            pronunciation_scores.get("overall", 0.5) * 0.4
+            + pronunciation_scores.get("fluency", 0.5) * 0.3
+            + pronunciation_scores.get("accuracy", 0.5) * 0.3
         )
         return ShadowingOutput(
             overall_score=round(overall, 4),
@@ -286,8 +299,10 @@ async def shadowing_evaluate(
 # T.4 复述 (Retell) — 用自己的话表达，提升输出能力
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class RetellInput(BaseModel):
     """复述阶段输入。"""
+
     original_text: str  # 原文
     student_retell: str  # 学生复述内容
     reference_kc_ids: list[str] = Field(default_factory=list)
@@ -295,6 +310,7 @@ class RetellInput(BaseModel):
 
 class RetellOutput(BaseModel):
     """复述阶段输出 — 评估结果。"""
+
     coverage_score: float = Field(ge=0.0, le=1.0)  # 内容覆盖度
     accuracy_score: float = Field(ge=0.0, le=1.0)  # 内容准确度
     fluency_score: float = Field(ge=0.0, le=1.0)  # 流畅度
@@ -308,7 +324,7 @@ async def retell_evaluate(
     *,
     original_text: str,
     student_retell: str,
-    reference_kc_ids: Optional[list[str]] = None,
+    reference_kc_ids: list[str] | None = None,
 ) -> RetellOutput:
     """
     复述 Stage 4: 用自己的话表达，提升输出能力。
@@ -348,13 +364,15 @@ async def retell_evaluate(
     accuracy_score = accurate / len(stu_words) if stu_words else 0.0
 
     stu_word_count = len(stu_words)
-    stu_avg_word_len = sum(len(w) for w in stu_words) / max(stu_word_count, 1) if stu_word_count else 0
+    stu_avg_word_len = (
+        sum(len(w) for w in stu_words) / max(stu_word_count, 1) if stu_word_count else 0
+    )
     fluency_score = max(0.0, min(1.0, 0.5 + (stu_avg_word_len - 3) / 10))
 
     missing = list(ref_words - stu_words)[:5]
     hallucinated = list(stu_words - ref_words)[:5]
 
-    overall = (coverage_score * 0.4 + accuracy_score * 0.4 + fluency_score * 0.2)
+    overall = coverage_score * 0.4 + accuracy_score * 0.4 + fluency_score * 0.2
 
     return RetellOutput(
         coverage_score=round(coverage_score, 4),

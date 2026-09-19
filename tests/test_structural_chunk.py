@@ -1,6 +1,5 @@
 """Tests for oprim.structural_chunk."""
 
-import pytest
 from oprim._structural_chunk import structural_chunk
 
 
@@ -13,7 +12,10 @@ def test_whitespace_only_returns_empty():
 
 
 def test_no_headers_single_chunk():
-    text = "This is some plain text without any headers. It is long enough to pass the min_chars check."
+    text = (
+        "This is some plain text without any headers. "
+        "It is long enough to pass the min_chars check."
+    )
     result = structural_chunk(text=text)
     assert len(result) == 1
     assert result[0]["heading"] == ""
@@ -51,7 +53,10 @@ def test_multiple_sections_from_multiple_headers():
 
 
 def test_small_chunk_below_min_chars_skipped():
-    text = "# Big Section\n\nThis is a substantial section with enough content to pass.\n\n## Tiny\n\nHi"
+    text = (
+        "# Big Section\n\nThis is a substantial section with enough content "
+        "to pass.\n\n## Tiny\n\nHi"
+    )
     result = structural_chunk(text=text, min_chars=50)
     headings = [c["heading"] for c in result]
     assert "Tiny" not in headings
@@ -87,7 +92,10 @@ def test_heading_contains_no_hash_symbols():
 
 
 def test_level_field_is_int():
-    text = "# H1\n\nContent that is definitely long enough to pass the minimum.\n\n## H2\n\nMore content that is definitely long enough to pass the minimum."
+    text = (
+        "# H1\n\nContent that is definitely long enough to pass the minimum.\n\n"
+        "## H2\n\nMore content that is definitely long enough to pass the minimum."
+    )
     result = structural_chunk(text=text)
     for chunk in result:
         assert isinstance(chunk["level"], int)

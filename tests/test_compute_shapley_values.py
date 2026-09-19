@@ -1,35 +1,43 @@
 """Tests for compute_shapley_values (true non-linear Shapley)."""
+
 import math
+
 import pytest
-from oprim._quant_analysis import compute_shapley_values
-from oprim._quant_analysis import QuantAnalysisError
+
+from oprim._quant_analysis import QuantAnalysisError, compute_shapley_values
 
 
 def test_additivity_exact():
     # linear agg: shapley should recover contributions exactly
-    agg = lambda d: d.get("a", 0) + d.get("b", 0) + d.get("c", 0)
-    sv = compute_shapley_values(features={"a": 3.0, "b": 2.0, "c": 1.0},
-                                aggregate_fn=agg, method="exact")
+    def agg(d):
+        return d.get("a", 0) + d.get("b", 0) + d.get("c", 0)
+
+    sv = compute_shapley_values(
+        features={"a": 3.0, "b": 2.0, "c": 1.0}, aggregate_fn=agg, method="exact"
+    )
     total = agg({"a": 3.0, "b": 2.0, "c": 1.0})
-    assert math.isclose(sv["a"] + sv["b"] + sv["c"] + sv["baseline"] + sv["residual"],
-                        total, abs_tol=1e-6)
+    assert math.isclose(
+        sv["a"] + sv["b"] + sv["c"] + sv["baseline"] + sv["residual"], total, abs_tol=1e-6
+    )
     # linear → each shapley == its own contribution
     assert math.isclose(sv["a"], 3.0, abs_tol=1e-6)
 
 
 def test_nonlinear_geometric_mean():
     # geometric mean is non-linear: Σcontrib ≠ total
-    agg = lambda d: (max(d.get("a", 0), 0) * max(d.get("b", 0), 0)) ** 0.5
-    sv = compute_shapley_values(features={"a": 4.0, "b": 9.0},
-                                aggregate_fn=agg, method="exact")
+    def agg(d):
+        return (max(d.get("a", 0), 0) * max(d.get("b", 0), 0)) ** 0.5
+
+    sv = compute_shapley_values(features={"a": 4.0, "b": 9.0}, aggregate_fn=agg, method="exact")
     total = agg({"a": 4.0, "b": 9.0})
     # additivity holds even for non-linear
-    assert math.isclose(sv["a"] + sv["b"] + sv["baseline"] + sv["residual"],
-                        total, abs_tol=1e-6)
+    assert math.isclose(sv["a"] + sv["b"] + sv["baseline"] + sv["residual"], total, abs_tol=1e-6)
 
 
 def test_determinism():
-    agg = lambda d: sum(v ** 2 for v in d.values())
+    def agg(d):
+        return sum(v**2 for v in d.values())
+
     f = {"x": 1.0, "y": 2.0, "z": 3.0}
     sv1 = compute_shapley_values(features=f, aggregate_fn=agg, method="monte_carlo", n_samples=500)
     sv2 = compute_shapley_values(features=f, aggregate_fn=agg, method="monte_carlo", n_samples=500)
@@ -37,7 +45,9 @@ def test_determinism():
 
 
 def test_monte_carlo_approximates_exact():
-    agg = lambda d: (max(d.get("a",0),0)*max(d.get("b",0),0)*max(d.get("c",0),0)) ** (1/3)
+    def agg(d):
+        return (max(d.get("a", 0), 0) * max(d.get("b", 0), 0) * max(d.get("c", 0), 0)) ** (1 / 3)
+
     f = {"a": 2.0, "b": 4.0, "c": 8.0}
     exact = compute_shapley_values(features=f, aggregate_fn=agg, method="exact")
     mc = compute_shapley_values(features=f, aggregate_fn=agg, method="monte_carlo", n_samples=3000)
@@ -46,9 +56,10 @@ def test_monte_carlo_approximates_exact():
 
 
 def test_negative_contributions():
-    agg = lambda d: d.get("up", 0) - d.get("down", 0)
-    sv = compute_shapley_values(features={"up": 2.0, "down": 5.0},
-                                aggregate_fn=agg, method="exact")
+    def agg(d):
+        return d.get("up", 0) - d.get("down", 0)
+
+    sv = compute_shapley_values(features={"up": 2.0, "down": 5.0}, aggregate_fn=agg, method="exact")
     assert sv["up"] > 0
     assert sv["down"] < 0  # negative dim gets negative shapley
 
@@ -70,7 +81,9 @@ def test_exact_blowup_raises():
 
 
 def test_baseline_separated():
-    agg = lambda d: 100.0 + d.get("a", 0)  # constant baseline 100
+    def agg(d):
+        return 100.0 + d.get("a", 0)  # constant baseline 100
+
     sv = compute_shapley_values(features={"a": 5.0}, aggregate_fn=agg, method="exact")
     assert math.isclose(sv["baseline"], 100.0, abs_tol=1e-6)
     assert math.isclose(sv["a"], 5.0, abs_tol=1e-6)

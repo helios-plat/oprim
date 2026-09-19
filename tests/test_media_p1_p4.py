@@ -1,20 +1,20 @@
 """Tests for P-1 to P-4 of the video/audio ingestion batch."""
+
 from __future__ import annotations
 
+import contextlib
 import json
-import tempfile
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from oprim._media_types import VideoMeta, TranscriptResult
+from oprim._media_types import VideoMeta
 from oprim._video_filter_rules import video_filter_rules
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_proc(stdout: bytes = b"", stderr: bytes = b"", returncode: int = 0):
     proc = MagicMock()
@@ -41,27 +41,32 @@ def _vm(
     )
 
 
-_YDUMP = json.dumps({
-    "id": "abc123",
-    "title": "Python Tutorial",
-    "duration": 600,
-    "url": "https://yt.be/abc123",
-    "upload_date": "20240315",
-    "description": "A tutorial",
-}).encode()
+_YDUMP = json.dumps(
+    {
+        "id": "abc123",
+        "title": "Python Tutorial",
+        "duration": 600,
+        "url": "https://yt.be/abc123",
+        "upload_date": "20240315",
+        "description": "A tutorial",
+    }
+).encode()
 
 
 # ===========================================================================
 # P-1: channel_list_videos
 # ===========================================================================
 
+
 class TestChannelListVideos:
     async def test_normal_returns_video_list(self):
         from oprim._channel_list_videos import channel_list_videos
 
-        with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
-            with patch("asyncio.create_subprocess_exec", AsyncMock(return_value=_make_proc(_YDUMP))):
-                result = await channel_list_videos(channel_url="https://yt.be/@chan")
+        with (
+            patch("shutil.which", return_value="/usr/bin/yt-dlp"),
+            patch("asyncio.create_subprocess_exec", AsyncMock(return_value=_make_proc(_YDUMP))),
+        ):
+            result = await channel_list_videos(channel_url="https://yt.be/@chan")
         assert len(result) == 1
         assert result[0].video_id == "abc123"
         assert result[0].title == "Python Tutorial"
@@ -92,9 +97,8 @@ class TestChannelListVideos:
     async def test_yt_dlp_not_installed_raises_runtime_error(self):
         from oprim._channel_list_videos import channel_list_videos
 
-        with patch("shutil.which", return_value=None):
-            with pytest.raises(RuntimeError, match="yt-dlp"):
-                await channel_list_videos(channel_url="https://yt.be/@chan")
+        with patch("shutil.which", return_value=None), pytest.raises(RuntimeError, match="yt-dlp"):
+            await channel_list_videos(channel_url="https://yt.be/@chan")
 
     async def test_empty_channel_url_raises_value_error(self):
         from oprim._channel_list_videos import channel_list_videos
@@ -105,15 +109,18 @@ class TestChannelListVideos:
     async def test_empty_channel_returns_empty_list(self):
         from oprim._channel_list_videos import channel_list_videos
 
-        with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
-            with patch("asyncio.create_subprocess_exec", AsyncMock(return_value=_make_proc(b""))):
-                result = await channel_list_videos(channel_url="https://yt.be/@empty")
+        with (
+            patch("shutil.which", return_value="/usr/bin/yt-dlp"),
+            patch("asyncio.create_subprocess_exec", AsyncMock(return_value=_make_proc(b""))),
+        ):
+            result = await channel_list_videos(channel_url="https://yt.be/@empty")
         assert result == []
 
 
 # ===========================================================================
 # P-2: media_extract
 # ===========================================================================
+
 
 class TestMediaExtract:
     def _info(self, extra=None) -> bytes:
@@ -140,19 +147,22 @@ class TestMediaExtract:
         sub_file.write_text("WEBVTT\n\n1\n00:00:01,000 --> 00:00:03,000\nHello world\n")
 
         procs = [
-            _make_proc(self._info()),           # dump-json
-            _make_proc(subs_listing),            # --list-subs
-            _make_proc(b""),                     # download subs (writes file)
+            _make_proc(self._info()),  # dump-json
+            _make_proc(subs_listing),  # --list-subs
+            _make_proc(b""),  # download subs (writes file)
         ]
         call_count = [0]
+
         async def fake_exec(*args, **kwargs):
             i = call_count[0]
             call_count[0] += 1
             return procs[min(i, len(procs) - 1)]
 
-        with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
-            with patch("asyncio.create_subprocess_exec", side_effect=fake_exec):
-                result = await media_extract(video_url="https://yt.be/vid1", work_dir=tmp_path)
+        with (
+            patch("shutil.which", return_value="/usr/bin/yt-dlp"),
+            patch("asyncio.create_subprocess_exec", side_effect=fake_exec),
+        ):
+            result = await media_extract(video_url="https://yt.be/vid1", work_dir=tmp_path)
 
         assert result.has_subtitle is True
         assert result.title == "My Video"
@@ -163,18 +173,22 @@ class TestMediaExtract:
         mp3 = tmp_path / "vid1.mp3"
         mp3.write_bytes(b"fakeaudio")
         procs = [
-            _make_proc(self._info()),   # dump-json
-            _make_proc(b""),             # --list-subs (no subs)
-            _make_proc(b""),             # download audio
+            _make_proc(self._info()),  # dump-json
+            _make_proc(b""),  # --list-subs (no subs)
+            _make_proc(b""),  # download audio
         ]
         call_count = [0]
-        async def fake_exec(*args, **kwargs):
-            i = call_count[0]; call_count[0] += 1
-            return procs[min(i, len(procs)-1)]
 
-        with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
-            with patch("asyncio.create_subprocess_exec", side_effect=fake_exec):
-                result = await media_extract(video_url="https://yt.be/vid1", work_dir=tmp_path)
+        async def fake_exec(*args, **kwargs):
+            i = call_count[0]
+            call_count[0] += 1
+            return procs[min(i, len(procs) - 1)]
+
+        with (
+            patch("shutil.which", return_value="/usr/bin/yt-dlp"),
+            patch("asyncio.create_subprocess_exec", side_effect=fake_exec),
+        ):
+            result = await media_extract(video_url="https://yt.be/vid1", work_dir=tmp_path)
 
         assert result.has_subtitle is False
         assert result.audio_path is not None
@@ -185,13 +199,18 @@ class TestMediaExtract:
         mp3 = tmp_path / "vid1.mp3"
         mp3.write_bytes(b"x")
         cmds = []
+
         async def fake_exec(*args, **kwargs):
             cmds.append(args)
             return _make_proc(self._info() if not cmds[1:] else b"")
 
-        with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
-            with patch("asyncio.create_subprocess_exec", side_effect=fake_exec):
-                await media_extract(video_url="https://yt.be/vid1", proxy="http://p:3128", work_dir=tmp_path)
+        with (
+            patch("shutil.which", return_value="/usr/bin/yt-dlp"),
+            patch("asyncio.create_subprocess_exec", side_effect=fake_exec),
+        ):
+            await media_extract(
+                video_url="https://yt.be/vid1", proxy="http://p:3128", work_dir=tmp_path
+            )
 
         all_args = " ".join(str(a) for cmd in cmds for a in cmd)
         assert "http://p:3128" in all_args
@@ -199,12 +218,15 @@ class TestMediaExtract:
     async def test_private_video_raises(self, tmp_path):
         from oprim._media_extract import media_extract
 
-        with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
-            with patch("asyncio.create_subprocess_exec", AsyncMock(
-                return_value=_make_proc(b"", b"This video is private", returncode=1)
-            )):
-                with pytest.raises(RuntimeError, match="[Pp]rivate"):
-                    await media_extract(video_url="https://yt.be/priv", work_dir=tmp_path)
+        with (
+            patch("shutil.which", return_value="/usr/bin/yt-dlp"),
+            patch(
+                "asyncio.create_subprocess_exec",
+                AsyncMock(return_value=_make_proc(b"", b"This video is private", returncode=1)),
+            ),
+            pytest.raises(RuntimeError, match="[Pp]rivate"),
+        ):
+            await media_extract(video_url="https://yt.be/priv", work_dir=tmp_path)
 
     async def test_work_dir_auto_created(self, tmp_path):
         from oprim._media_extract import media_extract
@@ -218,12 +240,12 @@ class TestMediaExtract:
             mp3.write_bytes(b"x")
             return _make_proc(self._info() if "--dump-json" in args else b"")
 
-        with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
-            with patch("asyncio.create_subprocess_exec", side_effect=fake_exec):
-                try:
-                    await media_extract(video_url="https://yt.be/vid1", work_dir=new_dir)
-                except Exception:
-                    pass
+        with (
+            patch("shutil.which", return_value="/usr/bin/yt-dlp"),
+            patch("asyncio.create_subprocess_exec", side_effect=fake_exec),
+            contextlib.suppress(Exception),
+        ):
+            await media_extract(video_url="https://yt.be/vid1", work_dir=new_dir)
         assert new_dir.exists()
 
     async def test_empty_url_raises_value_error(self, tmp_path):
@@ -236,6 +258,7 @@ class TestMediaExtract:
 # ===========================================================================
 # P-3: transcribe_audio
 # ===========================================================================
+
 
 class TestTranscribeAudio:
     async def test_local_transcription(self, tmp_path):
@@ -252,7 +275,10 @@ class TestTranscribeAudio:
         mock_model = MagicMock()
         mock_model.transcribe.return_value = (iter(mock_segments), mock_info)
 
-        with patch.dict("sys.modules", {"faster_whisper": MagicMock(WhisperModel=MagicMock(return_value=mock_model))}):
+        with patch.dict(
+            "sys.modules",
+            {"faster_whisper": MagicMock(WhisperModel=MagicMock(return_value=mock_model))},
+        ):
             result = await transcribe_audio(
                 audio_path=audio, backend="local", model_path=str(model_dir)
             )
@@ -267,9 +293,11 @@ class TestTranscribeAudio:
         audio = tmp_path / "a.mp3"
         audio.write_bytes(b"x")
 
-        with patch.dict("sys.modules", {"dashscope": None, "dashscope.audio.asr": None}):
-            with pytest.raises((RuntimeError, ImportError)):
-                await transcribe_audio(audio_path=audio, backend="dashscope")
+        with (
+            patch.dict("sys.modules", {"dashscope": None, "dashscope.audio.asr": None}),
+            pytest.raises((RuntimeError, ImportError)),
+        ):
+            await transcribe_audio(audio_path=audio, backend="dashscope")
 
     async def test_audio_not_found_raises_file_not_found(self, tmp_path):
         from oprim._transcribe_audio import transcribe_audio
@@ -301,7 +329,10 @@ class TestTranscribeAudio:
         mock_model = MagicMock()
         mock_model.transcribe.return_value = (iter(segs), mock_info)
 
-        with patch.dict("sys.modules", {"faster_whisper": MagicMock(WhisperModel=MagicMock(return_value=mock_model))}):
+        with patch.dict(
+            "sys.modules",
+            {"faster_whisper": MagicMock(WhisperModel=MagicMock(return_value=mock_model))},
+        ):
             result = await transcribe_audio(
                 audio_path=audio, backend="local", language="en", model_path=str(model_dir)
             )
@@ -315,11 +346,13 @@ class TestTranscribeAudio:
         audio = tmp_path / "a.mp3"
         audio.write_bytes(b"x")
 
-        with patch.dict("sys.modules", {"faster_whisper": MagicMock()}):
-            with pytest.raises(RuntimeError, match="model"):
-                await transcribe_audio(
-                    audio_path=audio, backend="local", model_path="/nonexistent/path"
-                )
+        with (
+            patch.dict("sys.modules", {"faster_whisper": MagicMock()}),
+            pytest.raises(RuntimeError, match="model"),
+        ):
+            await transcribe_audio(
+                audio_path=audio, backend="local", model_path="/nonexistent/path"
+            )
 
 
 # ===========================================================================

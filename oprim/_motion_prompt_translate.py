@@ -52,11 +52,14 @@ async def motion_prompt_translate(
         raise MotionTranslateError("natural_language_motion must not be empty")
 
     messages = [
-        {"role": "system", "content": (
-            f"Translate the following camera/motion description into a video generation "
-            f"prompt optimized for {target_provider}. Return ONLY the translated prompt, "
-            f"no explanation."
-        )},
+        {
+            "role": "system",
+            "content": (
+                f"Translate the following camera/motion description into a video generation "
+                f"prompt optimized for {target_provider}. Return ONLY the translated prompt, "
+                f"no explanation."
+            ),
+        },
         {"role": "user", "content": natural_language_motion},
     ]
 

@@ -15,7 +15,15 @@ class TestNelsonSiegelYieldCurve:
         tenors = self._standard_tenors()
         yields = np.array([0.02, 0.021, 0.022, 0.024, 0.025, 0.027, 0.028, 0.03])
         result = nelson_siegel_yield_curve(tenors, yields)
-        expected_keys = {"beta_0", "beta_1", "beta_2", "lambda", "fitted_yields", "residuals", "r_squared"}
+        expected_keys = {
+            "beta_0",
+            "beta_1",
+            "beta_2",
+            "lambda",
+            "fitted_yields",
+            "residuals",
+            "r_squared",
+        }
         assert expected_keys.issubset(result.keys())
 
     def test_flat_curve(self):
@@ -28,7 +36,8 @@ class TestNelsonSiegelYieldCurve:
         assert abs(result["beta_2"]) < 0.1
 
     def test_upward_sloping(self):
-        """Short rates < long rates -> beta_1 < 0 (short-term factor is negative for upward slope)."""
+        """Short rates < long rates -> beta_1 < 0 (short-term factor is negative
+        for upward slope)."""
         tenors = self._standard_tenors()
         yields = np.array([0.01, 0.015, 0.02, 0.025, 0.027, 0.03, 0.032, 0.035])
         result = nelson_siegel_yield_curve(tenors, yields)

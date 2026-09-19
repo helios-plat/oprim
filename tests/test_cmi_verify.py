@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from oprim._cmi_verify import cmi_verify
 
 

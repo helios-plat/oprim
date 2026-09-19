@@ -1,4 +1,5 @@
 """Tests for oprim.timeseries.heteroskedasticity: breusch_pagan_test."""
+
 import numpy as np
 import pytest
 
@@ -35,8 +36,16 @@ def test_heteroskedastic_rejected():
 def test_returns_expected_keys():
     e, x = _make_homoskedastic(200)
     r = breusch_pagan_test(e, x)
-    for key in ("lm_statistic", "lm_p_value", "f_statistic", "f_p_value",
-                "r_squared_aux", "df", "n_obs", "is_homoskedastic"):
+    for key in (
+        "lm_statistic",
+        "lm_p_value",
+        "f_statistic",
+        "f_p_value",
+        "r_squared_aux",
+        "df",
+        "n_obs",
+        "is_homoskedastic",
+    ):
         assert key in r
 
 
@@ -62,6 +71,7 @@ def test_1d_exog():
 
 def test_series_and_dataframe_input():
     import pandas as pd
+
     rng = np.random.default_rng(10)
     n = 200
     x = rng.standard_normal((n, 2))

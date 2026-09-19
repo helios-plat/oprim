@@ -1,4 +1,5 @@
 """Compute the delta between two snapshots of a Todo list."""
+
 from __future__ import annotations
 
 from ._hicode_types import Todo, TodoDelta
@@ -11,7 +12,8 @@ def todo_diff(old: list[Todo], *, new: list[Todo]) -> TodoDelta:
 
     - **added**: todos present in *new* but not in *old*.
     - **removed**: todos present in *old* but not in *new*.
-    - **status_changed**: todos present in both but whose ``status`` differs;
+    - **status_changed**: todos present in both but whose ``status`` differs
+
       each entry is ``(new_todo, old_status)``.
 
     Args:

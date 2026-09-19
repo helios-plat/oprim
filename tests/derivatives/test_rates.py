@@ -1,20 +1,22 @@
 """Tests for svensson_yield_curve and cubic_spline_yield_curve."""
+
 from __future__ import annotations
 
-import pytest
 import numpy as np
+import pytest
 from scipy.interpolate import CubicSpline
 
-from oprim.derivatives.rates import svensson_yield_curve, cubic_spline_yield_curve
-
+from oprim.derivatives.rates import cubic_spline_yield_curve, svensson_yield_curve
 
 # ===========================================================================
 # Helpers: synthetic yield curves
 # ===========================================================================
 
+
 def _synthetic_svensson_yields(maturities, params):
     """Generate synthetic yields from known Svensson params."""
     from oprim.derivatives.rates import _svensson_yield
+
     return _svensson_yield(np.asarray(maturities), params)
 
 
@@ -33,6 +35,7 @@ _TRUE_PARAMS = {
 # ===========================================================================
 # svensson_yield_curve tests (≥7)
 # ===========================================================================
+
 
 # Test 1: Fits clean synthetic data with RMSE < 0.001
 def test_svensson_fits_clean_data():
@@ -104,6 +107,7 @@ def test_svensson_tau_positive():
 # ===========================================================================
 # cubic_spline_yield_curve tests (≥6)
 # ===========================================================================
+
 
 # Test 9: Interpolates exactly at knots
 def test_cubic_spline_exact_at_knots():

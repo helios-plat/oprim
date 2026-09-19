@@ -2,6 +2,7 @@ from __future__ import annotations
 
 _VALID_ROLES = {"user", "assistant", "system", "tool"}
 
+
 def _validate_messages(messages: list[dict]) -> list[str]:
     errors = []
     if not messages:
@@ -18,6 +19,7 @@ def _validate_messages(messages: list[dict]) -> list[str]:
             errors.append(f"messages[{i}] missing 'content'")
     return errors
 
+
 def _extract_usage(response: dict) -> dict[str, int]:
     usage = response.get("usage", {})
     return {
@@ -25,9 +27,11 @@ def _extract_usage(response: dict) -> dict[str, int]:
         "output_tokens": usage.get("output_tokens") or usage.get("completion_tokens") or 0,
     }
 
+
 def _extract_text(response: dict) -> str:
     content = response.get("content", [])
-    if isinstance(content, str): return content
+    if isinstance(content, str):
+        return content
     if isinstance(content, list):
         parts = []
         for block in content:
@@ -38,7 +42,9 @@ def _extract_text(response: dict) -> str:
         return "".join(parts)
     return ""
 
+
 def _extract_tool_calls(response: dict) -> list[dict]:
     content = response.get("content", [])
-    if not isinstance(content, list): return []
+    if not isinstance(content, list):
+        return []
     return [b for b in content if isinstance(b, dict) and b.get("type") == "tool_use"]

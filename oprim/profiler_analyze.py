@@ -100,10 +100,10 @@ async def profiler_analyze(
     """
     from oprim.llm._llm_complete import llm_complete
 
-    mastery_str = "\n".join(
-        f"  {kc}: {v:.1%}" for kc, v in sorted(inp.kc_mastery.items())
+    mastery_str = "\n".join(f"  {kc}: {v:.1%}" for kc, v in sorted(inp.kc_mastery.items()))
+    recent_str = (
+        json.dumps(inp.recent_attempts[-20:], ensure_ascii=False) if inp.recent_attempts else "[]"
     )
-    recent_str = json.dumps(inp.recent_attempts[-20:], ensure_ascii=False) if inp.recent_attempts else "[]"
 
     prompt = (
         f"学生年级: {inp.grade_level}, 科目: {inp.subject}\n"

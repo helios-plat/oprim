@@ -1,4 +1,5 @@
 """Build a Question payload from raw inputs."""
+
 from __future__ import annotations
 
 from ._hicode_types import Question

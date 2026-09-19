@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._podcast_episode_parser import podcast_episode_parser
 
 VALID_PODCAST_RSS = """\

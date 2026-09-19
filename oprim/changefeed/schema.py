@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
-class EventType(str, Enum):
+
+class EventType(StrEnum):
     SUBSTRATE_CREATED = "substrate_created"
     SUBSTRATE_UPDATED = "substrate_updated"
     SUBSTRATE_DELETED = "substrate_deleted"
@@ -20,6 +22,7 @@ class EventType(str, Enum):
     # Legacy/Others
     SUBSTRATE_UPSERT = "substrate_upsert"
     SUBSTRATE_DELETE = "substrate_delete"
+
 
 @dataclass
 class ChangefeedEvent:

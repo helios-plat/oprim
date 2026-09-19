@@ -1,4 +1,5 @@
 """event_should_sync — decide whether an Event passes a list of Filters."""
+
 from __future__ import annotations
 
 from ._hicode_types import Event, Filter

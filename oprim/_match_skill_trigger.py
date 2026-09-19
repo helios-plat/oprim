@@ -1,4 +1,5 @@
 """P-NEW1 match_skill_trigger — match task input to an auto-trigger SkillSpec."""
+
 from __future__ import annotations
 
 import re

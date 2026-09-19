@@ -87,7 +87,7 @@ async def edge_tts_synthesize(
     script: list[Any],
     output_path: Path,
     language: str | None = None,
-    watermark: bool = False,  # 接口兼容占位;edge-tts 无水印概念
+    watermark: bool = False,  # 接口兼容占位
     _synth_fn: Any = None,
     _ffmpeg_fn: Any = None,
     **_kwargs: Any,
@@ -95,10 +95,13 @@ async def edge_tts_synthesize(
     """把 script 各行旁白合成为单个 WAV(output_path)。
 
     Args:
-        config: 覆盖 dict;language 缺省时取 config["language"]。
-        script: 每行需有 .text(必需);.speaker_id 可选(与 vibevoice 一致)。
+        config: 覆盖 dict
+        language 缺省时取 config["language"]。
+        script: 每行需有 .text(必需)
+        .speaker_id 可选(与 vibevoice 一致)。
         output_path: 产物 WAV 落盘路径。
-        language: 显式语言(如 "zh"/"en");缺省按文本 CJK 自动判定。
+        language: 显式语言(如 "zh"/"en")
+        缺省按文本 CJK 自动判定。
         watermark: 接口兼容占位(edge-tts 无水印)。
         _synth_fn / _ffmpeg_fn: 测试注入钩子(默认走 edge_tts / obase.ffmpeg)。
 

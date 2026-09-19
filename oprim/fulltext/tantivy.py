@@ -1,4 +1,5 @@
 """Tantivy-based full-text search index."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,6 +16,8 @@ from oprim._optional import require_optional
 from oprim.errors import FulltextError
 
 _CJK_RE = None
+
+
 def _space_cjk(text: str) -> str:
     """Insert a space after each CJK char so tantivy's default tokenizer
     (splits on non-alphanumerics) emits one token per CJK char — enables
@@ -22,6 +25,7 @@ def _space_cjk(text: str) -> str:
     global _CJK_RE
     if _CJK_RE is None:
         import re as _re
+
         _CJK_RE = _re.compile(r"[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef]")
     return _CJK_RE.sub(lambda m: m.group(0) + " ", text)
 
@@ -68,9 +72,7 @@ class TantivyFulltextIndex:
         try:
             self._index = tantivy.Index(self._schema, path=str(self._path))
         except Exception as e:
-            raise FulltextError(
-                f"Failed to open tantivy index at {self._path}: {e}"
-            ) from e
+            raise FulltextError(f"Failed to open tantivy index at {self._path}: {e}") from e
 
     def add(self, docs: list[FulltextDoc]) -> None:
         try:
@@ -124,9 +126,7 @@ class TantivyFulltextIndex:
             raise FulltextError(f"Delete failed: {e}") from e
 
 
-def open_fulltext_index(
-    path: Path, provider: str = "tantivy"
-) -> TantivyFulltextIndex:
+def open_fulltext_index(path: Path, provider: str = "tantivy") -> TantivyFulltextIndex:
     """Open or create a full-text index at *path*.
 
     Raises:

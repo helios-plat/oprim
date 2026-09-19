@@ -8,13 +8,15 @@ Rendering pipeline:
 
 Local-only, zero cost. Output codec matches video_generate for assembly compatibility.
 """
+
 from __future__ import annotations
 
 import tempfile
 from pathlib import Path
 
-from oprim._validate_html import validate_html
 from obase.ffmpeg import run as ffmpeg_run
+
+from oprim._validate_html import validate_html
 
 
 class RenderHtmlError(Exception):
@@ -34,7 +36,8 @@ async def render_html_to_mp4(
 ) -> Path:
     """Render HTML/CSS/GSAP animation to MP4.
 
-    validate=True (default) runs validate_html first; raises RenderHtmlError
+    validate=True (default) runs validate_html first
+    raises RenderHtmlError
     on any violation to prevent unsafe content from being encoded.
 
     Output is H.264/AAC in MP4 container — same codec as video_generate,
@@ -59,8 +62,7 @@ async def render_html_to_mp4(
         val = validate_html(html=html)
         if not val.is_safe:
             raise RenderHtmlError(
-                f"HTML validation failed — rendering blocked. "
-                f"Violations: {val.violations}"
+                f"HTML validation failed — rendering blocked. Violations: {val.violations}"
             )
 
     if not html.strip():
@@ -107,7 +109,8 @@ async def _capture_html_frames(
 ) -> None:
     """Capture per-frame screenshots via headless Chromium.
 
-    Separated for mockability. Tests patch this function; production
+    Separated for mockability. Tests patch this function
+    production
     calls chromium --headless via subprocess advancing GSAP timeline.
     """
     try:
@@ -148,12 +151,18 @@ async def _encode_frames_to_mp4(
 ) -> None:
     """Encode captured PNG frames to H.264 MP4 via ffmpeg."""
     args = [
-        "-framerate", str(fps),
-        "-i", str(frames_dir / "frame_%06d.png"),
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        "-vf", f"scale={width}:{height}",
-        "-movflags", "+faststart",
+        "-framerate",
+        str(fps),
+        "-i",
+        str(frames_dir / "frame_%06d.png"),
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-vf",
+        f"scale={width}:{height}",
+        "-movflags",
+        "+faststart",
         str(output_path),
     ]
     await ffmpeg_run(args=args, timeout_s=timeout_s, expected_output=output_path)

@@ -1,4 +1,5 @@
 """Tests for render_html_to_mp4."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -23,7 +24,6 @@ async def _mock_encode(**kw):
 
 
 class TestRenderHtmlToMp4:
-
     @patch("oprim._render_html_to_mp4._encode_frames_to_mp4", new_callable=AsyncMock)
     @patch("oprim._render_html_to_mp4._capture_html_frames", new_callable=AsyncMock)
     async def test_basic_render_returns_output_path(self, mock_cap, mock_enc, tmp_path):
@@ -38,7 +38,9 @@ class TestRenderHtmlToMp4:
     async def test_validate_true_blocks_dangerous_html(self, mock_cap, mock_enc, tmp_path):
         out = tmp_path / "out.mp4"
         with pytest.raises(RenderHtmlError, match="validation failed"):
-            await render_html_to_mp4(html=_EVIL_HTML, output_path=out, duration_s=2.0, validate=True)
+            await render_html_to_mp4(
+                html=_EVIL_HTML, output_path=out, duration_s=2.0, validate=True
+            )
         mock_cap.assert_not_called()
 
     @patch("oprim._render_html_to_mp4._encode_frames_to_mp4", new_callable=AsyncMock)
@@ -48,7 +50,9 @@ class TestRenderHtmlToMp4:
         mock_cap.side_effect = _mock_capture
         mock_enc.side_effect = _mock_encode
         # dangerous HTML with validate=False → no RenderHtmlError
-        result = await render_html_to_mp4(html=_EVIL_HTML, output_path=out, duration_s=1.0, validate=False)
+        result = await render_html_to_mp4(
+            html=_EVIL_HTML, output_path=out, duration_s=1.0, validate=False
+        )
         assert result == out
 
     @patch("oprim._render_html_to_mp4._encode_frames_to_mp4", new_callable=AsyncMock)
@@ -85,8 +89,11 @@ class TestRenderHtmlToMp4:
         mock_cap.side_effect = _mock_capture
         mock_enc.side_effect = _mock_encode
         await render_html_to_mp4(
-            html=_CLEAN_HTML, output_path=out, duration_s=1.0,
-            width=1280, height=720,
+            html=_CLEAN_HTML,
+            output_path=out,
+            duration_s=1.0,
+            width=1280,
+            height=720,
         )
         kw = mock_cap.call_args.kwargs
         assert kw["width"] == 1280 and kw["height"] == 720

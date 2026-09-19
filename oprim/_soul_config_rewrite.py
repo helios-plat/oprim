@@ -63,11 +63,11 @@ async def soul_config_rewrite(
         try:
             resolved = target.resolve()
         except OSError as exc:
-            raise FileOprimError(f"soul_config_rewrite: cannot resolve {target}", cause=exc) from exc
+            raise FileOprimError(
+                f"soul_config_rewrite: cannot resolve {target}", cause=exc
+            ) from exc
         if not str(resolved).startswith(str(root)):
-            raise PathSecurityError(
-                f"soul_config_rewrite: {target} escapes sandbox_root {root}"
-            )
+            raise PathSecurityError(f"soul_config_rewrite: {target} escapes sandbox_root {root}")
 
     rev_before: str | None = None
     rev_after: str | None = None

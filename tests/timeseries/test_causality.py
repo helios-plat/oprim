@@ -1,4 +1,5 @@
 """Tests for oprim.timeseries.causality: granger_causality_test."""
+
 import numpy as np
 import pytest
 
@@ -39,8 +40,15 @@ def test_independent_not_causal():
 def test_returns_expected_keys():
     y, x = _make_independent(300)
     r = granger_causality_test(y, x)
-    for key in ("f_statistic", "p_value", "max_lag", "n_obs",
-                "ssr_restricted", "ssr_unrestricted", "granger_causes"):
+    for key in (
+        "f_statistic",
+        "p_value",
+        "max_lag",
+        "n_obs",
+        "ssr_restricted",
+        "ssr_unrestricted",
+        "granger_causes",
+    ):
         assert key in r
 
 
@@ -76,6 +84,7 @@ def test_chi2_variant():
 
 def test_series_input():
     import pandas as pd
+
     y, x = _make_granger_causal(300)
     r = granger_causality_test(pd.Series(y), pd.Series(x))
     assert "f_statistic" in r

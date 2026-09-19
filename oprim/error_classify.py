@@ -4,16 +4,19 @@
 """
 
 from __future__ import annotations
-from enum import Enum
-from dataclasses import dataclass
-from typing import Optional, Any
 
-class ErrorTag(str, Enum):
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import Any
+
+
+class ErrorTag(StrEnum):
     CONCEPT_MISUNDERSTANDING = "概念不清"
     CALCULATION_ERROR = "计算失误"
     MISREADING = "审题错"
     LOGIC_JUMP = "步骤跳跃"
     UNCLASSIFIED = "未分类"
+
 
 @dataclass(frozen=True)
 class ErrorClassifyInput:
@@ -30,6 +33,7 @@ class ErrorClassifyInput:
     verify_suggestion : str
         verify_step 返回的错误详情。
     """
+
     question_context: str
     step_description: str
     before_lhs: str
@@ -38,11 +42,13 @@ class ErrorClassifyInput:
     after_rhs: str = "0"
     verify_suggestion: str = ""
 
+
 @dataclass(frozen=True)
 class ErrorClassifyResult:
     primary_tag: ErrorTag
     secondary_tags: list[str] = None
     reason: str = ""
+
 
 _CLASSIFY_SYSTEM = (
     "你是一个数学教育专家。根据学生的题目、当前解题步骤及计算校验结果，判断其错误类型。\n"
@@ -51,18 +57,17 @@ _CLASSIFY_SYSTEM = (
     "2. 计算失误：纯算术错误、符号弄反但逻辑正确（如：3*5=16，或移项未变号）。\n"
     "3. 审题错：抄错数字、理解错已知条件。\n"
     "4. 步骤跳跃：逻辑不连贯，虽然可能正确但跨度太大导致校验不匹配。\n"
-    "输出 JSON：{\"primary_tag\": \"...\", \"secondary_tags\": [...], \"reason\": \"...\"}\n"
+    '输出 JSON：{"primary_tag": "...", "secondary_tags": [...], "reason": "..."}\n'
     "如果不确定，primary_tag 请填写 '未分类'。"
 )
 
+
 async def error_classify(
-    inp: ErrorClassifyInput,
-    *,
-    caller: Any,
-    model: str = "claude-sonnet-4-6"
+    inp: ErrorClassifyInput, *, caller: Any, model: str = "claude-sonnet-4-6"
 ) -> ErrorClassifyResult:
     """使用 LLM 对错误进行分类。"""
     import json
+
     from oprim.llm._llm_complete import llm_complete
 
     user_prompt = (
@@ -74,15 +79,10 @@ async def error_classify(
     )
 
     messages = [{"role": "user", "content": user_prompt}]
-    
+
     try:
-        response = await llm_complete(
-            messages,
-            caller=caller,
-            system=_CLASSIFY_SYSTEM,
-            model=model
-        )
-        
+        response = await llm_complete(messages, caller=caller, system=_CLASSIFY_SYSTEM, model=model)
+
         raw = response.text.strip()
         if "```" in raw:
             # 简单处理 markdown code block
@@ -93,24 +93,25 @@ async def error_classify(
                     if raw.startswith("json"):
                         raw = raw[4:]
                     break
-        
+
         data = json.loads(raw)
-        
+
         tag_map = {
             "概念不清": ErrorTag.CONCEPT_MISUNDERSTANDING,
             "计算失误": ErrorTag.CALCULATION_ERROR,
             "审题错": ErrorTag.MISREADING,
             "步骤跳跃": ErrorTag.LOGIC_JUMP,
         }
-        
+
         primary = tag_map.get(data.get("primary_tag"), ErrorTag.UNCLASSIFIED)
-        
+
         return ErrorClassifyResult(
             primary_tag=primary,
             secondary_tags=data.get("secondary_tags", []),
-            reason=data.get("reason", "")
+            reason=data.get("reason", ""),
         )
     except Exception:
         return ErrorClassifyResult(primary_tag=ErrorTag.UNCLASSIFIED)
+
 
 __version__ = "0.1.0"

@@ -1,4 +1,5 @@
 """Deserialize a plain dict produced by todo_serialize back to Todo objects."""
+
 from __future__ import annotations
 
 from typing import Any

@@ -68,16 +68,18 @@ class TestVideoRecompose:
         with (
             patch("oprim._video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
             patch("asyncio.create_subprocess_exec", side_effect=_mock_probe(1080, 1920)),
+            pytest.raises(VideoRecomposeError, match="already matches"),
         ):
-            with pytest.raises(VideoRecomposeError, match="already matches"):
-                await video_recompose(input_path=inp, output_path=tmp_path / "out.mp4")
+            await video_recompose(input_path=inp, output_path=tmp_path / "out.mp4")
 
     async def test_ffprobe_missing_raises(self, tmp_path: Path) -> None:
         inp = tmp_path / "video.mp4"
         inp.write_bytes(b"\x00" * 64)
-        with patch("oprim._video_recompose.shutil.which", return_value=None):
-            with pytest.raises(VideoRecomposeSetupError, match="ffprobe"):
-                await video_recompose(input_path=inp, output_path=tmp_path / "out.mp4")
+        with (
+            patch("oprim._video_recompose.shutil.which", return_value=None),
+            pytest.raises(VideoRecomposeSetupError, match="ffprobe"),
+        ):
+            await video_recompose(input_path=inp, output_path=tmp_path / "out.mp4")
 
     async def test_smart_crop_not_implemented(self, tmp_path: Path) -> None:
         inp = tmp_path / "video.mp4"
@@ -90,8 +92,8 @@ class TestVideoRecompose:
     async def test_input_not_found_raises(self, tmp_path: Path) -> None:
         with (
             patch("oprim._video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
+            pytest.raises(VideoRecomposeError, match="not found"),
         ):
-            with pytest.raises(VideoRecomposeError, match="not found"):
-                await video_recompose(
-                    input_path=tmp_path / "missing.mp4", output_path=tmp_path / "out.mp4"
-                )
+            await video_recompose(
+                input_path=tmp_path / "missing.mp4", output_path=tmp_path / "out.mp4"
+            )

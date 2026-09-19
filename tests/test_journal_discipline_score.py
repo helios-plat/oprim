@@ -1,5 +1,6 @@
 """Tests for oprim.journal_discipline_score (ported from Tide's
-TestComputeDisciplineBreakdown, 11 tests; DB-bound score_from_entry_id/route
+TestComputeDisciplineBreakdown, 11 tests
+DB-bound score_from_entry_id/route
 tests stay in Tide). Breakdown key renamed holding_days_within_50pct_sell ->
 holding_days_within_tolerance_sell to match the generalized holding_tolerance
 parameter (default 0.5 == the original hardcoded ±50%).

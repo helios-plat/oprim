@@ -71,10 +71,11 @@ def ordinal_pattern(
     if n <= 0:
         raise ValueError(f"Series too short: len={len(x)}, d={d}")
     from math import factorial
-    max_patterns = factorial(d)
+
+    factorial(d)
     patterns = np.empty(n, dtype=int)
     for i in range(n):
-        window = x[i: i + d]
+        window = x[i : i + d]
         # Rank the window values
         order = np.argsort(window)
         # Convert permutation to index (Lehmer code)

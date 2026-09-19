@@ -57,16 +57,16 @@ def breusch_pagan_test(
         e = np.asarray(residuals, dtype=float)
 
     if isinstance(exog, pd.DataFrame):
-        X = exog.to_numpy(dtype=float)
+        x_mat = exog.to_numpy(dtype=float)
     else:
-        X = np.asarray(exog, dtype=float)
+        x_mat = np.asarray(exog, dtype=float)
 
-    if X.ndim == 1:
-        X = X.reshape(-1, 1)
+    if x_mat.ndim == 1:
+        x_mat = x_mat.reshape(-1, 1)
 
     n = len(e)
-    if X.shape[0] != n:
-        raise ValueError(f"residuals and exog must have same length: {n} vs {X.shape[0]}")
+    if x_mat.shape[0] != n:
+        raise ValueError(f"residuals and exog must have same length: {n} vs {x_mat.shape[0]}")
     if n < 10:
         raise ValueError(f"Need at least 10 observations, got {n}")
 
@@ -74,11 +74,11 @@ def breusch_pagan_test(
     e2 = e**2
 
     # Add constant to exog
-    X_aug = np.column_stack([np.ones(n), X])
-    k = X_aug.shape[1]  # includes constant
+    x_aug = np.column_stack([np.ones(n), x_mat])
+    k = x_aug.shape[1]  # includes constant
 
     # OLS: e^2 on X_aug
-    coeffs, resid_aux = _ols_fit(e2, X_aug)
+    coeffs, resid_aux = _ols_fit(e2, x_aug)
 
     # R^2 of auxiliary regression
     ss_tot = float(np.sum((e2 - np.mean(e2)) ** 2))

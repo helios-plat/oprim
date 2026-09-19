@@ -47,11 +47,11 @@ def hawkes_nll(
         return 1e10
 
     # Recursive A_i = Σ_{j<i} exp(-β*(t_i - t_j))
-    A = np.zeros(n)
+    a = np.zeros(n)
     for i in range(1, n):
-        A[i] = np.exp(-beta * (event_times[i] - event_times[i - 1])) * (1.0 + A[i - 1])
+        a[i] = np.exp(-beta * (event_times[i] - event_times[i - 1])) * (1.0 + a[i - 1])
 
-    lambdas = mu + alpha * A
+    lambdas = mu + alpha * a
     if np.any(lambdas <= 0):
         return 1e10
 

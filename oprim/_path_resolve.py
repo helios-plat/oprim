@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import stat
+
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import PathSecurityError
+
 
 def path_resolve(
     path: str | Path,
@@ -33,7 +35,5 @@ def path_resolve(
         try:
             resolved.relative_to(root)
         except ValueError:
-            raise PathSecurityError(
-                f"path '{resolved}' is outside sandbox root '{root}'"
-            )
+            raise PathSecurityError(f"path '{resolved}' is outside sandbox root '{root}'")
     return resolved

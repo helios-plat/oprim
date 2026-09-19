@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from oprim._backtest_stat import backtest_stat
 
 
@@ -58,7 +59,7 @@ def test_total_return_correct():
 # 6. sharpe_ratio sign — positive returns → positive sharpe
 def test_sharpe_ratio_positive():
     returns = [0.002] * 252
-    result = backtest_stat(returns=returns, risk_free_rate=0.0)
+    backtest_stat(returns=returns, risk_free_rate=0.0)
     # constant positive returns → std of excess = 0, so sharpe = 0.0 (fallback)
     # with slight variation it should be positive
     returns_varied = [0.001, 0.003] * 126

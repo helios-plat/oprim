@@ -1,10 +1,11 @@
 """oprim.adapt_prompt_for_provider — Adapt a prompt string for a specific LLM/VLM provider."""
+
 from __future__ import annotations
 
 _PROVIDER_RULES: dict[str, dict[str, str]] = {
     "wan22": {"prefix": "电影级画质，", "suffix": "，高清流畅"},
-    "ltx2":  {"prefix": "", "suffix": ", cinematic, 4K"},
-    "flux":  {"prefix": "", "suffix": ", masterpiece, best quality"},
+    "ltx2": {"prefix": "", "suffix": ", cinematic, 4K"},
+    "flux": {"prefix": "", "suffix": ", masterpiece, best quality"},
 }
 
 

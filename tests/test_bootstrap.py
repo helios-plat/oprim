@@ -1,10 +1,8 @@
 """Tests for oprim.bootstrap."""
+
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
-
-import pytest
 
 from oprim._bootstrap import bootstrap
 
@@ -23,6 +21,7 @@ class TestBootstrap:
         config_file.write_text("STRATUM_CUSTOM: testvalue\n")
         bootstrap(config_path=config_file, log_level="WARNING")
         from oprim._config import cfg
+
         assert cfg.get("STRATUM_CUSTOM") == "testvalue"
 
     def test_bootstrap_idempotent(self, tmp_path, monkeypatch):

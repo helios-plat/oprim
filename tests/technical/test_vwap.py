@@ -48,7 +48,7 @@ def test_vwap_window_equals_length():
     result = vwap(prices, volumes, window=3)
     assert np.isnan(result[0])
     assert np.isnan(result[1])
-    expected = (10*2 + 20*3 + 30*5) / 10
+    expected = (10 * 2 + 20 * 3 + 30 * 5) / 10
     assert result[2] == pytest.approx(expected)
 
 

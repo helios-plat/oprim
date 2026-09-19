@@ -1,4 +1,5 @@
 """Minimal env-var config for oprim knowledge sub-packages."""
+
 from __future__ import annotations
 
 import os

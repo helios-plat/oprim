@@ -1,4 +1,5 @@
 """oprim.inject_visual_style — Inject visual style/lighting into a prompt. SYNC."""
+
 from __future__ import annotations
 
 

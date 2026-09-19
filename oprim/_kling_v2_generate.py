@@ -1,7 +1,8 @@
 """oprim.kling_v2_generate — 快手可灵 v2 master (fal) 高写实视频原语。
 
 真人动作/一致性强,支持 negative_prompt 与朝向。与 ltx2_cloud_generate 并列作 video
-原语;走 fal 队列(fal_queue_generate)。
+原语
+走 fal 队列(fal_queue_generate)。
 
 Example:
     >>> import asyncio
@@ -43,9 +44,11 @@ async def kling_v2_generate(
     Args:
         prompt: 文本提示。
         output_path: 产物落盘路径。
-        aspect_ratio: {"9:16","16:9","1:1"};非法回退按 size 推导或 9:16。
+        aspect_ratio: {"9:16","16:9","1:1"}
+        非法回退按 size 推导或 9:16。
         duration_s: 时长秒(下发为 "{int}")。
-        negative_prompt: 负向提示;空则用内置写实缺陷压制默认值。
+        negative_prompt: 负向提示
+        空则用内置写实缺陷压制默认值。
         cfg_scale: 提示遵循度。
         config: 覆盖 dict(FAL_API_KEY)。
         _kw: registry 注入的其余 kw 一律忽略(size 可参与 aspect_ratio 推导)。

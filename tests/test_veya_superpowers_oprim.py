@@ -1,23 +1,21 @@
-"""Tests for oprim.tdd_test_run, git_checkpoint_commit, browser_element_interact, web_search_fetch."""
+"""Tests for oprim.tdd_test_run, git_checkpoint_commit, browser_element_interact,
+web_search_fetch."""
 
 from __future__ import annotations
 
-import os
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from oprim._tdd_test_run import tdd_test_run
-from oprim._git_checkpoint_commit import git_checkpoint_commit
 from oprim._browser_element_interact import browser_element_interact
+from oprim._git_checkpoint_commit import git_checkpoint_commit
+from oprim._tdd_test_run import tdd_test_run
 from oprim._web_search_fetch import web_search_fetch
-
 
 # ============================================================================
 # tdd_test_run
 # ============================================================================
+
 
 class TestTddTestRun:
     def test_pytest_passing(self):
@@ -59,7 +57,7 @@ class TestTddTestRun:
     def test_stdout_truncated(self):
         """Large stdout should be truncated to ~2000 chars."""
         result = tdd_test_run(
-            f"python -c \"print('x' * 5000)\"",
+            "python -c \"print('x' * 5000)\"",
             cwd=".",
             timeout_sec=5,
         )
@@ -73,6 +71,7 @@ class TestTddTestRun:
     def test_positional_only_one(self):
         """Signature enforcement: only 1 positional arg."""
         import inspect
+
         sig = inspect.signature(tdd_test_run)
         params = list(sig.parameters.values())
         positional = [p for p in params if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
@@ -82,6 +81,7 @@ class TestTddTestRun:
 # ============================================================================
 # git_checkpoint_commit
 # ============================================================================
+
 
 class TestGitCheckpointCommit:
     def test_no_git_repo_returns_failed(self, tmp_path: Path):
@@ -104,6 +104,7 @@ class TestGitCheckpointCommit:
 
     def test_positional_only_one(self):
         import inspect
+
         sig = inspect.signature(git_checkpoint_commit)
         params = list(sig.parameters.values())
         positional = [p for p in params if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
@@ -113,8 +114,12 @@ class TestGitCheckpointCommit:
         """Test in an actual git repo."""
         # init git repo
         subprocess.run(["git", "init"], cwd=str(tmp_path), capture_output=True)
-        subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=str(tmp_path), capture_output=True)
-        subprocess.run(["git", "config", "user.name", "Test"], cwd=str(tmp_path), capture_output=True)
+        subprocess.run(
+            ["git", "config", "user.email", "test@test.com"], cwd=str(tmp_path), capture_output=True
+        )
+        subprocess.run(
+            ["git", "config", "user.name", "Test"], cwd=str(tmp_path), capture_output=True
+        )
         # Create a file
         (tmp_path / "test.txt").write_text("hello")
         result = git_checkpoint_commit("init commit", repo_path=str(tmp_path))
@@ -125,6 +130,7 @@ class TestGitCheckpointCommit:
 # ============================================================================
 # browser_element_interact
 # ============================================================================
+
 
 class TestBrowserElementInteract:
     def test_click_action(self):
@@ -171,6 +177,7 @@ class TestBrowserElementInteract:
 
     def test_positional_only_one(self):
         import inspect
+
         sig = inspect.signature(browser_element_interact)
         params = list(sig.parameters.values())
         positional = [p for p in params if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]
@@ -180,6 +187,7 @@ class TestBrowserElementInteract:
 # ============================================================================
 # web_search_fetch
 # ============================================================================
+
 
 class TestWebSearchFetch:
     def test_search_query_returns_results(self):
@@ -221,6 +229,7 @@ class TestWebSearchFetch:
 
     def test_positional_only_one(self):
         import inspect
+
         sig = inspect.signature(web_search_fetch)
         params = list(sig.parameters.values())
         positional = [p for p in params if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD]

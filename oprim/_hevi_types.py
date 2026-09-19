@@ -1,20 +1,21 @@
 """oprim._hevi_types — Shared types for hevi Phase 10/11 elements."""
+
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel
 
 
-class VideoQuality(str, Enum):
+class VideoQuality(StrEnum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     ULTRA = "ultra"
 
 
-class ProviderCapability(str, Enum):
+class ProviderCapability(StrEnum):
     TEXT_TO_VIDEO = "t2v"
     IMAGE_TO_VIDEO = "i2v"
     VIDEO_TO_VIDEO = "v2v"

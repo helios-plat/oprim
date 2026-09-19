@@ -18,23 +18,52 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from oprim import (
-    BlameLine, Commit, FileDiff, FileOprimError, FileStatus,
-    GitOprimError, Hunk, OprimError, ParseOprimError, PathSecurityError,
-    ShellOprimError, ShellResult, StreamChunk,
-    bash_exec, bash_exec_stream,
-    compute_diff, count_tokens, detect_language,
-    dir_list, estimate_cost, file_append, file_delete,
-    file_read, file_stat, file_write, glob_match,
-    git_add, git_blame, git_branch, git_checkout, git_commit,
-    git_diff, git_log, git_show, git_stash, git_status,
-    html_to_markdown, parse_unified_diff, path_resolve,
-    read_gitignore, redact_secrets,
+    BlameLine,
+    Commit,
+    FileDiff,
+    FileOprimError,
+    FileStatus,
+    GitOprimError,
+    Hunk,
+    ParseOprimError,
+    PathSecurityError,
+    ShellOprimError,
+    ShellResult,
+    StreamChunk,
+    bash_exec,
+    bash_exec_stream,
+    compute_diff,
+    count_tokens,
+    detect_language,
+    dir_list,
+    estimate_cost,
+    file_append,
+    file_delete,
+    file_read,
+    file_stat,
+    file_write,
+    git_add,
+    git_blame,
+    git_branch,
+    git_checkout,
+    git_commit,
+    git_diff,
+    git_log,
+    git_show,
+    git_stash,
+    git_status,
+    glob_match,
+    html_to_markdown,
+    parse_unified_diff,
+    path_resolve,
+    read_gitignore,
+    redact_secrets,
 )
-
 
 # ===========================================================================
 # fixtures
 # ===========================================================================
+
 
 @pytest.fixture
 def git_repo(tmp_path):
@@ -42,7 +71,9 @@ def git_repo(tmp_path):
     repo = tmp_path / "repo"
     repo.mkdir()
     subprocess.run(["git", "init", str(repo)], capture_output=True)
-    subprocess.run(["git", "-C", str(repo), "config", "user.email", "test@test.com"], capture_output=True)
+    subprocess.run(
+        ["git", "-C", str(repo), "config", "user.email", "test@test.com"], capture_output=True
+    )
     subprocess.run(["git", "-C", str(repo), "config", "user.name", "Test"], capture_output=True)
     # 初始 commit
     f = repo / "hello.py"
@@ -55,6 +86,7 @@ def git_repo(tmp_path):
 # ===========================================================================
 # fs.py 测试
 # ===========================================================================
+
 
 class TestFileRead:
     def test_reads_full_content(self, tmp_path):
@@ -348,6 +380,7 @@ class TestReadGitignore:
 # git.py 测试
 # ===========================================================================
 
+
 class TestGitStatus:
     def test_clean_repo(self, git_repo):
         result = git_status(repo=git_repo)
@@ -513,11 +546,12 @@ class TestGitBranch:
 
     def test_create_branch(self, git_repo):
         git_branch(repo=git_repo, name="feat/new", create=True)
-        branches = git_branch(repo=git_repo)
+        git_branch(repo=git_repo)
         # 可能自动 checkout 了新分支，检查是否存在于 log 或文件系统
         result = subprocess.run(
             ["git", "-C", str(git_repo), "branch", "--list", "feat/new"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert "feat/new" in result.stdout
 
@@ -534,7 +568,8 @@ class TestGitBranch:
         git_branch(repo=git_repo, name="tobedeleted", delete=True)
         result = subprocess.run(
             ["git", "-C", str(git_repo), "branch", "--list", "tobedeleted"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert "tobedeleted" not in result.stdout
 
@@ -545,7 +580,8 @@ class TestGitCheckout:
         git_checkout("testbranch", repo=git_repo)
         result = subprocess.run(
             ["git", "-C", str(git_repo), "branch", "--show-current"],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         assert "testbranch" in result.stdout
 
@@ -654,6 +690,7 @@ class TestGitBlame:
 # shell.py 测试
 # ===========================================================================
 
+
 class TestBashExec:
     def test_simple_command(self):
         r = bash_exec("echo hello")
@@ -726,7 +763,6 @@ class TestBashExecStream:
         assert any("err" in c.text for c in stderr_chunks)
 
     def test_returns_async_iterator(self):
-        import collections.abc
         gen = bash_exec_stream("echo x")
         assert hasattr(gen, "__aiter__")
 
@@ -735,30 +771,23 @@ class TestBashExecStream:
 # text.py 测试
 # ===========================================================================
 
+
 class TestParseUnifiedDiff:
     def test_empty_returns_empty(self):
         assert parse_unified_diff("") == []
 
     def test_parses_simple_diff(self):
-        diff = (
-            "--- a/file.py\n+++ b/file.py\n"
-            "@@ -1,2 +1,2 @@\n"
-            " context\n-old\n+new\n"
-        )
+        diff = "--- a/file.py\n+++ b/file.py\n@@ -1,2 +1,2 @@\n context\n-old\n+new\n"
         result = parse_unified_diff(diff)
         assert len(result) == 1
         assert result[0].new_path == "file.py"
 
     def test_hunk_lines(self):
-        diff = (
-            "--- a/x.py\n+++ b/x.py\n"
-            "@@ -1,1 +1,1 @@\n"
-            "-old\n+new\n"
-        )
+        diff = "--- a/x.py\n+++ b/x.py\n@@ -1,1 +1,1 @@\n-old\n+new\n"
         result = parse_unified_diff(diff)
         hunk = result[0].hunks[0]
-        assert any(l.startswith("-") for l in hunk.lines)
-        assert any(l.startswith("+") for l in hunk.lines)
+        assert any(line.startswith("-") for line in hunk.lines)
+        assert any(line.startswith("+") for line in hunk.lines)
 
     def test_multiple_files(self):
         diff = (
@@ -948,6 +977,7 @@ class TestEstimateCost:
 # 补充覆盖率 — 错误路径
 # ===========================================================================
 
+
 class TestCoverageGaps:
     """补足 ≥95% 覆盖率的边界/错误路径测试。"""
 
@@ -1006,7 +1036,6 @@ class TestCoverageGaps:
         assert result[0].new_path == "src/main.py"
 
     def test_bash_exec_env(self):
-        import os
         r = bash_exec("echo $MY_VAR", env={**os.environ, "MY_VAR": "hello123"})
         assert "hello123" in r.stdout
 
@@ -1026,6 +1055,7 @@ class TestShellCoverage:
             async for c in bash_exec_stream("echo erronly >&2"):
                 chunks.append(c)
             return chunks
+
         chunks = asyncio.run(run())
         assert any(c.stream == "stderr" for c in chunks)
 
@@ -1035,7 +1065,6 @@ class TestShellCoverage:
         assert r.code == 0
 
     def test_bash_exec_env_empty_dict(self):
-        import os
         r = bash_exec("echo ok", env=os.environ.copy())
         assert r.ok
 
@@ -1045,17 +1074,20 @@ class TestShellCoverage:
             async for c in bash_exec_stream("seq 1 20"):
                 lines.append(c.text)
             return lines
+
         lines = asyncio.run(run())
         combined = "".join(lines)
         assert "20" in combined
 
     def test_stream_exit_code_ignored(self):
         """bash_exec_stream 不因非零退出码抛异常。"""
+
         async def run():
             chunks = []
             async for c in bash_exec_stream("echo x; exit 1"):
                 chunks.append(c)
             return chunks
+
         chunks = asyncio.run(run())
         assert any("x" in c.text for c in chunks)
 
@@ -1073,19 +1105,19 @@ class TestFinalCoverageGaps:
     def test_parse_diff_hunk_at_eof(self):
         """text.py:90 — hunk 在文件末尾收尾（current_hunk 在循环结束后仍需 append）。"""
         diff = (
-            "--- a/x.py\n+++ b/x.py\n"
-            "@@ -1,2 +1,2 @@\n"
-            " ctx\n-old\n+new\n"
+            "--- a/x.py\n+++ b/x.py\n@@ -1,2 +1,2 @@\n ctx\n-old\n+new\n"
             # 没有第二个 --- 或 +++，hunk 由 EOF 触发收尾
         )
         result = parse_unified_diff(diff)
         assert len(result) == 1
         assert len(result[0].hunks) == 1
-        assert any(l.startswith("-old") for l in result[0].hunks[0].lines)
+        assert any(line.startswith("-old") for line in result[0].hunks[0].lines)
 
     def test_detect_language_node_shebang(self):
         """text.py:247-248 — #!/usr/bin/env node → javascript。"""
-        assert detect_language("script", content="#!/usr/bin/env node\nconsole.log()") == "javascript"
+        assert (
+            detect_language("script", content="#!/usr/bin/env node\nconsole.log()") == "javascript"
+        )
 
     def test_detect_language_bash_shebang(self):
         """text.py:249-250 — #!/bin/bash → bash。"""
@@ -1131,9 +1163,10 @@ class TestLastMissLines:
         git_commit(repo=git_repo, message="add orig")
         # 执行 rename（index 级别）
         import subprocess as sp
+
         sp.run(["git", "-C", str(git_repo), "mv", "orig.py", "renamed.py"], capture_output=True)
         statuses = git_status(repo=git_repo)
-        renamed = [s for s in statuses if "renamed" in s.path.lower() or s.index == "R"]
+        [s for s in statuses if "renamed" in s.path.lower() or s.index == "R"]
         # 只要能正常解析（不崩溃）即可；renamed_from 可能是 None 或有值
         assert isinstance(statuses, list)
 

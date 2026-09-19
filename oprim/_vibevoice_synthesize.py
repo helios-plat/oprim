@@ -56,7 +56,8 @@ async def vibevoice_synthesize(
         script: List of SpeakerLine-compatible objects (speaker_id, text, voice_ref).
         output_path: Destination WAV file.
         watermark: Inject safety watermark (Microsoft responsible-AI requirement).
-            Defaults to True; strongly recommended.
+            Defaults to True
+            strongly recommended.
         _inference_fn: Optional override for the per-line inference call (for testing).
 
     Returns:
@@ -77,8 +78,7 @@ async def vibevoice_synthesize(
 
     cfg_dict = config or {}
     model_dir = Path(
-        cfg_dict.get("VIBEVOICE_MODEL_DIR")
-        or cfg.get("VIBEVOICE_MODEL_DIR", "vendor/vibevoice")
+        cfg_dict.get("VIBEVOICE_MODEL_DIR") or cfg.get("VIBEVOICE_MODEL_DIR", "vendor/vibevoice")
     )
 
     if _inference_fn is None:
@@ -119,14 +119,10 @@ def _load_model(model_dir: Path) -> Any:
             VibeVoiceProcessor,
         )
     except ImportError as exc:
-        raise VibeVoiceSetupError(
-            "vibevoice package not installed; pip install vibevoice"
-        ) from exc
+        raise VibeVoiceSetupError("vibevoice package not installed; pip install vibevoice") from exc
 
     if not model_dir.exists():
-        raise VibeVoiceSetupError(
-            f"VibeVoice model dir not found: {model_dir}"
-        )
+        raise VibeVoiceSetupError(f"VibeVoice model dir not found: {model_dir}")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     processor = VibeVoiceProcessor.from_pretrained(str(model_dir))
@@ -161,10 +157,7 @@ def _make_inference(model_bundle: Any, watermark: bool) -> Any:
 
         with torch.no_grad():
             encoded = processor(**inputs)
-            encoded = {
-                k: v.to(device) if hasattr(v, "to") else v
-                for k, v in encoded.items()
-            }
+            encoded = {k: v.to(device) if hasattr(v, "to") else v for k, v in encoded.items()}
             # generate() pops 'tokenizer' from kwargs for stopping criteria
             output = model.generate(**encoded, tokenizer=processor.tokenizer)
 
@@ -184,6 +177,7 @@ def _make_inference(model_bundle: Any, watermark: bool) -> Any:
             pass  # placeholder: real impl calls audio watermark library
 
         import numpy as np
+
         buf = io.BytesIO()
         with wave.open(buf, "wb") as wf:
             wf.setnchannels(1)

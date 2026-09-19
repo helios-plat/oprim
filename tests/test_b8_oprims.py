@@ -2,27 +2,36 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
 import importlib.util
+from datetime import date
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from oprim._exceptions import OprimError
-from oprim._compute_seat_t3_return import SeatT3ReturnResult, compute_seat_t3_return
-from oprim._fetch_themes_daily import ThemeEntry, ThemesFetchError, fetch_themes_daily
-from oprim._theme_to_sw_industry_mapping import ThemeSWMapping, theme_to_sw_industry_mapping
-from oprim._fetch_sector_returns import SectorReturn, SectorFetchError, fetch_sector_returns
-from oprim._pe_ttm_lookback_safe import PETTMResult, pe_ttm_lookback_safe
-from oprim._stop_loss_compliance_check import StopLossResult, stop_loss_compliance_check
-from oprim._stamp_tax_rate_by_date import StampTaxResult, stamp_tax_rate_by_date
-from oprim._broker_export_render import BrokerExportResult, broker_export_render
+from oprim._broker_export_render import broker_export_render
 from oprim._compliance_disclaimer_inject import DISCLAIMER, compliance_disclaimer_inject
+from oprim._compute_seat_t3_return import SeatT3ReturnResult, compute_seat_t3_return
+from oprim._detect_volume_dryup_breakout import detect_volume_dryup_breakout
+from oprim._exceptions import OprimError
+from oprim._fetch_sector_returns import SectorFetchError, SectorReturn, fetch_sector_returns
+from oprim._fetch_themes_daily import ThemeEntry, ThemesFetchError, fetch_themes_daily
 from oprim._monthly_review_jinja2_render import RenderedReport, monthly_review_jinja2_render
+from oprim._pe_ttm_lookback_safe import PETTMResult, pe_ttm_lookback_safe
+from oprim._stamp_tax_rate_by_date import StampTaxResult, stamp_tax_rate_by_date
+from oprim._stop_loss_compliance_check import stop_loss_compliance_check
+from oprim._theme_to_sw_industry_mapping import ThemeSWMapping, theme_to_sw_industry_mapping
 from oprim._train_val_oos_splitter import TrainValOOSSplit, train_val_oos_splitter
-from oprim._detect_volume_dryup_breakout import VolumeBreakoutResult, detect_volume_dryup_breakout
 
+try:
+    from oprim.realtime_quote_redis_fetch import realtime_quote_redis_fetch
+
+    from oprim._exceptions import QuoteFetchError
+except ImportError:
+    realtime_quote_redis_fetch = None
+
+    class QuoteFetchError(Exception):
+        pass
 
 # ── 1. compute_seat_t3_return ─────────────────────────────────────────────────
 
@@ -86,11 +95,13 @@ class TestFetchThemesDaily:
             await fetch_themes_daily(source="wind")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch(
-            "oprim.fetch_themes_daily._akshare_fetch_themes", side_effect=ConnectionError("x")
+        with (
+            patch(
+                "oprim.fetch_themes_daily._akshare_fetch_themes", side_effect=ConnectionError("x")
+            ),
+            pytest.raises(ThemesFetchError, match="fetch_themes_daily"),
         ):
-            with pytest.raises(ThemesFetchError, match="fetch_themes_daily"):
-                await fetch_themes_daily()
+            await fetch_themes_daily()
 
     async def test_empty_rows_returns_empty(self):
         with patch("oprim.fetch_themes_daily._akshare_fetch_themes", return_value=[]):
@@ -182,11 +193,11 @@ class TestFetchSectorReturns:
             await fetch_sector_returns(source="wind")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch(
-            "oprim.fetch_sector_returns._akshare_fetch_sectors", side_effect=OSError("down")
+        with (
+            patch("oprim.fetch_sector_returns._akshare_fetch_sectors", side_effect=OSError("down")),
+            pytest.raises(SectorFetchError, match="fetch_sector_returns"),
         ):
-            with pytest.raises(SectorFetchError, match="fetch_sector_returns"):
-                await fetch_sector_returns()
+            await fetch_sector_returns()
 
     async def test_date_in_result(self):
         with patch(

@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim._avatar_generate import AvatarGenError, AvatarSetupError, avatar_generate
 
 
@@ -45,8 +45,10 @@ class TestAvatarGenerate:
         audio.write_bytes(b"\x00" * 64)
         with pytest.raises(AvatarGenError, match="Portrait image not found"):
             await avatar_generate(
-                provider="mock", portrait_image=tmp_path / "missing.png",
-                audio_path=audio, output_path=tmp_path / "out.mp4",
+                provider="mock",
+                portrait_image=tmp_path / "missing.png",
+                audio_path=audio,
+                output_path=tmp_path / "out.mp4",
             )
 
     async def test_audio_not_found(self, tmp_path: Path) -> None:
@@ -54,16 +56,20 @@ class TestAvatarGenerate:
         portrait.write_bytes(b"\x00" * 64)
         with pytest.raises(AvatarGenError, match="Audio file not found"):
             await avatar_generate(
-                provider="mock", portrait_image=portrait,
-                audio_path=tmp_path / "missing.wav", output_path=tmp_path / "out.mp4",
+                provider="mock",
+                portrait_image=portrait,
+                audio_path=tmp_path / "missing.wav",
+                output_path=tmp_path / "out.mp4",
             )
 
     async def test_provider_not_found(self, tmp_path: Path, inputs: tuple[Path, Path]) -> None:
         portrait, audio = inputs
         with pytest.raises(AvatarGenError, match="Avatar provider not found"):
             await avatar_generate(
-                provider="nope", portrait_image=portrait,
-                audio_path=audio, output_path=tmp_path / "out.mp4",
+                provider="nope",
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=tmp_path / "out.mp4",
             )
 
     async def test_setup_error(self, tmp_path: Path, inputs: tuple[Path, Path]) -> None:
@@ -75,8 +81,10 @@ class TestAvatarGenerate:
         ProviderRegistry.register(category="avatar", name="bad", fn=_setup_fail)
         with pytest.raises(AvatarSetupError, match="Vendor setup error"):
             await avatar_generate(
-                provider="bad", portrait_image=portrait,
-                audio_path=audio, output_path=tmp_path / "out.mp4",
+                provider="bad",
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=tmp_path / "out.mp4",
             )
 
     async def test_subprocess_timeout(self, tmp_path: Path, inputs: tuple[Path, Path]) -> None:
@@ -88,8 +96,10 @@ class TestAvatarGenerate:
         ProviderRegistry.register(category="avatar", name="slow", fn=_timeout)
         with pytest.raises(AvatarGenError, match="Avatar generation failed"):
             await avatar_generate(
-                provider="slow", portrait_image=portrait,
-                audio_path=audio, output_path=tmp_path / "out.mp4",
+                provider="slow",
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=tmp_path / "out.mp4",
             )
 
     async def test_output_not_produced(self, tmp_path: Path, inputs: tuple[Path, Path]) -> None:
@@ -101,6 +111,8 @@ class TestAvatarGenerate:
         ProviderRegistry.register(category="avatar", name="noop", fn=_noop)
         with pytest.raises(AvatarGenError, match="did not produce"):
             await avatar_generate(
-                provider="noop", portrait_image=portrait,
-                audio_path=audio, output_path=tmp_path / "out.mp4",
+                provider="noop",
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=tmp_path / "out.mp4",
             )

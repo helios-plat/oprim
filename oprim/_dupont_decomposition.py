@@ -9,6 +9,7 @@ from oprim._exceptions import OprimError
 
 class DuPontResult(BaseModel):
     """杜邦分析结果."""
+
     roe: float = Field(..., description="净资产收益率")
     npm: float = Field(..., description="销售净利率")
     asset_turnover: float = Field(..., description="资产周转率")
@@ -39,9 +40,14 @@ def dupont_decomposition(
     if abs(revenue) < 1e-12:
         raise OprimError("Revenue is too close to zero, cannot calculate asset turnover or NPM")
     if abs(total_assets) < 1e-12:
-        raise OprimError("Total assets is too close to zero, cannot calculate asset turnover or equity multiplier")
+        raise OprimError(
+            "Total assets is too close to zero, cannot calculate asset turnover "
+            "or equity multiplier"
+        )
     if abs(total_equity) < 1e-12:
-        raise OprimError("Total equity is too close to zero, cannot calculate ROE or equity multiplier")
+        raise OprimError(
+            "Total equity is too close to zero, cannot calculate ROE or equity multiplier"
+        )
 
     npm = net_income / revenue
     asset_turnover = revenue / total_assets
@@ -52,5 +58,5 @@ def dupont_decomposition(
         roe=float(roe),
         npm=float(npm),
         asset_turnover=float(asset_turnover),
-        equity_multiplier=float(equity_multiplier)
+        equity_multiplier=float(equity_multiplier),
     )

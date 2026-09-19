@@ -1,4 +1,5 @@
 """Shared types and schema constants for CC animation elements."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -8,7 +9,8 @@ from dataclasses import dataclass
 class HtmlValidationResult:
     is_safe: bool
     violations: list[str]
-    sanitized: str | None  # dangerous content removed; None when html is safe
+    sanitized: str | None  # dangerous content removed
+    # None when html is safe
 
 
 @dataclass
@@ -21,8 +23,8 @@ class AnimationResult:
 
 @dataclass
 class AnimationInput:
-    template: str       # prompt template with {placeholder} vars
-    variables: dict     # values to fill the template
+    template: str  # prompt template with {placeholder} vars
+    variables: dict  # values to fill the template
     domain_prompt: str  # domain-specific generation instruction
 
 

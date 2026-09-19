@@ -53,12 +53,15 @@ async def audience_sentiment_analyze(
         raise SentimentAnalyzeError("comments must not be empty")
 
     messages = [
-        {"role": "system", "content": (
-            "Analyze sentiment of the following comments. "
-            "Return JSON: {\"positive_pct\": float, \"negative_pct\": float, "
-            "\"neutral_pct\": float, \"top_keywords\": [str]}. "
-            "Percentages must sum to 1.0."
-        )},
+        {
+            "role": "system",
+            "content": (
+                "Analyze sentiment of the following comments. "
+                'Return JSON: {"positive_pct": float, "negative_pct": float, '
+                '"neutral_pct": float, "top_keywords": [str]}. '
+                "Percentages must sum to 1.0."
+            ),
+        },
         {"role": "user", "content": "\n".join(comments[:200])},
     ]
 

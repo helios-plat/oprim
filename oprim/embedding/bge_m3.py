@@ -1,4 +1,5 @@
 """BGE-M3 local embedder (FlagEmbedding or sentence-transformers)."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -31,9 +32,7 @@ class BgeM3Embedder:
                 self._model = SentenceTransformer("BAAI/bge-m3")
                 self._use_st = True
             except ImportError:
-                olog.warning(
-                    "bge-m3: neither FlagEmbedding nor sentence-transformers installed"
-                )
+                olog.warning("bge-m3: neither FlagEmbedding nor sentence-transformers installed")
 
     @property
     def model_name(self) -> str:

@@ -17,7 +17,9 @@ def salience_function(
 
         sigma(x, x_bar) = |x - x_bar| / (|x| + |x_bar| + theta)
 
-    Properties: sigma(x, x) = 0; symmetric; output in [0, 1).
+    Properties: sigma(x, x) = 0
+    symmetric
+    output in [0, 1).
 
     Parameters
     ----------
@@ -97,7 +99,7 @@ def salience_ranking_weights(
     rank_indices = np.argsort(order, axis=rank_dim)
 
     # Unnormalized weights: delta^rank
-    unnorm = delta**rank_indices.astype(float)
+    unnorm = delta ** rank_indices.astype(float)
 
     # Normalize along rank_dim
     total = unnorm.sum(axis=rank_dim, keepdims=True)

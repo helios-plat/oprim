@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._network import (
-    network_port_check,
-    network_http_health,
-    network_dns_resolve,
-    tcp_port_check,
-    http_health_probe,
     dns_resolve,
+    http_health_probe,
+    network_dns_resolve,
+    network_http_health,
+    network_port_check,
+    tcp_port_check,
 )
 
 

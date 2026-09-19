@@ -15,8 +15,15 @@ class TestVideoGenerateWanCloud:
         """wan_cloud t2v: no reference_image → mode t2v, output produced."""
         out = tmp_path / "wan.mp4"
 
-        async def _mock_invoke(*, mode: str, prompt: str, reference_image: object,
-                                output_path: Path, api_key: str, **kw: object) -> Path:
+        async def _mock_invoke(
+            *,
+            mode: str,
+            prompt: str,
+            reference_image: object,
+            output_path: Path,
+            api_key: str,
+            **kw: object,
+        ) -> Path:
             assert mode == "t2v"
             assert reference_image is None
             output_path.write_bytes(b"\x00" * 64)
@@ -42,8 +49,9 @@ class TestVideoGenerateWanCloud:
         out = tmp_path / "wan_i2v.mp4"
         captured: dict = {}
 
-        async def _mock_invoke(*, mode: str, reference_image: object,
-                                output_path: Path, **kw: object) -> Path:
+        async def _mock_invoke(
+            *, mode: str, reference_image: object, output_path: Path, **kw: object
+        ) -> Path:
             captured["mode"] = mode
             captured["reference_image"] = reference_image
             output_path.write_bytes(b"\x00" * 64)
@@ -92,13 +100,13 @@ class TestVideoGenerateWanCloud:
         with (
             patch.dict("os.environ", {"DASHSCOPE_API_KEY": "k"}),
             patch("oprim._providers.wan_cloud.invoke", new=AsyncMock(side_effect=_fail)),
+            pytest.raises(VideoGenError, match="wan_cloud generation failed"),
         ):
-            with pytest.raises(VideoGenError, match="wan_cloud generation failed"):
-                await video_generate(
-                    provider="wan_cloud",
-                    prompt="fail",
-                    output_path=tmp_path / "out.mp4",
-                )
+            await video_generate(
+                provider="wan_cloud",
+                prompt="fail",
+                output_path=tmp_path / "out.mp4",
+            )
 
     async def test_regression_existing_provider_not_broken(self, tmp_path: Path) -> None:
         """Existing ProviderRegistry providers still work after wan_cloud addition."""

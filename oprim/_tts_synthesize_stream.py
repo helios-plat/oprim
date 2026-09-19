@@ -60,9 +60,7 @@ async def tts_synthesize_stream(
 
     stream_fn = getattr(synthesizer, "synthesize_stream", None)
     if stream_fn is None or not callable(stream_fn):
-        raise TtsSynthError(
-            "tts_synthesize_stream: synthesizer has no synthesize_stream()"
-        )
+        raise TtsSynthError("tts_synthesize_stream: synthesizer has no synthesize_stream()")
 
     chunks: list[bytes] = []
     total = 0

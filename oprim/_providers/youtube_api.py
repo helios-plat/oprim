@@ -125,13 +125,15 @@ async def video_comments(
     comments = []
     for item in data.get("items", []):
         snip = item["snippet"]["topLevelComment"]["snippet"]
-        comments.append(Comment(
-            comment_id=item["id"],
-            author=snip["authorDisplayName"],
-            text=snip["textDisplay"],
-            published_at=datetime.fromisoformat(snip["publishedAt"].replace("Z", "+00:00")),
-            likes=snip.get("likeCount", 0),
-        ))
+        comments.append(
+            Comment(
+                comment_id=item["id"],
+                author=snip["authorDisplayName"],
+                text=snip["textDisplay"],
+                published_at=datetime.fromisoformat(snip["publishedAt"].replace("Z", "+00:00")),
+                likes=snip.get("likeCount", 0),
+            )
+        )
     return CommentsPage(comments=comments, next_page_token=data.get("nextPageToken"))
 
 

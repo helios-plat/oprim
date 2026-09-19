@@ -86,5 +86,8 @@ def web_search_fetch(
     return {
         "status": "success",
         "target": query_or_url,
-        "content_markdown": f"# Content from {query_or_url}\n\n*(No safe_net_op injected; returning placeholder)*",
+        "content_markdown": (
+            f"# Content from {query_or_url}\n\n"
+            "*(No safe_net_op injected; returning placeholder)*"
+        ),
     }

@@ -5,8 +5,6 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from oprim._searxng_search import searxng_search
 
 MOCK_RESPONSE = {
@@ -110,9 +108,11 @@ def test_max_results_limits_output():
 
 
 def test_empty_query_no_http_call():
-    with patch("urllib.request.urlopen") as mock_urlopen:
-        with patch("obase.http.dns_pinned_transport.make_ssrf_safe_opener") as mock_ssrf:
-            result = searxng_search(query="   ", searxng_url="http://172.17.0.2:8080")
+    with (
+        patch("urllib.request.urlopen") as mock_urlopen,
+        patch("obase.http.dns_pinned_transport.make_ssrf_safe_opener") as mock_ssrf,
+    ):
+        result = searxng_search(query="   ", searxng_url="http://172.17.0.2:8080")
     mock_urlopen.assert_not_called()
     mock_ssrf.assert_not_called()
     assert result["results"] == []
@@ -123,12 +123,14 @@ def test_empty_query_no_http_call():
 
 
 def test_http_error_sets_error_field():
-    with patch(
-        "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
-        side_effect=Exception("ssrf unavailable"),
+    with (
+        patch(
+            "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
+            side_effect=Exception("ssrf unavailable"),
+        ),
+        patch("urllib.request.urlopen", side_effect=OSError("connection refused")),
     ):
-        with patch("urllib.request.urlopen", side_effect=OSError("connection refused")):
-            result = searxng_search(query="test", searxng_url="http://172.17.0.2:8080")
+        result = searxng_search(query="test", searxng_url="http://172.17.0.2:8080")
     assert result["error"] is not None
     assert "connection refused" in result["error"]
     assert result["results"] == []
@@ -148,16 +150,18 @@ def test_categories_in_url():
         mock_resp.__exit__ = MagicMock(return_value=False)
         return mock_resp
 
-    with patch(
-        "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
-        side_effect=ImportError("not available"),
+    with (
+        patch(
+            "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
+            side_effect=ImportError("not available"),
+        ),
+        patch("urllib.request.urlopen", side_effect=fake_urlopen),
     ):
-        with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-            searxng_search(
-                query="test",
-                searxng_url="http://172.17.0.2:8080",
-                categories=["general", "news"],
-            )
+        searxng_search(
+            query="test",
+            searxng_url="http://172.17.0.2:8080",
+            categories=["general", "news"],
+        )
 
     assert captured_urls, "urlopen should have been called"
     assert "categories=general%2Cnews" in captured_urls[0] or "categories=" in captured_urls[0]
@@ -177,16 +181,18 @@ def test_time_range_in_url():
         mock_resp.__exit__ = MagicMock(return_value=False)
         return mock_resp
 
-    with patch(
-        "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
-        side_effect=ImportError("not available"),
+    with (
+        patch(
+            "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
+            side_effect=ImportError("not available"),
+        ),
+        patch("urllib.request.urlopen", side_effect=fake_urlopen),
     ):
-        with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-            searxng_search(
-                query="test",
-                searxng_url="http://172.17.0.2:8080",
-                time_range="week",
-            )
+        searxng_search(
+            query="test",
+            searxng_url="http://172.17.0.2:8080",
+            time_range="week",
+        )
 
     assert captured_urls, "urlopen should have been called"
     assert "time_range=week" in captured_urls[0]

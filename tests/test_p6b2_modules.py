@@ -12,7 +12,6 @@ from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from obase import ProviderRegistry
 
 
@@ -27,6 +26,7 @@ def _clean() -> None:  # type: ignore[misc]
 # image_to_video
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestImageToVideo:
     async def test_success(self, tmp_path: Path) -> None:
         from oprim._image_to_video import image_to_video
@@ -40,7 +40,10 @@ class TestImageToVideo:
 
         ProviderRegistry.register(category="image_to_video", name="mock", fn=_gen)
         result = await image_to_video(
-            provider="mock", reference_image=img, motion_prompt="pan", output_path=out,
+            provider="mock",
+            reference_image=img,
+            motion_prompt="pan",
+            output_path=out,
         )
         assert result == out
 
@@ -51,7 +54,9 @@ class TestImageToVideo:
         img.write_bytes(b"PNG")
         with pytest.raises(ImageToVideoProviderNotFoundError):
             await image_to_video(
-                provider="nope", reference_image=img, motion_prompt="x",
+                provider="nope",
+                reference_image=img,
+                motion_prompt="x",
                 output_path=tmp_path / "o.mp4",
             )
 
@@ -60,8 +65,10 @@ class TestImageToVideo:
 
         with pytest.raises(ImageToVideoError, match="not found"):
             await image_to_video(
-                provider="x", reference_image=tmp_path / "nope.png",
-                motion_prompt="x", output_path=tmp_path / "o.mp4",
+                provider="x",
+                reference_image=tmp_path / "nope.png",
+                motion_prompt="x",
+                output_path=tmp_path / "o.mp4",
             )
 
     async def test_provider_failure(self, tmp_path: Path) -> None:
@@ -76,7 +83,9 @@ class TestImageToVideo:
         ProviderRegistry.register(category="image_to_video", name="bad", fn=_fail)
         with pytest.raises(ImageToVideoError, match="boom"):
             await image_to_video(
-                provider="bad", reference_image=img, motion_prompt="x",
+                provider="bad",
+                reference_image=img,
+                motion_prompt="x",
                 output_path=tmp_path / "o.mp4",
             )
 
@@ -92,7 +101,9 @@ class TestImageToVideo:
         ProviderRegistry.register(category="image_to_video", name="noop", fn=_noop)
         with pytest.raises(ImageToVideoError, match="did not produce"):
             await image_to_video(
-                provider="noop", reference_image=img, motion_prompt="x",
+                provider="noop",
+                reference_image=img,
+                motion_prompt="x",
                 output_path=tmp_path / "o.mp4",
             )
 
@@ -100,6 +111,7 @@ class TestImageToVideo:
 # ═══════════════════════════════════════════════════════════════════════════════
 # face_animation
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestFaceAnimation:
     async def test_success(self, tmp_path: Path) -> None:
@@ -116,7 +128,10 @@ class TestFaceAnimation:
 
         ProviderRegistry.register(category="face_animation", name="mock", fn=_gen)
         result = await face_animation(
-            provider="mock", portrait_image=img, audio_path=audio, output_path=out,
+            provider="mock",
+            portrait_image=img,
+            audio_path=audio,
+            output_path=out,
         )
         assert result == out
 
@@ -129,7 +144,9 @@ class TestFaceAnimation:
         audio.write_bytes(b"x")
         with pytest.raises(FaceAnimationProviderNotFoundError):
             await face_animation(
-                provider="nope", portrait_image=img, audio_path=audio,
+                provider="nope",
+                portrait_image=img,
+                audio_path=audio,
                 output_path=tmp_path / "o.mp4",
             )
 
@@ -140,8 +157,10 @@ class TestFaceAnimation:
         audio.write_bytes(b"x")
         with pytest.raises(FaceAnimationError, match="Portrait not found"):
             await face_animation(
-                provider="x", portrait_image=tmp_path / "nope.png",
-                audio_path=audio, output_path=tmp_path / "o.mp4",
+                provider="x",
+                portrait_image=tmp_path / "nope.png",
+                audio_path=audio,
+                output_path=tmp_path / "o.mp4",
             )
 
     async def test_audio_not_found(self, tmp_path: Path) -> None:
@@ -151,8 +170,10 @@ class TestFaceAnimation:
         img.write_bytes(b"x")
         with pytest.raises(FaceAnimationError, match="Audio not found"):
             await face_animation(
-                provider="x", portrait_image=img,
-                audio_path=tmp_path / "nope.wav", output_path=tmp_path / "o.mp4",
+                provider="x",
+                portrait_image=img,
+                audio_path=tmp_path / "nope.wav",
+                output_path=tmp_path / "o.mp4",
             )
 
     async def test_provider_failure(self, tmp_path: Path) -> None:
@@ -169,7 +190,9 @@ class TestFaceAnimation:
         ProviderRegistry.register(category="face_animation", name="bad", fn=_fail)
         with pytest.raises(FaceAnimationError, match="fail"):
             await face_animation(
-                provider="bad", portrait_image=img, audio_path=audio,
+                provider="bad",
+                portrait_image=img,
+                audio_path=audio,
                 output_path=tmp_path / "o.mp4",
             )
 
@@ -178,13 +201,15 @@ class TestFaceAnimation:
 # motion_prompt_translate
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestMotionPromptTranslate:
     async def test_success(self) -> None:
         from oprim._motion_prompt_translate import motion_prompt_translate
 
         llm = lambda **kw: {"content": "smooth cinematic pan left"}  # noqa: E731
         result = await motion_prompt_translate(
-            natural_language_motion="slow pan left", llm=llm,
+            natural_language_motion="slow pan left",
+            llm=llm,
         )
         assert "pan" in result
 
@@ -208,7 +233,8 @@ class TestMotionPromptTranslate:
 
         with pytest.raises(MotionTranslateError, match="empty translation"):
             await motion_prompt_translate(
-                natural_language_motion="zoom", llm=lambda **kw: {"content": ""},
+                natural_language_motion="zoom",
+                llm=lambda **kw: {"content": ""},
             )
 
     async def test_different_target_provider(self) -> None:
@@ -221,7 +247,9 @@ class TestMotionPromptTranslate:
             return {"content": "result"}
 
         await motion_prompt_translate(
-            natural_language_motion="tilt up", llm=_llm, target_provider="runway",
+            natural_language_motion="tilt up",
+            llm=_llm,
+            target_provider="runway",
         )
         assert "runway" in str(calls[0]["messages"])
 
@@ -230,14 +258,19 @@ class TestMotionPromptTranslate:
 # audience_sentiment_analyze
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestAudienceSentimentAnalyze:
     async def test_success(self) -> None:
         from oprim._audience_sentiment_analyze import audience_sentiment_analyze
 
-        resp = json.dumps({
-            "positive_pct": 0.6, "negative_pct": 0.2,
-            "neutral_pct": 0.2, "top_keywords": ["good"],
-        })
+        resp = json.dumps(
+            {
+                "positive_pct": 0.6,
+                "negative_pct": 0.2,
+                "neutral_pct": 0.2,
+                "top_keywords": ["good"],
+            }
+        )
         llm = lambda **kw: {"content": resp}  # noqa: E731
         result = await audience_sentiment_analyze(comments=["nice!"], llm=llm)
         assert result.positive_pct == 0.6
@@ -271,7 +304,8 @@ class TestAudienceSentimentAnalyze:
 
         with pytest.raises(SentimentAnalyzeError, match="invalid JSON"):
             await audience_sentiment_analyze(
-                comments=["x"], llm=lambda **kw: {"content": "not json"},
+                comments=["x"],
+                llm=lambda **kw: {"content": "not json"},
             )
 
     async def test_validation_failure(self) -> None:
@@ -283,7 +317,8 @@ class TestAudienceSentimentAnalyze:
         bad = json.dumps({"positive_pct": "not_a_float"})
         with pytest.raises(SentimentAnalyzeError, match="Validation failed"):
             await audience_sentiment_analyze(
-                comments=["x"], llm=lambda **kw: {"content": bad},
+                comments=["x"],
+                llm=lambda **kw: {"content": bad},
             )
 
 
@@ -291,16 +326,22 @@ class TestAudienceSentimentAnalyze:
 # audience_feedback_extract
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestAudienceFeedbackExtract:
     async def test_success(self) -> None:
         from oprim._audience_feedback_extract import audience_feedback_extract
 
-        resp = json.dumps({
-            "positive_points": ["clear"], "negative_points": ["fast"],
-            "questions": ["why?"], "suggestions": ["slow down"],
-        })
+        resp = json.dumps(
+            {
+                "positive_points": ["clear"],
+                "negative_points": ["fast"],
+                "questions": ["why?"],
+                "suggestions": ["slow down"],
+            }
+        )
         result = await audience_feedback_extract(
-            comments=["too fast"], llm=lambda **kw: {"content": resp},
+            comments=["too fast"],
+            llm=lambda **kw: {"content": resp},
         )
         assert result.suggestions == ["slow down"]
 
@@ -324,7 +365,8 @@ class TestAudienceFeedbackExtract:
 
         with pytest.raises(FeedbackExtractError, match="invalid JSON"):
             await audience_feedback_extract(
-                comments=["x"], llm=lambda **kw: {"content": "nope"},
+                comments=["x"],
+                llm=lambda **kw: {"content": "nope"},
             )
 
     async def test_validation_failure(self) -> None:
@@ -333,7 +375,8 @@ class TestAudienceFeedbackExtract:
         bad = json.dumps({"positive_points": 123})
         with pytest.raises(FeedbackExtractError, match="Validation failed"):
             await audience_feedback_extract(
-                comments=["x"], llm=lambda **kw: {"content": bad},
+                comments=["x"],
+                llm=lambda **kw: {"content": bad},
             )
 
 
@@ -341,23 +384,29 @@ class TestAudienceFeedbackExtract:
 # youtube_video_stats
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestYouTubeVideoStats:
     async def test_success(self) -> None:
         from oprim._youtube_video_stats import youtube_video_stats
 
         mock_stats = {
-            "items": [{
-                "statistics": {"viewCount": "100", "likeCount": "10", "commentCount": "5"},
-                "contentDetails": {"duration": "PT1M30S"},
-            }]
+            "items": [
+                {
+                    "statistics": {"viewCount": "100", "likeCount": "10", "commentCount": "5"},
+                    "contentDetails": {"duration": "PT1M30S"},
+                }
+            ]
         }
         with patch("oprim._providers.youtube_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=200, json=lambda: mock_stats,
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=200,
+                    json=lambda: mock_stats,
+                )
+            )
             result = await youtube_video_stats(video_id="abc", oauth_token="tok")
         assert result.views == 100
         assert result.duration_s == 90.0
@@ -369,9 +418,12 @@ class TestYouTubeVideoStats:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=401, text="unauthorized",
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=401,
+                    text="unauthorized",
+                )
+            )
             with pytest.raises(YouTubeStatsError, match="invalid"):
                 await youtube_video_stats(video_id="x", oauth_token="bad")
 
@@ -382,9 +434,12 @@ class TestYouTubeVideoStats:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=200, json=lambda: {"items": []},
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=200,
+                    json=lambda: {"items": []},
+                )
+            )
             with pytest.raises(YouTubeStatsError, match="not found"):
                 await youtube_video_stats(video_id="nope", oauth_token="tok")
 
@@ -395,9 +450,12 @@ class TestYouTubeVideoStats:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=429, text="rate limited",
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=429,
+                    text="rate limited",
+                )
+            )
             with pytest.raises(YouTubeStatsError, match="429"):
                 await youtube_video_stats(video_id="x", oauth_token="tok")
 
@@ -405,7 +463,11 @@ class TestYouTubeVideoStats:
         from oprim._providers.youtube_api import VideoStats
 
         s = VideoStats(
-            video_id="x", views=1, likes=2, comments_count=3, duration_s=60.0,
+            video_id="x",
+            views=1,
+            likes=2,
+            comments_count=3,
+            duration_s=60.0,
         )
         assert s.video_id == "x"
 
@@ -414,28 +476,38 @@ class TestYouTubeVideoStats:
 # youtube_comments_fetch
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestYouTubeCommentsFetch:
     async def test_single_page(self) -> None:
         from oprim._youtube_comments_fetch import youtube_comments_fetch
 
         page_data = {
-            "items": [{
-                "id": "c1",
-                "snippet": {"topLevelComment": {"snippet": {
-                    "authorDisplayName": "user",
-                    "textDisplay": "great",
-                    "publishedAt": "2024-01-01T00:00:00Z",
-                    "likeCount": 1,
-                }}},
-            }],
+            "items": [
+                {
+                    "id": "c1",
+                    "snippet": {
+                        "topLevelComment": {
+                            "snippet": {
+                                "authorDisplayName": "user",
+                                "textDisplay": "great",
+                                "publishedAt": "2024-01-01T00:00:00Z",
+                                "likeCount": 1,
+                            }
+                        }
+                    },
+                }
+            ],
         }
         with patch("oprim._providers.youtube_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=200, json=lambda: page_data,
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=200,
+                    json=lambda: page_data,
+                )
+            )
             result = await youtube_comments_fetch(video_id="x", oauth_token="t")
         assert len(result) == 1
         assert result[0].text == "great"
@@ -444,17 +516,39 @@ class TestYouTubeCommentsFetch:
         from oprim._youtube_comments_fetch import youtube_comments_fetch
 
         page1 = {
-            "items": [{"id": "c1", "snippet": {"topLevelComment": {"snippet": {
-                "authorDisplayName": "u", "textDisplay": "a",
-                "publishedAt": "2024-01-01T00:00:00Z", "likeCount": 0,
-            }}}}],
+            "items": [
+                {
+                    "id": "c1",
+                    "snippet": {
+                        "topLevelComment": {
+                            "snippet": {
+                                "authorDisplayName": "u",
+                                "textDisplay": "a",
+                                "publishedAt": "2024-01-01T00:00:00Z",
+                                "likeCount": 0,
+                            }
+                        }
+                    },
+                }
+            ],
             "nextPageToken": "page2",
         }
         page2 = {
-            "items": [{"id": "c2", "snippet": {"topLevelComment": {"snippet": {
-                "authorDisplayName": "u", "textDisplay": "b",
-                "publishedAt": "2024-01-01T00:00:00Z", "likeCount": 0,
-            }}}}],
+            "items": [
+                {
+                    "id": "c2",
+                    "snippet": {
+                        "topLevelComment": {
+                            "snippet": {
+                                "authorDisplayName": "u",
+                                "textDisplay": "b",
+                                "publishedAt": "2024-01-01T00:00:00Z",
+                                "likeCount": 0,
+                            }
+                        }
+                    },
+                }
+            ],
         }
         call_count = [0]
 
@@ -474,19 +568,34 @@ class TestYouTubeCommentsFetch:
     async def test_max_count_boundary(self) -> None:
         from oprim._youtube_comments_fetch import youtube_comments_fetch
 
-        page = {"items": [
-            {"id": f"c{i}", "snippet": {"topLevelComment": {"snippet": {
-                "authorDisplayName": "u", "textDisplay": f"t{i}",
-                "publishedAt": "2024-01-01T00:00:00Z", "likeCount": 0,
-            }}}} for i in range(10)
-        ]}
+        page = {
+            "items": [
+                {
+                    "id": f"c{i}",
+                    "snippet": {
+                        "topLevelComment": {
+                            "snippet": {
+                                "authorDisplayName": "u",
+                                "textDisplay": f"t{i}",
+                                "publishedAt": "2024-01-01T00:00:00Z",
+                                "likeCount": 0,
+                            }
+                        }
+                    },
+                }
+                for i in range(10)
+            ]
+        }
         with patch("oprim._providers.youtube_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=200, json=lambda: page,
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=200,
+                    json=lambda: page,
+                )
+            )
             result = await youtube_comments_fetch(video_id="x", oauth_token="t", max_count=3)
         assert len(result) == 3
 
@@ -497,9 +606,12 @@ class TestYouTubeCommentsFetch:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=401, text="bad",
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=401,
+                    text="bad",
+                )
+            )
             with pytest.raises(YouTubeCommentsError):
                 await youtube_comments_fetch(video_id="x", oauth_token="bad")
 
@@ -510,9 +622,12 @@ class TestYouTubeCommentsFetch:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=200, json=lambda: {"items": []},
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=200,
+                    json=lambda: {"items": []},
+                )
+            )
             result = await youtube_comments_fetch(video_id="x", oauth_token="t")
         assert result == []
 
@@ -521,20 +636,33 @@ class TestYouTubeCommentsFetch:
 # bilibili_video_stats
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestBilibiliVideoStats:
     async def test_success(self) -> None:
         from oprim._bilibili_video_stats import bilibili_video_stats
 
-        mock_data = {"code": 0, "data": {"stat": {
-            "view": 500, "like": 50, "coin": 10, "favorite": 20, "share": 5,
-        }}}
+        mock_data = {
+            "code": 0,
+            "data": {
+                "stat": {
+                    "view": 500,
+                    "like": 50,
+                    "coin": 10,
+                    "favorite": 20,
+                    "share": 5,
+                }
+            },
+        }
         with patch("oprim._providers.bilibili_api.httpx.AsyncClient") as mc:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=200, json=lambda: mock_data,
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=200,
+                    json=lambda: mock_data,
+                )
+            )
             result = await bilibili_video_stats(bvid="BV1xx", cookies={"SESSDATA": "x"})
         assert result.views == 500
 
@@ -545,9 +673,12 @@ class TestBilibiliVideoStats:
             instance = AsyncMock()
             mc.return_value.__aenter__ = AsyncMock(return_value=instance)
             mc.return_value.__aexit__ = AsyncMock(return_value=False)
-            instance.get = AsyncMock(return_value=AsyncMock(
-                status_code=200, json=lambda: {"code": -101, "message": "not logged in"},
-            ))
+            instance.get = AsyncMock(
+                return_value=AsyncMock(
+                    status_code=200,
+                    json=lambda: {"code": -101, "message": "not logged in"},
+                )
+            )
             with pytest.raises(BilibiliStatsError):
                 await bilibili_video_stats(bvid="BV1xx", cookies={})
 
@@ -584,16 +715,27 @@ class TestBilibiliVideoStats:
 # bilibili_comments_fetch
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestBilibiliCommentsFetch:
     async def test_success(self) -> None:
         from oprim._bilibili_comments_fetch import bilibili_comments_fetch
 
         info_data = {"code": 0, "data": {"aid": 12345, "stat": {}}}
-        comments_data = {"code": 0, "data": {
-            "replies": [{"rpid": 1, "member": {"uname": "u"}, "content": {"message": "hi"},
-                         "ctime": 1700000000, "like": 3}],
-            "page": {"count": 1},
-        }}
+        comments_data = {
+            "code": 0,
+            "data": {
+                "replies": [
+                    {
+                        "rpid": 1,
+                        "member": {"uname": "u"},
+                        "content": {"message": "hi"},
+                        "ctime": 1700000000,
+                        "like": 3,
+                    }
+                ],
+                "page": {"count": 1},
+            },
+        }
         call_count = [0]
 
         def _resp(*a: Any, **kw: Any) -> AsyncMock:
@@ -647,18 +789,30 @@ class TestBilibiliCommentsFetch:
     async def test_max_count(self) -> None:
         from oprim._providers.bilibili_api import BiliComment, BiliCommentsPage
 
-        page = BiliCommentsPage(comments=[
-            BiliComment(comment_id="1", author="u", text="t",
-                        published_at="2024-01-01T00:00:00Z", likes=0),
-        ] * 5, has_next=False)
+        page = BiliCommentsPage(
+            comments=[
+                BiliComment(
+                    comment_id="1",
+                    author="u",
+                    text="t",
+                    published_at="2024-01-01T00:00:00Z",
+                    likes=0,
+                ),
+            ]
+            * 5,
+            has_next=False,
+        )
         assert len(page.comments) == 5
 
     async def test_pydantic_model(self) -> None:
         from oprim._providers.bilibili_api import BiliComment
 
         c = BiliComment(
-            comment_id="1", author="u", text="hi",
-            published_at="2024-01-01T00:00:00+00:00", likes=5,
+            comment_id="1",
+            author="u",
+            text="hi",
+            published_at="2024-01-01T00:00:00+00:00",
+            likes=5,
         )
         assert c.author == "u"
 
@@ -667,6 +821,7 @@ class TestBilibiliCommentsFetch:
 # video_quality_metrics
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestVideoQualityMetrics:
     async def test_success(self, tmp_path: Path) -> None:
         from oprim._video_quality_metrics import video_quality_metrics
@@ -674,14 +829,21 @@ class TestVideoQualityMetrics:
         video = tmp_path / "v.mp4"
         video.write_bytes(b"fake")
 
-        ffprobe_out = json.dumps({
-            "format": {"duration": "10.5", "bit_rate": "1500000"},
-            "streams": [
-                {"codec_type": "video", "codec_name": "h264",
-                 "width": 1920, "height": 1080, "r_frame_rate": "30/1"},
-                {"codec_type": "audio", "codec_name": "aac"},
-            ],
-        })
+        ffprobe_out = json.dumps(
+            {
+                "format": {"duration": "10.5", "bit_rate": "1500000"},
+                "streams": [
+                    {
+                        "codec_type": "video",
+                        "codec_name": "h264",
+                        "width": 1920,
+                        "height": 1080,
+                        "r_frame_rate": "30/1",
+                    },
+                    {"codec_type": "audio", "codec_name": "aac"},
+                ],
+            }
+        )
         with patch("asyncio.create_subprocess_exec") as mock_exec:
             proc = AsyncMock()
             proc.communicate = AsyncMock(return_value=(ffprobe_out.encode(), b""))
@@ -701,13 +863,20 @@ class TestVideoQualityMetrics:
         video = tmp_path / "v.mp4"
         video.write_bytes(b"fake")
 
-        ffprobe_out = json.dumps({
-            "format": {"duration": "5", "bit_rate": "800000"},
-            "streams": [
-                {"codec_type": "video", "codec_name": "vp9",
-                 "width": 720, "height": 480, "r_frame_rate": "25/1"},
-            ],
-        })
+        ffprobe_out = json.dumps(
+            {
+                "format": {"duration": "5", "bit_rate": "800000"},
+                "streams": [
+                    {
+                        "codec_type": "video",
+                        "codec_name": "vp9",
+                        "width": 720,
+                        "height": 480,
+                        "r_frame_rate": "25/1",
+                    },
+                ],
+            }
+        )
         with patch("asyncio.create_subprocess_exec") as mock_exec:
             proc = AsyncMock()
             proc.communicate = AsyncMock(return_value=(ffprobe_out.encode(), b""))
@@ -729,9 +898,11 @@ class TestVideoQualityMetrics:
 
         video = tmp_path / "v.mp4"
         video.write_bytes(b"fake")
-        with patch("asyncio.create_subprocess_exec", side_effect=FileNotFoundError):
-            with pytest.raises(VideoQualityError, match="ffprobe not found"):
-                await video_quality_metrics(video_path=video)
+        with (
+            patch("asyncio.create_subprocess_exec", side_effect=FileNotFoundError),
+            pytest.raises(VideoQualityError, match="ffprobe not found"),
+        ):
+            await video_quality_metrics(video_path=video)
 
     async def test_ffprobe_failure(self, tmp_path: Path) -> None:
         from oprim._video_quality_metrics import VideoQualityError, video_quality_metrics
@@ -751,6 +922,7 @@ class TestVideoQualityMetrics:
 # vlm_video_analyze
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestVLMVideoAnalyze:
     async def test_success(self, tmp_path: Path) -> None:
         from oprim._vlm_video_analyze import vlm_video_analyze
@@ -763,7 +935,9 @@ class TestVLMVideoAnalyze:
 
         ProviderRegistry.register(category="vlm", name="mock", fn=_vlm)
         result = await vlm_video_analyze(
-            provider="mock", frames=[f], prompt="Describe",
+            provider="mock",
+            frames=[f],
+            prompt="Describe",
         )
         assert "walking" in result
 
@@ -786,7 +960,9 @@ class TestVLMVideoAnalyze:
 
         with pytest.raises(VLMVideoAnalyzeError, match="Frame not found"):
             await vlm_video_analyze(
-                provider="x", frames=[tmp_path / "nope.png"], prompt="x",
+                provider="x",
+                frames=[tmp_path / "nope.png"],
+                prompt="x",
             )
 
     async def test_provider_not_found(self, tmp_path: Path) -> None:

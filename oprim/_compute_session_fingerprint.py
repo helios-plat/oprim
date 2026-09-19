@@ -1,4 +1,5 @@
 """Compute a deterministic fingerprint for a Session over a set of fields."""
+
 from __future__ import annotations
 
 from typing import Any

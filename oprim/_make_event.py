@@ -1,4 +1,5 @@
 """make_event — construct a validated Event with a generated id and timestamp."""
+
 from __future__ import annotations
 
 import time

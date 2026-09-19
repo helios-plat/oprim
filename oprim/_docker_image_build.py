@@ -87,9 +87,7 @@ async def docker_image_build(
             ) from exc
 
     try:
-        image_id, tags, logs = await asyncio.wait_for(
-            asyncio.to_thread(_build), timeout=timeout
-        )
+        image_id, tags, logs = await asyncio.wait_for(asyncio.to_thread(_build), timeout=timeout)
     except TimeoutError as exc:
         raise DockerImageBuildError(
             f"docker_image_build timed out after {timeout}s", cause=exc

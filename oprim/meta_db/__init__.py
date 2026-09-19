@@ -19,6 +19,7 @@ __all__ = ["MetaDB", "open_meta_db"]
 def __getattr__(name: str):
     if name == "MetaDB":
         from oprim.meta_db.duckdb import MetaDB
+
         return MetaDB
     raise AttributeError(name)
 
@@ -31,4 +32,5 @@ def open_meta_db(path: Path):
 
         return PgMetaDB(path)
     from oprim.meta_db.duckdb import open_meta_db as _open_duckdb
+
     return _open_duckdb(path)

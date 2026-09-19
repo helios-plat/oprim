@@ -63,9 +63,7 @@ def tmux_pane_create(
         args += [pane_command]
 
     try:
-        result = subprocess.run(
-            args, capture_output=True, text=True, timeout=timeout
-        )
+        result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         raise TmuxPaneError(f"tmux_pane_create timed out after {timeout}s") from exc
     except OSError as exc:

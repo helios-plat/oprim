@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim.image_generate import ImageGenError, ImageGenRateLimitError, image_generate
 
 
@@ -34,9 +34,7 @@ class TestImageGenerate:
 
         ProviderRegistry.register(category="image_gen", name="limited", fn=_rate)
         with pytest.raises(ImageGenRateLimitError, match="Rate limited"):
-            await image_generate(
-                provider="limited", prompt="cat", output_path=tmp_path / "out.png"
-            )
+            await image_generate(provider="limited", prompt="cat", output_path=tmp_path / "out.png")
 
     async def test_timeout_raises(self, tmp_path: Path) -> None:
         async def _timeout(**kw: object) -> None:
@@ -44,15 +42,11 @@ class TestImageGenerate:
 
         ProviderRegistry.register(category="image_gen", name="slow", fn=_timeout)
         with pytest.raises(ImageGenError, match="failed"):
-            await image_generate(
-                provider="slow", prompt="cat", output_path=tmp_path / "out.png"
-            )
+            await image_generate(provider="slow", prompt="cat", output_path=tmp_path / "out.png")
 
     async def test_provider_not_found(self, tmp_path: Path) -> None:
         with pytest.raises(ImageGenError, match="not found"):
-            await image_generate(
-                provider="nope", prompt="cat", output_path=tmp_path / "out.png"
-            )
+            await image_generate(provider="nope", prompt="cat", output_path=tmp_path / "out.png")
 
     async def test_seed_passed(self, tmp_path: Path) -> None:
         captured: dict[str, object] = {}
@@ -76,6 +70,4 @@ class TestImageGenerate:
 
         ProviderRegistry.register(category="image_gen", name="noop", fn=_noop)
         with pytest.raises(ImageGenError, match="did not produce"):
-            await image_generate(
-                provider="noop", prompt="cat", output_path=tmp_path / "out.png"
-            )
+            await image_generate(provider="noop", prompt="cat", output_path=tmp_path / "out.png")

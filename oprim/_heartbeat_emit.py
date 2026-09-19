@@ -30,7 +30,8 @@ def heartbeat_emit(
 
     Args:
         url: 心跳 ping URL。
-        method: HTTP 方法(通常 GET;某些服务用 POST)。
+        method: HTTP 方法(通常 GET
+        某些服务用 POST)。
         timeout_sec: 请求超时秒数。
         user_agent: UA 头。
 

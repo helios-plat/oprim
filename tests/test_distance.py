@@ -119,6 +119,7 @@ class TestDtwDistance:
     def test_large_warning(self):
         """Large sequences should warn about performance."""
         import warnings
+
         x = np.arange(600.0)
         y = np.arange(600.0)
         with warnings.catch_warnings(record=True) as w:
@@ -186,36 +187,36 @@ class TestCosineSimilarityBatch:
 # ============================================================
 class TestEuclideanDistanceMatrix:
     def test_self_distance(self):
-        X = np.array([[0, 0], [1, 0], [0, 1.0]])
-        result = euclidean_distance_matrix(X)
+        x_val = np.array([[0, 0], [1, 0], [0, 1.0]])
+        result = euclidean_distance_matrix(x_val)
         assert result[0, 0] == pytest.approx(0.0)
         assert result[0, 1] == pytest.approx(1.0)
 
     def test_x_vs_y(self):
-        X = np.array([[0, 0.0]])
-        Y = np.array([[3, 4.0]])
-        result = euclidean_distance_matrix(X, Y)
+        x_val = np.array([[0, 0.0]])
+        y_val = np.array([[3, 4.0]])
+        result = euclidean_distance_matrix(x_val, y_val)
         assert result[0, 0] == pytest.approx(5.0)
 
     def test_weighted(self):
-        X = np.array([[1, 0.0]])
-        Y = np.array([[0, 0.0]])
+        x_val = np.array([[1, 0.0]])
+        y_val = np.array([[0, 0.0]])
         w = np.array([4.0, 1.0])
-        result = euclidean_distance_matrix(X, Y, weights=w)
+        result = euclidean_distance_matrix(x_val, y_val, weights=w)
         # sqrt(4 * 1^2) = 2
         assert result[0, 0] == pytest.approx(2.0)
 
     def test_1d_input(self):
-        X = np.array([1.0, 2.0, 3.0])
-        result = euclidean_distance_matrix(X)
+        x_val = np.array([1.0, 2.0, 3.0])
+        result = euclidean_distance_matrix(x_val)
         assert result.shape == (3, 3)
 
     def test_academic_vs_scipy(self):
         rng = np.random.default_rng(42)
-        X = rng.normal(0, 1, (50, 5))
-        Y = rng.normal(0, 1, (30, 5))
-        result = euclidean_distance_matrix(X, Y)
-        expected = cdist(X, Y, metric="euclidean")
+        x_val = rng.normal(0, 1, (50, 5))
+        y_val = rng.normal(0, 1, (30, 5))
+        result = euclidean_distance_matrix(x_val, y_val)
+        expected = cdist(x_val, y_val, metric="euclidean")
         np.testing.assert_allclose(result, expected, rtol=1e-9)
 
 

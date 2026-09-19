@@ -37,8 +37,8 @@ class _ContentExtractor(HTMLParser):
         super().__init__(convert_charrefs=False)
         self._skip_depth: dict[str, int] = {t: 0 for t in _STRIP_TAGS}
         self._content_depth: dict[str, int] = {t: 0 for t in _CONTENT_TAGS}
-        self._in_skip = 0          # total nesting depth of skip tags
-        self._in_content = 0       # total nesting depth of content tags
+        self._in_skip = 0  # total nesting depth of skip tags
+        self._in_content = 0  # total nesting depth of content tags
         self.content_parts: list[str] = []
         self.full_parts: list[str] = []
 

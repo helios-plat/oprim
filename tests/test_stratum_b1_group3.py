@@ -14,15 +14,21 @@ pytest.importorskip(
     reason="persistence primitives moved to obase; covered by obase.persistence tests",
 )
 
-from oprim._db_types import AccessResult, WriteResult
-from oprim._exceptions import OprimError
 from oprim.db_insert import db_insert
 from oprim.db_query import db_query
 from oprim.db_read import db_read
 from oprim.db_soft_delete import db_soft_delete
 from oprim.db_update import db_update
 from oprim.db_write import db_write
+
+from oprim._db_types import AccessResult, WriteResult
+from oprim._exceptions import OprimError
 from oprim._migration_runner import MigrationResult, migration_runner
+
+try:
+    import psycopg
+except ImportError:
+    psycopg = None
 
 DSN = "postgresql://test/testdb"
 
@@ -73,9 +79,11 @@ class TestDbInsert:
         cur = _make_cursor()
         cur.execute.side_effect = psycopg.OperationalError("connection refused")
         conn = _make_conn(cur)
-        with patch("oprim.db_insert.psycopg.connect", return_value=conn):
-            with pytest.raises(OprimError, match="db_insert failed"):
-                db_insert(dsn=DSN, table="users", data={"name": "Wiki"})
+        with (
+            patch("oprim.db_insert.psycopg.connect", return_value=conn),
+            pytest.raises(OprimError, match="db_insert failed"),
+        ):
+            db_insert(dsn=DSN, table="users", data={"name": "Wiki"})
 
     def test_commit_is_called(self):
         cur = _make_cursor(fetchone=(1,))
@@ -124,9 +132,11 @@ class TestDbQuery:
         cur = _make_cursor()
         cur.execute.side_effect = psycopg.OperationalError("timeout")
         conn = _make_conn(cur)
-        with patch("oprim.db_query.psycopg.connect", return_value=conn):
-            with pytest.raises(OprimError, match="db_query failed"):
-                db_query(dsn=DSN, query="SELECT 1")
+        with (
+            patch("oprim.db_query.psycopg.connect", return_value=conn),
+            pytest.raises(OprimError, match="db_query failed"),
+        ):
+            db_query(dsn=DSN, query="SELECT 1")
 
     def test_params_are_passed_to_execute(self):
         cur = _make_cursor(fetchmany=[{"id": 5}])
@@ -178,9 +188,11 @@ class TestDbWrite:
         cur = _make_cursor()
         cur.execute.side_effect = psycopg.IntegrityError("duplicate key")
         conn = _make_conn(cur)
-        with patch("oprim.db_write.psycopg.connect", return_value=conn):
-            with pytest.raises(OprimError, match="db_write failed"):
-                db_write(dsn=DSN, table="events", data={"name": "click"})
+        with (
+            patch("oprim.db_write.psycopg.connect", return_value=conn),
+            pytest.raises(OprimError, match="db_write failed"),
+        ):
+            db_write(dsn=DSN, table="events", data={"name": "click"})
 
     def test_rowcount_reflected_in_result(self):
         cur = _make_cursor(rowcount=0)
@@ -219,9 +231,11 @@ class TestDbRead:
         cur = _make_cursor()
         cur.execute.side_effect = psycopg.OperationalError("timeout")
         conn = _make_conn(cur)
-        with patch("oprim.db_read.psycopg.connect", return_value=conn):
-            with pytest.raises(OprimError, match="db_read failed"):
-                db_read(dsn=DSN, table="users", id="1")
+        with (
+            patch("oprim.db_read.psycopg.connect", return_value=conn),
+            pytest.raises(OprimError, match="db_read failed"),
+        ):
+            db_read(dsn=DSN, table="users", id="1")
 
     def test_fallback_when_no_deleted_at_column(self):
         """When deleted_at column doesn't exist, falls back to plain query."""
@@ -272,9 +286,11 @@ class TestDbSoftDelete:
         cur = _make_cursor()
         cur.execute.side_effect = psycopg.OperationalError("timeout")
         conn = _make_conn(cur)
-        with patch("oprim.db_soft_delete.psycopg.connect", return_value=conn):
-            with pytest.raises(OprimError, match="db_soft_delete failed"):
-                db_soft_delete(dsn=DSN, table="users", id="1")
+        with (
+            patch("oprim.db_soft_delete.psycopg.connect", return_value=conn),
+            pytest.raises(OprimError, match="db_soft_delete failed"),
+        ):
+            db_soft_delete(dsn=DSN, table="users", id="1")
 
     def test_custom_deleted_at_column(self):
         cur = _make_cursor(rowcount=1)
@@ -310,9 +326,11 @@ class TestDbUpdate:
         cur = _make_cursor()
         cur.execute.side_effect = psycopg.OperationalError("lost connection")
         conn = _make_conn(cur)
-        with patch("oprim.db_update.psycopg.connect", return_value=conn):
-            with pytest.raises(OprimError, match="db_update failed"):
-                db_update(dsn=DSN, table="users", id="1", data={"name": "Bob"})
+        with (
+            patch("oprim.db_update.psycopg.connect", return_value=conn),
+            pytest.raises(OprimError, match="db_update failed"),
+        ):
+            db_update(dsn=DSN, table="users", id="1", data={"name": "Bob"})
 
     def test_empty_data_raises_oprim_error(self):
         with pytest.raises(OprimError, match="data must not be empty"):
@@ -388,13 +406,15 @@ class TestMigrationRunner:
         assert result.current_revision is None
 
     def test_oprim_error_on_alembic_failure(self):
-        with patch("oprim.migration_runner.command.upgrade", side_effect=Exception("bad config")):
-            with pytest.raises(OprimError, match="migration_runner upgrade failed"):
-                migration_runner(
-                    action="upgrade",
-                    dsn=DSN,
-                    migrations_path=Path("/fake/migrations"),
-                )
+        with (
+            patch("oprim.migration_runner.command.upgrade", side_effect=Exception("bad config")),
+            pytest.raises(OprimError, match="migration_runner upgrade failed"),
+        ):
+            migration_runner(
+                action="upgrade",
+                dsn=DSN,
+                migrations_path=Path("/fake/migrations"),
+            )
 
     def test_stamp_action(self):
         mock_engine, mock_mig_ctx = self._patch_alembic("head")

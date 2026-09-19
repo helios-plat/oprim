@@ -1,4 +1,5 @@
 """redact_share_secrets — recursively redact sensitive strings from a payload dict."""
+
 from __future__ import annotations
 
 import re

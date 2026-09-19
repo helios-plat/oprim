@@ -12,8 +12,8 @@ from oprim._crypto_scoring import (
     score_etf_inflow,
     score_funding_rate,
     score_lth_change,
-    score_ma200_position,
     score_ma50_slope,
+    score_ma200_position,
     score_ma_arrangement,
     score_max_pain_distance,
     score_mvrv_zscore,
@@ -24,7 +24,6 @@ from oprim._crypto_scoring import (
     score_support_distance,
     score_vpvr_position,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # score_ma200_position

@@ -77,7 +77,8 @@ class ReplicationLag(BaseModel):
 class AdvisoryLockPlan(BaseModel):
     name: str
     key: int  # 由 name 派生的稳定 signed 64-bit key(PG advisory lock 用 bigint)
-    try_lock_sql: str  # session 级 try-lock;执行后 fetchone()[0] 为 bool(是否获锁)
+    try_lock_sql: str  # session 级 try-lock
+    # 执行后 fetchone()[0] 为 bool(是否获锁)
     unlock_sql: str
 
 
@@ -222,7 +223,8 @@ def postgres_slow_queries(
                 FROM pg_stat_statements
                 WHERE mean_exec_time > %s
                 ORDER BY mean_exec_time DESC
-                LIMIT %s;
+                LIMIT %s
+
                 """,
                 (threshold_ms, limit),
             )
@@ -288,7 +290,8 @@ def postgres_locks_status(
                 LEFT JOIN pg_class c ON c.oid = l.relation
                 WHERE a.pid IS NOT NULL
                 {granted_filter}
-                ORDER BY wait_duration_sec DESC NULLS LAST;
+                ORDER BY wait_duration_sec DESC NULLS LAST
+
                 """
             )
             rows = cur.fetchall()
@@ -360,7 +363,8 @@ def postgres_table_size(
                 FROM pg_tables t
                 WHERE schemaname = %s
                 ORDER BY total_bytes DESC
-                LIMIT %s;
+                LIMIT %s
+
                 """,
                 (schema, top_n),
             )
@@ -426,7 +430,8 @@ def postgres_replication_lag(
                         COALESCE(
                             pg_wal_lsn_diff(pg_current_wal_lsn(), sent_lsn), 0
                         ) AS lag_bytes
-                    FROM pg_stat_replication;
+                    FROM pg_stat_replication
+
                     """
                 )
                 for r in cur.fetchall():
@@ -476,7 +481,8 @@ def pg_advisory_lock_plan(*, name: str) -> AdvisoryLockPlan:
     oprim 不持连接、不获锁:仅由 name 派生稳定 bigint key 并给出参数化 try-lock/unlock
     SQL。"锁随连接存活"是有状态且与运行时(async)强绑定的责任,归调用方——aegis 在一条
     **专用长连接**上执行 try_lock_sql,`fetchone()[0]` 为是否获得角色(如 loop-runner)的
-    bool;放弃角色/进程退出时执行 unlock_sql(或直接关连接由 PG 自动释放 session 锁)。
+    bool
+    放弃角色/进程退出时执行 unlock_sql(或直接关连接由 PG 自动释放 session 锁)。
 
     Args:
         name: 角色/资源名(如 "aegis.loop_runner")。同名跨进程派生同 key → 全局互斥。
@@ -488,7 +494,8 @@ def pg_advisory_lock_plan(*, name: str) -> AdvisoryLockPlan:
         >>> plan = pg_advisory_lock_plan(name="aegis.loop_runner")
         >>> plan.try_lock_sql
         'SELECT pg_try_advisory_lock(%s)'
-        >>> # 调用方: cur.execute(plan.try_lock_sql, (plan.key,)); got = cur.fetchone()[0]
+        >>> # 调用方: cur.execute(plan.try_lock_sql, (plan.key,))
+        got = cur.fetchone()[0]
     """
     return AdvisoryLockPlan(
         name=name,
@@ -525,7 +532,8 @@ def retention_prune(
     """按保留期删除 table 中 ts_column 早于 now()-retain_days 的行(分批).
 
     幂等:cutoff 在运行开始一次性求值并跨批复用,重跑只删新到期行。分批(ctid IN ...
-    LIMIT)避免长事务/长锁;每批 commit。
+    LIMIT)避免长事务/长锁
+    每批 commit。
 
     Args:
         dsn: PostgreSQL 连接串.
@@ -604,7 +612,8 @@ def metric_downsample_rollup(
         agg: 聚合函数,取 avg/max/min/sum.
         bucket_seconds: 桶宽秒.
         since: 只聚合 ts_column >= since 的行(参数化传入).
-        label_columns: 分组维度列(标识符校验);None=无分组.
+        label_columns: 分组维度列(标识符校验)
+        None=无分组.
         timeout_sec: 连接超时.
 
     Returns:

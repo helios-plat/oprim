@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-from oprim import rabbitmq_queue_depth, rabbitmq_consumer_count
+import pytest
+
+from oprim import rabbitmq_consumer_count, rabbitmq_queue_depth
+from oprim._exceptions import OprimConnectionError, OprimNotFoundError
 from oprim._rabbitmq import QueueStatus
-from oprim._exceptions import OprimNotFoundError, OprimConnectionError
 
 
 def _make_queue_status(messages_ready=5, messages_unacked=2, consumers=3):
@@ -67,27 +68,31 @@ def test_rabbitmq_consumer_count_zero():
 
 
 def test_rabbitmq_queue_depth_propagates_not_found():
-    with patch(
-        "oprim._rabbitmq.rabbitmq_queue_status",
-        side_effect=OprimNotFoundError("Queue not found"),
+    with (
+        patch(
+            "oprim._rabbitmq.rabbitmq_queue_status",
+            side_effect=OprimNotFoundError("Queue not found"),
+        ),
+        pytest.raises(OprimNotFoundError),
     ):
-        with pytest.raises(OprimNotFoundError):
-            rabbitmq_queue_depth(
-                mgmt_url="http://guest:guest@localhost:15672/api/",
-                queue_name="missing",
-            )
+        rabbitmq_queue_depth(
+            mgmt_url="http://guest:guest@localhost:15672/api/",
+            queue_name="missing",
+        )
 
 
 def test_rabbitmq_consumer_count_propagates_connection_error():
-    with patch(
-        "oprim._rabbitmq.rabbitmq_queue_status",
-        side_effect=OprimConnectionError("Cannot connect"),
+    with (
+        patch(
+            "oprim._rabbitmq.rabbitmq_queue_status",
+            side_effect=OprimConnectionError("Cannot connect"),
+        ),
+        pytest.raises(OprimConnectionError),
     ):
-        with pytest.raises(OprimConnectionError):
-            rabbitmq_consumer_count(
-                mgmt_url="http://guest:guest@localhost:15672/api/",
-                queue_name="test",
-            )
+        rabbitmq_consumer_count(
+            mgmt_url="http://guest:guest@localhost:15672/api/",
+            queue_name="test",
+        )
 
 
 def test_rabbitmq_queue_depth_passes_vhost():

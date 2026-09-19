@@ -56,9 +56,7 @@ async def frontend_tool_forward(
     import asyncio
 
     try:
-        response = await asyncio.wait_for(
-            gateway.forward(tool_name, payload), timeout=timeout
-        )
+        response = await asyncio.wait_for(gateway.forward(tool_name, payload), timeout=timeout)
     except TimeoutError as exc:
         raise FrontendForwardError(
             f"frontend_tool_forward timed out after {timeout}s: {tool_name}", cause=exc

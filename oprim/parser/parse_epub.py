@@ -1,4 +1,5 @@
 """EPUB parser using ebooklib."""
+
 from __future__ import annotations
 
 import re
@@ -33,12 +34,14 @@ def parse_epub(path: Path) -> ParsedContent:
         all_md: list[str] = []
         # Build TOC title map: file_name → semantic title
         toc_map: dict[str, str] = {}
+
         def _walk_toc(nodes):
             for node in nodes:
                 if hasattr(node, "href") and hasattr(node, "title"):
                     toc_map[node.href.split("#")[0]] = node.title
                 if hasattr(node, "__iter__") and not hasattr(node, "href"):
                     _walk_toc(node)
+
         _walk_toc(book.toc)
 
         for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
@@ -60,10 +63,8 @@ def parse_epub(path: Path) -> ParsedContent:
             chapters=chapters,
             metadata={
                 "title": book.title or "",
-                "author": ", ".join(
-                    str(v[0][0]) for v in [book.get_metadata("DC", "creator")]
-                    if v
-                ) or "",
+                "author": ", ".join(str(v[0][0]) for v in [book.get_metadata("DC", "creator")] if v)
+                or "",
                 "language": (book.get_metadata("DC", "language") or [("",)])[0][0] or "",
             },
             parser_name="ebooklib",

@@ -1,14 +1,14 @@
 """Tests for oprim.derivatives.black_scholes."""
+
 import math
-import numpy as np
+
 import pytest
 
 from oprim.derivatives.black_scholes import (
-    black_scholes_price,
     black_scholes_greeks,
+    black_scholes_price,
     implied_volatility,
 )
-
 
 # Standard parameters for ATM tests
 ATM = dict(spot=100, strike=100, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20)
@@ -30,13 +30,24 @@ class TestBSPrice:
 
     def test_bs_put_call_parity(self):
         """C - P = S*exp(-q*T) - K*exp(-r*T), atol=1e-10."""
-        params = dict(spot=110, strike=100, time_to_expiry=0.5, risk_free_rate=0.04,
-                      volatility=0.25, dividend_yield=0.02)
+        params = dict(
+            spot=110,
+            strike=100,
+            time_to_expiry=0.5,
+            risk_free_rate=0.04,
+            volatility=0.25,
+            dividend_yield=0.02,
+        )
         call = black_scholes_price(**params, option_type="call")
         put = black_scholes_price(**params, option_type="put")
-        S, K, T, r, q = params["spot"], params["strike"], params["time_to_expiry"], \
-                         params["risk_free_rate"], params["dividend_yield"]
-        pcp = S * math.exp(-q * T) - K * math.exp(-r * T)
+        s_val, k_val, t_val, r, q = (
+            params["spot"],
+            params["strike"],
+            params["time_to_expiry"],
+            params["risk_free_rate"],
+            params["dividend_yield"],
+        )
+        pcp = s_val * math.exp(-q * t_val) - k_val * math.exp(-r * t_val)
         assert call - put == pytest.approx(pcp, abs=1e-10)
 
     def test_bs_zero_time_intrinsic_call(self):
@@ -51,9 +62,9 @@ class TestBSPrice:
 
     def test_bs_zero_vol_call(self):
         """sigma=0: discounted intrinsic for call."""
-        S, K, T, r = 110, 100, 1.0, 0.05
-        expected = max(S * math.exp(0) - K * math.exp(-r * T), 0.0)
-        price = black_scholes_price(S, K, T, r, 0.0, option_type="call")
+        s_val, k_val, t_val, r = 110, 100, 1.0, 0.05
+        expected = max(s_val * math.exp(0) - k_val * math.exp(-r * t_val), 0.0)
+        price = black_scholes_price(s_val, k_val, t_val, r, 0.0, option_type="call")
         assert price == pytest.approx(expected, rel=1e-10)
 
     def test_bs_deep_itm_call_approaches_intrinsic(self):
@@ -138,8 +149,8 @@ class TestBSGreeks:
         params = dict(**ATM, dividend_yield=0.02)
         g_call = black_scholes_greeks(**params, option_type="call")
         g_put = black_scholes_greeks(**params, option_type="put")
-        T, q = ATM["time_to_expiry"], 0.02
-        assert g_call["delta"] - g_put["delta"] == pytest.approx(math.exp(-q * T), abs=1e-6)
+        t_val, q = ATM["time_to_expiry"], 0.02
+        assert g_call["delta"] - g_put["delta"] == pytest.approx(math.exp(-q * t_val), abs=1e-6)
 
     def test_greeks_gamma_call_equals_gamma_put(self):
         """Gamma is same for call and put."""
@@ -165,16 +176,16 @@ class TestBSGreeks:
 
         delta_call ≈ 0.522, gamma ≈ 0.066, vega ≈ 12.1/100, rtol=0.05
         """
-        S, K, T, r, sigma = 49, 50, 20 / 52, 0.05, 0.20
-        g = black_scholes_greeks(S, K, T, r, sigma, option_type="call")
+        s_val, k_val, t_val, r, sigma = 49, 50, 20 / 52, 0.05, 0.20
+        g = black_scholes_greeks(s_val, k_val, t_val, r, sigma, option_type="call")
         assert g["delta"] == pytest.approx(0.522, rel=0.05)
         assert g["gamma"] == pytest.approx(0.066, rel=0.05)
 
     @pytest.mark.academic_reference
     def test_greeks_hull_vega(self):
         """Hull (2018): vega for S=49, K=50 ≈ 12.1 (per 100% vol change)."""
-        S, K, T, r, sigma = 49, 50, 20 / 52, 0.05, 0.20
-        g = black_scholes_greeks(S, K, T, r, sigma, option_type="call")
+        s_val, k_val, t_val, r, sigma = 49, 50, 20 / 52, 0.05, 0.20
+        g = black_scholes_greeks(s_val, k_val, t_val, r, sigma, option_type="call")
         # Hull reports vega as per 1% vol change = 0.121
         # Our vega is per 1.0 vol change, so ≈ 12.1
         assert g["vega"] == pytest.approx(12.1, rel=0.05)
@@ -185,8 +196,13 @@ class TestImpliedVolatility:
         """Price at sigma=0.20, recover sigma via brent; atol=1e-5."""
         price = black_scholes_price(**ATM, option_type="call")
         iv = implied_volatility(
-            price, ATM["spot"], ATM["strike"], ATM["time_to_expiry"],
-            ATM["risk_free_rate"], option_type="call", method="brent"
+            price,
+            ATM["spot"],
+            ATM["strike"],
+            ATM["time_to_expiry"],
+            ATM["risk_free_rate"],
+            option_type="call",
+            method="brent",
         )
         assert iv == pytest.approx(0.20, abs=1e-5)
 
@@ -194,15 +210,25 @@ class TestImpliedVolatility:
         """Price at sigma=0.20, recover sigma via newton; atol=1e-5."""
         price = black_scholes_price(**ATM, option_type="call")
         iv = implied_volatility(
-            price, ATM["spot"], ATM["strike"], ATM["time_to_expiry"],
-            ATM["risk_free_rate"], option_type="call", method="newton"
+            price,
+            ATM["spot"],
+            ATM["strike"],
+            ATM["time_to_expiry"],
+            ATM["risk_free_rate"],
+            option_type="call",
+            method="newton",
         )
         assert iv == pytest.approx(0.20, abs=1e-5)
 
     def test_iv_below_intrinsic_returns_nan(self):
         """Price below intrinsic → NaN."""
         iv = implied_volatility(
-            0.0, 100, 200, 1.0, 0.05, option_type="call"  # Deep OTM, price=0
+            0.0,
+            100,
+            200,
+            1.0,
+            0.05,
+            option_type="call",  # Deep OTM, price=0
         )
         # For deep OTM the price=0 may be at intrinsic; NaN or zero both acceptable
         # Just verify it doesn't raise
@@ -221,14 +247,13 @@ class TestImpliedVolatility:
     def test_iv_put_brent_recovery(self):
         """Put price at sigma=0.30, recover sigma; atol=1e-5."""
         price = black_scholes_price(100, 100, 1.0, 0.05, 0.30, option_type="put")
-        iv = implied_volatility(
-            price, 100, 100, 1.0, 0.05, option_type="put", method="brent"
-        )
+        iv = implied_volatility(price, 100, 100, 1.0, 0.05, option_type="put", method="brent")
         assert iv == pytest.approx(0.30, abs=1e-5)
 
     def test_iv_does_not_import_bs_functions(self):
         """implied_volatility does not call black_scholes_price or black_scholes_greeks."""
         import inspect
+
         source = inspect.getsource(implied_volatility)
         # Must not call these functions (check with open paren for call)
         assert "black_scholes_price(" not in source
@@ -237,10 +262,10 @@ class TestImpliedVolatility:
     @pytest.mark.academic_reference
     def test_iv_manaster_koehler_recovery(self):
         """Manaster & Koehler (1982) roundtrip: price → IV → price, atol=1e-4."""
-        S, K, T, r = 100, 105, 0.5, 0.06
+        s_val, k_val, t_val, r = 100, 105, 0.5, 0.06
         true_sigma = 0.25
-        price = black_scholes_price(S, K, T, r, true_sigma, option_type="call")
-        iv = implied_volatility(price, S, K, T, r, option_type="call", method="brent")
+        price = black_scholes_price(s_val, k_val, t_val, r, true_sigma, option_type="call")
+        iv = implied_volatility(price, s_val, k_val, t_val, r, option_type="call", method="brent")
         assert iv == pytest.approx(true_sigma, abs=1e-4)
 
     def test_iv_high_sigma_recovery(self):
@@ -270,9 +295,9 @@ class TestImpliedVolatility:
 class TestBSPriceSigmaZeroPut:
     def test_bs_zero_vol_put_itm(self):
         """sigma=0, put ITM: price = max(K*exp(-rT) - S, 0)."""
-        S, K, T, r = 90, 100, 1.0, 0.05
-        expected = max(K * math.exp(-r * T) - S, 0.0)
-        price = black_scholes_price(S, K, T, r, 0.0, option_type="put")
+        s_val, k_val, t_val, r = 90, 100, 1.0, 0.05
+        expected = max(k_val * math.exp(-r * t_val) - s_val, 0.0)
+        price = black_scholes_price(s_val, k_val, t_val, r, 0.0, option_type="put")
         assert price == pytest.approx(expected, rel=1e-10)
 
     def test_bs_zero_vol_put_otm(self):

@@ -1,4 +1,5 @@
 """oprim.funding_rate_fetch — Fetch perpetual funding rates from a venue."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -15,7 +16,8 @@ async def funding_rate_fetch(
 
     Args:
         symbol: Instrument ID, e.g. ``"BTC-USDT-SWAP"``.
-        venue: Data source; currently ``"okx"`` (default).
+        venue: Data source
+        currently ``"okx"`` (default).
         limit: Maximum records to return (≤ 100 for OKX).
         config: Optional override dict (e.g. custom base URL in tests).
 
@@ -45,12 +47,14 @@ async def funding_rate_fetch(
 
     records = []
     for row in resp.get("data", []):
-        records.append({
-            "ts": int(row.get("fundingTime", 0)),
-            "funding_rate": float(row.get("fundingRate", 0)),
-            "realized_rate": float(row.get("realizedRate", row.get("fundingRate", 0))),
-            "next_funding_time": int(row.get("nextFundingTime", 0)),
-        })
+        records.append(
+            {
+                "ts": int(row.get("fundingTime", 0)),
+                "funding_rate": float(row.get("fundingRate", 0)),
+                "realized_rate": float(row.get("realizedRate", row.get("fundingRate", 0))),
+                "next_funding_time": int(row.get("nextFundingTime", 0)),
+            }
+        )
     return records
 
 

@@ -1,14 +1,14 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 import asyncio
-import base64
 import json
-import re
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
-from ._exceptions import FileOprimError, ParseOprimError, ShellOprimError
+
+from ._exceptions import ShellOprimError
+
 
 @dataclass
 class HookResult:
@@ -16,9 +16,11 @@ class HookResult:
     output: str
     exit_code: int
 
+
 @dataclass
 class ImageBlock:
     """Anthropic content block 格式的图片表示。"""
+
     type: str
     source_type: str
     media_type: str
@@ -26,9 +28,11 @@ class ImageBlock:
     path: str
     size_bytes: int
 
+
 @dataclass
 class SkillMeta:
     """Skill frontmatter 解析结果（渐进披露第 1 步，不含 body）。"""
+
     name: str
     description: str
     version: str
@@ -37,6 +41,7 @@ class SkillMeta:
     tags: list[str]
     raw: dict
     skill_dir: str
+
 
 async def run_hook(
     command: str,
@@ -79,7 +84,7 @@ async def run_hook(
             stderr=asyncio.subprocess.PIPE,
         )
     except OSError as e:  # pragma: no cover
-        raise ShellOprimError(f"cannot start hook: {command}", cause=e)
+        raise ShellOprimError(f"cannot start hook: {command}", cause=e) from e
 
     try:
         stdout, stderr = await asyncio.wait_for(
@@ -87,7 +92,7 @@ async def run_hook(
             timeout=timeout,
         )
         exit_code = proc.returncode or 0
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         await proc.wait()
         # 超时 → allow（不因 hook 阻塞主流程）
@@ -97,7 +102,11 @@ async def run_hook(
 
     # 非零退出 → block（保守策略）
     if exit_code != 0:
-        return HookResult(decision="block", output=raw or stderr.decode(errors="replace").strip(), exit_code=exit_code)
+        return HookResult(
+            decision="block",
+            output=raw or stderr.decode(errors="replace").strip(),
+            exit_code=exit_code,
+        )
 
     # 尝试解析 JSON 输出
     try:

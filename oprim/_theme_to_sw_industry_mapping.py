@@ -12,7 +12,8 @@ class ThemeSWMapping(BaseModel):
 
     Attributes:
         theme_name: 概念名称 (输入).
-        sw_industry: 申万行业名称; ``None`` 表示未匹配.
+        sw_industry: 申万行业名称
+        ``None`` 表示未匹配.
         matched: 是否在 mapping_table 中找到精确匹配.
     """
 
@@ -46,7 +47,9 @@ def theme_to_sw_industry_mapping(
 
     Example:
         >>> table = {"人工智能": "电子", "新能源汽车": "汽车"}
-        >>> res = theme_to_sw_industry_mapping(theme_names=["人工智能", "区块链"], mapping_table=table)
+        >>> res = theme_to_sw_industry_mapping(
+        ...     theme_names=["人工智能", "区块链"], mapping_table=table
+        ... )
         >>> res[0].sw_industry
         '电子'
         >>> res[1].matched

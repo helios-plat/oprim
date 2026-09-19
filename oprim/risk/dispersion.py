@@ -18,7 +18,8 @@ def mean_deviation(
         MD = mean(|x_i - center(x)|)
 
     Scalar (window=None): collapses entire series to a single float.
-    Rolling (window=int): for each position i, computes over series[i-window+1:i+1];
+    Rolling (window=int): for each position i, computes over series[i-window+1:i+1]
+
         first (window-1) positions are NaN.
 
     Parameters
@@ -28,12 +29,14 @@ def mean_deviation(
     window : int or None
         Rolling window size. None returns scalar.
     center : {"mean", "median"}
-        Center measure. "mean" uses np.mean; "median" uses np.median.
+        Center measure. "mean" uses np.mean
+        "median" uses np.median.
 
     Returns
     -------
     float | np.ndarray | pd.Series
-        Scalar when window=None; array/Series (same type as input) for rolling.
+        Scalar when window=None
+        array/Series (same type as input) for rolling.
 
     Raises
     ------

@@ -1,4 +1,5 @@
 """Tests for oprim.spectral.rotationally_invariant_estimator."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -23,7 +24,10 @@ class TestRIEBouchaud:
         cov, t = _make_random_cov(10, 100)
         result = rotationally_invariant_estimator(cov, n_samples=t)
         assert set(result.keys()) == {
-            "cov_rie", "eigenvalues_raw", "eigenvalues_clean", "stieltjes_estimate"
+            "cov_rie",
+            "eigenvalues_raw",
+            "eigenvalues_clean",
+            "stieltjes_estimate",
         }
 
     def test_output_is_symmetric(self):

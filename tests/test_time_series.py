@@ -336,12 +336,14 @@ class TestRealizedVol:
     def test_garman_klass(self):
         rng = np.random.default_rng(42)
         n = 100
-        ohlc = pd.DataFrame({
-            "open": 100 + rng.normal(0, 1, n),
-            "high": 102 + rng.normal(0, 1, n),
-            "low": 98 + rng.normal(0, 1, n),
-            "close": 100 + rng.normal(0, 1, n),
-        })
+        ohlc = pd.DataFrame(
+            {
+                "open": 100 + rng.normal(0, 1, n),
+                "high": 102 + rng.normal(0, 1, n),
+                "low": 98 + rng.normal(0, 1, n),
+                "close": 100 + rng.normal(0, 1, n),
+            }
+        )
         ohlc["high"] = ohlc[["open", "high", "close"]].max(axis=1) + 0.5
         ohlc["low"] = ohlc[["open", "low", "close"]].min(axis=1) - 0.5
         returns = pd.Series(rng.normal(0, 0.02, n))
@@ -352,12 +354,14 @@ class TestRealizedVol:
     def test_parkinson(self):
         rng = np.random.default_rng(42)
         n = 100
-        ohlc = pd.DataFrame({
-            "open": 100 + rng.normal(0, 1, n),
-            "high": 103 + np.abs(rng.normal(0, 1, n)),
-            "low": 97 - np.abs(rng.normal(0, 1, n)),
-            "close": 100 + rng.normal(0, 1, n),
-        })
+        ohlc = pd.DataFrame(
+            {
+                "open": 100 + rng.normal(0, 1, n),
+                "high": 103 + np.abs(rng.normal(0, 1, n)),
+                "low": 97 - np.abs(rng.normal(0, 1, n)),
+                "close": 100 + rng.normal(0, 1, n),
+            }
+        )
         returns = pd.Series(rng.normal(0, 0.02, n))
         result = realized_vol(returns, window=20, estimator="parkinson", ohlc=ohlc)
         assert (result.dropna() > 0).all()
@@ -365,12 +369,14 @@ class TestRealizedVol:
     def test_yang_zhang(self):
         rng = np.random.default_rng(42)
         n = 100
-        ohlc = pd.DataFrame({
-            "open": 100 + rng.normal(0, 1, n),
-            "high": 103 + np.abs(rng.normal(0, 1, n)),
-            "low": 97 - np.abs(rng.normal(0, 1, n)),
-            "close": 100 + rng.normal(0, 1, n),
-        })
+        ohlc = pd.DataFrame(
+            {
+                "open": 100 + rng.normal(0, 1, n),
+                "high": 103 + np.abs(rng.normal(0, 1, n)),
+                "low": 97 - np.abs(rng.normal(0, 1, n)),
+                "close": 100 + rng.normal(0, 1, n),
+            }
+        )
         returns = pd.Series(rng.normal(0, 0.02, n))
         result = realized_vol(returns, window=20, estimator="yang_zhang", ohlc=ohlc)
         assert result.dropna().shape[0] > 0
@@ -466,10 +472,16 @@ class TestGapDetect:
 
     def test_weekend_gap(self):
         # Mon-Fri, then skip weekend, Mon
-        times = pd.DatetimeIndex([
-            "2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05",
-            "2024-01-08",  # skip weekend
-        ])
+        times = pd.DatetimeIndex(
+            [
+                "2024-01-01",
+                "2024-01-02",
+                "2024-01-03",
+                "2024-01-04",
+                "2024-01-05",
+                "2024-01-08",  # skip weekend
+            ]
+        )
         result = gap_detect(times, expected_interval=pd.Timedelta(days=1))
         assert len(result) == 1
         assert result.iloc[0]["severity"] in ("short", "medium")
@@ -481,9 +493,7 @@ class TestGapDetect:
         assert result.iloc[0]["severity"] == "long"
 
     def test_crypto_thresholds(self):
-        times = pd.DatetimeIndex([
-            "2024-01-01 00:00", "2024-01-01 01:00", "2024-01-01 10:00"
-        ])
+        times = pd.DatetimeIndex(["2024-01-01 00:00", "2024-01-01 01:00", "2024-01-01 10:00"])
         result = gap_detect(times, expected_interval=pd.Timedelta(hours=1), asset_class="crypto")
         assert len(result) == 1
         assert result.iloc[0]["severity"] == "medium"
@@ -648,10 +658,12 @@ class TestCumulativeReturnsExtra:
 class TestLagForwardFillExtra:
     def test_dataframe_strict(self):
         """Test strict mode with DataFrame."""
-        df = pd.DataFrame({
-            "a": [1.0] + [np.nan] * 10 + [12.0],
-            "b": [1.0, 2.0] + [np.nan] * 10,
-        })
+        df = pd.DataFrame(
+            {
+                "a": [1.0] + [np.nan] * 10 + [12.0],
+                "b": [1.0, 2.0] + [np.nan] * 10,
+            }
+        )
         with pytest.raises(ValueError, match="Gap"):
             lag_forward_fill(df, max_gap=5, strict=True)
 
@@ -772,13 +784,16 @@ class TestPurgeEmbargoSplitExtra:
 # Additional gap-filling tests (Phase 2)
 # ============================================================
 
+
 class TestLagForwardFillDataFrame:
     def test_forward_fill_dataframe_input(self):
         """DataFrame input is handled correctly."""
-        df = pd.DataFrame({
-            "a": [1.0, np.nan, np.nan, 4.0],
-            "b": [10.0, 20.0, np.nan, 40.0],
-        })
+        df = pd.DataFrame(
+            {
+                "a": [1.0, np.nan, np.nan, 4.0],
+                "b": [10.0, 20.0, np.nan, 40.0],
+            }
+        )
         result = lag_forward_fill(df, max_gap=5)
         assert isinstance(result, pd.DataFrame)
         assert result["a"].iloc[1] == pytest.approx(1.0)

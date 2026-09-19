@@ -1,4 +1,5 @@
 """Check whether a path is under one of a set of allowed roots."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -14,7 +15,8 @@ def check_path_allowed(path: Path, *, roots: list[Path]) -> bool:
 
     Returns:
         ``True`` if the resolved *path* equals or is relative to at least one
-        resolved root; ``False`` otherwise.
+        resolved root
+        ``False`` otherwise.
     """
     if not roots:
         return False

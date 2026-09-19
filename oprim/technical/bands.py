@@ -100,7 +100,8 @@ def donchian_channel(
 
     First (window-1) positions are NaN.
 
-    Reference: Donchian (1960s); standard turtle trading reference.
+    Reference: Donchian (1960s)
+    standard turtle trading reference.
 
     Parameters
     ----------

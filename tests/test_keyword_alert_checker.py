@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._keyword_alert_checker import keyword_alert_checker
 
 

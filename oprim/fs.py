@@ -24,6 +24,7 @@ from ._exceptions import FileOprimError, PathSecurityError
 # path_resolve — 路径解析 + 沙箱安全校验
 # ---------------------------------------------------------------------------
 
+
 def path_resolve(
     path: str | Path,
     *,
@@ -52,15 +53,14 @@ def path_resolve(
         try:
             resolved.relative_to(root)
         except ValueError:
-            raise PathSecurityError(
-                f"path '{resolved}' is outside sandbox root '{root}'"
-            )
+            raise PathSecurityError(f"path '{resolved}' is outside sandbox root '{root}'")
     return resolved
 
 
 # ---------------------------------------------------------------------------
 # file_read
 # ---------------------------------------------------------------------------
+
 
 def file_read(
     path: str | Path,
@@ -95,7 +95,7 @@ def file_read(
     except FileNotFoundError:
         raise FileOprimError(f"file not found: {path}")
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read '{path}'", cause=e)
+        raise FileOprimError(f"cannot read '{path}'", cause=e) from e
 
     if start is None and end is None:
         return text
@@ -107,6 +107,7 @@ def file_read(
 # ---------------------------------------------------------------------------
 # file_write
 # ---------------------------------------------------------------------------
+
 
 def file_write(
     path: str | Path,
@@ -138,13 +139,14 @@ def file_write(
             p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, encoding=encoding)
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot write '{path}'", cause=e)
+        raise FileOprimError(f"cannot write '{path}'", cause=e) from e
     return p
 
 
 # ---------------------------------------------------------------------------
 # file_append
 # ---------------------------------------------------------------------------
+
 
 def file_append(
     path: str | Path,
@@ -177,13 +179,14 @@ def file_append(
         with p.open("a", encoding=encoding) as f:
             f.write(content)
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot append to '{path}'", cause=e)
+        raise FileOprimError(f"cannot append to '{path}'", cause=e) from e
     return p
 
 
 # ---------------------------------------------------------------------------
 # file_stat
 # ---------------------------------------------------------------------------
+
 
 def file_stat(path: str | Path) -> dict[str, object]:
     """单次原子获取文件元数据。
@@ -220,7 +223,7 @@ def file_stat(path: str | Path) -> dict[str, object]:
     try:
         s = p.stat()
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot stat '{path}'", cause=e)
+        raise FileOprimError(f"cannot stat '{path}'", cause=e) from e
     return {
         "exists": True,
         "is_file": p.is_file(),
@@ -234,6 +237,7 @@ def file_stat(path: str | Path) -> dict[str, object]:
 # ---------------------------------------------------------------------------
 # file_delete
 # ---------------------------------------------------------------------------
+
 
 def file_delete(path: str | Path, *, missing_ok: bool = False) -> bool:
     """单次原子删除文件（不删目录）。
@@ -261,13 +265,14 @@ def file_delete(path: str | Path, *, missing_ok: bool = False) -> bool:
     except FileNotFoundError:
         raise FileOprimError(f"file not found: {path}")
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot delete '{path}'", cause=e)
+        raise FileOprimError(f"cannot delete '{path}'", cause=e) from e
     return existed  # True if the file existed and was deleted
 
 
 # ---------------------------------------------------------------------------
 # dir_list
 # ---------------------------------------------------------------------------
+
 
 def dir_list(
     path: str | Path,
@@ -303,9 +308,8 @@ def dir_list(
             entries = [
                 child.relative_to(p)
                 for child in p.rglob("*")
-                if include_hidden or not any(
-                    part.startswith(".") for part in child.relative_to(p).parts
-                )
+                if include_hidden
+                or not any(part.startswith(".") for part in child.relative_to(p).parts)
             ]
         else:
             entries = [
@@ -314,7 +318,7 @@ def dir_list(
                 if include_hidden or not child.name.startswith(".")
             ]
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot list '{path}'", cause=e)
+        raise FileOprimError(f"cannot list '{path}'", cause=e) from e
 
     return sorted(entries)
 
@@ -322,6 +326,7 @@ def dir_list(
 # ---------------------------------------------------------------------------
 # glob_match
 # ---------------------------------------------------------------------------
+
 
 def glob_match(
     pattern: str,
@@ -356,11 +361,12 @@ def glob_match(
     try:
         matches = list(r.glob(pattern))
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"glob failed for '{pattern}' in '{root}'", cause=e)
+        raise FileOprimError(f"glob failed for '{pattern}' in '{root}'", cause=e) from e
 
     if respect_gitignore:
         matches = [
-            p for p in matches
+            p
+            for p in matches
             if ".git" not in p.parts
             and not any(part.startswith(".") for part in p.relative_to(r).parts)
         ]
@@ -371,6 +377,7 @@ def glob_match(
 # ---------------------------------------------------------------------------
 # read_gitignore
 # ---------------------------------------------------------------------------
+
 
 def read_gitignore(root: str | Path) -> list[str]:
     """单次读取并解析 .gitignore 文件，返回规则列表。
@@ -396,7 +403,7 @@ def read_gitignore(root: str | Path) -> list[str]:
     try:
         text = gitignore.read_text(encoding="utf-8", errors="replace")
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read .gitignore in '{root}'", cause=e)
+        raise FileOprimError(f"cannot read .gitignore in '{root}'", cause=e) from e
 
     rules = []
     for line in text.splitlines():

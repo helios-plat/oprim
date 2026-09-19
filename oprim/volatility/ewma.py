@@ -2,6 +2,7 @@
 
 Reference: JP Morgan RiskMetrics Technical Document (1996).
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -60,10 +61,7 @@ def ewma_volatility(
     n = len(arr)
     sigma2 = np.zeros(n)
 
-    if initial_variance is None:
-        seed = float(np.var(arr))
-    else:
-        seed = float(initial_variance)
+    seed = float(np.var(arr)) if initial_variance is None else float(initial_variance)
 
     # sigma2[t] is the variance estimate at time t (before observing r_t)
     # i.e., sigma_1^2 = lambda_*sigma_0^2 + (1-lambda_)*r_0^2

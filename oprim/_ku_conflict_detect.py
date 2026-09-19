@@ -5,30 +5,45 @@ Step 2: polarity keyword pair detection (opposing/neutral/insufficient).
 
 Pure computation, no LLM. Deterministic.
 """
+
 from __future__ import annotations
 
 from oprim._aii_graph_types import ConflictSignal
 
 _POLARITY_PAIRS: list[tuple[str, str]] = [
     # Chinese
-    ("增加", "减少"), ("增长", "下降"), ("上升", "下降"),
-    ("扩大", "缩小"), ("支持", "反对"), ("证明", "反驳"),
-    ("肯定", "否定"), ("有效", "无效"), ("成功", "失败"),
-    ("正相关", "负相关"), ("促进", "抑制"), ("同意", "拒绝"),
-    ("正确", "错误"), ("优势", "劣势"),
+    ("增加", "减少"),
+    ("增长", "下降"),
+    ("上升", "下降"),
+    ("扩大", "缩小"),
+    ("支持", "反对"),
+    ("证明", "反驳"),
+    ("肯定", "否定"),
+    ("有效", "无效"),
+    ("成功", "失败"),
+    ("正相关", "负相关"),
+    ("促进", "抑制"),
+    ("同意", "拒绝"),
+    ("正确", "错误"),
+    ("优势", "劣势"),
     # English
-    ("increase", "decrease"), ("positive", "negative"),
-    ("support", "oppose"), ("confirm", "refute"),
-    ("expand", "shrink"), ("promote", "inhibit"),
-    ("agree", "disagree"), ("accept", "reject"),
-    ("valid", "invalid"), ("success", "failure"),
+    ("increase", "decrease"),
+    ("positive", "negative"),
+    ("support", "oppose"),
+    ("confirm", "refute"),
+    ("expand", "shrink"),
+    ("promote", "inhibit"),
+    ("agree", "disagree"),
+    ("accept", "reject"),
+    ("valid", "invalid"),
+    ("success", "failure"),
 ]
 
 
 def _cosine_sim(a: list[float], b: list[float]) -> float:
     if len(a) != len(b):
         raise ValueError(f"embedding dimensions differ: {len(a)} vs {len(b)}")
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(x * x for x in b) ** 0.5
     if norm_a == 0.0 or norm_b == 0.0:
@@ -59,12 +74,11 @@ def ku_conflict_detect(
     """Detect whether two KUs are conflict candidates.
 
     Two-step: (1) cosine similarity gate, (2) polarity keyword detection.
-    Embeddings must have the same dimension; raises ValueError otherwise.
+    Embeddings must have the same dimension
+    raises ValueError otherwise.
     """
     if len(embedding_a) != len(embedding_b):
-        raise ValueError(
-            f"embedding dimensions differ: {len(embedding_a)} vs {len(embedding_b)}"
-        )
+        raise ValueError(f"embedding dimensions differ: {len(embedding_a)} vs {len(embedding_b)}")
 
     sim = _cosine_sim(embedding_a, embedding_b)
 

@@ -20,7 +20,10 @@ class MacroDataPoint(BaseModel):
         metadata: Source-specific extras — unit, release_time, source, raw fields, etc.
 
     Example:
-        >>> MacroDataPoint(indicator="m2_yoy", date=date(2024, 1, 31), value=8.7, metadata={"source": "akshare", "unit": "%"})
+        >>> MacroDataPoint(
+        ...     indicator="m2_yoy", date=date(2024, 1, 31), value=8.7,
+        ...     metadata={"source": "akshare", "unit": "%"},
+        ... )
         MacroDataPoint(indicator='m2_yoy', date=datetime.date(2024, 1, 31), value=8.7, ...)
     """
 

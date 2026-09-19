@@ -66,7 +66,7 @@ def atr(
     """
     n = len(closes)
     if n < period + 1:
-        raise ValueError(f"Need at least {period+1} bars, got {n}")
+        raise ValueError(f"Need at least {period + 1} bars, got {n}")
     trs = np.empty(n - 1)
     for i in range(1, n):
         trs[i - 1] = max(
@@ -123,26 +123,26 @@ def hurst_exponent(
         n_chunks = n // size
         rs_vals = []
         for i in range(n_chunks):
-            chunk = series[i * size: (i + 1) * size]
+            chunk = series[i * size : (i + 1) * size]
             mean_c = chunk.mean()
             deviations = np.cumsum(chunk - mean_c)
-            R = deviations.max() - deviations.min()
-            S = chunk.std(ddof=1)
-            if S > 0:
-                rs_vals.append(R / S)
+            r_val = deviations.max() - deviations.min()
+            s_val = chunk.std(ddof=1)
+            if s_val > 0:
+                rs_vals.append(r_val / s_val)
         if rs_vals:
             rs_means.append(np.mean(rs_vals))
         else:
             rs_means.append(np.nan)
 
     # Log-log regression
-    valid = [(s, r) for s, r in zip(sizes, rs_means) if np.isfinite(r) and r > 0]
+    valid = [(s, r) for s, r in zip(sizes, rs_means, strict=False) if np.isfinite(r) and r > 0]
     if len(valid) < 2:
         return 0.5  # fallback
     log_sizes = np.log([v[0] for v in valid])
     log_rs = np.log([v[1] for v in valid])
-    H = float(np.polyfit(log_sizes, log_rs, 1)[0])
-    return max(0.0, min(1.0, H))
+    h_val = float(np.polyfit(log_sizes, log_rs, 1)[0])
+    return max(0.0, min(1.0, h_val))
 
 
 def compute_dwt(  # pragma: no cover
@@ -216,11 +216,12 @@ def H_change_rate_std(
 
     References
     ----------
-    .. [1] Extraction source: Selene project, sel_engine/features/liquidity.py:compute_H_change_rate_std
+    .. [1] Extraction source: Selene project,
+       sel_engine/features/liquidity.py:compute_H_change_rate_std
     """
     if len(values) < window + 1:
-        raise ValueError(f"Need at least {window+1} values, got {len(values)}")
-    segment = values[-(window + 1):]
+        raise ValueError(f"Need at least {window + 1} values, got {len(values)}")
+    segment = values[-(window + 1) :]
     diffs = np.diff(segment)
     return float(np.std(diffs, ddof=1))
 
@@ -246,7 +247,8 @@ def orderbook_entropy(
     References
     ----------
     .. [1] Shannon, C.E. (1948). A Mathematical Theory of Communication.
-    .. [2] Extraction source: Selene project, sel_engine/features/liquidity.py:compute_orderbook_entropy
+    .. [2] Extraction source: Selene project,
+       sel_engine/features/liquidity.py:compute_orderbook_entropy
     """
     sizes = np.asarray(sizes, dtype=float)
     sizes = sizes[sizes > 0]

@@ -1,6 +1,7 @@
 """H-B E组: 网络 IO 扩展 (5)
 validate_api_key / upload_share / revoke_share / fetch_models_dev / load_skill_raw
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -8,7 +9,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ._exceptions import HttpOprimError
-
 
 # ---------------------------------------------------------------------------
 # Types
@@ -66,9 +66,7 @@ async def validate_api_key(key: str, *, provider: str, timeout: float = 15) -> b
         raise ValueError("key must not be empty")
     provider = provider.lower()
     if provider not in _PROVIDER_ENDPOINTS:
-        raise ValueError(
-            f"unknown provider {provider!r}; supported: {sorted(_PROVIDER_ENDPOINTS)}"
-        )
+        raise ValueError(f"unknown provider {provider!r}; supported: {sorted(_PROVIDER_ENDPOINTS)}")
 
     url, header_name = _PROVIDER_ENDPOINTS[provider]
 
@@ -84,7 +82,7 @@ async def validate_api_key(key: str, *, provider: str, timeout: float = 15) -> b
     try:
         import httpx
     except ImportError as e:  # pragma: no cover
-        raise HttpOprimError("httpx not installed", cause=e)
+        raise HttpOprimError("httpx not installed", cause=e) from e
 
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -92,16 +90,15 @@ async def validate_api_key(key: str, *, provider: str, timeout: float = 15) -> b
     except httpx.TimeoutException as e:
         raise TimeoutError(f"validate_api_key timed out after {timeout}s") from e
     except httpx.RequestError as e:
-        raise HttpOprimError(f"network error validating key: {e}", cause=e)
+        raise HttpOprimError(f"network error validating key: {e}", cause=e) from e
 
-    if resp.status_code in (401, 403):
-        return False
-    return True
+    return resp.status_code not in (401, 403)
 
 
 # ---------------------------------------------------------------------------
 # upload_share
 # ---------------------------------------------------------------------------
+
 
 async def upload_share(
     payload: dict,
@@ -135,7 +132,7 @@ async def upload_share(
     try:
         import httpx
     except ImportError as e:  # pragma: no cover
-        raise HttpOprimError("httpx not installed", cause=e)
+        raise HttpOprimError("httpx not installed", cause=e) from e
 
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -143,7 +140,7 @@ async def upload_share(
     except httpx.TimeoutException as e:
         raise TimeoutError(f"upload_share timed out after {timeout}s") from e
     except httpx.RequestError as e:
-        raise HttpOprimError(f"upload_share request failed: {e}", cause=e)
+        raise HttpOprimError(f"upload_share request failed: {e}", cause=e) from e
 
     if resp.status_code == 413:
         raise HttpOprimError(f"upload_share: payload too large (413) for {endpoint}")
@@ -163,6 +160,7 @@ async def upload_share(
 # revoke_share
 # ---------------------------------------------------------------------------
 
+
 async def revoke_share(url: ShareUrl, *, timeout: float = 30) -> None:
     """撤销分享链接（幂等）。
 
@@ -180,7 +178,7 @@ async def revoke_share(url: ShareUrl, *, timeout: float = 30) -> None:
     try:
         import httpx
     except ImportError as e:  # pragma: no cover
-        raise HttpOprimError("httpx not installed", cause=e)
+        raise HttpOprimError("httpx not installed", cause=e) from e
 
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -188,16 +186,14 @@ async def revoke_share(url: ShareUrl, *, timeout: float = 30) -> None:
     except httpx.TimeoutException as e:
         raise TimeoutError(f"revoke_share timed out after {timeout}s") from e
     except httpx.RequestError as e:
-        raise HttpOprimError(f"revoke_share request failed: {e}", cause=e)
+        raise HttpOprimError(f"revoke_share request failed: {e}", cause=e) from e
 
     # 404 = already gone; treat as idempotent success
     if resp.status_code in (200, 204, 404):
         return
     if resp.status_code == 409:
         return  # already revoked
-    raise HttpOprimError(
-        f"revoke_share failed {resp.status_code} for {url}: {resp.text[:200]}"
-    )
+    raise HttpOprimError(f"revoke_share failed {resp.status_code} for {url}: {resp.text[:200]}")
 
 
 # ---------------------------------------------------------------------------
@@ -235,7 +231,7 @@ async def fetch_models_dev(
     try:
         import httpx
     except ImportError as e:  # pragma: no cover
-        raise HttpOprimError("httpx not installed", cause=e)
+        raise HttpOprimError("httpx not installed", cause=e) from e
 
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -243,17 +239,15 @@ async def fetch_models_dev(
     except httpx.TimeoutException as e:
         raise TimeoutError(f"fetch_models_dev timed out after {timeout}s") from e
     except httpx.RequestError as e:
-        raise HttpOprimError(f"fetch_models_dev network error: {e}", cause=e)
+        raise HttpOprimError(f"fetch_models_dev network error: {e}", cause=e) from e
 
     if not resp.is_success:
-        raise HttpOprimError(
-            f"fetch_models_dev failed {resp.status_code}: {resp.text[:200]}"
-        )
+        raise HttpOprimError(f"fetch_models_dev failed {resp.status_code}: {resp.text[:200]}")
 
     try:
         raw = resp.json()
     except Exception as e:
-        raise HttpOprimError(f"fetch_models_dev parse error: {e}", cause=e)
+        raise HttpOprimError(f"fetch_models_dev parse error: {e}", cause=e) from e
 
     if not raw:
         return []
@@ -268,28 +262,32 @@ async def fetch_models_dev(
             for item in items:
                 if not isinstance(item, dict):
                     continue
-                specs.append(ModelSpec(
-                    id=item.get("id", ""),
-                    name=item.get("name", item.get("id", "")),
-                    provider=provider,
-                    context_length=int(item.get("context_length", 0) or 0),
-                    input_price=float(item.get("pricing", {}).get("input", 0) or 0),
-                    output_price=float(item.get("pricing", {}).get("output", 0) or 0),
-                    supports_tools=bool(item.get("supports_tool_use", False)),
-                    supports_vision=bool(item.get("supports_vision", False)),
-                ))
+                specs.append(
+                    ModelSpec(
+                        id=item.get("id", ""),
+                        name=item.get("name", item.get("id", "")),
+                        provider=provider,
+                        context_length=int(item.get("context_length", 0) or 0),
+                        input_price=float(item.get("pricing", {}).get("input", 0) or 0),
+                        output_price=float(item.get("pricing", {}).get("output", 0) or 0),
+                        supports_tools=bool(item.get("supports_tool_use", False)),
+                        supports_vision=bool(item.get("supports_vision", False)),
+                    )
+                )
     elif isinstance(raw, list):
         for item in raw:
             if not isinstance(item, dict):
                 continue
-            specs.append(ModelSpec(
-                id=item.get("id", ""),
-                name=item.get("name", item.get("id", "")),
-                provider=item.get("provider", ""),
-                context_length=int(item.get("context_length", 0) or 0),
-                input_price=float(item.get("pricing", {}).get("input", 0) or 0),
-                output_price=float(item.get("pricing", {}).get("output", 0) or 0),
-            ))
+            specs.append(
+                ModelSpec(
+                    id=item.get("id", ""),
+                    name=item.get("name", item.get("id", "")),
+                    provider=item.get("provider", ""),
+                    context_length=int(item.get("context_length", 0) or 0),
+                    input_price=float(item.get("pricing", {}).get("input", 0) or 0),
+                    output_price=float(item.get("pricing", {}).get("output", 0) or 0),
+                )
+            )
 
     return specs
 
@@ -297,6 +295,7 @@ async def fetch_models_dev(
 # ---------------------------------------------------------------------------
 # load_skill_raw
 # ---------------------------------------------------------------------------
+
 
 async def load_skill_raw(path: Path) -> str:
     """读 SKILL.md 返回原始字符串（解析由 parse_skill_md H-A 处理）。

@@ -158,47 +158,55 @@ class TestLtx2CloudGenerate:
             return r
 
         client = MagicMock()
-        client.post = AsyncMock(return_value=MagicMock(
-            status_code=200,
-            json=MagicMock(return_value=submit_resp),
-        ))
+        client.post = AsyncMock(
+            return_value=MagicMock(
+                status_code=200,
+                json=MagicMock(return_value=submit_resp),
+            )
+        )
         client.get = _fake_get
         client.__aenter__ = AsyncMock(return_value=client)
         client.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("httpx.AsyncClient", return_value=client):
-            with patch("oprim._ltx2_cloud_generate.asyncio.sleep", new_callable=AsyncMock):
-                result = await ltx2_cloud_generate(
-                    config={"FAL_API_KEY": "k"},
-                    mode="t2v",
-                    prompt="poll test",
-                    duration_s=5.0,
-                    resolution=(256, 256),
-                    output_path=out,
-                )
+        with (
+            patch("httpx.AsyncClient", return_value=client),
+            patch("oprim._ltx2_cloud_generate.asyncio.sleep", new_callable=AsyncMock),
+        ):
+            result = await ltx2_cloud_generate(
+                config={"FAL_API_KEY": "k"},
+                mode="t2v",
+                prompt="poll test",
+                duration_s=5.0,
+                resolution=(256, 256),
+                output_path=out,
+            )
 
         assert result == out
 
     async def test_api_failure_raises_ltx2_error(self, tmp_path: Path) -> None:
         """4xx/5xx from fal.ai → Ltx2CloudError with code+message."""
         client = MagicMock()
-        client.post = AsyncMock(return_value=MagicMock(
-            status_code=503,
-            text="Service Unavailable",
-        ))
+        client.post = AsyncMock(
+            return_value=MagicMock(
+                status_code=503,
+                text="Service Unavailable",
+            )
+        )
         client.__aenter__ = AsyncMock(return_value=client)
         client.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("httpx.AsyncClient", return_value=client):
-            with pytest.raises(Ltx2CloudError, match="503"):
-                await ltx2_cloud_generate(
-                    config={"FAL_API_KEY": "k"},
-                    mode="t2v",
-                    prompt="fail test",
-                    duration_s=5.0,
-                    resolution=(256, 256),
-                    output_path=tmp_path / "out.mp4",
-                )
+        with (
+            patch("httpx.AsyncClient", return_value=client),
+            pytest.raises(Ltx2CloudError, match="503"),
+        ):
+            await ltx2_cloud_generate(
+                config={"FAL_API_KEY": "k"},
+                mode="t2v",
+                prompt="fail test",
+                duration_s=5.0,
+                resolution=(256, 256),
+                output_path=tmp_path / "out.mp4",
+            )
 
     async def test_duration_over_limit_raises_value_error(self, tmp_path: Path) -> None:
         """duration_s > 20 → ValueError before any network call."""

@@ -1,4 +1,5 @@
 """Pure-compute: parse_ripgrep_output."""
+
 from __future__ import annotations
 
 import json

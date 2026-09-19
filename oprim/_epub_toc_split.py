@@ -1,31 +1,61 @@
 """oprim.epub_toc_split — Split EPUB by top-level TOC into individual books."""
+
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import ebooklib  # type: ignore[import-untyped]
 from bs4 import BeautifulSoup
-from ebooklib import epub
+
+try:
+    import ebooklib  # type: ignore[import-untyped]
+    from ebooklib import epub
+except ImportError:  # optional epub extra
+    ebooklib = None  # type: ignore[assignment]
+    epub = None  # type: ignore[assignment]
 
 from oprim._exceptions import OprimError
+from oprim._optional import require_optional
 
 
 @dataclass
 class EpubBook:
     """Single book extracted from EPUB (may be one of many in a bundle)."""
+
     book_title: str
-    toc_subtree: list[Any]       # TOC nodes belonging to this book
-    content: str                 # Concatenated markdown text
-    metadata: dict[str, str]     # title/author/language from DC metadata
+    toc_subtree: list[Any]  # TOC nodes belonging to this book
+    content: str  # Concatenated markdown text
+    metadata: dict[str, str]  # title/author/language from DC metadata
 
 
-_AUX_TITLES = frozenset([
-    "扉页", "版权页", "版权", "目录", "前言", "序言", "序", "后记",
-    "致谢", "附录", "索引", "参考文献", "bibliography", "contents",
-    "copyright", "title page", "preface", "foreword", "index",
-    "acknowledgements", "acknowledgments", "cover",
-])
+_AUX_TITLES = frozenset(
+    [
+        "扉页",
+        "版权页",
+        "版权",
+        "目录",
+        "前言",
+        "序言",
+        "序",
+        "后记",
+        "致谢",
+        "附录",
+        "索引",
+        "参考文献",
+        "bibliography",
+        "contents",
+        "copyright",
+        "title page",
+        "preface",
+        "foreword",
+        "index",
+        "acknowledgements",
+        "acknowledgments",
+        "cover",
+    ]
+)
+
 
 def _is_aux_node(title: str, content: str) -> bool:
     """判断是否为辅助页（扉页/版权页/目录等），应过滤掉不作为独立书。"""
@@ -60,6 +90,7 @@ def epub_toc_split(*, file_path: Path) -> list[EpubBook]:
         ...     print(book.book_title, len(book.content))
     """
     file_path = Path(file_path)
+    require_optional(ebooklib, feature="epub", extra="epub", package="ebooklib")
     if not file_path.exists():
         raise OprimError(f"file_not_found: {file_path}")
 
@@ -93,12 +124,14 @@ def epub_toc_split(*, file_path: Path) -> list[EpubBook]:
     if not top_toc:
         # No TOC — treat whole book as single entry
         full_content = "\n\n".join(item_map.values())
-        return [EpubBook(
-            book_title=base_meta["title"] or file_path.stem,
-            toc_subtree=[],
-            content=full_content,
-            metadata=base_meta,
-        )]
+        return [
+            EpubBook(
+                book_title=base_meta["title"] or file_path.stem,
+                toc_subtree=[],
+                content=full_content,
+                metadata=base_meta,
+            )
+        ]
 
     def _collect_hrefs(nodes) -> list[str]:
         hrefs = []
@@ -128,16 +161,24 @@ def epub_toc_split(*, file_path: Path) -> list[EpubBook]:
         content = "\n\n".join(parts)
 
         if not _is_aux_node(node_title, content):
-            result.append(EpubBook(
-                book_title=node_title,
-                toc_subtree=list(children),
-                content=content,
-                metadata={**base_meta, "title": node_title},
-            ))
+            result.append(
+                EpubBook(
+                    book_title=node_title,
+                    toc_subtree=list(children),
+                    content=content,
+                    metadata={**base_meta, "title": node_title},
+                )
+            )
 
-    return result if result else [EpubBook(
-        book_title=base_meta["title"] or file_path.stem,
-        toc_subtree=[],
-        content="\n\n".join(item_map.values()),
-        metadata=base_meta,
-    )]
+    return (
+        result
+        if result
+        else [
+            EpubBook(
+                book_title=base_meta["title"] or file_path.stem,
+                toc_subtree=[],
+                content="\n\n".join(item_map.values()),
+                metadata=base_meta,
+            )
+        ]
+    )

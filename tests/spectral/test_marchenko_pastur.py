@@ -1,4 +1,5 @@
 """Tests for oprim.spectral.marchenko_pastur_threshold."""
+
 from __future__ import annotations
 
 import math

@@ -1,4 +1,5 @@
 """Tests for oprim.timeseries.cointegration."""
+
 import numpy as np
 import pytest
 
@@ -31,6 +32,7 @@ def _make_cointegrated_multivar(n=500, k=2, seed=42):
 
 # ---------- Engle-Granger tests ----------
 
+
 def test_eg_cointegrated_detects():
     y, x = _make_cointegrated_pair(500)
     r = engle_granger_cointegration(y, x)
@@ -40,8 +42,16 @@ def test_eg_cointegrated_detects():
 def test_eg_returns_expected_keys():
     y, x = _make_cointegrated_pair(200)
     r = engle_granger_cointegration(y, x)
-    for key in ("statistic", "p_value", "critical_values", "coef_intercept",
-                "coef_slope", "n_obs", "is_cointegrated", "regression_type"):
+    for key in (
+        "statistic",
+        "p_value",
+        "critical_values",
+        "coef_intercept",
+        "coef_slope",
+        "n_obs",
+        "is_cointegrated",
+        "regression_type",
+    ):
         assert key in r
 
 
@@ -92,6 +102,7 @@ def test_eg_matches_statsmodels():
 
 # ---------- Johansen tests ----------
 
+
 def test_johansen_two_series_rank_one():
     data = _make_cointegrated_multivar(500, 2)
     r = johansen_cointegration(data)
@@ -101,9 +112,16 @@ def test_johansen_two_series_rank_one():
 def test_johansen_returns_expected_keys():
     data = _make_cointegrated_multivar(300, 2)
     r = johansen_cointegration(data)
-    for key in ("trace_stats", "max_eigenvalue_stats", "eigenvalues",
-                "eigenvectors", "cointegration_rank", "cointegrating_vectors",
-                "n_obs", "n_vars"):
+    for key in (
+        "trace_stats",
+        "max_eigenvalue_stats",
+        "eigenvalues",
+        "eigenvectors",
+        "cointegration_rank",
+        "cointegrating_vectors",
+        "n_obs",
+        "n_vars",
+    ):
         assert key in r
 
 
@@ -152,6 +170,7 @@ def test_eg_trend_nc():
 
 def test_eg_series_input():
     import pandas as pd
+
     y, x = _make_cointegrated_pair(300)
     r = engle_granger_cointegration(pd.Series(y), pd.Series(x))
     assert "is_cointegrated" in r
@@ -160,6 +179,7 @@ def test_eg_series_input():
 def test_eg_pvalue_extremes():
     """Test EG p-value at extreme t-stat values."""
     from oprim.timeseries.cointegration import _eg_pvalue
+
     p_low = _eg_pvalue(-10.0, "c")
     assert p_low <= 0.01
     p_high = _eg_pvalue(5.0, "c")
@@ -185,6 +205,7 @@ def test_johansen_3d_raises():
 
 def test_johansen_dataframe_input():
     import pandas as pd
+
     data = _make_cointegrated_multivar(400, 2)
     r = johansen_cointegration(pd.DataFrame(data))
     assert r["n_vars"] == 2
@@ -205,16 +226,18 @@ def test_johansen_matches_statsmodels_rank():
         pytest.skip("statsmodels not installed")
     data = _make_cointegrated_multivar(500, 2)
     r = johansen_cointegration(data)
-    sm_r = coint_johansen(data, det_order=0, k_ar_diff=1)
+    coint_johansen(data, det_order=0, k_ar_diff=1)
     # Both should identify at least 1 cointegrating vector
     assert r["cointegration_rank"] >= 1
 
 
 # ---------- Additional coverage tests ----------
 
+
 def test_eg_pvalue_midrange():
     """Hit the interpolation loop (lines 82-86)."""
     from oprim.timeseries.cointegration import _eg_pvalue
+
     p_mid = _eg_pvalue(-3.5, "c")
     assert 0.01 < p_mid < 0.99
 
@@ -222,6 +245,7 @@ def test_eg_pvalue_midrange():
 def test_eg_pvalue_ct():
     """Use 'ct' trend to hit pvalue table lookup."""
     from oprim.timeseries.cointegration import _eg_pvalue
+
     p = _eg_pvalue(-3.0, "ct")
     assert 0 <= p <= 1
 

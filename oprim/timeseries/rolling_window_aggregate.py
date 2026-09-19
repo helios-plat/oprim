@@ -28,10 +28,7 @@ def rolling_window_aggregate(
     -------
     pd.Series with rolling aggregate values.
     """
-    if isinstance(series, (np.ndarray, list)):
-        s = pd.Series(series)
-    else:
-        s = series
+    s = pd.Series(series) if isinstance(series, (np.ndarray, list)) else series
 
     if isinstance(window, str) and not isinstance(s.index, pd.DatetimeIndex):
         raise ValueError("Time-based window requires DatetimeIndex")

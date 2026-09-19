@@ -165,13 +165,19 @@ class TestMcpRegisterTool:
             return {}
 
         mcp_register_tool(
-            server, name="d.t", description="t",
-            input_schema={"type": "object", "properties": {}}, handler=h,
+            server,
+            name="d.t",
+            description="t",
+            input_schema={"type": "object", "properties": {}},
+            handler=h,
         )
         with pytest.raises(McpRegisterError):
             mcp_register_tool(
-                server, name="d.t", description="t",
-                input_schema={"type": "object", "properties": {}}, handler=h,
+                server,
+                name="d.t",
+                description="t",
+                input_schema={"type": "object", "properties": {}},
+                handler=h,
             )
 
     async def test_validation(self):
@@ -179,13 +185,19 @@ class TestMcpRegisterTool:
 
         with pytest.raises(OprimValidationError):
             mcp_register_tool(
-                None, name="", description="d",
-                input_schema={"type": "object", "properties": {}}, handler=lambda a: a,
+                None,
+                name="",
+                description="d",
+                input_schema={"type": "object", "properties": {}},
+                handler=lambda a: a,
             )
         with pytest.raises(OprimValidationError):
             mcp_register_tool(
-                object(), name="x", description="d",
-                input_schema={"not": "a schema"}, handler=lambda a: a,
+                object(),
+                name="x",
+                description="d",
+                input_schema={"not": "a schema"},
+                handler=lambda a: a,
             )
 
     async def test_incompatible_server(self):
@@ -196,6 +208,9 @@ class TestMcpRegisterTool:
 
         with pytest.raises(McpRegisterError):
             mcp_register_tool(
-                NoRegister(), name="x", description="d",
-                input_schema={"type": "object", "properties": {}}, handler=lambda a: a,
+                NoRegister(),
+                name="x",
+                description="d",
+                input_schema={"type": "object", "properties": {}},
+                handler=lambda a: a,
             )

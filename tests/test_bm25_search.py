@@ -1,6 +1,5 @@
 """Tests for oprim.bm25_search."""
 
-import pytest
 from oprim import bm25_search
 
 
@@ -61,7 +60,7 @@ def test_idf_gives_rare_terms_higher_weight():
         "doc3": "foo bar qux",
     }
     rare_results = bm25_search(query="unique_rare_term", docs=docs, top_k=1)
-    common_results = bm25_search(query="foo", docs=docs, top_k=3)
+    bm25_search(query="foo", docs=docs, top_k=3)
     assert rare_results[0][0] == "rare_doc"
     # rare_doc score for rare term > its score for common term (which is shared)
     assert rare_results[0][1] > 0

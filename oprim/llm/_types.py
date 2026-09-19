@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Any
+
 
 @dataclass
 class LLMResponse:
@@ -21,23 +23,26 @@ class LLMResponse:
     def total_tokens(self) -> int:
         return self.input_tokens + self.output_tokens
 
+
 @dataclass
 class StreamDelta:
     type: str
-    text: str = ''
-    tool_name: str = ''
-    tool_id: str = ''
+    text: str = ""
+    tool_name: str = ""
+    tool_id: str = ""
     tool_input: dict = field(default_factory=dict)
     input_tokens: int = 0
     output_tokens: int = 0
-    stop_reason: str = ''
-    thinking: str = ''
+    stop_reason: str = ""
+    thinking: str = ""
+
 
 @dataclass
 class EmbedResult:
     vector: list[float]
     model: str
     token_count: int
+
 
 @dataclass
 class ConversationSnapshot:
@@ -49,6 +54,7 @@ class ConversationSnapshot:
     created_at: float = 0.0
     messages: list[dict] = field(default_factory=list)
 
+
 @dataclass
 class ThinkingResult:
     thinking: str
@@ -57,12 +63,14 @@ class ThinkingResult:
     thinking_blocks: list[str] = field(default_factory=list)
     text_blocks: list[str] = field(default_factory=list)
 
+
 @dataclass
 class SearchResult:
     title: str
     url: str
     snippet: str
     rank: int = 0
+
 
 @dataclass
 class HttpResponse:
@@ -77,6 +85,7 @@ class HttpResponse:
 
     def json(self) -> Any:
         import json
+
         try:
             return json.loads(self.text)
         except Exception as e:

@@ -1,11 +1,15 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import difflib
-import re
+
 from dataclasses import dataclass
 from pathlib import Path
+
 from ._exceptions import ParseOprimError
+
+_FILENAME_MAP: dict[str, str] = {}
+_EXT_MAP: dict[str, str] = {}
+
 
 @dataclass
 class Hunk:
@@ -16,11 +20,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def detect_language(
     path: str | Path,
@@ -48,7 +54,7 @@ def detect_language(
     try:
         p = Path(path)
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError(f"invalid path: {path}", cause=e)
+        raise ParseOprimError(f"invalid path: {path}", cause=e) from e
 
     # 精确文件名匹配
     if p.name in _FILENAME_MAP:

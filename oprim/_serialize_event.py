@@ -1,4 +1,5 @@
 """serialize_event — encode an Event to canonical JSON bytes."""
+
 from __future__ import annotations
 
 import json

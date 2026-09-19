@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
+from oprim._exceptions import OprimNotFoundError
 from oprim._filesystem import disk_usage, fs_disk_usage, fs_inode_check
-from oprim._exceptions import OprimNotFoundError, OprimError
 
 
 def test_fs_disk_usage_is_alias():

@@ -44,7 +44,8 @@ def compute_seat_t3_return(
     """Compute a seat's T+3 holding return.
 
     T+3 return = (t3_price − buy_price) / buy_price × 100 %.
-    The caller is responsible for providing the correct T+3 closing price;
+    The caller is responsible for providing the correct T+3 closing price
+
     this oprim performs only the arithmetic.
 
     Args:

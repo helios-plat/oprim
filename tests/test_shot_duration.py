@@ -1,11 +1,11 @@
 """Tests for _shot_duration_defaults constants."""
+
 from __future__ import annotations
 
 from oprim._shot_duration_defaults import SHOT_DURATION_DEFAULTS, TRANSITION_RULES
 
 
 class TestShotDurationDefaults:
-
     def test_closeup_is_single_float(self):
         assert SHOT_DURATION_DEFAULTS["closeup"] == 5.0
 

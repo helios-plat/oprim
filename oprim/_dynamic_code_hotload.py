@@ -62,9 +62,7 @@ def dynamic_code_hotload(
         spec.loader.exec_module(mod)
 
         exported_funcs = [
-            attr
-            for attr in dir(mod)
-            if callable(getattr(mod, attr)) and not attr.startswith("_")
+            attr for attr in dir(mod) if callable(getattr(mod, attr)) and not attr.startswith("_")
         ]
         return {
             "status": "success",

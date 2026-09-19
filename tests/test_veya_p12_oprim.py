@@ -168,9 +168,7 @@ class TestKanbanTaskUpdate:
     async def test_update(self):
         from oprim import kanban_task_update
 
-        r = await kanban_task_update(
-            "t1", store=FakeKanban(), status="doing", assignee="alice"
-        )
+        r = await kanban_task_update("t1", store=FakeKanban(), status="doing", assignee="alice")
         assert r["status"] == "ok"
         assert r["updated"]["status"] == "doing"
         assert r["updated"]["assignee"] == "alice"
@@ -203,9 +201,7 @@ class TestVoiceStreamAtoms:
     async def test_stt(self, tmp_path: pathlib.Path):
         from oprim import stt_transcribe_stream
 
-        r = await stt_transcribe_stream(
-            str(tmp_path / "a.wav"), transcriber=FakeTranscriber()
-        )
+        r = await stt_transcribe_stream(str(tmp_path / "a.wav"), transcriber=FakeTranscriber())
         assert r["text"] == "你好世界" and len(r["segments"]) == 1
 
     async def test_stt_frames(self):
@@ -271,9 +267,7 @@ class TestSoulConfigRewrite:
         vs = VersionStore(tmp_path / "vs")
         cfg = tmp_path / "soul.md"
         cfg.write_text("old")
-        r = await soul_config_rewrite(
-            cfg, content="new", sandbox_root=tmp_path, version_store=vs
-        )
+        r = await soul_config_rewrite(cfg, content="new", sandbox_root=tmp_path, version_store=vs)
         assert r["status"] == "ok"
         assert cfg.read_text() == "new"
         assert r["rev_before"] and r["rev_after"]
@@ -366,7 +360,9 @@ class TestMediaAtoms:
 
         with pytest.raises(MediaPublishError):
             await media_publish_post(
-                "x", content="hi", media_paths=["/nope.jpg"],
+                "x",
+                content="hi",
+                media_paths=["/nope.jpg"],
                 publisher=FakePublisher(),
             )
 

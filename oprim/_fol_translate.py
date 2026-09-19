@@ -62,9 +62,7 @@ def fol_translate(
     try:
         raw_res = llm_caller(prompt, temperature=0.0)
     except Exception as exc:
-        raise FolTranslateError(
-            f"fol_translate: LLM call failed: {exc}", cause=exc
-        ) from exc
+        raise FolTranslateError(f"fol_translate: LLM call failed: {exc}", cause=exc) from exc
 
     try:
         parsed = json.loads(raw_res if isinstance(raw_res, str) else str(raw_res))

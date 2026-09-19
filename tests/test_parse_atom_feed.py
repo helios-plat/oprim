@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._parse_atom_feed import parse_atom_feed
 
 VALID_ATOM = """\

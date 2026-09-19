@@ -1,4 +1,5 @@
 """Pure-compute: plan_multiedit."""
+
 from __future__ import annotations
 
 from ._hicode_types import Edit, Patch
@@ -30,9 +31,7 @@ def plan_multiedit(original: str, *, edits: list[Edit]) -> list[Patch]:
 
     for idx, edit in enumerate(edits):
         if edit.old not in current:
-            raise ValueError(
-                f"edit[{idx}]: old string not found: {edit.old!r}"
-            )
+            raise ValueError(f"edit[{idx}]: old string not found: {edit.old!r}")
         before = current
         current = current.replace(edit.old, edit.new, 1)
         patches.append(Patch(old=before, new=current, idx=idx))

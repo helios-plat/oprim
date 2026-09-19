@@ -42,7 +42,10 @@ class TestBootstrapCI:
     def test_sharpe_ratio(self):
         rng = np.random.default_rng(42)
         returns = rng.normal(0.001, 0.02, 252)
-        sharpe_fn = lambda x: np.mean(x) / np.std(x, ddof=1) * np.sqrt(252)
+
+        def sharpe_fn(x):
+            return np.mean(x) / np.std(x, ddof=1) * np.sqrt(252)
+
         result = bootstrap_ci(returns, sharpe_fn, random_state=42)
         assert "ci_lower" in result
 
@@ -290,6 +293,7 @@ class TestMannKendallTrend:
         """Compare with pyMannKendall if available."""
         try:
             import pymannkendall as mk
+
             rng = np.random.default_rng(42)
             data = rng.normal(0.001, 0.02, 100)
             # Without correction
@@ -407,8 +411,10 @@ class TestPearsonSpearmanCorr:
     def test_nan_raise(self):
         with pytest.raises(ValueError, match="NaN"):
             pearson_spearman_corr(
-                np.array([1.0, np.nan, 3.0]), np.array([1.0, 2.0, 3.0]),
-                min_samples=2, nan_policy="raise"
+                np.array([1.0, np.nan, 3.0]),
+                np.array([1.0, 2.0, 3.0]),
+                min_samples=2,
+                nan_policy="raise",
             )
 
     def test_academic_vs_scipy(self):
@@ -462,6 +468,7 @@ class TestKdeDensity:
 # ============================================================
 # Additional gap-filling tests (Phase 2)
 # ============================================================
+
 
 class TestBootstrapCIExtraGaps:
     def test_bootstrap_ci_50pct_nan_raises(self):
@@ -531,6 +538,7 @@ class TestCorrelationBatch:
     def test_correlation_batch_pearson(self):
         """correlation_batch with pearson returns m x m DataFrame."""
         import pandas as pd
+
         rng = np.random.default_rng(42)
         df = pd.DataFrame(rng.normal(size=(100, 4)), columns=list("abcd"))
         result = correlation_batch(df, method="pearson")
@@ -541,6 +549,7 @@ class TestCorrelationBatch:
     def test_correlation_batch_spearman(self):
         """correlation_batch with spearman returns m x m DataFrame."""
         import pandas as pd
+
         rng = np.random.default_rng(42)
         df = pd.DataFrame(rng.normal(size=(50, 3)), columns=list("abc"))
         result = correlation_batch(df, method="spearman")
@@ -549,6 +558,7 @@ class TestCorrelationBatch:
     def test_correlation_batch_invalid_method_raises(self):
         """Unknown method raises ValueError."""
         import pandas as pd
+
         df = pd.DataFrame({"a": [1.0, 2.0, 3.0]})
         with pytest.raises(ValueError, match="method"):
             correlation_batch(df, method="kendall")

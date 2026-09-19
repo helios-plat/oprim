@@ -11,7 +11,8 @@ def create_mcp_server(name: str, version: str) -> FastMCP:
 
     Note: The `version` parameter is accepted for API compatibility but is
     intentionally ignored. mcp SDK 1.27.x FastMCP.__init__() does not accept
-    a `version` kwarg; pass version information via server metadata if needed.
+    a `version` kwarg
+    pass version information via server metadata if needed.
     """
     return FastMCP(name)
 

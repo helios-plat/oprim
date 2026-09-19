@@ -1,4 +1,5 @@
 """Parse provider-specific raw LLM response dicts into ToolCall objects."""
+
 from __future__ import annotations
 
 import json

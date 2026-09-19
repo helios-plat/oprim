@@ -6,6 +6,7 @@ Used by cognitive_diagnosis for DINA model.
 """
 
 from __future__ import annotations
+
 import numpy as np
 
 
@@ -42,17 +43,17 @@ def build_q_matrix(
 
     n_items = len(item_ids)
     n_skills = len(skill_ids)
-    Q = np.zeros((n_items, n_skills), dtype=np.int8)
+    q = np.zeros((n_items, n_skills), dtype=np.int8)
 
     item_index = {iid: i for i, iid in enumerate(item_ids)}
     skill_index = {sid: i for i, sid in enumerate(skill_ids)}
 
     for s, d in assesses:
         if s in item_index and d in skill_index:
-            Q[item_index[s], skill_index[d]] = 1
+            q[item_index[s], skill_index[d]] = 1
 
     return {
-        "Q": Q,
+        "Q": q,
         "item_ids": item_ids,
         "skill_ids": skill_ids,
         "item_index": item_index,

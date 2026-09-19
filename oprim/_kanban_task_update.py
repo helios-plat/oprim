@@ -58,8 +58,7 @@ async def kanban_task_update(
         raise OprimValidationError("kanban_task_update: task_id must not be empty")
     if status is not None and status not in VALID_STATUSES:
         raise OprimValidationError(
-            f"kanban_task_update: invalid status {status!r} "
-            f"(allowed: {VALID_STATUSES})"
+            f"kanban_task_update: invalid status {status!r} (allowed: {VALID_STATUSES})"
         )
     if store is None:
         raise OprimValidationError("kanban_task_update: store must be injected")
@@ -67,9 +66,7 @@ async def kanban_task_update(
     try:
         existing = await store.get(task_id)
     except Exception as exc:
-        raise KanbanUpdateError(
-            f"kanban_task_update: store.get failed: {exc}", cause=exc
-        ) from exc
+        raise KanbanUpdateError(f"kanban_task_update: store.get failed: {exc}", cause=exc) from exc
     if existing is None:
         raise KanbanUpdateError(f"kanban_task_update: task not found: {task_id}")
 

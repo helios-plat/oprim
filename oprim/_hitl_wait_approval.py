@@ -68,9 +68,7 @@ async def hitl_wait_approval(
             raise HitlWaitError("hitl_wait_approval: obase unavailable", cause=exc) from exc
         bus = get_bus()
     if bus is None:
-        raise HitlWaitError(
-            "hitl_wait_approval: no bus bound — pass bus=... or bind_bus() first"
-        )
+        raise HitlWaitError("hitl_wait_approval: no bus bound — pass bus=... or bind_bus() first")
 
     decision = await bus.wait_for_decision(request_id, timeout=timeout)
     return {

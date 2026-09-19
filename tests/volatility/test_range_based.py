@@ -1,4 +1,5 @@
 """Tests for oprim.volatility.range_based: Parkinson, Garman-Klass, Yang-Zhang."""
+
 import numpy as np
 import pytest
 
@@ -22,29 +23,30 @@ def _make_ohlc(n=100, sigma=0.01, seed=42):
 
 # ---------- Parkinson ----------
 
+
 def test_parkinson_positive():
-    _, h, l, _ = _make_ohlc()
-    sigma = parkinson_volatility(h, l)
+    _, h, low, _ = _make_ohlc()
+    sigma = parkinson_volatility(h, low)
     assert sigma > 0
 
 
 def test_parkinson_float_output():
-    _, h, l, _ = _make_ohlc()
-    sigma = parkinson_volatility(h, l)
+    _, h, low, _ = _make_ohlc()
+    sigma = parkinson_volatility(h, low)
     assert isinstance(sigma, float)
 
 
 def test_parkinson_annualize():
-    _, h, l, _ = _make_ohlc(100)
-    sigma_d = parkinson_volatility(h, l)
-    sigma_a = parkinson_volatility(h, l, annualize=True)
+    _, h, low, _ = _make_ohlc(100)
+    sigma_d = parkinson_volatility(h, low)
+    sigma_a = parkinson_volatility(h, low, annualize=True)
     assert sigma_a == pytest.approx(sigma_d * np.sqrt(252))
 
 
 def test_parkinson_constant_hl_zero():
     h = np.ones(50) * 10.0
-    l = np.ones(50) * 10.0
-    sigma = parkinson_volatility(h, l)
+    low = np.ones(50) * 10.0
+    sigma = parkinson_volatility(h, low)
     assert sigma == pytest.approx(0.0)
 
 
@@ -65,36 +67,35 @@ def test_parkinson_high_less_than_low_raises():
 
 # ---------- Garman-Klass ----------
 
+
 def test_garman_klass_positive():
-    o, h, l, c = _make_ohlc()
-    sigma = garman_klass_volatility(o, h, l, c)
+    o, h, low, c = _make_ohlc()
+    sigma = garman_klass_volatility(o, h, low, c)
     assert sigma > 0
 
 
 def test_garman_klass_float_output():
-    o, h, l, c = _make_ohlc()
-    sigma = garman_klass_volatility(o, h, l, c)
+    o, h, low, c = _make_ohlc()
+    sigma = garman_klass_volatility(o, h, low, c)
     assert isinstance(sigma, float)
 
 
 def test_garman_klass_annualize():
-    o, h, l, c = _make_ohlc()
-    sigma_d = garman_klass_volatility(o, h, l, c)
-    sigma_a = garman_klass_volatility(o, h, l, c, annualize=True)
+    o, h, low, c = _make_ohlc()
+    sigma_d = garman_klass_volatility(o, h, low, c)
+    sigma_a = garman_klass_volatility(o, h, low, c, annualize=True)
     assert sigma_a == pytest.approx(sigma_d * np.sqrt(252))
 
 
 def test_garman_klass_empty_raises():
     with pytest.raises(ValueError, match="empty"):
-        garman_klass_volatility(
-            np.array([]), np.array([]), np.array([]), np.array([])
-        )
+        garman_klass_volatility(np.array([]), np.array([]), np.array([]), np.array([]))
 
 
 def test_garman_klass_length_mismatch_raises():
-    o, h, l, c = _make_ohlc(50)
+    o, h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="same length"):
-        garman_klass_volatility(o, h[:30], l, c)
+        garman_klass_volatility(o, h[:30], low, c)
 
 
 def test_garman_klass_more_efficient_than_cc():
@@ -104,55 +105,55 @@ def test_garman_klass_more_efficient_than_cc():
     log_r = rng.standard_normal(n) * 0.01
     c = np.cumprod(np.exp(log_r)) * 100
     h = c * (1 + np.abs(rng.standard_normal(n)) * 0.005)
-    l = c * (1 - np.abs(rng.standard_normal(n)) * 0.005)
-    o = np.roll(c, 1); o[0] = c[0]
-    sigma_gk = garman_klass_volatility(o, h, l, c)
+    low = c * (1 - np.abs(rng.standard_normal(n)) * 0.005)
+    o = np.roll(c, 1)
+    o[0] = c[0]
+    sigma_gk = garman_klass_volatility(o, h, low, c)
     assert sigma_gk > 0
 
 
 # ---------- Yang-Zhang ----------
 
+
 def test_yang_zhang_output_shape():
-    o, h, l, c = _make_ohlc(100)
-    result = yang_zhang_volatility(o, h, l, c, window=20)
+    o, h, low, c = _make_ohlc(100)
+    result = yang_zhang_volatility(o, h, low, c, window=20)
     assert len(result) == 100
 
 
 def test_yang_zhang_nan_prefix():
-    o, h, l, c = _make_ohlc(100)
-    result = yang_zhang_volatility(o, h, l, c, window=20)
+    o, h, low, c = _make_ohlc(100)
+    result = yang_zhang_volatility(o, h, low, c, window=20)
     assert np.all(np.isnan(result[:20]))
     assert np.all(np.isfinite(result[20:]))
 
 
 def test_yang_zhang_positive_values():
-    o, h, l, c = _make_ohlc(100)
-    result = yang_zhang_volatility(o, h, l, c, window=20)
+    o, h, low, c = _make_ohlc(100)
+    result = yang_zhang_volatility(o, h, low, c, window=20)
     assert np.all(result[20:] >= 0)
 
 
 def test_yang_zhang_annualize():
-    o, h, l, c = _make_ohlc(100)
-    r_d = yang_zhang_volatility(o, h, l, c, window=20)
-    r_a = yang_zhang_volatility(o, h, l, c, window=20, annualize=True)
+    o, h, low, c = _make_ohlc(100)
+    r_d = yang_zhang_volatility(o, h, low, c, window=20)
+    r_a = yang_zhang_volatility(o, h, low, c, window=20, annualize=True)
     valid = ~np.isnan(r_d)
     np.testing.assert_allclose(r_a[valid], r_d[valid] * np.sqrt(252))
 
 
 def test_yang_zhang_empty_raises():
     with pytest.raises(ValueError, match="empty"):
-        yang_zhang_volatility(
-            np.array([]), np.array([]), np.array([]), np.array([])
-        )
+        yang_zhang_volatility(np.array([]), np.array([]), np.array([]), np.array([]))
 
 
 def test_yang_zhang_invalid_window_raises():
-    o, h, l, c = _make_ohlc(100)
+    o, h, low, c = _make_ohlc(100)
     with pytest.raises(ValueError, match="window"):
-        yang_zhang_volatility(o, h, l, c, window=1)
+        yang_zhang_volatility(o, h, low, c, window=1)
 
 
 def test_yang_zhang_length_mismatch_raises():
-    o, h, l, c = _make_ohlc(50)
+    o, h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="same length"):
-        yang_zhang_volatility(o, h[:30], l, c)
+        yang_zhang_volatility(o, h[:30], low, c)

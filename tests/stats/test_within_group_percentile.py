@@ -1,8 +1,9 @@
 """Tests for oprim.stats.within_group_percentile (A6)."""
 
 import warnings
-import numpy as np
+
 import pytest
+
 from oprim import within_group_percentile
 
 

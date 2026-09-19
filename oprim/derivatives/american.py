@@ -6,6 +6,7 @@ Longstaff, F.A. & Schwartz, E.S. (2001). Valuing American Options by
     Simulation: A Simple Least-Squares Approach. Review of Financial
     Studies, 14(1), 113-147.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -143,14 +144,22 @@ def lsm_american_price(
     if basis_functions not in ("polynomial", "laguerre", "hermite"):
         raise ValueError("basis_functions must be 'polynomial', 'laguerre', or 'hermite'")
 
-    S, K, T, r, sigma, q = spot, strike, time_to_expiry, risk_free_rate, volatility, dividend_yield
+    s_val, k_val, t_val, r_val, sigma_val, q_val = (
+        spot,
+        strike,
+        time_to_expiry,
+        risk_free_rate,
+        volatility,
+        dividend_yield,
+    )
 
     # Edge case: T=0
-    if T == 0:
-        if option_type == "call":
-            price = float(max(S - K, 0.0))
-        else:
-            price = float(max(K - S, 0.0))
+    if t_val == 0:
+        price = (
+            float(max(s_val - k_val, 0.0))
+            if option_type == "call"
+            else float(max(k_val - s_val, 0.0))
+        )
         return {
             "price": price,
             "standard_error": 0.0,
@@ -159,23 +168,23 @@ def lsm_american_price(
         }
 
     rng = np.random.default_rng(seed)
-    dt = T / n_time_steps
-    disc = np.exp(-r * dt)
-    drift = (r - q - 0.5 * sigma**2) * dt
-    vol_sqrt_dt = sigma * np.sqrt(dt)
+    dt = t_val / n_time_steps
+    disc = np.exp(-r_val * dt)
+    drift = (r_val - q_val - 0.5 * sigma_val**2) * dt
+    vol_sqrt_dt = sigma_val * np.sqrt(dt)
 
     # Simulate paths: shape (n_simulations, n_time_steps + 1)
-    Z = rng.standard_normal((n_simulations, n_time_steps))
-    log_inc = drift + vol_sqrt_dt * Z
+    z_val = rng.standard_normal((n_simulations, n_time_steps))
+    log_inc = drift + vol_sqrt_dt * z_val
     log_paths = np.zeros((n_simulations, n_time_steps + 1))
-    log_paths[:, 0] = np.log(S)
-    log_paths[:, 1:] = np.log(S) + np.cumsum(log_inc, axis=1)
+    log_paths[:, 0] = np.log(s_val)
+    log_paths[:, 1:] = np.log(s_val) + np.cumsum(log_inc, axis=1)
     paths = np.exp(log_paths)  # (n_sims, n_steps+1)
 
     def _payoff(s: np.ndarray) -> np.ndarray:
         if option_type == "call":
-            return np.maximum(s - K, 0.0)
-        return np.maximum(K - s, 0.0)
+            return np.maximum(s - k_val, 0.0)
+        return np.maximum(k_val - s, 0.0)
 
     # Terminal payoffs (step n_time_steps)
     cash_flows = _payoff(paths[:, -1])
@@ -184,12 +193,11 @@ def lsm_american_price(
     # exercise_time[i] = time step at which path i exercises (n_time_steps = hold to expiry)
     exercise_time = np.full(n_simulations, n_time_steps, dtype=int)
     exercise_boundary: list[float] = []
-    n_early_exercises = 0
 
     # Backward induction from T-1 down to step 1
     for t in range(n_time_steps - 1, 0, -1):
-        St = paths[:, t]
-        intrinsic = _payoff(St)
+        s_t = paths[:, t]
+        intrinsic = _payoff(s_t)
 
         # Only consider in-the-money paths for regression
         itm = intrinsic > 0
@@ -205,22 +213,22 @@ def lsm_american_price(
         # Discounted continuation values for ITM paths
         # cash_flows currently holds payoff at exercise_time[i] discounted to step t+1
         # We need to discount one more step
-        disc_factor = np.exp(-r * (exercise_time - t) * dt)
+        disc_factor = np.exp(-r_val * (exercise_time - t) * dt)
         continuation = cash_flows * disc_factor  # discounted from exercise time to t
 
-        X = St[itm]
-        Y = continuation[itm]
+        x_val = s_t[itm]
+        y_val = continuation[itm]
 
         # Normalise X for numerical stability
-        X_mean = np.mean(X)
-        X_std = np.std(X) if np.std(X) > 1e-10 else 1.0
-        X_norm = (X - X_mean) / X_std
+        x_mean = np.mean(x_val)
+        x_std = np.std(x_val) if np.std(x_val) > 1e-10 else 1.0
+        x_norm = (x_val - x_mean) / x_std
 
         try:
-            A = _basis_matrix(X_norm, n_basis, basis_functions)
+            a_mat = _basis_matrix(x_norm, n_basis, basis_functions)
             # OLS: min ||A*beta - Y||^2
-            coeffs, _, _, _ = np.linalg.lstsq(A, Y, rcond=None)
-            continuation_hat = A @ coeffs
+            coeffs, _, _, _ = np.linalg.lstsq(a_mat, y_val, rcond=None)
+            continuation_hat = a_mat @ coeffs
         except (np.linalg.LinAlgError, ValueError):
             exercise_boundary.append(float("nan"))
             cash_flows = cash_flows * disc
@@ -232,7 +240,7 @@ def lsm_american_price(
 
         # Record boundary: threshold S at which we're indifferent (interpolation)
         if np.any(exercise):
-            boundary_candidates = X[exercise]
+            boundary_candidates = x_val[exercise]
             if option_type == "put":
                 boundary = float(np.max(boundary_candidates))
             else:
@@ -249,7 +257,7 @@ def lsm_american_price(
 
     # At step 0 (t=0), we do not exercise (it's the current time)
     # Final price: discount each path's cash flow from exercise_time to t=0
-    disc_factors = np.exp(-r * exercise_time * dt)
+    disc_factors = np.exp(-r_val * exercise_time * dt)
     discounted_payoffs = cash_flows * disc_factors
 
     price_est = float(np.mean(discounted_payoffs))

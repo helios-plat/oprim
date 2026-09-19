@@ -107,7 +107,8 @@ def disk_smart_probe(
     只读(R0). 需 root 与 smartmontools. 用于存储面板给盘打健康徽章、
     在 uptime/自愈里预警坏盘.
 
-    执行位置由调用方决定:不传 smartctl_json 时本地跑 smartctl;传入则只解析,
+    执行位置由调用方决定:不传 smartctl_json 时本地跑 smartctl
+    传入则只解析,
     调用方可在别处(特权 host-shell / 远端节点)取到原始输出再交本原语解析.
 
     Args:
@@ -115,7 +116,9 @@ def disk_smart_probe(
         smartctl_json: 可选. 预先取到的 `smartctl -j ...` 原始 JSON 字符串.
 
     Returns:
-        SmartHealth: available 表示是否读到 SMART; passed 为整体健康自评;
+        SmartHealth: available 表示是否读到 SMART
+        passed 为整体健康自评
+
             温度/通电时长/重映射扇区等关键项已抽平, 完整项在 attributes.
 
     Raises:

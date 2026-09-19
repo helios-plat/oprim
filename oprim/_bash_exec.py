@@ -1,11 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import asyncio
+
 import subprocess
-from collections.abc import AsyncIterator
 from dataclasses import dataclass
+
 from ._exceptions import ShellOprimError
+
 
 @dataclass
 class ShellResult:
@@ -17,10 +18,12 @@ class ShellResult:
     def ok(self) -> bool:
         return self.code == 0
 
+
 @dataclass
 class StreamChunk:
     text: str
     stream: str
+
 
 def bash_exec(
     command: str,
@@ -71,8 +74,8 @@ def bash_exec(
             code=result.returncode,
         )
     except FileNotFoundError as e:  # pragma: no cover
-        raise ShellOprimError("shell not found", cause=e)
+        raise ShellOprimError("shell not found", cause=e) from e
     except subprocess.TimeoutExpired:
         raise ShellOprimError(f"command timed out after {timeout}s: {command[:80]}")
     except OSError as e:  # pragma: no cover
-        raise ShellOprimError("cannot execute command", cause=e)
+        raise ShellOprimError("cannot execute command", cause=e) from e

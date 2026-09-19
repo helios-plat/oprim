@@ -1,4 +1,5 @@
 """P-NEW4 parse_plugin_manifest — parse plugin.json manifest to PluginManifest."""
+
 from __future__ import annotations
 
 import json

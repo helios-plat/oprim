@@ -13,6 +13,7 @@ before the dot-product, making both metrics equivalent to cosine similarity.
 Reference: Manning, Raghavan & Schütze (2008). *Introduction to Information
 Retrieval*, Cambridge University Press, §6.3.
 """
+
 from __future__ import annotations
 
 from typing import Literal
@@ -63,38 +64,28 @@ def vector_similarity(
     >>> vector_similarity(q, C, metric="cosine")
     array([1., 0.])
     """
-    _VALID_METRICS = {"cosine", "dot", "euclidean", "manhattan"}
+    _valid_metrics = {"cosine", "dot", "euclidean", "manhattan"}
 
     # --- input validation -------------------------------------------------- #
     query = np.asarray(query, dtype=float)
     corpus = np.asarray(corpus, dtype=float)
 
     if query.ndim != 1:
-        raise ValueError(
-            f"query must be 1-D, got shape {query.shape}"
-        )
+        raise ValueError(f"query must be 1-D, got shape {query.shape}")
     if corpus.ndim != 2:
-        raise ValueError(
-            f"corpus must be 2-D, got shape {corpus.shape}"
-        )
+        raise ValueError(f"corpus must be 2-D, got shape {corpus.shape}")
     if query.shape[0] != corpus.shape[1]:
         raise ValueError(
-            f"Dimension mismatch: query has D={query.shape[0]} but corpus has "
-            f"D={corpus.shape[1]}"
+            f"Dimension mismatch: query has D={query.shape[0]} but corpus has D={corpus.shape[1]}"
         )
-    if metric not in _VALID_METRICS:
-        raise ValueError(
-            f"Invalid metric {metric!r}. Must be one of {sorted(_VALID_METRICS)}"
-        )
+    if metric not in _valid_metrics:
+        raise ValueError(f"Invalid metric {metric!r}. Must be one of {sorted(_valid_metrics)}")
 
     # --- compute similarity ------------------------------------------------- #
     if metric in {"cosine", "dot"}:
         if normalize:
             q_norm = np.linalg.norm(query)
-            if q_norm == 0.0:
-                q_unit = query
-            else:
-                q_unit = query / q_norm
+            q_unit = query if q_norm == 0.0 else query / q_norm
 
             c_norms = np.linalg.norm(corpus, axis=1, keepdims=True)
             # avoid division by zero for zero-vectors in corpus

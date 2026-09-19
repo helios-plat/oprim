@@ -29,7 +29,9 @@ def bayesian_factor_posterior(
         Dict with posterior_mean, ci_low, ci_high, bayes_factor.
 
     Example:
-        >>> bayesian_factor_posterior(prior={"mean": 0, "std": 1}, likelihood={"mean": 0.5, "std": 0.5})  # noqa: E501
+        >>> bayesian_factor_posterior(
+        ...     prior={"mean": 0, "std": 1}, likelihood={"mean": 0.5, "std": 0.5}
+        ... )
         {'posterior_mean': 0.4, 'ci_low': ..., 'ci_high': ..., 'bayes_factor': ...}
     """
     p_mean, p_std = float(prior["mean"]), float(prior["std"])
@@ -228,10 +230,7 @@ def trend_sentiment_synergy(
         0.56  # dampened due to greed alignment
     """
     alignment = trend_signal * sentiment_score
-    if alignment > 0:
-        dampen = 1.0 - 0.3 * abs(alignment)
-    else:
-        dampen = 1.0 + 0.2 * abs(alignment)
+    dampen = 1.0 - 0.3 * abs(alignment) if alignment > 0 else 1.0 + 0.2 * abs(alignment)
     return round(trend_signal * dampen, 6)
 
 
@@ -420,7 +419,9 @@ def regime_conditional_ic(
         Dict mapping regime → mean IC.
 
     Example:
-        >>> regime_conditional_ic(ic_series=[0.1, -0.05, 0.08], regime_labels=["bull", "bear", "bull"])  # noqa: E501
+        >>> regime_conditional_ic(
+        ...     ic_series=[0.1, -0.05, 0.08], regime_labels=["bull", "bear", "bull"]
+        ... )
         {'bull': 0.09, 'bear': -0.05}
     """
     if len(ic_series) != len(regime_labels):

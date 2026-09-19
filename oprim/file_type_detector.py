@@ -1,5 +1,7 @@
 """Detect file MIME type and category from file path."""
+
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,14 +13,17 @@ class FileTypeInfo:
 
 
 _EXT_MAP: dict[str, tuple[str, str]] = {
-    ".pdf":  ("application/pdf", "pdf"),
+    ".pdf": ("application/pdf", "pdf"),
     ".epub": ("application/epub+zip", "epub"),
     ".mobi": ("application/x-mobipocket-ebook", "book"),
-    ".md":   ("text/markdown", "text"),
-    ".txt":  ("text/plain", "text"),
-    ".docx": ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "document"),
+    ".md": ("text/markdown", "text"),
+    ".txt": ("text/plain", "text"),
+    ".docx": (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "document",
+    ),
     ".html": ("text/html", "webpage"),
-    ".htm":  ("text/html", "webpage"),
+    ".htm": ("text/html", "webpage"),
 }
 
 

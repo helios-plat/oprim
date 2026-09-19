@@ -1,4 +1,5 @@
 """oprim.pbo_compute — Probability of Backtest Overfitting (Bailey et al.)."""
+
 from __future__ import annotations
 
 from typing import Any

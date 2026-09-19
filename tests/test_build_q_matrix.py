@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from oprim._build_q_matrix import build_q_matrix
-
 
 # ---------------------------------------------------------------------------
 # 1. Empty edges → Q shape (0, 0)

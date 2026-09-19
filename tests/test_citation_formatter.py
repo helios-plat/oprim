@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._citation_formatter import citation_formatter
 
 BASE = {

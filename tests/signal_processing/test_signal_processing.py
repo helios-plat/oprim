@@ -107,14 +107,14 @@ class TestHurstExponent:
         """np.cumsum(randn) -> H close to 0.5 (allow [0.3, 0.7])."""
         rng = np.random.default_rng(42)
         series = rng.standard_normal(512)
-        H = hurst_exponent(series)
-        assert 0.3 <= H <= 0.7
+        h_val = hurst_exponent(series)
+        assert 0.3 <= h_val <= 0.7
 
     def test_trending(self):
         """Monotone series -> H > 0.5."""
         series = np.linspace(0, 100, 256)
-        H = hurst_exponent(series)
-        assert H > 0.5
+        h_val = hurst_exponent(series)
+        assert h_val > 0.5
 
     def test_too_short_raises(self):
         """Series shorter than min_window * 2 raises ValueError."""
@@ -125,8 +125,8 @@ class TestHurstExponent:
         """Result is in [0, 1]."""
         rng = np.random.default_rng(0)
         series = rng.standard_normal(256)
-        H = hurst_exponent(series)
-        assert 0.0 <= H <= 1.0
+        h_val = hurst_exponent(series)
+        assert 0.0 <= h_val <= 1.0
 
     @pytest.mark.academic_reference
     def test_hurst_rs_analysis_1951(self):
@@ -138,8 +138,8 @@ class TestHurstExponent:
             # levels where this R/S implementation returns H close to 1.
             series = rng.standard_normal(512)
             results.append(hurst_exponent(series))
-        mean_H = np.mean(results)
-        assert 0.3 <= mean_H <= 0.7
+        mean_h = np.mean(results)
+        assert 0.3 <= mean_h <= 0.7
 
     def test_not_enough_window_sizes_raises(self):
         """Series where only 1 window size fits → ValueError 'Not enough window sizes'."""
@@ -151,8 +151,8 @@ class TestHurstExponent:
     def test_constant_series_returns_fallback(self):
         """Constant series → all chunk stds=0 → rs_vals empty → fallback 0.5."""
         series = np.full(64, 3.14)
-        H = hurst_exponent(series)
-        assert H == pytest.approx(0.5, abs=0.01)
+        h_val = hurst_exponent(series)
+        assert pytest.approx(0.5, abs=0.01) == h_val
 
 
 class TestHChangeRateStd:

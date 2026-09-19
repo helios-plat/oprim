@@ -39,7 +39,8 @@ def causal_graph_build(
     """
     if not isinstance(decision_trail, list):
         raise OprimValidationError(
-            f"causal_graph_build: decision_trail must be a list, got {type(decision_trail).__name__}"
+            "causal_graph_build: decision_trail must be a list, got "
+            f"{type(decision_trail).__name__}"
         )
     if not decision_trail:
         raise OprimValidationError("causal_graph_build: decision_trail must not be empty")
@@ -61,16 +62,12 @@ def causal_graph_build(
         )
 
         if prev_node_id:
-            edges.append(
-                {"source": prev_node_id, "target": node_id, "relation": "causes"}
-            )
+            edges.append({"source": prev_node_id, "target": node_id, "relation": "causes"})
 
         # 工具调用的输出因果关联
         output_refs = step.get("output_refs") or []
         for ref in output_refs:
-            edges.append(
-                {"source": str(ref), "target": node_id, "relation": "depends_on"}
-            )
+            edges.append({"source": str(ref), "target": node_id, "relation": "depends_on"})
 
         prev_node_id = node_id
 

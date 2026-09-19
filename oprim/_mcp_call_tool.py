@@ -1,12 +1,16 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 from typing import Any
+
 from ._exceptions import OprimError
 from ._protocols import McpClientHandle
 
+
 class McpOprimError(OprimError):
     """MCP 请求失败。"""
+
 
 async def mcp_call_tool(
     name: str,
@@ -41,7 +45,7 @@ async def mcp_call_tool(
     try:
         result = await client.call_tool(name, arguments)
     except Exception as e:
-        raise McpOprimError(f"mcp_call_tool '{name}' failed", cause=e)
+        raise McpOprimError(f"mcp_call_tool '{name}' failed", cause=e) from e
 
     if not isinstance(result, dict):
         return {"content": [{"type": "text", "text": str(result)}], "isError": False}

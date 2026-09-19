@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -59,7 +59,9 @@ class TestAvatarGenerateDuix:
             p.write_bytes(b"\x00" * 64)
             return p
 
-        with patch("oprim._providers.duix.submit_and_poll", new=AsyncMock(side_effect=_fake_submit)):
+        with patch(
+            "oprim._providers.duix.submit_and_poll", new=AsyncMock(side_effect=_fake_submit)
+        ):
             await avatar_generate(
                 provider="duix",
                 portrait_image=portrait,
@@ -80,14 +82,16 @@ class TestAvatarGenerateDuix:
         async def _fail(**kw: object) -> None:
             raise DuixSubmitError("HTTP 503 from duix")
 
-        with patch("oprim._providers.duix.submit_and_poll", new=AsyncMock(side_effect=_fail)):
-            with pytest.raises(AvatarGenError, match="Duix generation failed"):
-                await avatar_generate(
-                    provider="duix",
-                    portrait_image=portrait,
-                    audio_path=audio,
-                    output_path=tmp_path / "out.mp4",
-                )
+        with (
+            patch("oprim._providers.duix.submit_and_poll", new=AsyncMock(side_effect=_fail)),
+            pytest.raises(AvatarGenError, match="Duix generation failed"),
+        ):
+            await avatar_generate(
+                provider="duix",
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=tmp_path / "out.mp4",
+            )
 
     async def test_duix_poll_timeout_raises_avatar_error(
         self, tmp_path: Path, inputs: tuple[Path, Path]
@@ -100,14 +104,16 @@ class TestAvatarGenerateDuix:
         async def _timeout(**kw: object) -> None:
             raise DuixPollTimeoutError("timed out after 300s")
 
-        with patch("oprim._providers.duix.submit_and_poll", new=AsyncMock(side_effect=_timeout)):
-            with pytest.raises(AvatarGenError, match="Duix generation failed"):
-                await avatar_generate(
-                    provider="duix",
-                    portrait_image=portrait,
-                    audio_path=audio,
-                    output_path=tmp_path / "out.mp4",
-                )
+        with (
+            patch("oprim._providers.duix.submit_and_poll", new=AsyncMock(side_effect=_timeout)),
+            pytest.raises(AvatarGenError, match="Duix generation failed"),
+        ):
+            await avatar_generate(
+                provider="duix",
+                portrait_image=portrait,
+                audio_path=audio,
+                output_path=tmp_path / "out.mp4",
+            )
 
     async def test_portrait_not_found_still_validated(self, tmp_path: Path) -> None:
         """portrait_image validation runs before provider dispatch."""

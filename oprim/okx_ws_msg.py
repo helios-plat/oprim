@@ -1,4 +1,5 @@
 """oprim.okx_ws_msg — Subscribe to a single OKX WebSocket channel message."""
+
 from __future__ import annotations
 
 import asyncio
@@ -38,10 +39,12 @@ async def okx_ws_msg(
     except ImportError:
         raise OkxWsError("websockets package not installed") from None
 
-    subscribe_msg = json.dumps({
-        "op": "subscribe",
-        "args": [{"channel": channel, "instId": inst_id}],
-    })
+    subscribe_msg = json.dumps(
+        {
+            "op": "subscribe",
+            "args": [{"channel": channel, "instId": inst_id}],
+        }
+    )
 
     try:
         async with websockets.connect(ws_url, open_timeout=timeout) as ws:
@@ -51,7 +54,7 @@ async def okx_ws_msg(
                 remaining = deadline - asyncio.get_event_loop().time()
                 try:
                     raw = await asyncio.wait_for(ws.recv(), timeout=max(0.1, remaining))
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     break
                 try:
                     msg = json.loads(raw)

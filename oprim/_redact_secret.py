@@ -1,4 +1,5 @@
 """redact_secret — replace known secret strings inside text."""
+
 from __future__ import annotations
 
 

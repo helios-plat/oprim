@@ -2,6 +2,7 @@
 
 Async, single DB call, db_conn injected (no global state).
 """
+
 from __future__ import annotations
 
 import inspect
@@ -49,12 +50,14 @@ async def source_trace(
         sid = r.get("source_id", "")
         if sid and sid not in source_ids:
             source_ids.append(sid)
-        positions.append({
-            "source_id": sid,
-            "page": r.get("page"),
-            "chunk_idx": r.get("chunk_idx"),
-            "text_snippet": r.get("text_snippet", ""),
-        })
+        positions.append(
+            {
+                "source_id": sid,
+                "page": r.get("page"),
+                "chunk_idx": r.get("chunk_idx"),
+                "text_snippet": r.get("text_snippet", ""),
+            }
+        )
 
     return SourceTraceResult(
         ku_id=ku_id,

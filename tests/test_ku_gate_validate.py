@@ -1,6 +1,5 @@
 """Tests for oprim.ku_gate_validate."""
 
-import pytest
 from oprim._ku_gate_validate import ku_gate_validate
 
 

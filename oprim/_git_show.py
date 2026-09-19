@@ -1,10 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import subprocess
+
 from dataclasses import dataclass
 from pathlib import Path
-from ._exceptions import GitOprimError
+
+from oprim.git import _git
+
 
 @dataclass
 class FileStatus:
@@ -13,6 +15,7 @@ class FileStatus:
     worktree: str
     renamed_from: str | None = None
 
+
 @dataclass
 class Commit:
     hash: str
@@ -20,12 +23,14 @@ class Commit:
     date: str
     message: str
 
+
 @dataclass
 class BlameLine:
     lineno: int
     commit: str
     author: str
     content: str
+
 
 def git_show(ref: str, *, repo: str | Path, path: str | None = None) -> str:
     """单次查看 commit 内容或特定文件在某 ref 的内容。

@@ -25,7 +25,8 @@ def file_parser_pdf(
 
     Args:
         file_path: Path to the PDF file
-        strategy: Extraction strategy ("pymupdf4llm" default; "docling" reserved)
+        strategy: Extraction strategy ("pymupdf4llm" default
+        "docling" reserved)
 
     Returns:
         ParsedDocument with pages, tables, images, metadata
@@ -64,13 +65,11 @@ def file_parser_pdf(
                 # Fallback: extract via text blocks with rawdict (better CID handling)
                 text_blocks = page.get_text("blocks")
                 fallback_text = "\n".join(
-                    b[4] for b in text_blocks
-                    if isinstance(b[4], str) and b[4].strip()
+                    b[4] for b in text_blocks if isinstance(b[4], str) and b[4].strip()
                 )
                 # Use fallback only if it's better (fewer \ufffd)
                 if fallback_text and (
-                    fallback_text.count("\ufffd") / max(len(fallback_text), 1)
-                    < garbled_ratio
+                    fallback_text.count("\ufffd") / max(len(fallback_text), 1) < garbled_ratio
                 ):
                     text = fallback_text
 

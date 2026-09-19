@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._coherence_compute import (
-    GRADE_LADDER,
     INDEPENDENT_SOURCES,
-    coherence_compute,
     _grade_index,
-    _status_of,
+    coherence_compute,
 )
 
 

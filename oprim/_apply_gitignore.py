@@ -1,4 +1,5 @@
 """Pure-compute: apply_gitignore."""
+
 from __future__ import annotations
 
 import fnmatch
@@ -7,12 +8,11 @@ from pathlib import Path
 from ._hicode_types import Pattern
 
 
-def apply_gitignore(
-    paths: list[Path], *, patterns: list[Pattern], root: Path
-) -> list[Path]:
+def apply_gitignore(paths: list[Path], *, patterns: list[Pattern], root: Path) -> list[Path]:
     """Filter *paths* according to gitignore-style *patterns*.
 
-    Patterns are evaluated in order; later patterns override earlier ones.
+    Patterns are evaluated in order
+    later patterns override earlier ones.
     Negated patterns (``!``) un-ignore a previously ignored path.
     Supports ``*`` (single segment) and ``**`` (cross-segment) globbing.
 
@@ -55,6 +55,7 @@ def apply_gitignore(
             if "**" in pat:
                 # Convert ** glob to regex-style matching via fnmatch on full path
                 import re
+
                 regex_pat = re.escape(pat).replace(r"\*\*", ".*").replace(r"\*", "[^/]*")
                 if re.fullmatch(regex_pat, candidate):
                     return True

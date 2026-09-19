@@ -1,9 +1,11 @@
 """Tests for oprim.classifier.detect_image_exif."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
 import pytest
+
 pytest.importorskip("PIL", reason="image feature dependency is not installed")
 from PIL import Image
 
@@ -60,7 +62,8 @@ class TestDetectImageExif:
         assert hasattr(result, "is_screenshot_likely")
 
     def test_jpeg_with_camera_exif(self, tmp_path: Path):
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
+
         path = tmp_path / "camera.jpg"
         Image.new("RGB", (640, 480), color=(128, 64, 32)).save(str(path), "JPEG")
 
@@ -70,9 +73,9 @@ class TestDetectImageExif:
         mock_img.format = "JPEG"
         mock_img._getexif.return_value = fake_exif
 
-        with patch("oprim.classifier.detect_image_exif.Image") as mock_Image:
-            mock_Image.open.return_value = mock_img
-            mock_Image.UnidentifiedImageError = Image.UnidentifiedImageError
+        with patch("oprim.classifier.detect_image_exif.Image") as mock_image:
+            mock_image.open.return_value = mock_img
+            mock_image.UnidentifiedImageError = Image.UnidentifiedImageError
             result = detect_image_exif(path)
 
         assert result.has_exif is True
@@ -81,7 +84,8 @@ class TestDetectImageExif:
         assert result.datetime_taken is not None
 
     def test_exif_with_none_make(self, tmp_path: Path):
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
+
         path = tmp_path / "cam.jpg"
         Image.new("RGB", (100, 100)).save(str(path), "JPEG")
 
@@ -90,9 +94,9 @@ class TestDetectImageExif:
         mock_img.format = "JPEG"
         mock_img._getexif.return_value = {0x9003: "2023:01:01 12:00:00"}
 
-        with patch("oprim.classifier.detect_image_exif.Image") as mock_Image:
-            mock_Image.open.return_value = mock_img
-            mock_Image.UnidentifiedImageError = Image.UnidentifiedImageError
+        with patch("oprim.classifier.detect_image_exif.Image") as mock_image:
+            mock_image.open.return_value = mock_img
+            mock_image.UnidentifiedImageError = Image.UnidentifiedImageError
             result = detect_image_exif(path)
 
         assert result.has_exif is True
@@ -100,7 +104,8 @@ class TestDetectImageExif:
         assert result.camera_model is None
 
     def test_getexif_raises_is_silenced(self, tmp_path: Path):
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
+
         path = tmp_path / "weird.jpg"
         Image.new("RGB", (100, 100)).save(str(path), "JPEG")
 
@@ -109,9 +114,9 @@ class TestDetectImageExif:
         mock_img.format = "JPEG"
         mock_img._getexif.side_effect = AttributeError("no _getexif")
 
-        with patch("oprim.classifier.detect_image_exif.Image") as mock_Image:
-            mock_Image.open.return_value = mock_img
-            mock_Image.UnidentifiedImageError = Image.UnidentifiedImageError
+        with patch("oprim.classifier.detect_image_exif.Image") as mock_image:
+            mock_image.open.return_value = mock_img
+            mock_image.UnidentifiedImageError = Image.UnidentifiedImageError
             result = detect_image_exif(path)
 
         assert result.has_exif is False

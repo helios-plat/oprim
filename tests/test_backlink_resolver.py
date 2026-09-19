@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._backlink_resolver import backlink_resolver
 
 

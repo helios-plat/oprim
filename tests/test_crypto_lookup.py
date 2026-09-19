@@ -1,4 +1,5 @@
 """Tests for crypto_lookup oprims."""
+
 import pytest
 
 from oprim._crypto_lookup import (

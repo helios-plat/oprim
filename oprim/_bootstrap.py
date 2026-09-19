@@ -1,4 +1,5 @@
 """Bootstrap Stratum workspace directories and obase logging/config."""
+
 from __future__ import annotations
 
 from pathlib import Path

@@ -1,4 +1,5 @@
 """Detect EXIF metadata and basic properties from image files."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -22,11 +23,21 @@ class ImageExif:
 
 
 # Common screen resolutions that may indicate a screenshot
-_SCREEN_SIZES: frozenset[tuple[int, int]] = frozenset({
-    (1920, 1080), (2560, 1440), (3024, 1964), (2560, 1600),
-    (1440, 900), (2880, 1800), (1366, 768), (1280, 800),
-    (3840, 2160), (2732, 2048), (2224, 1668),
-})
+_SCREEN_SIZES: frozenset[tuple[int, int]] = frozenset(
+    {
+        (1920, 1080),
+        (2560, 1440),
+        (3024, 1964),
+        (2560, 1600),
+        (1440, 900),
+        (2880, 1800),
+        (1366, 768),
+        (1280, 800),
+        (3840, 2160),
+        (2732, 2048),
+        (2224, 1668),
+    }
+)
 
 
 def detect_image_exif(path: Path) -> ImageExif:
@@ -41,7 +52,7 @@ def detect_image_exif(path: Path) -> ImageExif:
         raise FileNotFoundError(f"File not found: {path}")
     try:
         img = Image.open(str(path))
-        img.verify()          # integrity check
+        img.verify()  # integrity check
         img = Image.open(str(path))  # re-open after verify (verify closes)
     except (UnidentifiedImageError, Exception) as e:
         raise UnsupportedImageError(f"Cannot open image {path}: {e}") from e
@@ -76,9 +87,7 @@ def detect_image_exif(path: Path) -> ImageExif:
 
     # Screenshot heuristic: PNG + no EXIF + matches a common screen resolution
     is_screenshot_likely = (
-        fmt.upper() == "PNG"
-        and not has_exif
-        and (width, height) in _SCREEN_SIZES
+        fmt.upper() == "PNG" and not has_exif and (width, height) in _SCREEN_SIZES
     )
 
     img.close()

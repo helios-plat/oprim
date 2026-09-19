@@ -1,4 +1,5 @@
 """Compute the delta between two Session states."""
+
 from __future__ import annotations
 
 from typing import Any

@@ -1,4 +1,5 @@
 """Tests for crypto_technical oprims."""
+
 import pytest
 
 from oprim._crypto_technical import (
@@ -77,9 +78,12 @@ class TestCrossAssetDivergenceRevert:
     def test_revert_bullish(self):
         # BTC +20%, ETH -6.7%, SOL -5% → spread = 26.7% > 20%, SOL weakest
         r = compute_cross_asset_divergence_revert(
-            btc_close_30d_ago=50000, btc_close_now=60000,
-            eth_close_30d_ago=3000, eth_close_now=2800,
-            sol_close_30d_ago=100, sol_close_now=80,
+            btc_close_30d_ago=50000,
+            btc_close_now=60000,
+            eth_close_30d_ago=3000,
+            eth_close_now=2800,
+            sol_close_30d_ago=100,
+            sol_close_now=80,
             target="SOL-USDT",
         )
         assert r["available"] is True
@@ -88,9 +92,12 @@ class TestCrossAssetDivergenceRevert:
 
     def test_spread_below_threshold(self):
         r = compute_cross_asset_divergence_revert(
-            btc_close_30d_ago=100, btc_close_now=105,
-            eth_close_30d_ago=100, eth_close_now=104,
-            sol_close_30d_ago=100, sol_close_now=103,
+            btc_close_30d_ago=100,
+            btc_close_now=105,
+            eth_close_30d_ago=100,
+            eth_close_now=104,
+            sol_close_30d_ago=100,
+            sol_close_now=103,
             target="SOL-USDT",
         )
         assert r["available"] is False
@@ -98,9 +105,12 @@ class TestCrossAssetDivergenceRevert:
 
     def test_target_not_weakest(self):
         r = compute_cross_asset_divergence_revert(
-            btc_close_30d_ago=50000, btc_close_now=60000,
-            eth_close_30d_ago=3000, eth_close_now=2800,
-            sol_close_30d_ago=100, sol_close_now=130,
+            btc_close_30d_ago=50000,
+            btc_close_now=60000,
+            eth_close_30d_ago=3000,
+            eth_close_now=2800,
+            sol_close_30d_ago=100,
+            sol_close_now=130,
             target="SOL-USDT",
         )
         assert r["available"] is False
@@ -108,9 +118,12 @@ class TestCrossAssetDivergenceRevert:
 
     def test_invalid_prices(self):
         r = compute_cross_asset_divergence_revert(
-            btc_close_30d_ago=0, btc_close_now=60000,
-            eth_close_30d_ago=3000, eth_close_now=2800,
-            sol_close_30d_ago=100, sol_close_now=95,
+            btc_close_30d_ago=0,
+            btc_close_now=60000,
+            eth_close_30d_ago=3000,
+            eth_close_now=2800,
+            sol_close_30d_ago=100,
+            sol_close_now=95,
             target="ETH-USDT",
         )
         assert r["available"] is False
@@ -118,9 +131,12 @@ class TestCrossAssetDivergenceRevert:
 
     def test_negative_price(self):
         r = compute_cross_asset_divergence_revert(
-            btc_close_30d_ago=-1, btc_close_now=60000,
-            eth_close_30d_ago=3000, eth_close_now=2800,
-            sol_close_30d_ago=100, sol_close_now=95,
+            btc_close_30d_ago=-1,
+            btc_close_now=60000,
+            eth_close_30d_ago=3000,
+            eth_close_now=2800,
+            sol_close_30d_ago=100,
+            sol_close_now=95,
             target="ETH-USDT",
         )
         assert r["available"] is False

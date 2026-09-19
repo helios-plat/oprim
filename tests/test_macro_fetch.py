@@ -7,16 +7,15 @@ from unittest.mock import patch
 
 import pytest
 
-from oprim._macro_types import MacroDataPoint, MacroFetchError
-from oprim._fetch_macro_m2 import fetch_macro_m2
-from oprim._fetch_macro_pboc import fetch_macro_pboc
+from oprim._fetch_macro_calendar import fetch_macro_calendar
 from oprim._fetch_macro_cpi_ppi_pmi import fetch_macro_cpi_ppi_pmi
 from oprim._fetch_macro_lpr import fetch_macro_lpr
+from oprim._fetch_macro_m2 import fetch_macro_m2
+from oprim._fetch_macro_pboc import fetch_macro_pboc
+from oprim._fetch_macro_policy_news import fetch_macro_policy_news
 from oprim._fetch_macro_rrr import fetch_macro_rrr
 from oprim._fetch_macro_yield_spread import fetch_macro_yield_spread
-from oprim._fetch_macro_calendar import fetch_macro_calendar
-from oprim._fetch_macro_policy_news import fetch_macro_policy_news
-
+from oprim._macro_types import MacroDataPoint, MacroFetchError
 
 # ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -124,11 +123,11 @@ class TestFetchMacroM2:
             await fetch_macro_m2(source="wind")  # type: ignore[arg-type]
 
     async def test_network_error_wraps_to_macro_fetch_error(self):
-        with patch(
-            "oprim.fetch_macro_m2._akshare_fetch_m2", side_effect=ConnectionError("timeout")
+        with (
+            patch("oprim.fetch_macro_m2._akshare_fetch_m2", side_effect=ConnectionError("timeout")),
+            pytest.raises(MacroFetchError, match="fetch_macro_m2"),
         ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_m2"):
-                await fetch_macro_m2()
+            await fetch_macro_m2()
 
     async def test_sorted_by_date(self):
         rows = list(reversed(_m2_rows()))
@@ -166,11 +165,11 @@ class TestFetchMacroPboc:
             await fetch_macro_pboc(source="tushare")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch(
-            "oprim.fetch_macro_pboc._akshare_fetch_pboc", side_effect=OSError("unreachable")
+        with (
+            patch("oprim.fetch_macro_pboc._akshare_fetch_pboc", side_effect=OSError("unreachable")),
+            pytest.raises(MacroFetchError, match="fetch_macro_pboc"),
         ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_pboc"):
-                await fetch_macro_pboc()
+            await fetch_macro_pboc()
 
     async def test_date_filter_applied(self):
         with patch("oprim.fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
@@ -222,9 +221,9 @@ class TestFetchMacroCpiPpiPmi:
             ),
             patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
             patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
+            pytest.raises(MacroFetchError, match="fetch_macro_cpi_ppi_pmi"),
         ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_cpi_ppi_pmi"):
-                await fetch_macro_cpi_ppi_pmi()
+            await fetch_macro_cpi_ppi_pmi()
 
     async def test_ppi_negative_value(self):
         with (
@@ -263,9 +262,11 @@ class TestFetchMacroLpr:
             await fetch_macro_lpr(source="wind")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch("oprim.fetch_macro_lpr._akshare_fetch_lpr", side_effect=ConnectionError("x")):
-            with pytest.raises(MacroFetchError, match="fetch_macro_lpr"):
-                await fetch_macro_lpr()
+        with (
+            patch("oprim.fetch_macro_lpr._akshare_fetch_lpr", side_effect=ConnectionError("x")),
+            pytest.raises(MacroFetchError, match="fetch_macro_lpr"),
+        ):
+            await fetch_macro_lpr()
 
     async def test_5y_cut_in_metadata(self):
         with patch("oprim.fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
@@ -299,9 +300,11 @@ class TestFetchMacroRrr:
             await fetch_macro_rrr(source="tushare")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch("oprim.fetch_macro_rrr._akshare_fetch_rrr", side_effect=OSError("timeout")):
-            with pytest.raises(MacroFetchError, match="fetch_macro_rrr"):
-                await fetch_macro_rrr()
+        with (
+            patch("oprim.fetch_macro_rrr._akshare_fetch_rrr", side_effect=OSError("timeout")),
+            pytest.raises(MacroFetchError, match="fetch_macro_rrr"),
+        ):
+            await fetch_macro_rrr()
 
     async def test_sorted_ascending(self):
         with patch(
@@ -354,12 +357,14 @@ class TestFetchMacroYieldSpread:
             await fetch_macro_yield_spread(source="wind")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch(
-            "oprim.fetch_macro_yield_spread._akshare_fetch_yield_spread",
-            side_effect=RuntimeError("refused"),
+        with (
+            patch(
+                "oprim.fetch_macro_yield_spread._akshare_fetch_yield_spread",
+                side_effect=RuntimeError("refused"),
+            ),
+            pytest.raises(MacroFetchError, match="fetch_macro_yield_spread"),
         ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_yield_spread"):
-                await fetch_macro_yield_spread()
+            await fetch_macro_yield_spread()
 
 
 # ── Calendar ─────────────────────────────────────────────────────────────────
@@ -401,9 +406,11 @@ class TestFetchMacroCalendar:
             await fetch_macro_calendar(source="wind")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch("oprim.fetch_macro_calendar._akshare_fetch_calendar", side_effect=OSError("x")):
-            with pytest.raises(MacroFetchError, match="fetch_macro_calendar"):
-                await fetch_macro_calendar()
+        with (
+            patch("oprim.fetch_macro_calendar._akshare_fetch_calendar", side_effect=OSError("x")),
+            pytest.raises(MacroFetchError, match="fetch_macro_calendar"),
+        ):
+            await fetch_macro_calendar()
 
 
 # ── Policy News ───────────────────────────────────────────────────────────────
@@ -444,12 +451,14 @@ class TestFetchMacroPolicyNews:
             await fetch_macro_policy_news(source="tushare")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch(
-            "oprim.fetch_macro_policy_news._akshare_fetch_policy_news",
-            side_effect=ConnectionError("403"),
+        with (
+            patch(
+                "oprim.fetch_macro_policy_news._akshare_fetch_policy_news",
+                side_effect=ConnectionError("403"),
+            ),
+            pytest.raises(MacroFetchError, match="fetch_macro_policy_news"),
         ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_policy_news"):
-                await fetch_macro_policy_news()
+            await fetch_macro_policy_news()
 
     async def test_title_in_metadata(self):
         with patch(

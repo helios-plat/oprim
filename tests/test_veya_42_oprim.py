@@ -7,11 +7,9 @@ file_read_slice, mcp_call_tool, image_analyze, ast_parse_code, docker_image_buil
 
 from __future__ import annotations
 
-import asyncio
 import pathlib
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # 公共 fakes
@@ -156,9 +154,7 @@ class TestLlmEmbeddingVector:
     async def test_llm_chat_call_standardized(self):
         from oprim import llm_chat_call
 
-        resp = await llm_chat_call(
-            [{"role": "user", "content": "hi"}], caller=FakeLLMCaller()
-        )
+        resp = await llm_chat_call([{"role": "user", "content": "hi"}], caller=FakeLLMCaller())
         assert resp["text"] == "hi"
         assert resp["usage"] == {"input_tokens": 5, "output_tokens": 3, "total_tokens": 8}
         assert resp["stop_reason"] == "end_turn"
@@ -184,9 +180,7 @@ class TestLlmEmbeddingVector:
             content = "x"
             path = None
 
-        hits = await vector_search(
-            [1.0, 0.0], store=FakeSearchStore([(C(), 0.1)])
-        )
+        hits = await vector_search([1.0, 0.0], store=FakeSearchStore([(C(), 0.1)]))
         assert hits[0]["chunk_id"] == "c1" and abs(hits[0]["score"] - 0.1) < 1e-9
 
     async def test_vector_search_filter_store(self):

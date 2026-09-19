@@ -18,6 +18,7 @@ from oprim._exceptions import (
 # Models
 # ---------------------------------------------------------------------------
 
+
 class InstantResultSample(BaseModel):
     metric: dict[str, str]
     value: float
@@ -50,7 +51,10 @@ class LogEntry(BaseModel):
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _prom_request(endpoint: str, path: str, params: dict[str, Any], timeout_sec: int) -> dict[str, Any]:
+
+def _prom_request(
+    endpoint: str, path: str, params: dict[str, Any], timeout_sec: int
+) -> dict[str, Any]:
     url = endpoint.rstrip("/") + "/" + path.lstrip("/")
     try:
         resp = httpx.get(url, params=params, timeout=timeout_sec)
@@ -82,6 +86,7 @@ def _parse_iso_or_epoch(ts: str) -> str:
 # ---------------------------------------------------------------------------
 # 8.1 prometheus_instant_query
 # ---------------------------------------------------------------------------
+
 
 def prometheus_instant_query(
     *,
@@ -124,18 +129,22 @@ def prometheus_instant_query(
                 float_val = float(val)
             except (ValueError, TypeError):
                 float_val = 0.0
-            samples.append(InstantResultSample(
-                metric=item.get("metric", {}),
-                value=float_val,
-                timestamp=float(ts),
-            ))
+            samples.append(
+                InstantResultSample(
+                    metric=item.get("metric", {}),
+                    value=float_val,
+                    timestamp=float(ts),
+                )
+            )
     elif result_type == "scalar":
         ts, val = raw_results
-        samples.append(InstantResultSample(
-            metric={},
-            value=float(val),
-            timestamp=float(ts),
-        ))
+        samples.append(
+            InstantResultSample(
+                metric={},
+                value=float(val),
+                timestamp=float(ts),
+            )
+        )
 
     valid_types = {"vector", "scalar", "string"}
     rt = result_type if result_type in valid_types else "vector"
@@ -149,12 +158,14 @@ def prometheus_instant_query(
 
 def _time() -> float:
     import time as _time_mod
+
     return _time_mod.monotonic()
 
 
 # ---------------------------------------------------------------------------
 # 8.2 prometheus_range_query
 # ---------------------------------------------------------------------------
+
 
 def prometheus_range_query(
     *,
@@ -196,10 +207,12 @@ def prometheus_range_query(
     series: list[RangeResultSeries] = []
     for item in raw_results:
         values = [(float(ts), float(val)) for ts, val in item.get("values", [])]
-        series.append(RangeResultSeries(
-            metric=item.get("metric", {}),
-            values=values,
-        ))
+        series.append(
+            RangeResultSeries(
+                metric=item.get("metric", {}),
+                values=values,
+            )
+        )
 
     return RangeResult(series=series, elapsed_ms=elapsed)
 
@@ -207,6 +220,7 @@ def prometheus_range_query(
 # ---------------------------------------------------------------------------
 # 8.3 loki_log_query
 # ---------------------------------------------------------------------------
+
 
 def loki_log_query(
     *,
@@ -236,8 +250,10 @@ def loki_log_query(
     """
     now = datetime.now(UTC)
     end_dt = now if end is None else datetime.fromisoformat(end.replace("Z", "+00:00"))
-    start_dt = (end_dt - timedelta(hours=1)) if start is None else datetime.fromisoformat(
-        start.replace("Z", "+00:00")
+    start_dt = (
+        (end_dt - timedelta(hours=1))
+        if start is None
+        else datetime.fromisoformat(start.replace("Z", "+00:00"))
     )
 
     # Loki expects nanosecond timestamps
@@ -274,17 +290,20 @@ def loki_log_query(
             # Convert ns timestamp to ISO 8601
             ts_sec = int(ts_ns) / 1e9
             iso_ts = datetime.fromtimestamp(ts_sec, tz=UTC).isoformat()
-            result.append(LogEntry(
-                timestamp=iso_ts,
-                labels=labels,
-                message=msg,
-            ))
+            result.append(
+                LogEntry(
+                    timestamp=iso_ts,
+                    labels=labels,
+                    message=msg,
+                )
+            )
     return result
 
 
 # ---------------------------------------------------------------------------
 # 8.4 structlog_parse
 # ---------------------------------------------------------------------------
+
 
 def structlog_parse(
     *,

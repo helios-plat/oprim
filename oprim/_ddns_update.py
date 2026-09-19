@@ -112,7 +112,8 @@ def ddns_update(
 
     支持两种协议:
       - **duckdns**: 需 token + hostname(子域名, 不含 .duckdns.org). ip 可省(provider 自测).
-      - **dyndns2**: No-IP / DynDNS 等复用的协议, 需 username + password + hostname;
+      - **dyndns2**: No-IP / DynDNS 等复用的协议, 需 username + password + hostname
+
         base_url 默认 No-IP, 换 provider 传其 /nic/update 端点.
 
     Args:
@@ -120,7 +121,8 @@ def ddns_update(
         hostname: 要更新的主机名/子域.
         token: duckdns 的 token.
         username/password: dyndns2 的 HTTP Basic 凭据.
-        ip: 目标 IPv4;省略则由 provider 按请求来源自测.
+        ip: 目标 IPv4
+        省略则由 provider 按请求来源自测.
         base_url: dyndns2 的更新端点(覆盖默认 No-IP).
         timeout: HTTP 超时秒.
 

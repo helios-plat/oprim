@@ -6,6 +6,7 @@ Bollerslev, T. (1986). Generalized Autoregressive Conditional
     Heteroskedasticity. Journal of Econometrics, 31(3), 307-327.
 Hamilton, J.D. (1994). Time Series Analysis. Princeton University Press.
 """
+
 from __future__ import annotations
 
 import warnings
@@ -20,11 +21,11 @@ def _garch11_nll(params, returns):
     omega, alpha, beta, mu = params
     if omega <= 0 or alpha < 0 or beta < 0 or alpha + beta >= 1:
         return 1e10
-    T = len(returns)
+    t_val = len(returns)
     eps = returns - mu
-    sigma2 = np.zeros(T)
+    sigma2 = np.zeros(t_val)
     sigma2[0] = np.var(returns)
-    for t in range(1, T):
+    for t in range(1, t_val):
         sigma2[t] = omega + alpha * eps[t - 1] ** 2 + beta * sigma2[t - 1]
     if np.any(sigma2 <= 0):
         return 1e10  # pragma: no cover
@@ -92,7 +93,7 @@ def garch_fit(
             stacklevel=2,
         )
 
-    T = len(arr)
+    t_val = len(arr)
     mean_val = float(np.mean(arr))
     var_val = float(np.var(arr))
 
@@ -118,15 +119,15 @@ def garch_fit(
 
     # Compute final conditional variance series
     eps = arr - mu
-    sigma2 = np.zeros(T)
+    sigma2 = np.zeros(t_val)
     sigma2[0] = var_val
-    for t in range(1, T):
+    for t in range(1, t_val):
         sigma2[t] = omega + alpha * eps[t - 1] ** 2 + beta * sigma2[t - 1]
 
     log_likelihood = float(-result.fun)
     k = 4  # omega, alpha, beta, mu
     aic = float(-2 * log_likelihood + 2 * k)
-    bic = float(-2 * log_likelihood + k * np.log(T))
+    bic = float(-2 * log_likelihood + k * np.log(t_val))
 
     persistence = float(alpha + beta)
     if persistence < 1:

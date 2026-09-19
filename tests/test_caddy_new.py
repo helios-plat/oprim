@@ -1,7 +1,10 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from oprim import caddy_admin_post
-from oprim._exceptions import OprimValidationError, OprimConnectionError
+from oprim._exceptions import OprimConnectionError, OprimValidationError
+
 
 @patch("httpx.post")
 def test_caddy_admin_post_success(mock_post):
@@ -11,9 +14,12 @@ def test_caddy_admin_post_success(mock_post):
     mock_resp.json.return_value = {"status": "ok"}
     mock_post.return_value = mock_resp
 
-    res = caddy_admin_post(admin_url="http://localhost:2019", path="/config/apps", body={"foo": "bar"})
+    res = caddy_admin_post(
+        admin_url="http://localhost:2019", path="/config/apps", body={"foo": "bar"}
+    )
     assert res == {"status": "ok"}
     mock_post.assert_called_once()
+
 
 @patch("httpx.request")
 def test_caddy_admin_patch_success(mock_request):
@@ -26,6 +32,7 @@ def test_caddy_admin_patch_success(mock_request):
     res = caddy_admin_post(admin_url="http://localhost:2019", path="/config/...", method="PATCH")
     assert res == {"patched": True}
 
+
 @patch("httpx.post")
 def test_caddy_admin_post_validation_error(mock_post):
     mock_resp = MagicMock()
@@ -37,6 +44,7 @@ def test_caddy_admin_post_validation_error(mock_post):
     with pytest.raises(OprimValidationError, match="HTTP 400"):
         caddy_admin_post(admin_url="http://localhost:2019", path="/config", body={})
 
+
 @patch("httpx.post")
 def test_caddy_admin_post_connection_error(mock_post):
     mock_resp = MagicMock()
@@ -47,6 +55,7 @@ def test_caddy_admin_post_connection_error(mock_post):
 
     with pytest.raises(OprimConnectionError, match="HTTP 500"):
         caddy_admin_post(admin_url="http://localhost:2019", path="/config", body={})
+
 
 @patch("httpx.post")
 def test_caddy_admin_post_no_json(mock_post):

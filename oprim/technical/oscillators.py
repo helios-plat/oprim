@@ -296,10 +296,7 @@ def williams_r(
         h_max = np.max(h_arr[i - period + 1 : i + 1])
         l_min = np.min(l_arr[i - period + 1 : i + 1])
         denom = h_max - l_min
-        if denom == 0:
-            raw_r = -50.0
-        else:
-            raw_r = (h_max - c_arr[i]) / denom * (-100.0)
+        raw_r = -50.0 if denom == 0 else (h_max - c_arr[i]) / denom * -100.0
 
         if normalize:
             out[i] = 1.0 - abs(raw_r) / 100.0

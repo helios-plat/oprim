@@ -59,8 +59,8 @@ def _adf_statistic(
 
     # Need at least lags+1 observations of dy
     # Regression uses obs from index lags onwards in dy (i.e., dy[lags:])
-    T = len(dy) - lags  # effective sample size
-    if T <= 0:  # pragma: no cover
+    t_val = len(dy) - lags  # effective sample size
+    if t_val <= 0:  # pragma: no cover
         return np.nan, np.array([])
 
     # Dependent variable: dy[lags:]
@@ -74,31 +74,31 @@ def _adf_statistic(
 
     # Deterministics
     if regression in ("c", "ct", "ctt"):
-        cols.append(np.ones(T))
+        cols.append(np.ones(t_val))
     if regression in ("ct", "ctt"):
-        trend = np.arange(1, T + 1, dtype=float)
+        trend = np.arange(1, t_val + 1, dtype=float)
         cols.append(trend)
     if regression == "ctt":
-        cols.append(np.arange(1, T + 1, dtype=float) ** 2)
+        cols.append(np.arange(1, t_val + 1, dtype=float) ** 2)
 
     # Augmenting lags
     for lag_i in range(1, lags + 1):
         # Delta_y_{t-lag_i}: dy[lags-lag_i : n-1-lag_i]
         cols.append(dy[lags - lag_i : n - 1 - lag_i])
 
-    X = np.column_stack(cols)  # shape (T, k)
+    x_mat = np.column_stack(cols)  # shape (T, k)
 
     # OLS
-    coeffs, residuals = _ols_fit(endog, X)
+    coeffs, residuals = _ols_fit(endog, x_mat)
     rho_coeff = coeffs[0]
 
     # Standard error of rho
-    sigma2 = np.sum(residuals**2) / (T - X.shape[1])
+    sigma2 = np.sum(residuals**2) / (t_val - x_mat.shape[1])
     if sigma2 <= 0:
         return np.nan, residuals  # pragma: no cover
 
-    XtX_inv = np.linalg.pinv(X.T @ X)
-    se_rho = np.sqrt(sigma2 * XtX_inv[0, 0])
+    xtx_inv = np.linalg.pinv(x_mat.T @ x_mat)
+    se_rho = np.sqrt(sigma2 * xtx_inv[0, 0])
 
     if se_rho == 0:
         return np.nan, residuals  # pragma: no cover

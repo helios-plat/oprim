@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim._timeline_aggregator import timeline_aggregator
 
 ITEMS_DAY = [

@@ -10,15 +10,20 @@ Version: oprim v3.4.0
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
 from oprim.types import SolveResult, SolveStep
 
-
 TaskType = Literal[
-    "combinations", "permutations", "basic", "conditional",
-    "bayes", "binomial", "expected_value", "auto"
+    "combinations",
+    "permutations",
+    "basic",
+    "conditional",
+    "bayes",
+    "binomial",
+    "expected_value",
+    "auto",
 ]
 
 
@@ -27,13 +32,13 @@ class ProbabilitySolveInput:
     """Input for a probability problem."""
 
     task: TaskType = "auto"
-    n: int | None = None               # total items / trials
-    k: int | None = None               # chosen items / successes
-    p_a: float | None = None           # P(A)
-    p_b: float | None = None           # P(B)
-    p_a_given_b: float | None = None   # P(A|B)
-    p_b_given_a: float | None = None   # P(B|A)
-    p_success: float | None = None     # p per trial (binomial)
+    n: int | None = None  # total items / trials
+    k: int | None = None  # chosen items / successes
+    p_a: float | None = None  # P(A)
+    p_b: float | None = None  # P(B)
+    p_a_given_b: float | None = None  # P(A|B)
+    p_b_given_a: float | None = None  # P(B|A)
+    p_success: float | None = None  # p per trial (binomial)
     values: list[float] | None = None  # for expected value
     probabilities: list[float] | None = None  # for expected value
     timeout: float = 5.0
@@ -117,11 +122,7 @@ def solve_probability(inp: ProbabilitySolveInput) -> SolveResult:
                     result=f"{p_a_or_b:.6g}",
                 )
             )
-            answer = (
-                f"P(A∩B) = {p_a_and_b:.6g}; "
-                f"P(A∪B) = {p_a_or_b:.6g}; "
-                f"P(Ā) = {1-p_a:.6g}"
-            )
+            answer = f"P(A∩B) = {p_a_and_b:.6g}; P(A∪B) = {p_a_or_b:.6g}; P(Ā) = {1 - p_a:.6g}"
 
         elif task == "conditional":
             if inp.p_a_given_b is None and inp.p_b_given_a is None:
@@ -173,14 +174,14 @@ def solve_probability(inp: ProbabilitySolveInput) -> SolveResult:
                 raise ValueError("binomial task requires n, k, p_success")
             n, k = int(inp.n), int(inp.k)
             p = inp.p_success
-            prob = math.comb(n, k) * (p**k) * ((1-p)**(n-k))
+            prob = math.comb(n, k) * (p**k) * ((1 - p) ** (n - k))
             mean = n * p
             var = n * p * (1 - p)
             steps.append(
                 SolveStep(
                     step_number=1,
                     description=f"Binomial: P(X={k}) = C({n},{k})·p^k·(1-p)^(n-k)",
-                    expression=f"C({n},{k})·{p}^{k}·{1-p}^{n-k}",
+                    expression=f"C({n},{k})·{p}^{k}·{1 - p}^{n - k}",
                     result=f"{prob:.6g}",
                 )
             )
@@ -202,14 +203,14 @@ def solve_probability(inp: ProbabilitySolveInput) -> SolveResult:
             total_p = sum(inp.probabilities)
             if abs(total_p - 1.0) > 1e-6:
                 raise ValueError(f"probabilities must sum to 1 (got {total_p})")
-            ev = sum(v * p for v, p in zip(inp.values, inp.probabilities))
-            ev2 = sum(v**2 * p for v, p in zip(inp.values, inp.probabilities))
+            ev = sum(v * p for v, p in zip(inp.values, inp.probabilities, strict=False))
+            ev2 = sum(v**2 * p for v, p in zip(inp.values, inp.probabilities, strict=False))
             var = ev2 - ev**2
             steps.append(
                 SolveStep(
                     step_number=1,
                     description="Compute E[X] = Σ xᵢ·pᵢ",
-                    expression=str(list(zip(inp.values, inp.probabilities))),
+                    expression=str(list(zip(inp.values, inp.probabilities, strict=False))),
                     result=f"{ev:.6g}",
                 )
             )

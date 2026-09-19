@@ -81,7 +81,8 @@ def _parse(data: dict[str, Any]) -> TailscaleStatus:
 def tailscale_status(*, status_json: str | None = None) -> TailscaleStatus:
     """读 Tailscale 网状 VPN 状态,解析 `tailscale status --json`.
 
-    只读(R0). 执行位置由调用方决定:不传 status_json 本地跑 tailscale;传入则
+    只读(R0). 执行位置由调用方决定:不传 status_json 本地跑 tailscale
+    传入则
     只解析(调用方可经特权 host-shell / 远端节点取到 JSON 再交本原语).
 
     Args:
@@ -92,7 +93,8 @@ def tailscale_status(*, status_json: str | None = None) -> TailscaleStatus:
             tailscale 未安装且走本地执行时返回 installed=False(不抛).
 
     Raises:
-        OprimError: 传入的 status_json 非法 JSON;或本地执行超时/无输出.
+        OprimError: 传入的 status_json 非法 JSON
+        或本地执行超时/无输出.
     """
     if status_json is not None:
         try:

@@ -75,8 +75,7 @@ async def agent_prompt_synthesize(
 
     prompt = (
         "根据以下规格合成一份可直接使用的 agent system prompt"
-        "（中文，包含角色、职责边界、工作流、输出规范）：\n\n"
-        + "\n\n".join(sections)
+        "（中文，包含角色、职责边界、工作流、输出规范）：\n\n" + "\n\n".join(sections)
     )
     try:
         response = await caller(

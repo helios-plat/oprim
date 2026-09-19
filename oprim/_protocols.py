@@ -69,7 +69,7 @@ class StreamingLLMCaller(Protocol):
         tools: list[dict] | None = None,
         max_tokens: int = 4096,
         system: str | None = None,
-    ) -> "AsyncIterator[dict]":
+    ) -> AsyncIterator[dict]:
         """
         流式调用 LLM，yield Delta dict：
           {"type": "text_delta", "text": str}
@@ -180,7 +180,9 @@ class McpClientHandle(Protocol):
         """
         ...  # pragma: no cover
 
+
 # --- Legacy Protocols ---
+
 
 class HttpClient(Protocol):
     """Protocol for async HTTP client operations."""

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
-from oprim import system_cpu_usage, system_ram_usage, system_load_avg
+from oprim import system_cpu_usage, system_load_avg, system_ram_usage
 
 
 def test_system_cpu_usage_returns_float():

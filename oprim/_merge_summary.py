@@ -1,4 +1,5 @@
 """Merge a compaction summary back into the message history tail."""
+
 from __future__ import annotations
 
 from ._hicode_types import Message, Part

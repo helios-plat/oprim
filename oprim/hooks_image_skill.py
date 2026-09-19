@@ -23,15 +23,15 @@ from typing import Any
 
 from ._exceptions import FileOprimError, ParseOprimError, ShellOprimError
 
-
 # ---------------------------------------------------------------------------
 # run_hook
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class HookResult:
-    decision: str        # "allow" | "block" | "modify"
-    output: str          # hook stdout（可含 modified payload JSON）
+    decision: str  # "allow" | "block" | "modify"
+    output: str  # hook stdout（可含 modified payload JSON）
     exit_code: int
 
 
@@ -76,7 +76,7 @@ async def run_hook(
             stderr=asyncio.subprocess.PIPE,
         )
     except OSError as e:  # pragma: no cover
-        raise ShellOprimError(f"cannot start hook: {command}", cause=e)
+        raise ShellOprimError(f"cannot start hook: {command}", cause=e) from e
 
     try:
         stdout, stderr = await asyncio.wait_for(
@@ -84,7 +84,7 @@ async def run_hook(
             timeout=timeout,
         )
         exit_code = proc.returncode or 0
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         await proc.wait()
         # 超时 → allow（不因 hook 阻塞主流程）
@@ -94,7 +94,11 @@ async def run_hook(
 
     # 非零退出 → block（保守策略）
     if exit_code != 0:
-        return HookResult(decision="block", output=raw or stderr.decode(errors="replace").strip(), exit_code=exit_code)
+        return HookResult(
+            decision="block",
+            output=raw or stderr.decode(errors="replace").strip(),
+            exit_code=exit_code,
+        )
 
     # 尝试解析 JSON 输出
     try:
@@ -127,12 +131,13 @@ _IMAGE_MIME: dict[str, str] = {
 @dataclass
 class ImageBlock:
     """Anthropic content block 格式的图片表示。"""
-    type: str          # 始终 "image"
-    source_type: str   # 始终 "base64"
-    media_type: str    # "image/jpeg" 等
-    data: str          # base64 编码字符串
-    path: str          # 原始文件路径（调试用）
-    size_bytes: int    # 原始文件大小
+
+    type: str  # 始终 "image"
+    source_type: str  # 始终 "base64"
+    media_type: str  # "image/jpeg" 等
+    data: str  # base64 编码字符串
+    path: str  # 原始文件路径（调试用）
+    size_bytes: int  # 原始文件大小
 
 
 def load_image(path: str | Path) -> ImageBlock:
@@ -168,14 +173,13 @@ def load_image(path: str | Path) -> ImageBlock:
     ext = p.suffix.lower()
     if ext not in _IMAGE_MIME:
         raise ParseOprimError(
-            f"unsupported image format '{ext}': "
-            f"supported: {', '.join(_IMAGE_MIME)}"
+            f"unsupported image format '{ext}': supported: {', '.join(_IMAGE_MIME)}"
         )
 
     try:
         raw = p.read_bytes()
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read image '{path}'", cause=e)
+        raise FileOprimError(f"cannot read image '{path}'", cause=e) from e
 
     return ImageBlock(
         type="image",
@@ -191,17 +195,19 @@ def load_image(path: str | Path) -> ImageBlock:
 # read_skill_frontmatter
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class SkillMeta:
     """Skill frontmatter 解析结果（渐进披露第 1 步，不含 body）。"""
+
     name: str
     description: str
     version: str
-    tools: list[str]          # 该 skill 声明使用的工具列表
-    hooks: list[dict]         # frontmatter 中的 hook 定义（可选）
-    tags: list[str]           # 检索标签
-    raw: dict                  # 完整 frontmatter dict（备用）
-    skill_dir: str            # skill 目录路径
+    tools: list[str]  # 该 skill 声明使用的工具列表
+    hooks: list[dict]  # frontmatter 中的 hook 定义（可选）
+    tags: list[str]  # 检索标签
+    raw: dict  # 完整 frontmatter dict（备用）
+    skill_dir: str  # skill 目录路径
 
 
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
@@ -254,7 +260,7 @@ def read_skill_frontmatter(skill_dir: str | Path) -> SkillMeta:
     try:
         text = skill_md.read_text(encoding="utf-8", errors="replace")
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read SKILL.md in '{skill_dir}'", cause=e)
+        raise FileOprimError(f"cannot read SKILL.md in '{skill_dir}'", cause=e) from e
 
     m = _FRONTMATTER_RE.match(text)
     if not m:
@@ -266,7 +272,9 @@ def read_skill_frontmatter(skill_dir: str | Path) -> SkillMeta:
     try:
         fm = _parse_simple_yaml(fm_text)
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError(f"frontmatter YAML parse error in '{skill_dir}'", cause=e)  # pragma: no cover
+        raise ParseOprimError(
+            f"frontmatter YAML parse error in '{skill_dir}'", cause=e
+        )  # pragma: no cover
 
     name = fm.get("name", "")
     if not name:
@@ -292,6 +300,7 @@ def _parse_simple_yaml(text: str) -> dict:
     """
     try:
         import yaml  # type: ignore[import]
+
         return yaml.safe_load(text) or {}
     except ImportError:  # pragma: no cover
         pass  # pragma: no cover
@@ -311,7 +320,9 @@ def _parse_simple_yaml(text: str) -> dict:
 
         if rest.startswith("[") and rest.endswith("]"):  # pragma: no cover
             # inline list: [a, b, c]
-            items = [x.strip().strip("'\"") for x in rest[1:-1].split(",") if x.strip()]  # pragma: no cover
+            items = [
+                x.strip().strip("'\"") for x in rest[1:-1].split(",") if x.strip()
+            ]  # pragma: no cover
             result[key] = items  # pragma: no cover
         elif rest == "" or rest == "|" or rest == ">":  # pragma: no cover
             # block list / scalar — collect following "- " lines

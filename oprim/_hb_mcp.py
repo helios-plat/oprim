@@ -1,9 +1,11 @@
 """H-B G组: MCP IO 扩展 (2)
 mcp_connect / load_custom_tool
 """
+
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -20,9 +22,11 @@ class McpOprimError(OprimError):
 # Types
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class McpSession:
     """MCP server 连接会话句柄。"""
+
     server_url: str
     _session: Any = field(repr=False, default=None)
     _transport: Any = field(repr=False, default=None)
@@ -36,20 +40,17 @@ class McpSession:
     async def close(self) -> None:
         """关闭连接。"""
         if self._session is not None:
-            try:
+            with contextlib.suppress(Exception):
                 await self._session.aclose()
-            except Exception:
-                pass
         if self._transport is not None:
-            try:
+            with contextlib.suppress(Exception):
                 await self._transport.aclose()
-            except Exception:
-                pass
 
 
 @dataclass
 class Tool:
     """工具定义（.opencode/tools/*.ts 或 JSON schema）。"""
+
     name: str
     description: str
     input_schema: dict = field(default_factory=dict)
@@ -60,6 +61,7 @@ class Tool:
 # ---------------------------------------------------------------------------
 # mcp_connect
 # ---------------------------------------------------------------------------
+
 
 async def mcp_connect(server_url: str, *, timeout: float = 30) -> McpSession:
     """连接 MCP server，握手，返回 session handle。
@@ -100,24 +102,22 @@ async def mcp_connect(server_url: str, *, timeout: float = 30) -> McpSession:
 
 async def _connect_sse(url: str, *, timeout: float) -> McpSession:
     try:
-        from mcp.client.sse import sse_client
         from mcp import ClientSession
+        from mcp.client.sse import sse_client
     except ImportError as e:
-        raise McpOprimError("mcp package not installed or missing sse client", cause=e)
+        raise McpOprimError("mcp package not installed or missing sse client", cause=e) from e
 
     try:
         transport = await asyncio.wait_for(sse_client(url).__aenter__(), timeout=timeout)
         read, write = transport
-        session = await asyncio.wait_for(
-            ClientSession(read, write).__aenter__(), timeout=timeout
-        )
+        session = await asyncio.wait_for(ClientSession(read, write).__aenter__(), timeout=timeout)
         await asyncio.wait_for(session.initialize(), timeout=timeout)
-    except asyncio.TimeoutError as e:
+    except TimeoutError as e:
         raise TimeoutError(f"mcp_connect timed out after {timeout}s: {url}") from e
     except McpOprimError:
         raise
     except Exception as e:
-        raise McpOprimError(f"mcp_connect failed for {url}: {e}", cause=e)
+        raise McpOprimError(f"mcp_connect failed for {url}: {e}", cause=e) from e
 
     return McpSession(server_url=url, _session=session, _transport=None)
 
@@ -125,28 +125,26 @@ async def _connect_sse(url: str, *, timeout: float) -> McpSession:
 async def _connect_stdio(url: str, *, timeout: float) -> McpSession:
     # stdio:// URL format: stdio://path/to/server?arg1=val1
     # Strip prefix and use path as command
-    cmd = url[len("stdio://"):]
+    cmd = url[len("stdio://") :]
     try:
-        from mcp.client.stdio import stdio_client
         from mcp import ClientSession, StdioServerParameters
+        from mcp.client.stdio import stdio_client
     except ImportError as e:
-        raise McpOprimError("mcp package not installed or missing stdio client", cause=e)
+        raise McpOprimError("mcp package not installed or missing stdio client", cause=e) from e
 
     try:
         params = StdioServerParameters(command=cmd, args=[], env=None)
         transport_cm = stdio_client(params)
         transport = await asyncio.wait_for(transport_cm.__aenter__(), timeout=timeout)
         read, write = transport
-        session = await asyncio.wait_for(
-            ClientSession(read, write).__aenter__(), timeout=timeout
-        )
+        session = await asyncio.wait_for(ClientSession(read, write).__aenter__(), timeout=timeout)
         await asyncio.wait_for(session.initialize(), timeout=timeout)
-    except asyncio.TimeoutError as e:
+    except TimeoutError as e:
         raise TimeoutError(f"mcp_connect (stdio) timed out after {timeout}s") from e
     except McpOprimError:
         raise
     except Exception as e:
-        raise McpOprimError(f"mcp_connect (stdio) failed: {e}", cause=e)
+        raise McpOprimError(f"mcp_connect (stdio) failed: {e}", cause=e) from e
 
     return McpSession(server_url=url, _session=session, _transport=None)
 
@@ -154,6 +152,7 @@ async def _connect_stdio(url: str, *, timeout: float) -> McpSession:
 # ---------------------------------------------------------------------------
 # load_custom_tool
 # ---------------------------------------------------------------------------
+
 
 async def load_custom_tool(path: Path) -> Tool:
     """加载 .opencode/tools/*.ts 自定义 tool 定义。
@@ -248,7 +247,9 @@ def _parse_ts_tool(content: str, path: Path) -> Tool:
             return Tool(
                 name=schema_data.get("name", path.stem),
                 description=schema_data.get("description", ""),
-                input_schema=schema_data.get("inputSchema") or schema_data.get("input_schema") or {},
+                input_schema=schema_data.get("inputSchema")
+                or schema_data.get("input_schema")
+                or {},
                 source_path=str(path),
             )
         except json.JSONDecodeError:
@@ -256,8 +257,7 @@ def _parse_ts_tool(content: str, path: Path) -> Tool:
 
     # Try to extract from export const definition = { ... }
     def_match = re.search(
-        r"export\s+(?:const|let|var)\s+\w+\s*=\s*(\{[^;]+\})\s*;?",
-        content, re.DOTALL
+        r"export\s+(?:const|let|var)\s+\w+\s*=\s*(\{[^;]+\})\s*;?", content, re.DOTALL
     )
     if def_match:
         # Try to parse as JSON (after replacing single-quoted strings)

@@ -1,4 +1,5 @@
 """Sanitize an environment variable dict by removing sensitive keys."""
+
 from __future__ import annotations
 
 import re
@@ -20,7 +21,8 @@ def sanitize_env(
             ``SECRET``, or ``PASSWORD`` (case-insensitive) are dropped.
 
     Returns:
-        A new dict; the original is never mutated.
+        A new dict
+        the original is never mutated.
     """
     if allowlist is not None:
         return {k: v for k, v in env.items() if k in allowlist}

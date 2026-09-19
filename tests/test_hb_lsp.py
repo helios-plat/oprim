@@ -1,4 +1,5 @@
 """Tests — H-B D组: LSP IO 扩展 (12 functions)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -10,10 +11,7 @@ import pytest
 from oprim.lsp import (
     CallItem,
     Diagnostic,
-    Hover,
     Location,
-    Pos,
-    Symbol,
     diagnostics_to_summary,
     location_to_snippet,
     lsp_diagnostics,
@@ -28,35 +26,46 @@ from oprim.lsp import (
     lsp_workspace_symbol,
 )
 
-
 # ---------------------------------------------------------------------------
 # Mock LSP server handle
 # ---------------------------------------------------------------------------
 
+
 def _mock_server(responses: dict[str, Any]) -> Any:
     server = AsyncMock()
+
     async def _request(method: str, params: dict) -> Any:
         return responses.get(method)
+
     server.request = _request
     server.root_uri = "file:///project"
     return server
 
 
 def _loc(path: str = "/p/f.py", sl: int = 1, sc: int = 0, el: int = 1, ec: int = 5) -> dict:
-    return {"uri": f"file://{path}", "range": {"start": {"line": sl, "character": sc}, "end": {"line": el, "character": ec}}}
+    return {
+        "uri": f"file://{path}",
+        "range": {"start": {"line": sl, "character": sc}, "end": {"line": el, "character": ec}},
+    }
 
 
 def _call_item_raw(name: str = "fn") -> dict:
     return {
-        "name": name, "kind": 12, "uri": "file:///p/f.py",
+        "name": name,
+        "kind": 12,
+        "uri": "file:///p/f.py",
         "range": {"start": {"line": 1, "character": 0}, "end": {"line": 1, "character": 10}},
-        "selectionRange": {"start": {"line": 1, "character": 0}, "end": {"line": 1, "character": 10}},
+        "selectionRange": {
+            "start": {"line": 1, "character": 0},
+            "end": {"line": 1, "character": 10},
+        },
     }
 
 
 # ---------------------------------------------------------------------------
 # lsp_goto_definition
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_lsp_goto_definition_single() -> None:
@@ -84,6 +93,7 @@ async def test_lsp_goto_definition_multi() -> None:
 # lsp_find_references
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_lsp_find_references_multiple() -> None:
     server = _mock_server({"textDocument/references": [_loc(), _loc(), _loc()]})
@@ -102,9 +112,12 @@ async def test_lsp_find_references_empty() -> None:
 # lsp_hover (updated signature)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_lsp_hover_with_pos() -> None:
-    server = _mock_server({"textDocument/hover": {"contents": {"kind": "markdown", "value": "**int**"}}})
+    server = _mock_server(
+        {"textDocument/hover": {"contents": {"kind": "markdown", "value": "**int**"}}}
+    )
     h = await lsp_hover("/p/f.py", pos=(10, 5), lsp=server)
     assert h is not None
     assert "int" in h.contents
@@ -134,11 +147,23 @@ async def test_lsp_hover_no_server_raises() -> None:
 # lsp_document_symbol
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_lsp_document_symbol_basic() -> None:
-    server = _mock_server({"textDocument/documentSymbol": [
-        {"name": "MyClass", "kind": 5, "range": {"start": {"line": 0, "character": 0}, "end": {"line": 10, "character": 0}}},
-    ]})
+    server = _mock_server(
+        {
+            "textDocument/documentSymbol": [
+                {
+                    "name": "MyClass",
+                    "kind": 5,
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 10, "character": 0},
+                    },
+                },
+            ]
+        }
+    )
     syms = await lsp_document_symbol("/p/f.py", lsp=server)
     assert len(syms) == 1
     assert syms[0].name == "MyClass"
@@ -155,11 +180,16 @@ async def test_lsp_document_symbol_empty() -> None:
 # lsp_workspace_symbol
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_lsp_workspace_symbol_query() -> None:
-    server = _mock_server({"workspace/symbol": [
-        {"name": "parse", "kind": 12, "location": _loc()},
-    ]})
+    server = _mock_server(
+        {
+            "workspace/symbol": [
+                {"name": "parse", "kind": 12, "location": _loc()},
+            ]
+        }
+    )
     syms = await lsp_workspace_symbol(query="parse", lsp=server)
     assert syms[0].name == "parse"
 
@@ -174,6 +204,7 @@ async def test_lsp_workspace_symbol_empty() -> None:
 # ---------------------------------------------------------------------------
 # lsp_goto_implementation
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_lsp_goto_implementation_single() -> None:
@@ -192,6 +223,7 @@ async def test_lsp_goto_implementation_none() -> None:
 # ---------------------------------------------------------------------------
 # lsp_prepare_call_hierarchy
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_lsp_prepare_call_hierarchy_ok() -> None:
@@ -212,14 +244,26 @@ async def test_lsp_prepare_call_hierarchy_empty() -> None:
 # lsp_incoming_calls
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_lsp_incoming_calls_multiple() -> None:
-    server = _mock_server({"callHierarchy/incomingCalls": [
-        {"from": _call_item_raw("caller1")},
-        {"from": _call_item_raw("caller2")},
-    ]})
-    item = CallItem(name="fn", kind=12, uri="file:///p/f.py",
-                    range_start_line=0, range_start_char=0, range_end_line=0, range_end_char=0)
+    server = _mock_server(
+        {
+            "callHierarchy/incomingCalls": [
+                {"from": _call_item_raw("caller1")},
+                {"from": _call_item_raw("caller2")},
+            ]
+        }
+    )
+    item = CallItem(
+        name="fn",
+        kind=12,
+        uri="file:///p/f.py",
+        range_start_line=0,
+        range_start_char=0,
+        range_end_line=0,
+        range_end_char=0,
+    )
     callers = await lsp_incoming_calls(item, lsp=server)
     assert len(callers) == 2
     assert callers[0].name == "caller1"
@@ -228,8 +272,15 @@ async def test_lsp_incoming_calls_multiple() -> None:
 @pytest.mark.asyncio
 async def test_lsp_incoming_calls_none() -> None:
     server = _mock_server({"callHierarchy/incomingCalls": None})
-    item = CallItem(name="fn", kind=12, uri="file:///p/f.py",
-                    range_start_line=0, range_start_char=0, range_end_line=0, range_end_char=0)
+    item = CallItem(
+        name="fn",
+        kind=12,
+        uri="file:///p/f.py",
+        range_start_line=0,
+        range_start_char=0,
+        range_end_line=0,
+        range_end_char=0,
+    )
     callers = await lsp_incoming_calls(item, lsp=server)
     assert callers == []
 
@@ -238,13 +289,25 @@ async def test_lsp_incoming_calls_none() -> None:
 # lsp_outgoing_calls
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_lsp_outgoing_calls_multiple() -> None:
-    server = _mock_server({"callHierarchy/outgoingCalls": [
-        {"to": _call_item_raw("callee1")},
-    ]})
-    item = CallItem(name="fn", kind=12, uri="file:///p/f.py",
-                    range_start_line=0, range_start_char=0, range_end_line=0, range_end_char=0)
+    server = _mock_server(
+        {
+            "callHierarchy/outgoingCalls": [
+                {"to": _call_item_raw("callee1")},
+            ]
+        }
+    )
+    item = CallItem(
+        name="fn",
+        kind=12,
+        uri="file:///p/f.py",
+        range_start_line=0,
+        range_start_char=0,
+        range_end_line=0,
+        range_end_char=0,
+    )
     callees = await lsp_outgoing_calls(item, lsp=server)
     assert callees[0].name == "callee1"
 
@@ -253,13 +316,26 @@ async def test_lsp_outgoing_calls_multiple() -> None:
 # lsp_diagnostics (updated with lsp: param)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_lsp_diagnostics_lsp_param() -> None:
-    server = _mock_server({"textDocument/diagnostic": {
-        "items": [{"severity": 1, "message": "err", "source": "pyright", "range": {
-            "start": {"line": 3, "character": 0}, "end": {"line": 3, "character": 5}
-        }}]
-    }})
+    server = _mock_server(
+        {
+            "textDocument/diagnostic": {
+                "items": [
+                    {
+                        "severity": 1,
+                        "message": "err",
+                        "source": "pyright",
+                        "range": {
+                            "start": {"line": 3, "character": 0},
+                            "end": {"line": 3, "character": 5},
+                        },
+                    }
+                ]
+            }
+        }
+    )
     diags = await lsp_diagnostics("/p/f.py", lsp=server)
     assert len(diags) == 1
     assert diags[0].severity == 1
@@ -283,16 +359,33 @@ async def test_lsp_diagnostics_no_server_raises() -> None:
 # diagnostics_to_summary  [s] 纯计算
 # ---------------------------------------------------------------------------
 
+
 def test_diagnostics_to_summary_empty() -> None:
     assert diagnostics_to_summary([]) == "No diagnostics."
 
 
 def test_diagnostics_to_summary_errors_warnings() -> None:
     diags = [
-        Diagnostic(path="/p/f.py", line=0, character=0, end_line=0, end_character=5,
-                   severity=1, message="undefined foo", source="pyright"),
-        Diagnostic(path="/p/f.py", line=5, character=2, end_line=5, end_character=8,
-                   severity=2, message="unused import", source="ruff"),
+        Diagnostic(
+            path="/p/f.py",
+            line=0,
+            character=0,
+            end_line=0,
+            end_character=5,
+            severity=1,
+            message="undefined foo",
+            source="pyright",
+        ),
+        Diagnostic(
+            path="/p/f.py",
+            line=5,
+            character=2,
+            end_line=5,
+            end_character=8,
+            severity=2,
+            message="unused import",
+            source="ruff",
+        ),
     ]
     summary = diagnostics_to_summary(diags)
     assert "Errors (1)" in summary
@@ -303,8 +396,16 @@ def test_diagnostics_to_summary_errors_warnings() -> None:
 
 def test_diagnostics_to_summary_line_numbers() -> None:
     diags = [
-        Diagnostic(path="/p/f.py", line=9, character=3, end_line=9, end_character=6,
-                   severity=1, message="bad", source="x"),
+        Diagnostic(
+            path="/p/f.py",
+            line=9,
+            character=3,
+            end_line=9,
+            end_character=6,
+            severity=1,
+            message="bad",
+            source="x",
+        ),
     ]
     summary = diagnostics_to_summary(diags)
     assert ":10:" in summary  # 0-based line 9 → display as 10
@@ -312,10 +413,26 @@ def test_diagnostics_to_summary_line_numbers() -> None:
 
 def test_diagnostics_to_summary_grouping() -> None:
     diags = [
-        Diagnostic(path="/a.py", line=0, character=0, end_line=0, end_character=1,
-                   severity=3, message="info msg", source=""),
-        Diagnostic(path="/b.py", line=0, character=0, end_line=0, end_character=1,
-                   severity=4, message="hint msg", source=""),
+        Diagnostic(
+            path="/a.py",
+            line=0,
+            character=0,
+            end_line=0,
+            end_character=1,
+            severity=3,
+            message="info msg",
+            source="",
+        ),
+        Diagnostic(
+            path="/b.py",
+            line=0,
+            character=0,
+            end_line=0,
+            end_character=1,
+            severity=4,
+            message="hint msg",
+            source="",
+        ),
     ]
     summary = diagnostics_to_summary(diags)
     assert "Info (1)" in summary
@@ -325,6 +442,7 @@ def test_diagnostics_to_summary_grouping() -> None:
 # ---------------------------------------------------------------------------
 # location_to_snippet
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_location_to_snippet_normal(tmp_path: Path) -> None:
@@ -357,8 +475,13 @@ async def test_location_to_snippet_file_end(tmp_path: Path) -> None:
 
 @pytest.mark.asyncio
 async def test_location_to_snippet_not_found(tmp_path: Path) -> None:
-    loc = Location(path=str(tmp_path / "missing.py"), start_line=0,
-                   start_character=0, end_line=0, end_character=1)
+    loc = Location(
+        path=str(tmp_path / "missing.py"),
+        start_line=0,
+        start_character=0,
+        end_line=0,
+        end_character=1,
+    )
     with pytest.raises(FileNotFoundError):
         await location_to_snippet(loc)
 

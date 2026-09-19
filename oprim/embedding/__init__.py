@@ -7,11 +7,14 @@ def __getattr__(name: str):
         from oprim.embedding.qwen3_dashscope import (
             Qwen3DashscopeEmbedder,
         )
+
         return Qwen3DashscopeEmbedder
     if name == "Qwen3LocalEmbedder":
         from oprim.embedding.qwen3_local import Qwen3LocalEmbedder
+
         return Qwen3LocalEmbedder
     raise AttributeError(name)
+
 
 __all__ = [
     "embed_text",

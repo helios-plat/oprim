@@ -79,7 +79,7 @@ def test_multiple_texts_all_rows():
 # 11. normalize=False returns unnormalized (norm != 1.0 in general)
 def test_unnormalized_not_unit():
     result = vector_encode(texts=["hello"], normalize=False)
-    norm = np.linalg.norm(result[0])
+    np.linalg.norm(result[0])
     # stub uses standard_normal without norm — norm will not be exactly 1.0
     # (could be close in rare cases, but the vector is not forced to unit length)
     # We just verify the function runs and returns correct shape/dtype
@@ -111,16 +111,19 @@ class TestProviderRegistryPath:
     def test_provider_not_registered_falls_back_to_stub(self):
         """ProviderNotFoundError → deterministic stub + log.warning (no raise)."""
         from unittest.mock import patch
+
         from obase.exceptions import ProviderNotFoundError
 
-        with patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("embedding", "missing")):
+        with patch(
+            "obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("embedding", "missing")
+        ):
             result = vector_encode(texts=["hello"])
         assert isinstance(result, np.ndarray)
         assert result.shape[0] == 1
 
     def test_provider_registered_calls_provider(self):
         """Registered provider is called; its return value used (not stub)."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
 
         fake_vecs = [[1.0] * 128]
         mock_embed = MagicMock(return_value=fake_vecs)
@@ -134,6 +137,8 @@ class TestProviderRegistryPath:
         """Non-ProviderNotFoundError (e.g. AttributeError) must propagate, not fall to stub."""
         from unittest.mock import patch
 
-        with patch("obase.ProviderRegistry.get", side_effect=AttributeError("bad attr")):
-            with pytest.raises(AttributeError):
-                vector_encode(texts=["hello"])
+        with (
+            patch("obase.ProviderRegistry.get", side_effect=AttributeError("bad attr")),
+            pytest.raises(AttributeError),
+        ):
+            vector_encode(texts=["hello"])

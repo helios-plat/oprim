@@ -16,6 +16,7 @@ METRICS = ["wasserstein_1", "kolmogorov_smirnov", "cramer_von_mises", "energy"]
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _rng(seed: int = 42) -> np.random.Generator:
     return np.random.default_rng(seed)
 
@@ -28,17 +29,13 @@ class TestIdenticalSamplesAllMetricsZero:
     def test_identical(self, metric):
         a = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
         result = distributional_distance(a, a, metric=metric)
-        assert result == pytest.approx(0.0, abs=1e-10), (
-            f"metric={metric}: expected 0, got {result}"
-        )
+        assert result == pytest.approx(0.0, abs=1e-10), f"metric={metric}: expected 0, got {result}"
 
     @pytest.mark.parametrize("metric", METRICS)
     def test_identical_large(self, metric):
         a = _rng(1).normal(0, 1, 200)
         result = distributional_distance(a, a, metric=metric)
-        assert result == pytest.approx(0.0, abs=1e-9), (
-            f"metric={metric}: expected 0, got {result}"
-        )
+        assert result == pytest.approx(0.0, abs=1e-9), f"metric={metric}: expected 0, got {result}"
 
 
 # ---------------------------------------------------------------------------
@@ -166,7 +163,9 @@ class TestWeightsWasserstein:
         b = np.array([0.0, 1.0])
         wa = np.array([1.0, 1.0])
         wb = np.array([1.0, 1.0])
-        result = distributional_distance(a, b, metric="kolmogorov_smirnov", weights_a=wa, weights_b=wb)
+        result = distributional_distance(
+            a, b, metric="kolmogorov_smirnov", weights_a=wa, weights_b=wb
+        )
         assert result == pytest.approx(0.0, abs=1e-10)
 
 

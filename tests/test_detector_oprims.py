@@ -7,20 +7,18 @@ from unittest.mock import patch
 
 import pytest
 
-from oprim._detector_types import DetectorSignal
-from oprim._exceptions import OprimError
-from oprim._detect_sector_collapse import SectorCollapseConfig, detect_sector_collapse
 from oprim._detect_dragon_switch import DragonSwitchConfig, detect_dragon_switch
 from oprim._detect_hot_money_converge import HotMoneyConvergeConfig, detect_hot_money_converge
 from oprim._detect_limit_board_explosion import (
-    LimitBoardExplosionConfig,
     detect_limit_board_explosion,
 )
-from oprim._detect_volume_spike import VolumeSpikeConfig, detect_volume_spike
-from oprim._detect_northbound_reversal import NorthboundReversalConfig, detect_northbound_reversal
 from oprim._detect_news_shock import NewsShockConfig, detect_news_shock
+from oprim._detect_northbound_reversal import NorthboundReversalConfig, detect_northbound_reversal
+from oprim._detect_sector_collapse import SectorCollapseConfig, detect_sector_collapse
+from oprim._detect_volume_spike import detect_volume_spike
+from oprim._detector_types import DetectorSignal
+from oprim._exceptions import OprimError
 from oprim.financial_metric_extraction import FinancialMetric, NewsItem
-
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 

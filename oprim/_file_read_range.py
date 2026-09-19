@@ -12,4 +12,4 @@ def file_read_range(content: str, *, start_line: int, end_line: int) -> str:
     lines = content.splitlines(keepends=True)
     # clamp end_line to actual length
     end = min(end_line, len(lines))
-    return "".join(lines[start_line - 1:end])
+    return "".join(lines[start_line - 1 : end])

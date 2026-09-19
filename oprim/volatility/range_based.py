@@ -61,16 +61,16 @@ def parkinson_volatility(
     Parkinson (1980). Journal of Business, 53(1), 61-65.
     """
     h = _to_array(highs)
-    l = _to_array(lows)
+    low = _to_array(lows)
 
-    if len(h) == 0 or len(l) == 0:
+    if len(h) == 0 or len(low) == 0:
         raise ValueError("highs and lows must not be empty")
-    if len(h) != len(l):
-        raise ValueError(f"highs and lows must have same length: {len(h)} vs {len(l)}")
-    if np.any(h < l):
+    if len(h) != len(low):
+        raise ValueError(f"highs and lows must have same length: {len(h)} vs {len(low)}")
+    if np.any(h < low):
         raise ValueError("highs must be >= lows for all bars")
 
-    hl_ratio = np.log(h / l)
+    hl_ratio = np.log(h / low)
     var = np.mean(hl_ratio**2) / (4.0 * np.log(2.0))
     sigma = float(np.sqrt(max(var, 0.0)))
 
@@ -92,7 +92,8 @@ def garman_klass_volatility(
 
     sigma^2 = mean(0.5*ln(H/L)^2 - (2*ln(2) - 1)*ln(C/O)^2)
 
-    More efficient than Parkinson; uses open-close range to capture drift.
+    More efficient than Parkinson
+    uses open-close range to capture drift.
 
     Parameters
     ----------
@@ -119,17 +120,17 @@ def garman_klass_volatility(
     """
     o = _to_array(opens)
     h = _to_array(highs)
-    l = _to_array(lows)
+    low = _to_array(lows)
     c = _to_array(closes)
 
     n = len(o)
     if n == 0:
         raise ValueError("Input arrays must not be empty")
-    for name, arr in [("highs", h), ("lows", l), ("closes", c)]:
+    for name, arr in [("highs", h), ("lows", low), ("closes", c)]:
         if len(arr) != n:
             raise ValueError(f"opens and {name} must have same length: {n} vs {len(arr)}")
 
-    log_hl = np.log(h / l)
+    log_hl = np.log(h / low)
     log_co = np.log(c / o)
 
     var = np.mean(0.5 * log_hl**2 - (2.0 * np.log(2.0) - 1.0) * log_co**2)
@@ -189,13 +190,13 @@ def yang_zhang_volatility(
     """
     o = _to_array(opens)
     h = _to_array(highs)
-    l = _to_array(lows)
+    low = _to_array(lows)
     c = _to_array(closes)
 
     n = len(o)
     if n == 0:
         raise ValueError("Input arrays must not be empty")
-    for name, arr in [("highs", h), ("lows", l), ("closes", c)]:
+    for name, arr in [("highs", h), ("lows", low), ("closes", c)]:
         if len(arr) != n:
             raise ValueError(f"opens and {name} must have same length: {n} vs {len(arr)}")
 
@@ -203,13 +204,13 @@ def yang_zhang_volatility(
         raise ValueError(f"window must be an integer >= 2, got {window!r}")
 
     # Log return components
-    log_oc = np.log(o[1:] / c[:-1])    # overnight: O_t / C_{t-1}, length n-1
-    log_co = np.log(c[1:] / o[1:])     # open-to-close: C_t / O_t, length n-1
+    log_oc = np.log(o[1:] / c[:-1])  # overnight: O_t / C_{t-1}, length n-1
+    log_co = np.log(c[1:] / o[1:])  # open-to-close: C_t / O_t, length n-1
     # Rogers-Satchell for each bar (from index 1 onwards)
     log_ho = np.log(h[1:] / o[1:])
     log_hc = np.log(h[1:] / c[1:])
-    log_lo = np.log(l[1:] / o[1:])
-    log_lc = np.log(l[1:] / c[1:])
+    log_lo = np.log(low[1:] / o[1:])
+    log_lc = np.log(low[1:] / c[1:])
     rs = log_ho * log_hc + log_lo * log_lc  # length n-1
 
     k = 0.34 / (1.34 + (window + 1.0) / (window - 1.0))

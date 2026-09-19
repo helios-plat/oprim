@@ -36,7 +36,8 @@ async def invoke(
     Args:
         mode: "t2v" or "i2v".
         prompt: Text prompt.
-        reference_image: Required for i2v; ignored for t2v.
+        reference_image: Required for i2v
+        ignored for t2v.
         output_path: Destination file path.
         api_key: DashScope API key (DASHSCOPE_API_KEY).
         base_url: DashScope video generation endpoint.

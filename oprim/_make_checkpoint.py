@@ -6,6 +6,7 @@ The persistence chain is:
 
 This oprim only handles the serialization end. No file writes.
 """
+
 from __future__ import annotations
 
 import datetime

@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Literal, Optional, Dict
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from obase.cognitive_types import KCState
 
 # fsrs imported lazily inside FSRS functions (KCState/BKT don't need it)
+
 
 # 单源：KCState 与初始状态工厂归 obase（杜绝 obase→oprim 反向依赖），算法仍在本模块。
 # 惰性暴露：不在 import 时 eager-load obase，无 obase 环境仍可 import 本模块。
@@ -16,8 +19,11 @@ def __getattr__(name):
     if name in ("KCState", "bkt_new_state"):
         from obase.cognitive_types import (
             KCState,
+        )
+        from obase.cognitive_types import (
             new_state_from_prior as bkt_new_state,
         )
+
         return {"KCState": KCState, "bkt_new_state": bkt_new_state}[name]
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
@@ -28,21 +34,23 @@ def __getattr__(name):
 _GAMMA_SLIP = 1.0
 _GAMMA_GUESS = 1.0
 
-def _item_adjust(
-    p_guess: float, p_slip: float, difficulty: float | None
-) -> tuple[float, float]:
+
+def _item_adjust(p_guess: float, p_slip: float, difficulty: float | None) -> tuple[float, float]:
     """据题目难度调制 (guess, slip)。difficulty=None / 0.5 → 原样返回。"""
     if difficulty is None:
         return p_guess, p_slip
     delta = difficulty - 0.5
-    if delta == 0.0:                      # 0.5 短路，规避 sigmoid(logit(x)) 浮点漂移
+    if delta == 0.0:  # 0.5 短路，规避 sigmoid(logit(x)) 浮点漂移
         return p_guess, p_slip
     eps = 1e-4
+
     def _logit(x: float) -> float:
         x = min(max(x, eps), 1.0 - eps)
         return math.log(x / (1.0 - x))
+
     def _sigmoid(z: float) -> float:
         return 1.0 / (1.0 + math.exp(-z))
+
     guess_eff = _sigmoid(_logit(p_guess) - _GAMMA_GUESS * delta)
     slip_eff = _sigmoid(_logit(p_slip) + _GAMMA_SLIP * delta)
     return guess_eff, slip_eff
@@ -76,7 +84,7 @@ def bkt_update(
         r = retrievability
     elif days_since is not None:
         r = exp_forgetting(days_since=days_since)
-    
+
     p_eff = p_l * r
 
     # 2. Bayesian update (Observation)
@@ -91,7 +99,7 @@ def bkt_update(
 
     # 4. Update state (in-place)
     state.p_mastery = p_new
-    
+
     if state.long_term_mastery is None:
         state.long_term_mastery = p_new
     else:
@@ -100,6 +108,7 @@ def bkt_update(
     state.n_attempts += 1
     # Note: last_interaction_ts update is left to the caller or handled via oskill
     return state
+
 
 def bkt_classify_error(*, state: KCState, difficulty: float | None = None) -> str:
     """答错时判定根因：'careless' 或 'dontknow'。
@@ -115,6 +124,7 @@ def bkt_classify_error(*, state: KCState, difficulty: float | None = None) -> st
 
     return "careless" if careless_weight >= dontknow_weight else "dontknow"
 
+
 def bkt_predict_correct(
     *, state: KCState, retrievability: float | None = None, difficulty: float | None = None
 ) -> float:
@@ -125,6 +135,7 @@ def bkt_predict_correct(
     p_g, p_s = _item_adjust(state.p_guess, state.p_slip, difficulty)
     return p_eff * (1 - p_s) + (1 - p_eff) * p_g
 
+
 def exp_forgetting(*, days_since: float, halflife_days: float = 7.0) -> float:
     """指数遗忘近似 R = 0.5^(days/halflife)。"""
     if halflife_days <= 0:
@@ -133,49 +144,69 @@ def exp_forgetting(*, days_since: float, halflife_days: float = 7.0) -> float:
         raise ValueError("days_since must be non-negative")
     return 0.5 ** (days_since / halflife_days)
 
-# bkt_new_state 已上移至 obase.cognitive_types.new_state_from_prior（顶部 import 别名为 bkt_new_state）
+
+# bkt_new_state 已上移至 obase.cognitive_types.new_state_from_prior
 
 # FSRS Helpers (dict-based serialization)
+
 
 def _card_to_dict(card) -> dict:
     return card.to_dict()
 
+
 def _dict_to_card(d: dict):
     from fsrs import Card
+
     return Card.from_dict(d)
 
 
 # FSRS 单源：实现统一在 oprim.fsrs_engine，本模块仅做"字符串 rating 接口"适配，
 # 杜绝双实现漂移（D5 同源约束扩展到 FSRS）。已实证两者卡片格式/rating 决策逐位一致。
 
+
 def fsrs_new_card() -> dict:
     """创建新 FSRS 记忆卡片（委托 fsrs_engine，单源）。"""
     from oprim.fsrs_engine import fsrs_new_card as _impl
+
     return _impl()
+
 
 def fsrs_review(*, card_dict: dict, rating: str, now: datetime | None = None) -> dict:
     """对卡片做一次复习（rating 为字符串，委托 fsrs_engine）。"""
     from fsrs import Rating
+
     from oprim.fsrs_engine import fsrs_review as _impl
-    r = {"Again": Rating.Again, "Hard": Rating.Hard,
-         "Good": Rating.Good, "Easy": Rating.Easy}.get(rating, Rating.Good)
+
+    r = {"Again": Rating.Again, "Hard": Rating.Hard, "Good": Rating.Good, "Easy": Rating.Easy}.get(
+        rating, Rating.Good
+    )
     return _impl(card_dict=card_dict, rating=r, now=now)
+
 
 def fsrs_retrievability(*, card_dict: dict, now: datetime | None = None) -> float:
     """当前可提取性 R ∈ [0,1]（委托 fsrs_engine）。"""
     from oprim.fsrs_engine import fsrs_retrievability as _impl
+
     return _impl(card_dict=card_dict, now=now)
 
+
 def fsrs_map_rating(
-    *, is_correct: bool, used_answer: bool = False,
-    struggled: bool = False, effortless: bool = False
+    *,
+    is_correct: bool,
+    used_answer: bool = False,
+    struggled: bool = False,
+    effortless: bool = False,
 ) -> str:
     """表现映射为 FSRS Rating 字符串（决策委托 fsrs_engine，单源）。"""
     from oprim.fsrs_engine import fsrs_map_rating as _impl
-    return _impl(is_correct=is_correct, used_answer=used_answer,
-                 struggled=struggled, effortless=effortless).name
+
+    return _impl(
+        is_correct=is_correct, used_answer=used_answer, struggled=struggled, effortless=effortless
+    ).name
+
 
 def fsrs_due_date(*, card_dict: dict) -> str | None:
     """下次复习日期 ISO 字符串（委托 fsrs_engine）。"""
     from oprim.fsrs_engine import fsrs_due_date as _impl
+
     return _impl(card_dict=card_dict)

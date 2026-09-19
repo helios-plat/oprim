@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim._vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
 
 
@@ -33,9 +33,7 @@ class TestVLMVideoAnalyze:
             return "A person walking"
 
         ProviderRegistry.register(category="vlm", name="mock_vlm", fn=_vlm)
-        result = await vlm_video_analyze(
-            provider="mock_vlm", frames=frames, prompt="What happens?"
-        )
+        result = await vlm_video_analyze(provider="mock_vlm", frames=frames, prompt="What happens?")
         assert "person" in result
 
     async def test_empty_frames_raises(self, tmp_path: Path) -> None:
@@ -57,6 +55,4 @@ class TestVLMVideoAnalyze:
     async def test_provider_not_found(self, frames: list[Path]) -> None:
         """Regression: unregistered VLM provider raises VLMVideoAnalyzeError."""
         with pytest.raises(VLMVideoAnalyzeError, match="VLM provider not found"):
-            await vlm_video_analyze(
-                provider="nonexistent_vlm", frames=frames, prompt="Describe"
-            )
+            await vlm_video_analyze(provider="nonexistent_vlm", frames=frames, prompt="Describe")

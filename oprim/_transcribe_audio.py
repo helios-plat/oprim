@@ -2,9 +2,11 @@
 
 backend="local":
     Uses faster-whisper (CPU int8). Model is loaded from model_path — the path
-    must exist. Model is NOT downloaded automatically; pre-download with:
+    must exist. Model is NOT downloaded automatically
+    pre-download with:
         pip install faster-whisper
-        python -c "from faster_whisper import download_model; download_model('base', cache_dir='/models/whisper')"
+        python -c "from faster_whisper import download_model; \
+download_model('base', cache_dir='/models/whisper')"
 
 backend="dashscope":
     Uses DashScope Paraformer ASR API.
@@ -13,6 +15,7 @@ backend="dashscope":
     storage (e.g. OSS / S3) and pass the returned public URL as audio_path value,
     or use a file:// URI only if the DashScope service can reach the host.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -65,6 +68,7 @@ async def transcribe_audio(
 # Backends
 # ---------------------------------------------------------------------------
 
+
 async def _transcribe_local(
     audio_path: Path,
     *,
@@ -114,9 +118,7 @@ async def _transcribe_dashscope(audio_path: Path, *, language: str) -> Transcrip
         import dashscope  # type: ignore[import]
         from dashscope.audio.asr import Recognition  # type: ignore[import]
     except ImportError:
-        raise RuntimeError(
-            "dashscope is not installed. Install with: pip install dashscope"
-        )
+        raise RuntimeError("dashscope is not installed. Install with: pip install dashscope")
 
     api_key = os.environ.get("DASHSCOPE_API_KEY", "")
     dashscope.api_key = api_key

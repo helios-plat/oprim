@@ -5,6 +5,7 @@ References
 Von Luxburg, U. (2007). A tutorial on spectral clustering.
     Statistics and Computing, 17(4), 395-416.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -23,7 +24,8 @@ def spectral_eigengap_detect(
     Parameters
     ----------
     eigenvalues:
-        1-D array of eigenvalues (any order; sorted descending internally).
+        1-D array of eigenvalues (any order
+        sorted descending internally).
     method:
         ``"largest_gap"`` — position of maximum absolute gap.
         ``"relative"``    — position of maximum ratio between consecutive values.

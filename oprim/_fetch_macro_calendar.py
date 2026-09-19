@@ -43,7 +43,8 @@ async def fetch_macro_calendar(
 
     Each event row becomes a :class:`~oprim._macro_types.MacroDataPoint` where:
     - ``indicator`` = event name slug (Chinese, as returned by akshare)
-    - ``value`` = actual numeric value (parsed float); ``0.0`` if non-numeric
+    - ``value`` = actual numeric value (parsed float)
+    ``0.0`` if non-numeric
     - ``metadata["forecast"]`` = forecast value (float or None)
     - ``metadata["prev"]`` = previous value (float or None)
 

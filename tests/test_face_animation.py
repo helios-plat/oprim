@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim._face_animation import (
     FaceAnimationError,
     FaceAnimationProviderNotFoundError,
@@ -70,7 +70,8 @@ class TestFaceAnimation:
             )
 
     async def test_provider_not_found(self, tmp_path: Path, inputs: tuple[Path, Path]) -> None:
-        """Regression: unregistered face_animation provider raises FaceAnimationProviderNotFoundError."""
+        """Regression: unregistered face_animation provider raises
+        FaceAnimationProviderNotFoundError."""
         portrait, audio = inputs
         with pytest.raises(FaceAnimationProviderNotFoundError, match="Provider not found"):
             await face_animation(

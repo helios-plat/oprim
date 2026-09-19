@@ -1,9 +1,11 @@
 """Tests for oprim._llm_extract_ku — uses stub path (no actual LLM)."""
 
 import uuid
+
 import pytest
-from oprim._llm_extract_ku import llm_extract_ku
+
 from oprim._ku_gate_validate import VALID_KNOWLEDGE_TYPES
+from oprim._llm_extract_ku import llm_extract_ku
 
 
 def test_returns_dict_with_all_required_ku_keys():
@@ -101,28 +103,34 @@ def test_vector_frozen_is_false():
 class TestProviderRegistryPath:
     def test_provider_not_registered_falls_back_to_stub_with_warning(self):
         """ProviderNotFoundError → stub + log.warning, no raise."""
-        import logging
         from unittest.mock import patch
+
         from obase.exceptions import ProviderNotFoundError
 
-        with patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("llm", "missing")):
-            with self._capture_warnings() as records:
-                result = llm_extract_ku(text="The sky is blue.")
+        with (
+            patch(
+                "obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("llm", "missing")
+            ),
+            self._capture_warnings() as records,
+        ):
+            result = llm_extract_ku(text="The sky is blue.")
         assert result["natural_text"]  # stub produced output
         assert result["epistemic_status"]["verified"] is False
         assert any("not registered" in r.message for r in records)
 
     def test_provider_registered_calls_llm_with_prompt(self):
         """Registered provider is called; prompt contains the input text."""
-        from unittest.mock import patch, MagicMock
         import json
+        from unittest.mock import MagicMock, patch
 
-        fake_response = json.dumps({
-            "knowledge_type": "proposition",
-            "natural_text": "Extracted claim from LLM.",
-            "symbolic_form": None,
-            "tags": ["test"],
-        })
+        fake_response = json.dumps(
+            {
+                "knowledge_type": "proposition",
+                "natural_text": "Extracted claim from LLM.",
+                "symbolic_form": None,
+                "tags": ["test"],
+            }
+        )
         mock_llm = MagicMock(return_value=fake_response)
         with patch("obase.ProviderRegistry.get", return_value=mock_llm) as mock_get:
             result = llm_extract_ku(text="Some text chunk.", provider="deepseek")
@@ -134,32 +142,38 @@ class TestProviderRegistryPath:
 
     def test_code_error_reraises(self):
         """Non-ProviderNotFoundError must propagate, not fall to stub."""
-        import pytest
         from unittest.mock import patch
 
-        with patch("obase.ProviderRegistry.get", side_effect=TypeError("bad type")):
-            with pytest.raises(TypeError):
-                llm_extract_ku(text="hello")
+        with (
+            patch("obase.ProviderRegistry.get", side_effect=TypeError("bad type")),
+            pytest.raises(TypeError),
+        ):
+            llm_extract_ku(text="hello")
 
     @staticmethod
     def _capture_warnings():
-        import logging
-        from unittest.mock import patch
         import contextlib
+        from unittest.mock import patch
 
         class _Records:
             def __init__(self):
                 self.message = []
+
             def __iter__(self):
                 return iter(self.message)
 
         @contextlib.contextmanager
         def _ctx():
             records = []
+
             class _R:
-                def __init__(self, msg): self.message = msg
+                def __init__(self, msg):
+                    self.message = msg
+
             with patch("oprim.llm_extract_ku._log") as mock_log:
-                mock_log.warning.side_effect = lambda msg, *a, **k: records.append(_R(msg % a if a else msg))
+                mock_log.warning.side_effect = lambda msg, *a, **k: records.append(
+                    _R(msg % a if a else msg)
+                )
                 yield records
 
         return _ctx()

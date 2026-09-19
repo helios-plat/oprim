@@ -1,4 +1,5 @@
 """P-validate_html: sandboxed HTML safety check (no LLM, no IO)."""
+
 from __future__ import annotations
 
 import re
@@ -6,14 +7,14 @@ import re
 from oprim._animation_types import HtmlValidationResult
 
 # Danger pattern regexes
-_INLINE_EVENT_RE = re.compile(r'\bon\w+\s*=', re.IGNORECASE)
+_INLINE_EVENT_RE = re.compile(r"\bon\w+\s*=", re.IGNORECASE)
 _JAVASCRIPT_URI_RE = re.compile(
-    r'''(?:href|src|action|data)\s*=\s*["']?\s*javascript\s*:''',
+    r"""(?:href|src|action|data)\s*=\s*["']?\s*javascript\s*:""",
     re.IGNORECASE,
 )
-_EVAL_RE = re.compile(r'\beval\s*\(', re.IGNORECASE)
-_FETCH_RE = re.compile(r'\bfetch\s*\(', re.IGNORECASE)
-_XHR_RE = re.compile(r'\bXMLHttpRequest\b')
+_EVAL_RE = re.compile(r"\beval\s*\(", re.IGNORECASE)
+_FETCH_RE = re.compile(r"\bfetch\s*\(", re.IGNORECASE)
+_XHR_RE = re.compile(r"\bXMLHttpRequest\b")
 _SCRIPT_EXT_RE = re.compile(
     r'<script[^>]+\bsrc\s*=\s*["\']https?://[^"\']+["\']',
     re.IGNORECASE | re.DOTALL,
@@ -39,7 +40,8 @@ def validate_html(*, html: str, allow_external_src: bool = False) -> HtmlValidat
       external_src           any src="http://..." (only when allow_external_src=False)
 
     Returns HtmlValidationResult(is_safe, violations, sanitized).
-    sanitized is None when html is safe; otherwise the html with dangerous
+    sanitized is None when html is safe
+    otherwise the html with dangerous
     patterns neutralised (best-effort — not a full HTML sanitiser).
     """
     if not html or not html.strip():
@@ -54,17 +56,17 @@ def validate_html(*, html: str, allow_external_src: bool = False) -> HtmlValidat
 
     if _INLINE_EVENT_RE.search(html):
         violations.append("inline_event_handler")
-        sanitized = _INLINE_EVENT_RE.sub('data-blocked-event=', sanitized)
+        sanitized = _INLINE_EVENT_RE.sub("data-blocked-event=", sanitized)
 
     if _EVAL_RE.search(html):
         violations.append("eval_usage")
-        sanitized = _EVAL_RE.sub('__blocked__(', sanitized)
+        sanitized = _EVAL_RE.sub("__blocked__(", sanitized)
 
     if _JAVASCRIPT_URI_RE.search(html):
         violations.append("javascript_uri")
         sanitized = re.sub(
-            r'''((?:href|src|action|data)\s*=\s*["']?)\s*javascript\s*:''',
-            r'\1blocked:',
+            r"""((?:href|src|action|data)\s*=\s*["']?)\s*javascript\s*:""",
+            r"\1blocked:",
             sanitized,
             flags=re.IGNORECASE,
         )
@@ -75,11 +77,11 @@ def validate_html(*, html: str, allow_external_src: bool = False) -> HtmlValidat
 
     if _FETCH_RE.search(html):
         violations.append("fetch_usage")
-        sanitized = _FETCH_RE.sub('__blockedFetch(', sanitized)
+        sanitized = _FETCH_RE.sub("__blockedFetch(", sanitized)
 
     if _XHR_RE.search(html):
         violations.append("xmlhttprequest_usage")
-        sanitized = _XHR_RE.sub('__BlockedXHR__', sanitized)
+        sanitized = _XHR_RE.sub("__BlockedXHR__", sanitized)
 
     if not allow_external_src and _EXTERNAL_SRC_RE.search(html):
         violations.append("external_src")

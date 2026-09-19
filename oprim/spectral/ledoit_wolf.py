@@ -6,6 +6,7 @@ Ledoit, O., & Wolf, M. (2004). A well-conditioned estimator for
     large-dimensional covariance matrices. Journal of Multivariate
     Analysis, 88(2), 365-411.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -23,7 +24,8 @@ def ledoit_wolf_shrinkage(
     Parameters
     ----------
     returns:
-        (T, N) array of asset returns; T observations, N assets.
+        (T, N) array of asset returns
+        T observations, N assets.
     target:
         Shrinkage target matrix type:
         ``"identity"``        — scaled identity,
@@ -75,6 +77,7 @@ def ledoit_wolf_shrinkage(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _build_target(
     sample_cov: np.ndarray,
     target: str,
@@ -113,8 +116,8 @@ def _manual_alpha(
 ) -> float:
     """Fallback shrinkage intensity when sklearn is unavailable."""
     diff = sample_cov - target_cov
-    frob_diff_sq = float(np.sum(diff ** 2))
-    frob_s_sq = float(np.sum(sample_cov ** 2))
+    frob_diff_sq = float(np.sum(diff**2))
+    frob_s_sq = float(np.sum(sample_cov**2))
     if frob_diff_sq < 1e-14 or frob_s_sq < 1e-14:
         return 0.0
     n = sample_cov.shape[0]

@@ -1,37 +1,40 @@
-"""B2 Docker new elements tests — docker_logs/ps/restart/stats/inspect/compose_*/docker_compose_pull."""
+"""B2 Docker new elements tests.
+
+Covers docker_logs/ps/restart/stats/inspect/compose_*/docker_compose_pull.
+"""
 
 from __future__ import annotations
 
-import os
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 pytest.skip(
     "Docker primitives moved to obase; the owning obase suite is authoritative",
     allow_module_level=True,
 )
 
+from oprim._docker import (
+    compose_down,
+    compose_up,
+    docker_container_inspect,
+    docker_container_list,
+    docker_container_logs,
+    docker_container_restart,
+    docker_container_stats,
+)
+
 from oprim import (
+    docker_compose_down,
+    docker_compose_pull,
+    docker_compose_up,
+    docker_inspect,
     docker_logs,
     docker_ps,
     docker_restart,
     docker_stats,
-    docker_inspect,
-    docker_compose_up,
-    docker_compose_down,
-    docker_compose_pull,
-)
-from oprim._docker import (
-    docker_container_logs,
-    docker_container_list,
-    docker_container_restart,
-    docker_container_stats,
-    docker_container_inspect,
-    compose_up,
-    compose_down,
 )
 from oprim._exceptions import OprimConnectionError, OprimNotFoundError
-
 
 # ===== Alias identity tests =====
 
@@ -116,12 +119,14 @@ def test_docker_compose_pull_subprocess_error(tmp_path):
     compose_file = tmp_path / "docker-compose.yml"
     compose_file.write_text("version: '3'\n")
 
-    with patch(
-        "subprocess.run",
-        side_effect=subprocess.CalledProcessError(1, "docker", stderr="pull failed"),
+    with (
+        patch(
+            "subprocess.run",
+            side_effect=subprocess.CalledProcessError(1, "docker", stderr="pull failed"),
+        ),
+        pytest.raises(OprimConnectionError, match="pull failed"),
     ):
-        with pytest.raises(OprimConnectionError, match="pull failed"):
-            docker_compose_pull(compose_file=str(compose_file))
+        docker_compose_pull(compose_file=str(compose_file))
 
 
 def test_docker_compose_pull_custom_docker_host(tmp_path):

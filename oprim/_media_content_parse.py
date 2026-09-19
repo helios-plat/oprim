@@ -68,9 +68,7 @@ async def media_content_parse(
     inferred = KIND_BY_MIME.get(mime.split("/")[0], "other")
     final_kind = kind or inferred
     if final_kind == "other":
-        raise MediaParseError(
-            f"media_content_parse: cannot determine kind for {src} (mime={mime})"
-        )
+        raise MediaParseError(f"media_content_parse: cannot determine kind for {src} (mime={mime})")
 
     meta: dict[str, Any] = {"mime": mime}
     if parser is not None:
@@ -79,9 +77,7 @@ async def media_content_parse(
             if isinstance(deep, dict):
                 meta.update(deep)
         except Exception as exc:
-            raise MediaParseError(
-                f"media_content_parse: parser failed: {exc}", cause=exc
-            ) from exc
+            raise MediaParseError(f"media_content_parse: parser failed: {exc}", cause=exc) from exc
 
     return {
         "status": "ok",

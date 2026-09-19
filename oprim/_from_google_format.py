@@ -1,4 +1,5 @@
 """Parse a Google Gemini API response content object into an internal Message."""
+
 from __future__ import annotations
 
 from typing import Any

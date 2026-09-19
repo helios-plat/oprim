@@ -8,6 +8,7 @@ Hagan, P.S. et al. (2014). Arbitrage-free SABR. Wilmott Magazine, 69, 60-75.
 Obloj, J. (2008). Fine-tune your smile: Correction to Hagan et al. Wilmott
     Magazine, 35, 102-108.
 """
+
 from __future__ import annotations
 
 import math
@@ -31,9 +32,9 @@ def _sabr_hagan_2002(
         # ATM formula
         fk_beta = f ** (1.0 - beta)
         correction = (
-            (1.0 - beta) ** 2 / 24.0 * alpha ** 2 / fk_beta ** 2
+            (1.0 - beta) ** 2 / 24.0 * alpha**2 / fk_beta**2
             + rho * beta * nu * alpha / (4.0 * fk_beta)
-            + (2.0 - 3.0 * rho ** 2) / 24.0 * nu ** 2
+            + (2.0 - 3.0 * rho**2) / 24.0 * nu**2
         )
         sigma = alpha / fk_beta * (1.0 + correction * t)
         return sigma
@@ -43,17 +44,18 @@ def _sabr_hagan_2002(
 
     if nu == 0.0:
         # No vol-of-vol: beta-CEV approximation
-        log_series = log_fk ** 2
-        log4_series = log_fk ** 4
-        denom = fk_mid * (1.0 + (1.0 - beta) ** 2 / 24.0 * log_series
-                          + (1.0 - beta) ** 4 / 1920.0 * log4_series)
-        correction = (1.0 - beta) ** 2 / 24.0 * alpha ** 2 / (f * k) ** (1.0 - beta)
+        log_series = log_fk**2
+        log4_series = log_fk**4
+        denom = fk_mid * (
+            1.0 + (1.0 - beta) ** 2 / 24.0 * log_series + (1.0 - beta) ** 4 / 1920.0 * log4_series
+        )
+        correction = (1.0 - beta) ** 2 / 24.0 * alpha**2 / (f * k) ** (1.0 - beta)
         sigma = alpha / denom * (1.0 + correction * t)
         return sigma
 
     # General case
     z = nu / alpha * fk_mid * log_fk
-    sqrt_term = math.sqrt(1.0 - 2.0 * rho * z + z ** 2)
+    sqrt_term = math.sqrt(1.0 - 2.0 * rho * z + z**2)
     chi_arg = (sqrt_term + z - rho) / (1.0 - rho)
     if chi_arg <= 0.0:
         chi_arg = 1e-10
@@ -61,15 +63,16 @@ def _sabr_hagan_2002(
 
     z_over_chi = 1.0 if abs(chi) < 1e-10 else z / chi
 
-    log_series = log_fk ** 2
-    log4_series = log_fk ** 4
-    denom = fk_mid * (1.0 + (1.0 - beta) ** 2 / 24.0 * log_series
-                      + (1.0 - beta) ** 4 / 1920.0 * log4_series)
+    log_series = log_fk**2
+    log4_series = log_fk**4
+    denom = fk_mid * (
+        1.0 + (1.0 - beta) ** 2 / 24.0 * log_series + (1.0 - beta) ** 4 / 1920.0 * log4_series
+    )
 
     correction = (
-        (1.0 - beta) ** 2 / 24.0 * alpha ** 2 / (f * k) ** (1.0 - beta)
+        (1.0 - beta) ** 2 / 24.0 * alpha**2 / (f * k) ** (1.0 - beta)
         + rho * beta * nu * alpha / (4.0 * fk_mid)
-        + (2.0 - 3.0 * rho ** 2) / 24.0 * nu ** 2
+        + (2.0 - 3.0 * rho**2) / 24.0 * nu**2
     )
 
     sigma = alpha / denom * z_over_chi * (1.0 + correction * t)

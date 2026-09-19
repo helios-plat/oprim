@@ -60,7 +60,8 @@ async def fetch_macro_policy_news(
     - ``value = 0.0`` (sentinel — numeric value is not applicable for text events)
     - ``metadata["title"]``, ``metadata["summary"]`` contain the news text
 
-    Note: ``ak.news_economic_baidu()`` scrapes Baidu Finance; availability may vary.
+    Note: ``ak.news_economic_baidu()`` scrapes Baidu Finance
+    availability may vary.
 
     Args:
         start_date: Inclusive lower bound.
