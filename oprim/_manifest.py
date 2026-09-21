@@ -87,6 +87,15 @@ ELEMENTS: list[str] = [
     "fsrs_retrievability",
     "fsrs_map_rating",
     "fsrs_due_date",
+    # Echo Loop atomic primitives
+    "BlindListenOutput",
+    "blind_listen_generate",
+    "IntensiveListenOutput",
+    "intensive_listen_parse",
+    "ShadowingOutput",
+    "shadowing_evaluate",
+    "RetellOutput",
+    "retell_evaluate",
     # Distance (5)
     "wasserstein_distance",
     "dtw_distance",
