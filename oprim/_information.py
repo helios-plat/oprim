@@ -6,7 +6,7 @@ import numpy as np
 
 
 def shannon_entropy(
-    x: np.ndarray,
+    x: np.ndarray, *,
     base: float = 2.0,
 ) -> float:
     """Shannon entropy of a discrete symbol sequence.
@@ -42,7 +42,7 @@ def shannon_entropy(
 
 
 def ordinal_pattern(
-    x: np.ndarray,
+    x: np.ndarray, *,
     d: int = 3,
 ) -> np.ndarray:
     """Encode time series into ordinal patterns (Bandt-Pompe).
@@ -91,7 +91,7 @@ def ordinal_pattern(
 
 
 def phase_randomize(
-    x: np.ndarray,
+    x: np.ndarray, *,
     rng: np.random.Generator | None = None,
 ) -> np.ndarray:
     """Phase-randomization surrogate preserving power spectrum.

@@ -11,7 +11,7 @@ import pandas as pd
 
 
 def regime_filter_data(
-    data: pd.DataFrame,
+    data: pd.DataFrame, *,
     regime_labels: pd.Series,
     target_regime: str | list[str],
     mode: Literal["hard", "soft"] = "hard",
@@ -71,7 +71,7 @@ def regime_filter_data(
 
 
 def regime_transition_matrix(
-    regime_labels: pd.Series,
+    regime_labels: pd.Series, *,
     states: list[str] | None = None,
     include_duration: bool = True,
 ) -> dict[str, Any]:
@@ -169,7 +169,7 @@ def regime_transition_matrix(
 
 
 def regime_label_align(
-    target_index: pd.DatetimeIndex,
+    target_index: pd.DatetimeIndex, *,
     regime_labels: pd.Series,
     method: Literal["asof", "ffill"] = "asof",
     tolerance: pd.Timedelta | None = None,

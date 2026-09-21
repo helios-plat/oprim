@@ -15,14 +15,14 @@ class TestRegimeFilterData:
         idx = pd.date_range("2024-01-01", periods=10, freq="D")
         data = pd.DataFrame({"val": range(10)}, index=idx)
         labels = pd.Series(["bull"] * 5 + ["bear"] * 5, index=idx)
-        result = regime_filter_data(data, labels, "bull")
+        result = regime_filter_data(data, regime_labels=labels, target_regime="bull")
         assert len(result) == 5
 
     def test_hard_multi(self):
         idx = pd.date_range("2024-01-01", periods=9, freq="D")
         data = pd.DataFrame({"val": range(9)}, index=idx)
         labels = pd.Series(["bull"] * 3 + ["bear"] * 3 + ["neutral"] * 3, index=idx)
-        result = regime_filter_data(data, labels, ["bull", "neutral"])
+        result = regime_filter_data(data, regime_labels=labels, target_regime=["bull", "neutral"])
         assert len(result) == 6
 
     def test_soft_mode(self):
@@ -37,14 +37,16 @@ class TestRegimeFilterData:
             ],
             index=idx,
         )
-        result = regime_filter_data(data, labels, "bull", mode="soft", min_probability=0.5)
+        result = regime_filter_data(
+            data, regime_labels=labels, target_regime="bull", mode="soft", min_probability=0.5
+        )
         assert len(result) == 2  # indices 0 and 2
 
     def test_empty_result(self):
         idx = pd.date_range("2024-01-01", periods=5, freq="D")
         data = pd.DataFrame({"val": range(5)}, index=idx)
         labels = pd.Series(["bear", "bear", "bull", "bear", "bear"], index=idx)
-        result = regime_filter_data(data, labels, "bull")
+        result = regime_filter_data(data, regime_labels=labels, target_regime="bull")
         assert len(result) == 1
 
     def test_target_not_found_raises(self):
@@ -52,7 +54,7 @@ class TestRegimeFilterData:
         data = pd.DataFrame({"val": range(5)}, index=idx)
         labels = pd.Series(["bear"] * 5, index=idx)
         with pytest.raises(ValueError, match="not found"):
-            regime_filter_data(data, labels, "crash")
+            regime_filter_data(data, regime_labels=labels, target_regime="crash")
 
     def test_no_overlap_raises(self):
         idx1 = pd.date_range("2024-01-01", periods=5, freq="D")
@@ -60,7 +62,7 @@ class TestRegimeFilterData:
         data = pd.DataFrame({"val": range(5)}, index=idx1)
         labels = pd.Series(["bull"] * 5, index=idx2)
         with pytest.raises(ValueError, match="overlapping"):
-            regime_filter_data(data, labels, "bull")
+            regime_filter_data(data, regime_labels=labels, target_regime="bull")
 
 
 # ============================================================
@@ -114,7 +116,7 @@ class TestRegimeLabelAlign:
         regime_idx = pd.DatetimeIndex(["2024-01-01", "2024-01-05", "2024-01-10"])
         labels = pd.Series(["bull", "bear", "bull"], index=regime_idx)
         target = pd.date_range("2024-01-01", "2024-01-10", freq="D")
-        result = regime_label_align(target, labels, method="asof")
+        result = regime_label_align(target, regime_labels=labels, method="asof")
         assert result.iloc[0] == "bull"
         assert result.iloc[4] == "bear"  # Jan 5
         assert result.iloc[9] == "bull"  # Jan 10
@@ -123,7 +125,7 @@ class TestRegimeLabelAlign:
         regime_idx = pd.DatetimeIndex(["2024-01-01", "2024-01-05"])
         labels = pd.Series(["bull", "bear"], index=regime_idx)
         target = pd.date_range("2024-01-01", "2024-01-07", freq="D")
-        result = regime_label_align(target, labels, method="ffill")
+        result = regime_label_align(target, regime_labels=labels, method="ffill")
         assert result.iloc[0] == "bull"
         assert result.iloc[4] == "bear"
         assert result.iloc[6] == "bear"  # forward-filled
@@ -132,7 +134,9 @@ class TestRegimeLabelAlign:
         regime_idx = pd.DatetimeIndex(["2024-01-01", "2024-01-10"])
         labels = pd.Series(["bull", "bear"], index=regime_idx)
         target = pd.date_range("2024-01-01", "2024-01-15", freq="D")
-        result = regime_label_align(target, labels, method="asof", tolerance=pd.Timedelta(days=3))
+        result = regime_label_align(
+            target, regime_labels=labels, method="asof", tolerance=pd.Timedelta(days=3)
+        )
         # Jan 4 is within 3 days of Jan 1 → bull
         assert result.iloc[3] == "bull"
 
@@ -141,7 +145,7 @@ class TestRegimeLabelAlign:
         regime_idx = pd.date_range("2024-01-01", periods=3, freq="D")
         labels = pd.Series(["bull", "bear", "bull"], index=regime_idx)
         target = pd.date_range("2024-01-01", periods=48, freq="h")
-        result = regime_label_align(target, labels, method="asof")
+        result = regime_label_align(target, regime_labels=labels, method="asof")
         assert result.iloc[0] == "bull"
         assert result.iloc[24] == "bear"
 
@@ -156,7 +160,7 @@ class TestRegimeExtra:
         data = pd.DataFrame({"val": [1, 2, 3]}, index=idx)
         labels = pd.Series(["bull", "bear", "bull"], index=idx)
         with pytest.raises(ValueError, match="mode='soft' requires dict values"):
-            regime_filter_data(data, labels, "bull", mode="soft")
+            regime_filter_data(data, regime_labels=labels, target_regime="bull", mode="soft")
 
     def test_transition_no_duration(self):
         labels = pd.Series(["A", "B", "A"])
@@ -180,7 +184,9 @@ class TestRegimeExtra:
         regime_idx = pd.DatetimeIndex(["2024-01-01"])
         labels = pd.Series(["bull"], index=regime_idx)
         target = pd.date_range("2024-01-01", "2024-01-10", freq="D")
-        result = regime_label_align(target, labels, method="ffill", tolerance=pd.Timedelta(days=3))
+        result = regime_label_align(
+            target, regime_labels=labels, method="ffill", tolerance=pd.Timedelta(days=3)
+        )
         # Jan 1-4 should be bull, Jan 5+ should be NaN
         assert result.iloc[0] == "bull"
         assert pd.isna(result.iloc[5])
@@ -291,7 +297,7 @@ class TestRegimePerformance:
         target = pd.date_range("2020-01-01", "2047-05-01", freq="h")  # ~10000 points
 
         start = time.perf_counter()
-        result = regime_label_align(target, labels, method="ffill")
+        result = regime_label_align(target, regime_labels=labels, method="ffill")
         elapsed = time.perf_counter() - start
 
         assert elapsed < 1.0, f"ffill took {elapsed:.2f}s, should be < 1s"
@@ -310,7 +316,7 @@ class TestRegimePerformance:
         labels = pd.Series([{"bull": p[0], "bear": p[1]} for p in probs], index=idx)
 
         start = time.perf_counter()
-        regime_filter_data(data, labels, "bull", mode="soft")
+        regime_filter_data(data, regime_labels=labels, target_regime="bull", mode="soft")
         elapsed = time.perf_counter() - start
 
         assert elapsed < 0.1, f"soft mode took {elapsed * 1000:.1f}ms, should be < 100ms"
@@ -323,5 +329,5 @@ class TestRegimeLabelAlignEdgeCases:
         labels = pd.Series(["bull"], index=regime_idx)
         # Pass list instead of DatetimeIndex
         target = ["2024-01-01", "2024-01-02"]
-        result = regime_label_align(target, labels, method="asof")
+        result = regime_label_align(target, regime_labels=labels, method="asof")
         assert len(result) == 2

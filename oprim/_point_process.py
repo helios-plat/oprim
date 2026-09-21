@@ -6,7 +6,7 @@ import numpy as np
 
 
 def hawkes_nll(
-    params: np.ndarray,
+    params: np.ndarray, *,
     event_times: np.ndarray,
     t: float,
 ) -> float:

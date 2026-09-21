@@ -11,7 +11,7 @@ from scipy.special import softmax as _scipy_softmax
 
 
 def logsumexp_safe(
-    x: np.ndarray,
+    x: np.ndarray, *,
     axis: int | None = None,
     weights: np.ndarray | None = None,
     keepdims: bool = False,
@@ -41,7 +41,7 @@ def logsumexp_safe(
 
 
 def softmax_safe(
-    x: np.ndarray,
+    x: np.ndarray, *,
     axis: int = -1,
     temperature: float = 1.0,
 ) -> np.ndarray:
@@ -72,7 +72,7 @@ def softmax_safe(
 
 
 def clip_with_warning(
-    x: np.ndarray | float,
+    x: np.ndarray | float, *,
     lower: float | None = None,
     upper: float | None = None,
     warning_threshold_pct: float = 0.05,
