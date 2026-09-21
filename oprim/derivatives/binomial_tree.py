@@ -15,12 +15,11 @@ import numpy as np
 
 
 def binomial_tree_price(
-    spot: float,
+    spot: float, *,
     strike: float,
     time_to_expiry: float,
     risk_free_rate: float,
     volatility: float,
-    *,
     n_steps: int = 100,
     option_type: Literal["call", "put"] = "call",
     exercise: Literal["european", "american"] = "european",

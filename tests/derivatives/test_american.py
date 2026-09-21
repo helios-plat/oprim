@@ -16,16 +16,23 @@ def test_american_put_ge_european():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     amer = lsm_american_price(
         s_val,
-        k_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         n_simulations=10000,
         n_time_steps=50,
         option_type="put",
         seed=42,
     )
-    euro = black_scholes_price(s_val, k_val, t_val, r, sigma, option_type="put")
+    euro = black_scholes_price(
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        option_type="put",
+    )
     assert amer["price"] >= euro - 0.30  # allow MC variance (~2 std errors)  # allow small MC noise
 
 
@@ -35,14 +42,21 @@ def test_american_put_ge_european():
 def test_american_put_close_to_binomial():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     bt = binomial_tree_price(
-        s_val, k_val, t_val, r, sigma, n_steps=500, option_type="put", exercise="american"
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_steps=500,
+        option_type="put",
+        exercise="american",
     )["price"]
     lsm = lsm_american_price(
         s_val,
-        k_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         n_simulations=20000,
         n_time_steps=100,
         option_type="put",
@@ -58,9 +72,23 @@ def test_american_put_close_to_binomial():
 def test_american_call_ge_european_call():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     amer = lsm_american_price(
-        s_val, k_val, t_val, r, sigma, n_simulations=10000, option_type="call", seed=1
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_simulations=10000,
+        option_type="call",
+        seed=1,
     )
-    euro = black_scholes_price(s_val, k_val, t_val, r, sigma, option_type="call")
+    euro = black_scholes_price(
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        option_type="call",
+    )
     assert amer["price"] >= euro - 0.30  # allow MC variance (~2 std errors)
 
 
@@ -68,7 +96,9 @@ def test_american_call_ge_european_call():
 # Test 4: Returns required keys
 # ---------------------------------------------------------------------------
 def test_lsm_return_keys():
-    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20, seed=0)
+    result = lsm_american_price(
+        100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20, seed=0
+    )
     assert "price" in result
     assert "standard_error" in result
     assert "exercise_boundary" in result
@@ -79,7 +109,15 @@ def test_lsm_return_keys():
 # Test 5: Standard error is positive
 # ---------------------------------------------------------------------------
 def test_lsm_standard_error_positive():
-    result = lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=5000, seed=99)
+    result = lsm_american_price(
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_simulations=5000,
+        seed=99,
+    )
     assert result["standard_error"] > 0
 
 
@@ -87,9 +125,23 @@ def test_lsm_standard_error_positive():
 # Test 6: T=0 returns intrinsic
 # ---------------------------------------------------------------------------
 def test_lsm_t0_returns_intrinsic():
-    result_put = lsm_american_price(90.0, 100.0, 0.0, 0.05, 0.20, option_type="put")
+    result_put = lsm_american_price(
+        90.0,
+        strike=100.0,
+        time_to_expiry=0.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+    )
     assert abs(result_put["price"] - 10.0) < 1e-10
-    result_call = lsm_american_price(110.0, 100.0, 0.0, 0.05, 0.20, option_type="call")
+    result_call = lsm_american_price(
+        110.0,
+        strike=100.0,
+        time_to_expiry=0.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+    )
     assert abs(result_call["price"] - 10.0) < 1e-10
 
 
@@ -98,7 +150,14 @@ def test_lsm_t0_returns_intrinsic():
 # ---------------------------------------------------------------------------
 def test_lsm_laguerre_basis():
     result = lsm_american_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=10000, basis_functions="laguerre", seed=5
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_simulations=10000,
+        basis_functions="laguerre",
+        seed=5,
     )
     # Price should be in plausible range
     assert 0.0 < result["price"] < 30.0
@@ -109,7 +168,14 @@ def test_lsm_laguerre_basis():
 # ---------------------------------------------------------------------------
 def test_lsm_hermite_basis():
     result = lsm_american_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=10000, basis_functions="hermite", seed=6
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_simulations=10000,
+        basis_functions="hermite",
+        seed=6,
     )
     assert 0.0 < result["price"] < 30.0
 
@@ -119,7 +185,9 @@ def test_lsm_hermite_basis():
 # ---------------------------------------------------------------------------
 def test_lsm_invalid_spot():
     with pytest.raises(ValueError, match="spot"):
-        lsm_american_price(0.0, 100.0, 1.0, 0.05, 0.20)
+        lsm_american_price(
+            0.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -127,7 +195,14 @@ def test_lsm_invalid_spot():
 # ---------------------------------------------------------------------------
 def test_lsm_invalid_n_time_steps():
     with pytest.raises(ValueError, match="n_time_steps"):
-        lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20, n_time_steps=0)
+        lsm_american_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            n_time_steps=0,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -136,7 +211,14 @@ def test_lsm_invalid_n_time_steps():
 def test_lsm_early_exercise_frequency_range():
     # Deep ITM put: should have significant early exercise
     result = lsm_american_price(
-        100.0, 120.0, 1.0, 0.05, 0.20, n_simulations=10000, option_type="put", seed=33
+        100.0,
+        strike=120.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_simulations=10000,
+        option_type="put",
+        seed=33,
     )
     assert 0.0 <= result["early_exercise_frequency"] <= 1.0
 
@@ -147,7 +229,14 @@ def test_lsm_early_exercise_frequency_range():
 def test_lsm_exercise_boundary_length():
     n_steps = 30
     result = lsm_american_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, n_time_steps=n_steps, n_simulations=5000, seed=77
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_time_steps=n_steps,
+        n_simulations=5000,
+        seed=77,
     )
     # boundary is recorded for steps 1..n-1 (n-1 steps)
     assert len(result["exercise_boundary"]) == n_steps - 1
@@ -158,47 +247,76 @@ def test_lsm_exercise_boundary_length():
 # ---------------------------------------------------------------------------
 def test_lsm_invalid_strike():
     with pytest.raises(ValueError, match="strike"):
-        lsm_american_price(100.0, 0.0, 1.0, 0.05, 0.20)
+        lsm_american_price(
+            100.0, strike=0.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_lsm_invalid_tte():
     with pytest.raises(ValueError, match="time_to_expiry"):
-        lsm_american_price(100.0, 100.0, -1.0, 0.05, 0.20)
+        lsm_american_price(
+            100.0, strike=100.0, time_to_expiry=-1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_lsm_invalid_vol():
     with pytest.raises(ValueError, match="volatility"):
-        lsm_american_price(100.0, 100.0, 1.0, 0.05, -0.1)
+        lsm_american_price(
+            100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=-0.1
+        )
 
 
 def test_lsm_invalid_n_simulations():
     with pytest.raises(ValueError, match="n_simulations"):
-        lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=0)
+        lsm_american_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            n_simulations=0,
+        )
 
 
 def test_lsm_invalid_n_basis():
     with pytest.raises(ValueError, match="n_basis"):
-        lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20, n_basis=0)
+        lsm_american_price(
+            100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20, n_basis=0
+        )
 
 
 def test_lsm_invalid_option_type():
     with pytest.raises(ValueError, match="option_type"):
-        lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20, option_type="straddle")
+        lsm_american_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            option_type="straddle",
+        )
 
 
 def test_lsm_invalid_basis_functions():
     with pytest.raises(ValueError, match="basis_functions"):
-        lsm_american_price(100.0, 100.0, 1.0, 0.05, 0.20, basis_functions="chebyshev")
+        lsm_american_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            basis_functions="chebyshev",
+        )
 
 
 def test_lsm_laguerre_4_basis():
     """Test Laguerre with 4 basis functions to cover L3 and fallback branches."""
     result = lsm_american_price(
         100.0,
-        100.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         n_simulations=5000,
         basis_functions="laguerre",
         n_basis=5,
@@ -211,10 +329,10 @@ def test_lsm_hermite_4_basis():
     """Test Hermite with 4 basis functions to cover H3 and fallback branches."""
     result = lsm_american_price(
         100.0,
-        100.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         n_simulations=5000,
         basis_functions="hermite",
         n_basis=5,
@@ -226,7 +344,15 @@ def test_lsm_hermite_4_basis():
 def test_lsm_low_n_sims_triggers_skip():
     """Very deep OTM put with few sims → many steps with n_itm < n_basis."""
     result = lsm_american_price(
-        200.0, 100.0, 0.5, 0.05, 0.10, n_simulations=50, n_time_steps=20, option_type="put", seed=0
+        200.0,
+        strike=100.0,
+        time_to_expiry=0.5,
+        risk_free_rate=0.05,
+        volatility=0.10,
+        n_simulations=50,
+        n_time_steps=20,
+        option_type="put",
+        seed=0,
     )
     # Price should be near 0 for deep OTM put
     assert result["price"] >= 0

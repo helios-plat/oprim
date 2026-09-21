@@ -40,14 +40,14 @@ _TRUE_PARAMS = {
 # Test 1: Fits clean synthetic data with RMSE < 0.001
 def test_svensson_fits_clean_data():
     y = _synthetic_svensson_yields(_MATURITIES, _TRUE_PARAMS)
-    result = svensson_yield_curve(_MATURITIES, y)
+    result = svensson_yield_curve(_MATURITIES, yields=y)
     assert result["rmse"] < 0.001
 
 
 # Test 2: Returns correct keys
 def test_svensson_return_keys():
     y = _synthetic_svensson_yields(_MATURITIES, _TRUE_PARAMS)
-    result = svensson_yield_curve(_MATURITIES, y)
+    result = svensson_yield_curve(_MATURITIES, yields=y)
     assert "params" in result
     assert "fitted_yields" in result
     assert "residuals" in result
@@ -58,14 +58,14 @@ def test_svensson_return_keys():
 # Test 3: Fitted yields shape matches input
 def test_svensson_fitted_yields_shape():
     y = _synthetic_svensson_yields(_MATURITIES, _TRUE_PARAMS)
-    result = svensson_yield_curve(_MATURITIES, y)
+    result = svensson_yield_curve(_MATURITIES, yields=y)
     assert len(result["fitted_yields"]) == len(_MATURITIES)
 
 
 # Test 4: Params dict has correct keys
 def test_svensson_params_keys():
     y = _synthetic_svensson_yields(_MATURITIES, _TRUE_PARAMS)
-    result = svensson_yield_curve(_MATURITIES, y)
+    result = svensson_yield_curve(_MATURITIES, yields=y)
     expected_keys = {"beta_0", "beta_1", "beta_2", "beta_3", "tau_1", "tau_2"}
     assert set(result["params"].keys()) == expected_keys
 
@@ -73,7 +73,7 @@ def test_svensson_params_keys():
 # Test 5: Residuals are near zero on clean data
 def test_svensson_residuals_near_zero():
     y = _synthetic_svensson_yields(_MATURITIES, _TRUE_PARAMS)
-    result = svensson_yield_curve(_MATURITIES, y)
+    result = svensson_yield_curve(_MATURITIES, yields=y)
     assert np.all(np.abs(result["residuals"]) < 0.01)
 
 
@@ -81,25 +81,25 @@ def test_svensson_residuals_near_zero():
 def test_svensson_custom_initial_params():
     y = _synthetic_svensson_yields(_MATURITIES, _TRUE_PARAMS)
     custom_init = {"beta_0": 0.07, "tau_1": 2.0, "tau_2": 7.0}
-    result = svensson_yield_curve(_MATURITIES, y, initial_params=custom_init)
+    result = svensson_yield_curve(_MATURITIES, yields=y, initial_params=custom_init)
     assert result["rmse"] < 0.002
 
 
 # Test 7: Invalid inputs raise ValueError
 def test_svensson_mismatched_lengths():
     with pytest.raises(ValueError, match="same length"):
-        svensson_yield_curve(np.array([1.0, 2.0]), np.array([0.05]))
+        svensson_yield_curve(np.array([1.0, 2.0]), yields=np.array([0.05]))
 
 
 def test_svensson_negative_maturity():
     with pytest.raises(ValueError, match="maturities must be"):
-        svensson_yield_curve(np.array([-1.0, 2.0]), np.array([0.05, 0.06]))
+        svensson_yield_curve(np.array([-1.0, 2.0]), yields=np.array([0.05, 0.06]))
 
 
 # Test 8: tau_1, tau_2 remain positive after fitting
 def test_svensson_tau_positive():
     y = _synthetic_svensson_yields(_MATURITIES, _TRUE_PARAMS)
-    result = svensson_yield_curve(_MATURITIES, y)
+    result = svensson_yield_curve(_MATURITIES, yields=y)
     assert result["params"]["tau_1"] > 0
     assert result["params"]["tau_2"] > 0
 
@@ -113,7 +113,7 @@ def test_svensson_tau_positive():
 def test_cubic_spline_exact_at_knots():
     t = np.array([1.0, 2.0, 5.0, 10.0, 20.0])
     y = np.array([0.02, 0.025, 0.03, 0.035, 0.04])
-    result = cubic_spline_yield_curve(t, y)
+    result = cubic_spline_yield_curve(t, yields=y)
     fitted = result["fitted_yields"]
     np.testing.assert_allclose(fitted, y, atol=1e-10)
 
@@ -122,7 +122,7 @@ def test_cubic_spline_exact_at_knots():
 def test_cubic_spline_return_keys():
     t = np.array([1.0, 2.0, 5.0, 10.0])
     y = np.array([0.02, 0.025, 0.03, 0.035])
-    result = cubic_spline_yield_curve(t, y)
+    result = cubic_spline_yield_curve(t, yields=y)
     assert "spline_object" in result
     assert "fitted_yields" in result
     assert "derivative_coefficients" in result
@@ -133,7 +133,7 @@ def test_cubic_spline_return_keys():
 def test_cubic_spline_object_type():
     t = np.array([1.0, 2.0, 5.0, 10.0])
     y = np.array([0.02, 0.025, 0.03, 0.035])
-    result = cubic_spline_yield_curve(t, y)
+    result = cubic_spline_yield_curve(t, yields=y)
     assert isinstance(result["spline_object"], CubicSpline)
 
 
@@ -141,7 +141,7 @@ def test_cubic_spline_object_type():
 def test_cubic_spline_evaluate_callable():
     t = np.array([1.0, 2.0, 5.0, 10.0])
     y = np.array([0.02, 0.025, 0.03, 0.035])
-    result = cubic_spline_yield_curve(t, y)
+    result = cubic_spline_yield_curve(t, yields=y)
     new_t = np.array([1.5, 3.0, 7.5])
     vals = result["evaluate"](new_t)
     assert len(vals) == 3
@@ -154,8 +154,8 @@ def test_cubic_spline_evaluate_callable():
 def test_cubic_spline_different_boundary():
     t = np.array([1.0, 2.0, 5.0, 10.0, 20.0])
     y = np.array([0.02, 0.025, 0.03, 0.04, 0.035])  # non-monotone to differentiate
-    res_nat = cubic_spline_yield_curve(t, y, boundary_type="natural")
-    res_nak = cubic_spline_yield_curve(t, y, boundary_type="not_a_knot")
+    res_nat = cubic_spline_yield_curve(t, yields=y, boundary_type="natural")
+    res_nak = cubic_spline_yield_curve(t, yields=y, boundary_type="not_a_knot")
     # Evaluate at midpoints between knots — boundary conditions affect shape between nodes
     mid = np.array([1.5, 3.5, 7.5, 15.0])
     val_nat = res_nat["evaluate"](mid)
@@ -166,20 +166,20 @@ def test_cubic_spline_different_boundary():
 # Test 14: Mismatched lengths raises ValueError
 def test_cubic_spline_mismatched_lengths():
     with pytest.raises(ValueError, match="same length"):
-        cubic_spline_yield_curve(np.array([1.0, 2.0]), np.array([0.02]))
+        cubic_spline_yield_curve(np.array([1.0, 2.0]), yields=np.array([0.02]))
 
 
 # Test 15: Fewer than 2 points raises ValueError
 def test_cubic_spline_too_few_points():
     with pytest.raises(ValueError, match="at least 2"):
-        cubic_spline_yield_curve(np.array([1.0]), np.array([0.02]))
+        cubic_spline_yield_curve(np.array([1.0]), yields=np.array([0.02]))
 
 
 # Test 16: Sorted input handles out-of-order maturities
 def test_cubic_spline_unsorted_input():
     t = np.array([5.0, 1.0, 10.0, 2.0])
     y = np.array([0.03, 0.02, 0.035, 0.025])
-    result = cubic_spline_yield_curve(t, y)
+    result = cubic_spline_yield_curve(t, yields=y)
     # Should succeed and evaluate correctly at a midpoint
     val = result["evaluate"](3.0)
     assert 0.01 < float(val) < 0.05

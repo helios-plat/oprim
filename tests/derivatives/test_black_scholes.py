@@ -52,30 +52,91 @@ class TestBSPrice:
 
     def test_bs_zero_time_intrinsic_call(self):
         """T=0: call price = max(S-K, 0)."""
-        assert black_scholes_price(100, 90, 0, 0.05, 0.2, option_type="call") == 10.0
-        assert black_scholes_price(90, 100, 0, 0.05, 0.2, option_type="call") == 0.0
+        assert (
+            black_scholes_price(
+                100,
+                strike=90,
+                time_to_expiry=0,
+                risk_free_rate=0.05,
+                volatility=0.2,
+                option_type="call",
+            )
+            == 10.0
+        )
+        assert (
+            black_scholes_price(
+                90,
+                strike=100,
+                time_to_expiry=0,
+                risk_free_rate=0.05,
+                volatility=0.2,
+                option_type="call",
+            )
+            == 0.0
+        )
 
     def test_bs_zero_time_intrinsic_put(self):
         """T=0: put price = max(K-S, 0)."""
-        assert black_scholes_price(90, 100, 0, 0.05, 0.2, option_type="put") == 10.0
-        assert black_scholes_price(100, 90, 0, 0.05, 0.2, option_type="put") == 0.0
+        assert (
+            black_scholes_price(
+                90,
+                strike=100,
+                time_to_expiry=0,
+                risk_free_rate=0.05,
+                volatility=0.2,
+                option_type="put",
+            )
+            == 10.0
+        )
+        assert (
+            black_scholes_price(
+                100,
+                strike=90,
+                time_to_expiry=0,
+                risk_free_rate=0.05,
+                volatility=0.2,
+                option_type="put",
+            )
+            == 0.0
+        )
 
     def test_bs_zero_vol_call(self):
         """sigma=0: discounted intrinsic for call."""
         s_val, k_val, t_val, r = 110, 100, 1.0, 0.05
         expected = max(s_val * math.exp(0) - k_val * math.exp(-r * t_val), 0.0)
-        price = black_scholes_price(s_val, k_val, t_val, r, 0.0, option_type="call")
+        price = black_scholes_price(
+            s_val,
+            strike=k_val,
+            time_to_expiry=t_val,
+            risk_free_rate=r,
+            volatility=0.0,
+            option_type="call",
+        )
         assert price == pytest.approx(expected, rel=1e-10)
 
     def test_bs_deep_itm_call_approaches_intrinsic(self):
         """Deep ITM call: price approaches S - K*exp(-r*T)."""
-        price = black_scholes_price(200, 100, 1.0, 0.05, 0.20, option_type="call")
+        price = black_scholes_price(
+            200,
+            strike=100,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            option_type="call",
+        )
         lower_bound = 200 - 100 * math.exp(-0.05 * 1.0)
         assert price > lower_bound * 0.99
 
     def test_bs_deep_otm_call_near_zero(self):
         """Deep OTM call: price near zero."""
-        price = black_scholes_price(50, 200, 1.0, 0.05, 0.20, option_type="call")
+        price = black_scholes_price(
+            50,
+            strike=200,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            option_type="call",
+        )
         assert price < 0.001
 
     def test_bs_dividend_yield_reduces_call(self):
@@ -92,7 +153,9 @@ class TestBSPrice:
     def test_bs_invalid_negative_spot_raises(self):
         """Negative spot → ValueError."""
         with pytest.raises(ValueError):
-            black_scholes_price(-10, 100, 1.0, 0.05, 0.2)
+            black_scholes_price(
+                -10, strike=100, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.2
+            )
 
     @pytest.mark.academic_reference
     def test_bs_hull_ch15_example(self):
@@ -100,7 +163,14 @@ class TestBSPrice:
 
         rtol=0.01.
         """
-        price = black_scholes_price(42, 40, 0.5, 0.10, 0.20, option_type="call")
+        price = black_scholes_price(
+            42,
+            strike=40,
+            time_to_expiry=0.5,
+            risk_free_rate=0.10,
+            volatility=0.20,
+            option_type="call",
+        )
         assert price == pytest.approx(4.76, rel=0.01)
 
 
@@ -136,7 +206,14 @@ class TestBSGreeks:
         With r>0 and T=1, d1 = (r + 0.5*sigma^2)*T / (sigma*sqrt(T)) > 0, so delta > 0.5.
         """
         # Use r=0 to get delta close to 0.5
-        g = black_scholes_greeks(100, 100, 0.1, 0.0, 0.01, option_type="call")
+        g = black_scholes_greeks(
+            100,
+            strike=100,
+            time_to_expiry=0.1,
+            risk_free_rate=0.0,
+            volatility=0.01,
+            option_type="call",
+        )
         assert g["delta"] == pytest.approx(0.5, abs=0.05)
 
     def test_greeks_returns_five_keys(self):
@@ -166,7 +243,14 @@ class TestBSGreeks:
 
     def test_greeks_zero_time_returns_defaults(self):
         """T=0 returns delta 0 or 1 (or -1), others 0."""
-        g = black_scholes_greeks(100, 90, 0, 0.05, 0.2, option_type="call")
+        g = black_scholes_greeks(
+            100,
+            strike=90,
+            time_to_expiry=0,
+            risk_free_rate=0.05,
+            volatility=0.2,
+            option_type="call",
+        )
         assert g["gamma"] == 0.0
         assert g["vega"] == 0.0
 
@@ -177,7 +261,14 @@ class TestBSGreeks:
         delta_call ≈ 0.522, gamma ≈ 0.066, vega ≈ 12.1/100, rtol=0.05
         """
         s_val, k_val, t_val, r, sigma = 49, 50, 20 / 52, 0.05, 0.20
-        g = black_scholes_greeks(s_val, k_val, t_val, r, sigma, option_type="call")
+        g = black_scholes_greeks(
+            s_val,
+            strike=k_val,
+            time_to_expiry=t_val,
+            risk_free_rate=r,
+            volatility=sigma,
+            option_type="call",
+        )
         assert g["delta"] == pytest.approx(0.522, rel=0.05)
         assert g["gamma"] == pytest.approx(0.066, rel=0.05)
 
@@ -185,7 +276,14 @@ class TestBSGreeks:
     def test_greeks_hull_vega(self):
         """Hull (2018): vega for S=49, K=50 ≈ 12.1 (per 100% vol change)."""
         s_val, k_val, t_val, r, sigma = 49, 50, 20 / 52, 0.05, 0.20
-        g = black_scholes_greeks(s_val, k_val, t_val, r, sigma, option_type="call")
+        g = black_scholes_greeks(
+            s_val,
+            strike=k_val,
+            time_to_expiry=t_val,
+            risk_free_rate=r,
+            volatility=sigma,
+            option_type="call",
+        )
         # Hull reports vega as per 1% vol change = 0.121
         # Our vega is per 1.0 vol change, so ≈ 12.1
         assert g["vega"] == pytest.approx(12.1, rel=0.05)
@@ -197,10 +295,10 @@ class TestImpliedVolatility:
         price = black_scholes_price(**ATM, option_type="call")
         iv = implied_volatility(
             price,
-            ATM["spot"],
-            ATM["strike"],
-            ATM["time_to_expiry"],
-            ATM["risk_free_rate"],
+            spot=ATM["spot"],
+            strike=ATM["strike"],
+            time_to_expiry=ATM["time_to_expiry"],
+            risk_free_rate=ATM["risk_free_rate"],
             option_type="call",
             method="brent",
         )
@@ -211,10 +309,10 @@ class TestImpliedVolatility:
         price = black_scholes_price(**ATM, option_type="call")
         iv = implied_volatility(
             price,
-            ATM["spot"],
-            ATM["strike"],
-            ATM["time_to_expiry"],
-            ATM["risk_free_rate"],
+            spot=ATM["spot"],
+            strike=ATM["strike"],
+            time_to_expiry=ATM["time_to_expiry"],
+            risk_free_rate=ATM["risk_free_rate"],
             option_type="call",
             method="newton",
         )
@@ -224,10 +322,10 @@ class TestImpliedVolatility:
         """Price below intrinsic → NaN."""
         iv = implied_volatility(
             0.0,
-            100,
-            200,
-            1.0,
-            0.05,
+            spot=100,
+            strike=200,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
             option_type="call",  # Deep OTM, price=0
         )
         # For deep OTM the price=0 may be at intrinsic; NaN or zero both acceptable
@@ -236,18 +334,37 @@ class TestImpliedVolatility:
 
     def test_iv_zero_time_returns_nan(self):
         """T=0 → NaN (no volatility solution)."""
-        iv = implied_volatility(10, 100, 90, 0.0, 0.05, option_type="call")
+        iv = implied_volatility(
+            10, spot=100, strike=90, time_to_expiry=0.0, risk_free_rate=0.05, option_type="call"
+        )
         assert math.isnan(iv)
 
     def test_iv_invalid_method_raises(self):
         """Unknown method → ValueError."""
         with pytest.raises(ValueError, match="Unknown method"):
-            implied_volatility(10, 100, 100, 1.0, 0.05, method="bisect")
+            implied_volatility(
+                10, spot=100, strike=100, time_to_expiry=1.0, risk_free_rate=0.05, method="bisect"
+            )
 
     def test_iv_put_brent_recovery(self):
         """Put price at sigma=0.30, recover sigma; atol=1e-5."""
-        price = black_scholes_price(100, 100, 1.0, 0.05, 0.30, option_type="put")
-        iv = implied_volatility(price, 100, 100, 1.0, 0.05, option_type="put", method="brent")
+        price = black_scholes_price(
+            100,
+            strike=100,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.30,
+            option_type="put",
+        )
+        iv = implied_volatility(
+            price,
+            spot=100,
+            strike=100,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            option_type="put",
+            method="brent",
+        )
         assert iv == pytest.approx(0.30, abs=1e-5)
 
     def test_iv_does_not_import_bs_functions(self):
@@ -264,31 +381,71 @@ class TestImpliedVolatility:
         """Manaster & Koehler (1982) roundtrip: price → IV → price, atol=1e-4."""
         s_val, k_val, t_val, r = 100, 105, 0.5, 0.06
         true_sigma = 0.25
-        price = black_scholes_price(s_val, k_val, t_val, r, true_sigma, option_type="call")
-        iv = implied_volatility(price, s_val, k_val, t_val, r, option_type="call", method="brent")
+        price = black_scholes_price(
+            s_val,
+            strike=k_val,
+            time_to_expiry=t_val,
+            risk_free_rate=r,
+            volatility=true_sigma,
+            option_type="call",
+        )
+        iv = implied_volatility(
+            price,
+            spot=s_val,
+            strike=k_val,
+            time_to_expiry=t_val,
+            risk_free_rate=r,
+            option_type="call",
+            method="brent",
+        )
         assert iv == pytest.approx(true_sigma, abs=1e-4)
 
     def test_iv_high_sigma_recovery(self):
         """Recover high volatility (sigma=0.80); atol=1e-4."""
-        price = black_scholes_price(100, 100, 1.0, 0.05, 0.80, option_type="call")
-        iv = implied_volatility(price, 100, 100, 1.0, 0.05, option_type="call")
+        price = black_scholes_price(
+            100,
+            strike=100,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.80,
+            option_type="call",
+        )
+        iv = implied_volatility(
+            price, spot=100, strike=100, time_to_expiry=1.0, risk_free_rate=0.05, option_type="call"
+        )
         assert iv == pytest.approx(0.80, abs=1e-4)
 
     def test_iv_invalid_option_type_raises(self):
         """Invalid option_type → ValueError."""
         with pytest.raises(ValueError, match="option_type"):
-            implied_volatility(5.0, 100, 100, 1.0, 0.05, option_type="straddle")
+            implied_volatility(
+                5.0,
+                spot=100,
+                strike=100,
+                time_to_expiry=1.0,
+                risk_free_rate=0.05,
+                option_type="straddle",
+            )
 
     def test_iv_price_below_intrinsic_returns_nan(self):
         """Market price far below intrinsic → NaN."""
         # Deep ITM call: intrinsic ≈ 100 - 80*exp(-0.05) ≈ 23.9. Price = 0.01 < intrinsic.
-        iv = implied_volatility(0.01, 100, 80, 1.0, 0.05, option_type="call")
+        iv = implied_volatility(
+            0.01, spot=100, strike=80, time_to_expiry=1.0, risk_free_rate=0.05, option_type="call"
+        )
         assert math.isnan(iv)
 
     def test_iv_brentq_no_solution_returns_nan(self):
         """Extreme market price outside BS range → brentq fails → NaN."""
         # Market price far above any BS call price (e.g., price = 1000 for S=100)
-        iv = implied_volatility(1000.0, 100, 100, 1.0, 0.05, option_type="call")
+        iv = implied_volatility(
+            1000.0,
+            spot=100,
+            strike=100,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            option_type="call",
+        )
         assert math.isnan(iv)
 
 
@@ -297,12 +454,26 @@ class TestBSPriceSigmaZeroPut:
         """sigma=0, put ITM: price = max(K*exp(-rT) - S, 0)."""
         s_val, k_val, t_val, r = 90, 100, 1.0, 0.05
         expected = max(k_val * math.exp(-r * t_val) - s_val, 0.0)
-        price = black_scholes_price(s_val, k_val, t_val, r, 0.0, option_type="put")
+        price = black_scholes_price(
+            s_val,
+            strike=k_val,
+            time_to_expiry=t_val,
+            risk_free_rate=r,
+            volatility=0.0,
+            option_type="put",
+        )
         assert price == pytest.approx(expected, rel=1e-10)
 
     def test_bs_zero_vol_put_otm(self):
         """sigma=0, put OTM (S>K): price = 0."""
-        price = black_scholes_price(110, 100, 1.0, 0.05, 0.0, option_type="put")
+        price = black_scholes_price(
+            110,
+            strike=100,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.0,
+            option_type="put",
+        )
         assert price == 0.0
 
 
@@ -310,15 +481,31 @@ class TestBSGreeksExtraCoverage:
     def test_greeks_invalid_option_type_raises(self):
         """Invalid option_type in greeks → ValueError."""
         with pytest.raises(ValueError, match="option_type"):
-            black_scholes_greeks(100, 100, 1.0, 0.05, 0.2, option_type="digital")
+            black_scholes_greeks(
+                100,
+                strike=100,
+                time_to_expiry=1.0,
+                risk_free_rate=0.05,
+                volatility=0.2,
+                option_type="digital",
+            )
 
     def test_greeks_zero_time_put_itm_delta_minus_one(self):
         """T=0, put ITM (S<K): delta = -1.0."""
-        g = black_scholes_greeks(90, 100, 0, 0.05, 0.2, option_type="put")
+        g = black_scholes_greeks(
+            90, strike=100, time_to_expiry=0, risk_free_rate=0.05, volatility=0.2, option_type="put"
+        )
         assert g["delta"] == -1.0
         assert g["gamma"] == 0.0
 
     def test_greeks_zero_time_put_otm_delta_zero(self):
         """T=0, put OTM (S>K): delta = 0.0."""
-        g = black_scholes_greeks(110, 100, 0, 0.05, 0.2, option_type="put")
+        g = black_scholes_greeks(
+            110,
+            strike=100,
+            time_to_expiry=0,
+            risk_free_rate=0.05,
+            volatility=0.2,
+            option_type="put",
+        )
         assert g["delta"] == 0.0

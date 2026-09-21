@@ -68,12 +68,11 @@ def _basis_matrix(x: np.ndarray, n_basis: int, kind: str) -> np.ndarray:
 
 
 def lsm_american_price(
-    spot: float,
+    spot: float, *,
     strike: float,
     time_to_expiry: float,
     risk_free_rate: float,
     volatility: float,
-    *,
     n_simulations: int = 10000,
     n_time_steps: int = 50,
     option_type: Literal["call", "put"] = "put",

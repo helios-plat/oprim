@@ -27,12 +27,11 @@ def _bs_call_price(s: float, k: float, t: float, r: float, sigma: float, q: floa
 
 
 def mc_european_price(
-    spot: float,
+    spot: float, *,
     strike: float,
     time_to_expiry: float,
     risk_free_rate: float,
     volatility: float,
-    *,
     n_simulations: int = 10000,
     option_type: Literal["call", "put"] = "call",
     dividend_yield: float = 0.0,
@@ -173,12 +172,11 @@ def mc_european_price(
 
 
 def mc_asian_price(
-    spot: float,
+    spot: float, *,
     strike: float,
     time_to_expiry: float,
     risk_free_rate: float,
     volatility: float,
-    *,
     n_simulations: int = 10000,
     n_averaging_dates: int = 252,
     option_type: Literal["call", "put"] = "call",

@@ -51,9 +51,8 @@ def _svensson_yield(t: np.ndarray, params: dict) -> np.ndarray:
 
 
 def svensson_yield_curve(
-    maturities: np.ndarray | pd.Series,
+    maturities: np.ndarray | pd.Series, *,
     yields: np.ndarray | pd.Series,
-    *,
     initial_params: dict | None = None,
     max_iter: int = 1000,
 ) -> dict[str, Any]:
@@ -161,9 +160,8 @@ def svensson_yield_curve(
 
 
 def cubic_spline_yield_curve(
-    maturities: np.ndarray | pd.Series,
+    maturities: np.ndarray | pd.Series, *,
     yields: np.ndarray | pd.Series,
-    *,
     boundary_type: Literal["natural", "clamped", "not_a_knot"] = "natural",
     smoothing: float = 0.0,
 ) -> dict[str, Any]:

@@ -80,10 +80,9 @@ def _sabr_hagan_2002(
 
 
 def sabr_implied_volatility(
-    forward: float,
+    forward: float, *,
     strike: float,
     time_to_expiry: float,
-    *,
     alpha: float,
     beta: float = 0.5,
     rho: float = 0.0,

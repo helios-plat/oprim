@@ -150,11 +150,11 @@ def _barrier_cf(
             return vanilla  # already knocked in
         out_price = barrier_option_price(
             s,
-            k,
-            h,
-            t,
-            r,
-            sigma,
+            strike=k,
+            barrier=h,
+            time_to_expiry=t,
+            risk_free_rate=r,
+            volatility=sigma,
             barrier_type="down_and_out",
             option_type=option_type,
             rebate=0.0,
@@ -186,11 +186,11 @@ def _barrier_cf(
             return vanilla
         out_price = barrier_option_price(
             s,
-            k,
-            h,
-            t,
-            r,
-            sigma,
+            strike=k,
+            barrier=h,
+            time_to_expiry=t,
+            risk_free_rate=r,
+            volatility=sigma,
             barrier_type="up_and_out",
             option_type=option_type,
             rebate=0.0,
@@ -225,13 +225,12 @@ def _barrier_zero_vol(s, k, h, t, r, q, barrier_type, option_type, rebate):
 
 
 def barrier_option_price(
-    spot: float,
+    spot: float, *,
     strike: float,
     barrier: float,
     time_to_expiry: float,
     risk_free_rate: float,
     volatility: float,
-    *,
     barrier_type: Literal["up_and_in", "up_and_out", "down_and_in", "down_and_out"] = "up_and_out",
     option_type: Literal["call", "put"] = "call",
     rebate: float = 0.0,
@@ -578,12 +577,11 @@ def _lookback_cf(
 
 
 def lookback_option_price(
-    spot: float,
+    spot: float, *,
     strike: float,
     time_to_expiry: float,
     risk_free_rate: float,
     volatility: float,
-    *,
     option_type: Literal["call", "put"] = "call",
     strike_type: Literal["fixed", "floating"] = "floating",
     dividend_yield: float = 0.0,

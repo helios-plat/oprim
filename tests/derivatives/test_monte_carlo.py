@@ -14,7 +14,13 @@ from oprim.derivatives.monte_carlo import mc_asian_price, mc_european_price
 
 def _bs(s_val, k_val, t_val, r, sigma, option_type="call", q=0.0):
     return black_scholes_price(
-        s_val, k_val, t_val, r, sigma, option_type=option_type, dividend_yield=q
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        option_type=option_type,
+        dividend_yield=q,
     )
 
 
@@ -27,7 +33,15 @@ def _bs(s_val, k_val, t_val, r, sigma, option_type="call", q=0.0):
 def test_mc_european_call_near_bs():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     bs = _bs(s_val, k_val, t_val, r, sigma, "call")
-    result = mc_european_price(s_val, k_val, t_val, r, sigma, n_simulations=50000, seed=42)
+    result = mc_european_price(
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_simulations=50000,
+        seed=42,
+    )
     se = result["standard_error"]
     assert abs(result["price"] - bs) <= 2.0 * se + 0.05
 
@@ -37,7 +51,14 @@ def test_mc_european_put_near_bs():
     s_val, k_val, t_val, r, sigma = 100.0, 105.0, 1.0, 0.05, 0.25
     bs = _bs(s_val, k_val, t_val, r, sigma, "put")
     result = mc_european_price(
-        s_val, k_val, t_val, r, sigma, n_simulations=50000, option_type="put", seed=99
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_simulations=50000,
+        option_type="put",
+        seed=99,
     )
     se = result["standard_error"]
     assert abs(result["price"] - bs) <= 2.0 * se + 0.05
@@ -47,10 +68,24 @@ def test_mc_european_put_near_bs():
 def test_antithetic_reduces_se():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     res_anti = mc_european_price(
-        s_val, k_val, t_val, r, sigma, n_simulations=10000, antithetic=True, seed=1
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_simulations=10000,
+        antithetic=True,
+        seed=1,
     )
     res_plain = mc_european_price(
-        s_val, k_val, t_val, r, sigma, n_simulations=10000, antithetic=False, seed=1
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_simulations=10000,
+        antithetic=False,
+        seed=1,
     )
     # Antithetic SE should generally be <= plain (not guaranteed every seed, but with seed=1)
     # Just check both are positive and price is reasonable
@@ -60,14 +95,18 @@ def test_antithetic_reduces_se():
 
 # Test 4: T=0 returns intrinsic
 def test_mc_european_t0_intrinsic():
-    result = mc_european_price(110.0, 100.0, 0.0, 0.05, 0.20)
+    result = mc_european_price(
+        110.0, strike=100.0, time_to_expiry=0.0, risk_free_rate=0.05, volatility=0.20
+    )
     assert abs(result["price"] - 10.0) < 1e-10
     assert result["standard_error"] == 0.0
 
 
 # Test 5: Returns correct keys
 def test_mc_european_return_keys():
-    result = mc_european_price(100.0, 100.0, 1.0, 0.05, 0.20, seed=0)
+    result = mc_european_price(
+        100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20, seed=0
+    )
     assert "price" in result
     assert "standard_error" in result
     assert "95_confidence_interval" in result
@@ -77,37 +116,63 @@ def test_mc_european_return_keys():
 
 # Test 6: Confidence interval brackets price
 def test_mc_european_ci_brackets_price():
-    result = mc_european_price(100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=10000, seed=7)
+    result = mc_european_price(
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_simulations=10000,
+        seed=7,
+    )
     lo, hi = result["95_confidence_interval"]
     assert lo <= result["price"] <= hi
 
 
 # Test 7: Seed reproducibility
 def test_mc_european_seed_reproducibility():
-    r1 = mc_european_price(100.0, 100.0, 1.0, 0.05, 0.20, seed=42)
-    r2 = mc_european_price(100.0, 100.0, 1.0, 0.05, 0.20, seed=42)
+    r1 = mc_european_price(
+        100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20, seed=42
+    )
+    r2 = mc_european_price(
+        100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20, seed=42
+    )
     assert r1["price"] == r2["price"]
 
 
 # Test 8: Invalid inputs raise ValueError
 def test_mc_european_invalid_spot():
     with pytest.raises(ValueError, match="spot"):
-        mc_european_price(0.0, 100.0, 1.0, 0.05, 0.20)
+        mc_european_price(
+            0.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_mc_european_invalid_strike():
     with pytest.raises(ValueError, match="strike"):
-        mc_european_price(100.0, -5.0, 1.0, 0.05, 0.20)
+        mc_european_price(
+            100.0, strike=-5.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_mc_european_invalid_volatility():
     with pytest.raises(ValueError, match="volatility"):
-        mc_european_price(100.0, 100.0, 1.0, 0.05, -0.01)
+        mc_european_price(
+            100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=-0.01
+        )
 
 
 # Test 9: Deep OTM call price is very small
 def test_mc_european_deep_otm_call_small():
-    result = mc_european_price(50.0, 200.0, 1.0, 0.05, 0.20, n_simulations=100000, seed=5)
+    result = mc_european_price(
+        50.0,
+        strike=200.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_simulations=100000,
+        seed=5,
+    )
     assert result["price"] < 0.50  # extremely OTM
 
 
@@ -119,13 +184,21 @@ def test_mc_european_deep_otm_call_small():
 # Test 10: Arithmetic Asian call < vanilla European call (averaging reduces value)
 def test_mc_asian_arithmetic_call_le_european():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
-    euro = mc_european_price(s_val, k_val, t_val, r, sigma, n_simulations=30000, seed=10)["price"]
+    euro = mc_european_price(
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_simulations=30000,
+        seed=10,
+    )["price"]
     asian = mc_asian_price(
         s_val,
-        k_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         n_simulations=30000,
         seed=10,
         averaging="arithmetic",
@@ -139,10 +212,24 @@ def test_mc_asian_arithmetic_call_le_european():
 def test_mc_asian_geometric_le_arithmetic():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     arith = mc_asian_price(
-        s_val, k_val, t_val, r, sigma, n_simulations=30000, seed=11, averaging="arithmetic"
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_simulations=30000,
+        seed=11,
+        averaging="arithmetic",
     )["price"]
     geom = mc_asian_price(
-        s_val, k_val, t_val, r, sigma, n_simulations=30000, seed=11, averaging="geometric"
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_simulations=30000,
+        seed=11,
+        averaging="geometric",
     )["price"]
     # geometric <= arithmetic by Jensen's inequality
     assert geom <= arith + 0.10
@@ -150,7 +237,9 @@ def test_mc_asian_geometric_le_arithmetic():
 
 # Test 12: Returns required keys
 def test_mc_asian_return_keys():
-    result = mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20, seed=0)
+    result = mc_asian_price(
+        100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20, seed=0
+    )
     assert "price" in result
     assert "standard_error" in result
     assert "95_confidence_interval" in result
@@ -159,7 +248,14 @@ def test_mc_asian_return_keys():
 
 # Test 13: T=0 returns intrinsic
 def test_mc_asian_t0_intrinsic():
-    result = mc_asian_price(110.0, 100.0, 0.0, 0.05, 0.20, option_type="call")
+    result = mc_asian_price(
+        110.0,
+        strike=100.0,
+        time_to_expiry=0.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+    )
     assert abs(result["price"] - 10.0) < 1e-10
 
 
@@ -167,10 +263,10 @@ def test_mc_asian_t0_intrinsic():
 def test_mc_asian_floating_call_nonneg():
     result = mc_asian_price(
         100.0,
-        100.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         n_simulations=10000,
         seed=22,
         strike_type="floating",
@@ -182,7 +278,14 @@ def test_mc_asian_floating_call_nonneg():
 # Test 15: Put price is non-negative
 def test_mc_asian_put_nonneg():
     result = mc_asian_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=10000, seed=33, option_type="put"
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_simulations=10000,
+        seed=33,
+        option_type="put",
     )
     assert result["price"] >= 0.0
 
@@ -190,12 +293,21 @@ def test_mc_asian_put_nonneg():
 # Test 16: Invalid averaging raises ValueError
 def test_mc_asian_invalid_averaging():
     with pytest.raises(ValueError, match="averaging"):
-        mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20, averaging="harmonic")
+        mc_asian_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            averaging="harmonic",
+        )
 
 
 # Test 17: Confidence interval is valid (lo <= hi)
 def test_mc_asian_ci_valid():
-    result = mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20, seed=50)
+    result = mc_asian_price(
+        100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20, seed=50
+    )
     lo, hi = result["95_confidence_interval"]
     assert lo <= hi
 
@@ -203,37 +315,76 @@ def test_mc_asian_ci_valid():
 # Additional coverage tests
 def test_mc_european_invalid_tte():
     with pytest.raises(ValueError, match="time"):
-        mc_european_price(100.0, 100.0, -1.0, 0.05, 0.20)
+        mc_european_price(
+            100.0, strike=100.0, time_to_expiry=-1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_mc_european_invalid_vol():
     with pytest.raises(ValueError, match="vol"):
-        mc_european_price(100.0, 100.0, 1.0, 0.05, -0.1)
+        mc_european_price(
+            100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=-0.1
+        )
 
 
 def test_mc_european_invalid_n_sims():
     with pytest.raises(ValueError, match="n_simulations"):
-        mc_european_price(100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=0)
+        mc_european_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            n_simulations=0,
+        )
 
 
 def test_mc_european_invalid_option_type():
     with pytest.raises(ValueError, match="option_type"):
-        mc_european_price(100.0, 100.0, 1.0, 0.05, 0.20, option_type="straddle")
+        mc_european_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            option_type="straddle",
+        )
 
 
 def test_mc_european_t0_put():
-    result = mc_european_price(100.0, 110.0, 0.0, 0.05, 0.20, option_type="put")
+    result = mc_european_price(
+        100.0,
+        strike=110.0,
+        time_to_expiry=0.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+    )
     assert result["price"] == pytest.approx(10.0)
 
 
 def test_mc_european_zero_sigma():
-    result = mc_european_price(100.0, 95.0, 1.0, 0.05, 0.0, n_simulations=100)
+    result = mc_european_price(
+        100.0,
+        strike=95.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.0,
+        n_simulations=100,
+    )
     assert result["price"] > 0
 
 
 def test_mc_european_control_variate():
     result = mc_european_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=5000, seed=1, control_variate=True
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_simulations=5000,
+        seed=1,
+        control_variate=True,
     )
     assert result["price"] >= 0
 
@@ -241,10 +392,10 @@ def test_mc_european_control_variate():
 def test_mc_asian_floating_put():
     result = mc_asian_price(
         100.0,
-        100.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         option_type="put",
         strike_type="floating",
         n_simulations=5000,
@@ -258,42 +409,74 @@ def test_mc_asian_floating_put():
 # ---------------------------------------------------------------------------
 def test_mc_asian_invalid_spot():
     with pytest.raises(ValueError, match="spot"):
-        mc_asian_price(0.0, 100.0, 1.0, 0.05, 0.20)
+        mc_asian_price(0.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20)
 
 
 def test_mc_asian_invalid_strike():
     with pytest.raises(ValueError, match="strike"):
-        mc_asian_price(100.0, -5.0, 1.0, 0.05, 0.20)
+        mc_asian_price(100.0, strike=-5.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20)
 
 
 def test_mc_asian_invalid_tte():
     with pytest.raises(ValueError, match="time"):
-        mc_asian_price(100.0, 100.0, -1.0, 0.05, 0.20)
+        mc_asian_price(
+            100.0, strike=100.0, time_to_expiry=-1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_mc_asian_invalid_vol():
     with pytest.raises(ValueError, match="vol"):
-        mc_asian_price(100.0, 100.0, 1.0, 0.05, -0.1)
+        mc_asian_price(
+            100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=-0.1
+        )
 
 
 def test_mc_asian_invalid_n_simulations():
     with pytest.raises(ValueError, match="n_simulations"):
-        mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20, n_simulations=0)
+        mc_asian_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            n_simulations=0,
+        )
 
 
 def test_mc_asian_invalid_n_averaging_dates():
     with pytest.raises(ValueError, match="n_averaging_dates"):
-        mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20, n_averaging_dates=0)
+        mc_asian_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            n_averaging_dates=0,
+        )
 
 
 def test_mc_asian_invalid_option_type():
     with pytest.raises(ValueError, match="option_type"):
-        mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20, option_type="straddle")
+        mc_asian_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            option_type="straddle",
+        )
 
 
 def test_mc_asian_invalid_strike_type():
     with pytest.raises(ValueError, match="strike_type"):
-        mc_asian_price(100.0, 100.0, 1.0, 0.05, 0.20, strike_type="lookback")
+        mc_asian_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            strike_type="lookback",
+        )
 
 
 def test_mc_european_control_variate_t0():

@@ -16,7 +16,13 @@ from oprim.derivatives.black_scholes import black_scholes_price
 
 def _bs(s_val, k_val, t_val, r, sigma, option_type="call", q=0.0):
     return black_scholes_price(
-        s_val, k_val, t_val, r, sigma, option_type=option_type, dividend_yield=q
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        option_type=option_type,
+        dividend_yield=q,
     )
 
 
@@ -28,10 +34,10 @@ def test_european_call_crr_converges_to_bs():
     bs_price = _bs(s_val, k_val, t_val, r, sigma, "call")
     result = binomial_tree_price(
         s_val,
-        k_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         n_steps=500,
         option_type="call",
         exercise="european",
@@ -50,10 +56,10 @@ def test_european_put_crr_converges_to_bs():
     bs_price = _bs(s_val, k_val, t_val, r, sigma, "put")
     result = binomial_tree_price(
         s_val,
-        k_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         n_steps=500,
         option_type="put",
         exercise="european",
@@ -70,10 +76,10 @@ def test_european_call_jr_converges_to_bs():
     bs_price = _bs(s_val, k_val, t_val, r, sigma, "call")
     result = binomial_tree_price(
         s_val,
-        k_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         n_steps=500,
         option_type="call",
         exercise="european",
@@ -89,10 +95,24 @@ def test_european_call_jr_converges_to_bs():
 def test_american_put_ge_european_put():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     amer = binomial_tree_price(
-        s_val, k_val, t_val, r, sigma, n_steps=100, option_type="put", exercise="american"
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_steps=100,
+        option_type="put",
+        exercise="american",
     )
     euro = binomial_tree_price(
-        s_val, k_val, t_val, r, sigma, n_steps=100, option_type="put", exercise="european"
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_steps=100,
+        option_type="put",
+        exercise="european",
     )
     assert amer["price"] >= euro["price"] - 1e-10
 
@@ -104,10 +124,10 @@ def test_american_call_no_div_equals_european():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     amer = binomial_tree_price(
         s_val,
-        k_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         n_steps=200,
         option_type="call",
         exercise="american",
@@ -115,10 +135,10 @@ def test_american_call_no_div_equals_european():
     )
     euro = binomial_tree_price(
         s_val,
-        k_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         n_steps=200,
         option_type="call",
         exercise="european",
@@ -131,9 +151,23 @@ def test_american_call_no_div_equals_european():
 # Test 6: T=0 returns intrinsic value
 # ---------------------------------------------------------------------------
 def test_t_zero_returns_intrinsic():
-    result_call = binomial_tree_price(110.0, 100.0, 0.0, 0.05, 0.20, option_type="call")
+    result_call = binomial_tree_price(
+        110.0,
+        strike=100.0,
+        time_to_expiry=0.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+    )
     assert abs(result_call["price"] - 10.0) < 1e-10
-    result_put = binomial_tree_price(90.0, 100.0, 0.0, 0.05, 0.20, option_type="put")
+    result_put = binomial_tree_price(
+        90.0,
+        strike=100.0,
+        time_to_expiry=0.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+    )
     assert abs(result_put["price"] - 10.0) < 1e-10
 
 
@@ -142,7 +176,14 @@ def test_t_zero_returns_intrinsic():
 # ---------------------------------------------------------------------------
 def test_american_put_early_exercise_boundary():
     result = binomial_tree_price(
-        100.0, 110.0, 1.0, 0.05, 0.20, n_steps=50, option_type="put", exercise="american"
+        100.0,
+        strike=110.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_steps=50,
+        option_type="put",
+        exercise="american",
     )
     assert "early_exercise_boundary" in result
     assert len(result["early_exercise_boundary"]) == 50
@@ -153,27 +194,47 @@ def test_american_put_early_exercise_boundary():
 # ---------------------------------------------------------------------------
 def test_invalid_spot_raises():
     with pytest.raises(ValueError, match="spot"):
-        binomial_tree_price(0.0, 100.0, 1.0, 0.05, 0.20)
+        binomial_tree_price(
+            0.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_invalid_strike_raises():
     with pytest.raises(ValueError, match="strike"):
-        binomial_tree_price(100.0, -1.0, 1.0, 0.05, 0.20)
+        binomial_tree_price(
+            100.0, strike=-1.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_invalid_n_steps_raises():
     with pytest.raises(ValueError, match="n_steps"):
-        binomial_tree_price(100.0, 100.0, 1.0, 0.05, 0.20, n_steps=0)
+        binomial_tree_price(
+            100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20, n_steps=0
+        )
 
 
 def test_invalid_option_type_raises():
     with pytest.raises(ValueError, match="option_type"):
-        binomial_tree_price(100.0, 100.0, 1.0, 0.05, 0.20, option_type="straddle")
+        binomial_tree_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            option_type="straddle",
+        )
 
 
 def test_invalid_method_raises():
     with pytest.raises(ValueError, match="method"):
-        binomial_tree_price(100.0, 100.0, 1.0, 0.05, 0.20, method="trinomial")
+        binomial_tree_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            method="trinomial",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +243,14 @@ def test_invalid_method_raises():
 def test_deep_itm_call_price_reasonable():
     s_val, k_val = 200.0, 100.0
     result = binomial_tree_price(
-        s_val, k_val, 1.0, 0.05, 0.20, n_steps=100, option_type="call", exercise="european"
+        s_val,
+        strike=k_val,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        n_steps=100,
+        option_type="call",
+        exercise="european",
     )
     # Must be >= intrinsic discounted
     assert result["price"] >= (s_val - k_val) * math.exp(-0.05 * 1.0) * 0.99
@@ -194,10 +262,24 @@ def test_deep_itm_call_price_reasonable():
 def test_put_call_parity_european_tree():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     call = binomial_tree_price(
-        s_val, k_val, t_val, r, sigma, n_steps=500, option_type="call", exercise="european"
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_steps=500,
+        option_type="call",
+        exercise="european",
     )["price"]
     put = binomial_tree_price(
-        s_val, k_val, t_val, r, sigma, n_steps=500, option_type="put", exercise="european"
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_steps=500,
+        option_type="put",
+        exercise="european",
     )["price"]
     # C - P = S - K*exp(-rT)
     lhs = call - put
@@ -211,10 +293,24 @@ def test_put_call_parity_european_tree():
 def test_dividend_yield_reduces_call():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     no_div = binomial_tree_price(
-        s_val, k_val, t_val, r, sigma, n_steps=100, option_type="call", dividend_yield=0.0
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_steps=100,
+        option_type="call",
+        dividend_yield=0.0,
     )["price"]
     with_div = binomial_tree_price(
-        s_val, k_val, t_val, r, sigma, n_steps=100, option_type="call", dividend_yield=0.05
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        n_steps=100,
+        option_type="call",
+        dividend_yield=0.05,
     )["price"]
     assert no_div > with_div
 
@@ -222,32 +318,59 @@ def test_dividend_yield_reduces_call():
 # Additional coverage tests
 def test_bt_invalid_tte():
     with pytest.raises(ValueError, match="time"):
-        binomial_tree_price(100.0, 100.0, -1.0, 0.05, 0.20)
+        binomial_tree_price(
+            100.0, strike=100.0, time_to_expiry=-1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_bt_invalid_vol():
     with pytest.raises(ValueError, match="vol"):
-        binomial_tree_price(100.0, 100.0, 1.0, 0.05, -0.1)
+        binomial_tree_price(
+            100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=-0.1
+        )
 
 
 def test_bt_invalid_exercise():
     with pytest.raises(ValueError, match="exercise"):
-        binomial_tree_price(100.0, 100.0, 1.0, 0.05, 0.20, exercise="bermudan")
+        binomial_tree_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            exercise="bermudan",
+        )
 
 
 def test_bt_t0_american_put():
     result = binomial_tree_price(
-        90.0, 100.0, 0.0, 0.05, 0.20, option_type="put", exercise="american"
+        90.0,
+        strike=100.0,
+        time_to_expiry=0.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+        exercise="american",
     )
     assert result["price"] == pytest.approx(10.0)
     assert "early_exercise_boundary" in result
 
 
 def test_bt_zero_sigma_crr():
-    result = binomial_tree_price(100.0, 95.0, 1.0, 0.05, 0.0, n_steps=50)
+    result = binomial_tree_price(
+        100.0, strike=95.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.0, n_steps=50
+    )
     assert result["price"] > 0
 
 
 def test_bt_zero_sigma_jarrow_rudd():
-    result = binomial_tree_price(100.0, 95.0, 1.0, 0.05, 0.0, n_steps=50, method="jarrow_rudd")
+    result = binomial_tree_price(
+        100.0,
+        strike=95.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.0,
+        n_steps=50,
+        method="jarrow_rudd",
+    )
     assert result["price"] > 0

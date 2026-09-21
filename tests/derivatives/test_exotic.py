@@ -16,7 +16,13 @@ from oprim.derivatives.exotic import (
 
 def _bs(s_val, k_val, t_val, r, sigma, option_type="call", q=0.0):
     return black_scholes_price(
-        s_val, k_val, t_val, r, sigma, option_type=option_type, dividend_yield=q
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        option_type=option_type,
+        dividend_yield=q,
     )
 
 
@@ -31,22 +37,22 @@ def test_barrier_down_in_out_parity_call():
     vanilla = _bs(s_val, k_val, t_val, r, sigma, "call")
     out = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="down_and_out",
         option_type="call",
         rebate=0.0,
     )["price"]
     inp = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="down_and_in",
         option_type="call",
         rebate=0.0,
@@ -60,22 +66,22 @@ def test_barrier_up_in_out_parity_call():
     vanilla = _bs(s_val, k_val, t_val, r, sigma, "call")
     out = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="up_and_out",
         option_type="call",
         rebate=0.0,
     )["price"]
     inp = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="up_and_in",
         option_type="call",
         rebate=0.0,
@@ -88,11 +94,11 @@ def test_barrier_already_knocked_out_rebate():
     s_val, k_val, h_val, t_val, r, sigma = 130.0, 100.0, 120.0, 1.0, 0.05, 0.20
     result = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="up_and_out",
         option_type="call",
         rebate=5.0,
@@ -107,11 +113,11 @@ def test_barrier_already_knocked_in_returns_vanilla():
     vanilla = _bs(s_val, k_val, t_val, r, sigma, "call")
     result = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="up_and_in",
         option_type="call",
         rebate=0.0,
@@ -126,11 +132,11 @@ def test_barrier_very_high_upout_approaches_vanilla():
     vanilla = _bs(s_val, k_val, t_val, r, sigma, "call")
     result = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="up_and_out",
         option_type="call",
         rebate=0.0,
@@ -145,11 +151,11 @@ def test_barrier_mc_price_in_range():
     vanilla = _bs(s_val, k_val, t_val, r, sigma, "call")
     result = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="down_and_out",
         option_type="call",
         method="monte_carlo",
@@ -162,7 +168,15 @@ def test_barrier_mc_price_in_range():
 
 # Test 7: Returns correct keys
 def test_barrier_return_keys_cf():
-    result = barrier_option_price(100.0, 100.0, 80.0, 1.0, 0.05, 0.20, barrier_type="down_and_out")
+    result = barrier_option_price(
+        100.0,
+        strike=100.0,
+        barrier=80.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        barrier_type="down_and_out",
+    )
     assert "price" in result
     assert "method" in result
     assert "barrier_type" in result
@@ -171,7 +185,15 @@ def test_barrier_return_keys_cf():
 # Test 8: Invalid barrier type raises ValueError
 def test_barrier_invalid_type_raises():
     with pytest.raises(ValueError, match="barrier_type"):
-        barrier_option_price(100.0, 100.0, 80.0, 1.0, 0.05, 0.20, barrier_type="left_and_right")
+        barrier_option_price(
+            100.0,
+            strike=100.0,
+            barrier=80.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            barrier_type="left_and_right",
+        )
 
 
 # Test 9: down_and_in put parity with vanilla put
@@ -180,22 +202,22 @@ def test_barrier_down_in_out_parity_put():
     vanilla = _bs(s_val, k_val, t_val, r, sigma, "put")
     out = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="down_and_out",
         option_type="put",
         rebate=0.0,
     )["price"]
     inp = barrier_option_price(
         s_val,
-        k_val,
-        h_val,
-        t_val,
-        r,
-        sigma,
+        strike=k_val,
+        barrier=h_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
         barrier_type="down_and_in",
         option_type="put",
         rebate=0.0,
@@ -206,7 +228,14 @@ def test_barrier_down_in_out_parity_put():
 # Test 10: Invalid spot raises ValueError
 def test_barrier_invalid_spot_raises():
     with pytest.raises(ValueError, match="spot"):
-        barrier_option_price(-1.0, 100.0, 80.0, 1.0, 0.05, 0.20)
+        barrier_option_price(
+            -1.0,
+            strike=100.0,
+            barrier=80.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+        )
 
 
 # ===========================================================================
@@ -217,7 +246,13 @@ def test_barrier_invalid_spot_raises():
 # Test 11: Floating call price > 0 for positive vol
 def test_lookback_floating_call_positive():
     result = lookback_option_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, option_type="call", strike_type="floating"
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+        strike_type="floating",
     )
     assert result["price"] > 0.0
     assert result["strike_type"] == "floating"
@@ -226,7 +261,13 @@ def test_lookback_floating_call_positive():
 # Test 12: Floating put price > 0 for positive vol
 def test_lookback_floating_put_positive():
     result = lookback_option_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, option_type="put", strike_type="floating"
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+        strike_type="floating",
     )
     assert result["price"] > 0.0
 
@@ -236,7 +277,13 @@ def test_lookback_floating_call_ge_vanilla_call():
     s_val, k_val, t_val, r, sigma = 100.0, 100.0, 1.0, 0.05, 0.20
     vanilla = _bs(s_val, k_val, t_val, r, sigma, "call")
     lookback = lookback_option_price(
-        s_val, k_val, t_val, r, sigma, option_type="call", strike_type="floating"
+        s_val,
+        strike=k_val,
+        time_to_expiry=t_val,
+        risk_free_rate=r,
+        volatility=sigma,
+        option_type="call",
+        strike_type="floating",
     )["price"]
     # Lookback floating >= vanilla (min <= K in general, so more favourable payoff)
     assert lookback >= vanilla * 0.90  # generous tolerance
@@ -246,10 +293,10 @@ def test_lookback_floating_call_ge_vanilla_call():
 def test_lookback_mc_price_nonneg():
     result = lookback_option_price(
         100.0,
-        100.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         option_type="call",
         strike_type="floating",
         method="monte_carlo",
@@ -262,7 +309,13 @@ def test_lookback_mc_price_nonneg():
 # Test 15: Fixed strike call >= 0
 def test_lookback_fixed_call_nonneg():
     result = lookback_option_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, option_type="call", strike_type="fixed"
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+        strike_type="fixed",
     )
     assert result["price"] >= 0.0
 
@@ -270,7 +323,13 @@ def test_lookback_fixed_call_nonneg():
 # Test 16: T=0 floating call returns 0 (no path to track)
 def test_lookback_t0_returns_zero():
     result = lookback_option_price(
-        100.0, 100.0, 0.0, 0.05, 0.20, option_type="call", strike_type="floating"
+        100.0,
+        strike=100.0,
+        time_to_expiry=0.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+        strike_type="floating",
     )
     assert result["price"] == 0.0
 
@@ -278,12 +337,21 @@ def test_lookback_t0_returns_zero():
 # Test 17: Invalid strike_type raises ValueError
 def test_lookback_invalid_strike_type_raises():
     with pytest.raises(ValueError, match="strike_type"):
-        lookback_option_price(100.0, 100.0, 1.0, 0.05, 0.20, strike_type="average")
+        lookback_option_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            strike_type="average",
+        )
 
 
 # Test 18: Returns correct keys
 def test_lookback_return_keys():
-    result = lookback_option_price(100.0, 100.0, 1.0, 0.05, 0.20)
+    result = lookback_option_price(
+        100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+    )
     assert "price" in result
     assert "method" in result
     assert "strike_type" in result
@@ -371,11 +439,11 @@ def test_barrier_cf_t0_up_knocked_in():
 def test_barrier_zero_vol_down_and_out():
     result = barrier_option_price(
         100.0,
-        95.0,
-        80.0,
-        1.0,
-        0.05,
-        0.0,
+        strike=95.0,
+        barrier=80.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.0,
         barrier_type="down_and_out",
         option_type="call",
         rebate=0.0,
@@ -386,11 +454,11 @@ def test_barrier_zero_vol_down_and_out():
 def test_barrier_zero_vol_up_and_out():
     result = barrier_option_price(
         100.0,
-        95.0,
-        120.0,
-        1.0,
-        0.05,
-        0.0,
+        strike=95.0,
+        barrier=120.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.0,
         barrier_type="up_and_out",
         option_type="call",
         rebate=0.0,
@@ -403,11 +471,11 @@ def test_barrier_down_out_call_k_less_than_h():
     # K < H: different formula branch
     result = barrier_option_price(
         100.0,
-        70.0,
-        80.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=70.0,
+        barrier=80.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         barrier_type="down_and_out",
         option_type="call",
         rebate=0.0,
@@ -419,11 +487,11 @@ def test_barrier_down_out_call_k_less_than_h():
 def test_barrier_down_out_put_k_lt_h():
     result = barrier_option_price(
         100.0,
-        70.0,
-        80.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=70.0,
+        barrier=80.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         barrier_type="down_and_out",
         option_type="put",
         rebate=0.0,
@@ -435,11 +503,11 @@ def test_barrier_down_out_put_k_lt_h():
 def test_barrier_up_out_call_k_ge_h():
     result = barrier_option_price(
         100.0,
-        125.0,
-        120.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=125.0,
+        barrier=120.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         barrier_type="up_and_out",
         option_type="call",
         rebate=0.0,
@@ -451,11 +519,11 @@ def test_barrier_up_out_call_k_ge_h():
 def test_barrier_up_out_put_k_ge_h():
     result = barrier_option_price(
         100.0,
-        125.0,
-        120.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=125.0,
+        barrier=120.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         barrier_type="up_and_out",
         option_type="put",
         rebate=0.0,
@@ -466,11 +534,11 @@ def test_barrier_up_out_put_k_ge_h():
 def test_barrier_up_out_put_k_lt_h():
     result = barrier_option_price(
         100.0,
-        95.0,
-        120.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=95.0,
+        barrier=120.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         barrier_type="up_and_out",
         option_type="put",
         rebate=5.0,
@@ -481,28 +549,63 @@ def test_barrier_up_out_put_k_lt_h():
 # Rebate validation tests
 def test_barrier_invalid_strike():
     with pytest.raises(ValueError, match="strike"):
-        barrier_option_price(100.0, -1.0, 80.0, 1.0, 0.05, 0.20)
+        barrier_option_price(
+            100.0,
+            strike=-1.0,
+            barrier=80.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+        )
 
 
 def test_barrier_invalid_barrier():
     with pytest.raises(ValueError, match="barrier"):
-        barrier_option_price(100.0, 100.0, -10.0, 1.0, 0.05, 0.20)
+        barrier_option_price(
+            100.0,
+            strike=100.0,
+            barrier=-10.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+        )
 
 
 def test_barrier_invalid_tte():
     with pytest.raises(ValueError, match="time"):
-        barrier_option_price(100.0, 100.0, 80.0, -1.0, 0.05, 0.20)
+        barrier_option_price(
+            100.0,
+            strike=100.0,
+            barrier=80.0,
+            time_to_expiry=-1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+        )
 
 
 def test_barrier_invalid_vol():
     with pytest.raises(ValueError, match="volatility"):
-        barrier_option_price(100.0, 100.0, 80.0, 1.0, 0.05, -0.1)
+        barrier_option_price(
+            100.0,
+            strike=100.0,
+            barrier=80.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=-0.1,
+        )
 
 
 # down_and_in already knocked in (line 142)
 def test_barrier_down_in_already_knocked_in():
     result = barrier_option_price(
-        75.0, 100.0, 80.0, 1.0, 0.05, 0.20, barrier_type="down_and_in", option_type="call"
+        75.0,
+        strike=100.0,
+        barrier=80.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        barrier_type="down_and_in",
+        option_type="call",
     )
     vanilla = _bs(75.0, 100.0, 1.0, 0.05, 0.20)
     assert abs(result["price"] - vanilla) < 0.01
@@ -512,10 +615,10 @@ def test_barrier_down_in_already_knocked_in():
 def test_lookback_mc_put():
     result = lookback_option_price(
         100.0,
-        100.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         option_type="put",
         strike_type="floating",
         method="monte_carlo",
@@ -527,7 +630,13 @@ def test_lookback_mc_put():
 # Lookback fixed put
 def test_lookback_fixed_put_nonneg():
     result = lookback_option_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, option_type="put", strike_type="fixed"
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+        strike_type="fixed",
     )
     assert result["price"] >= 0
 
@@ -535,7 +644,13 @@ def test_lookback_fixed_put_nonneg():
 # Lookback zero vol
 def test_lookback_zero_vol():
     result = lookback_option_price(
-        100.0, 100.0, 1.0, 0.05, 0.0, option_type="call", strike_type="floating"
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.0,
+        option_type="call",
+        strike_type="floating",
     )
     assert result["price"] >= 0
 
@@ -543,7 +658,13 @@ def test_lookback_zero_vol():
 # Lookback with dividend
 def test_lookback_with_dividend():
     result = lookback_option_price(
-        100.0, 100.0, 1.0, 0.05, 0.20, option_type="call", dividend_yield=0.03
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+        dividend_yield=0.03,
     )
     assert result["price"] > 0
 
@@ -551,7 +672,13 @@ def test_lookback_with_dividend():
 # Lookback fixed put K < S (line 497 branch m0 < K means S < K, different)
 def test_lookback_fixed_put_k_gt_s():
     result = lookback_option_price(
-        90.0, 100.0, 1.0, 0.05, 0.20, option_type="put", strike_type="fixed"
+        90.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+        strike_type="fixed",
     )
     assert result["price"] > 0
 
@@ -559,7 +686,13 @@ def test_lookback_fixed_put_k_gt_s():
 # Lookback zero sigma fixed
 def test_lookback_zero_sigma_fixed_call():
     result = lookback_option_price(
-        100.0, 95.0, 1.0, 0.05, 0.0, option_type="call", strike_type="fixed"
+        100.0,
+        strike=95.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.0,
+        option_type="call",
+        strike_type="fixed",
     )
     assert result["price"] >= 0
 
@@ -657,18 +790,41 @@ def test_barrier_zero_vol_in_not_breached_rebate():
 # --- barrier_option_price validation ---
 def test_barrier_invalid_option_type():
     with pytest.raises(ValueError, match="option_type"):
-        barrier_option_price(100.0, 100.0, 80.0, 1.0, 0.05, 0.20, option_type="straddle")
+        barrier_option_price(
+            100.0,
+            strike=100.0,
+            barrier=80.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            option_type="straddle",
+        )
 
 
 def test_barrier_invalid_method():
     with pytest.raises(ValueError, match="method"):
-        barrier_option_price(100.0, 100.0, 80.0, 1.0, 0.05, 0.20, method="binomial")
+        barrier_option_price(
+            100.0,
+            strike=100.0,
+            barrier=80.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            method="binomial",
+        )
 
 
 def test_barrier_mc_invalid_n_sims():
     with pytest.raises(ValueError, match="n_simulations"):
         barrier_option_price(
-            100.0, 100.0, 80.0, 1.0, 0.05, 0.20, method="monte_carlo", n_simulations=0
+            100.0,
+            strike=100.0,
+            barrier=80.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            method="monte_carlo",
+            n_simulations=0,
         )
 
 
@@ -677,11 +833,11 @@ def test_barrier_mc_up_and_out_put():
     """MC up_and_out put — covers 'up' breach check (line 318) and put (line 326)."""
     result = barrier_option_price(
         100.0,
-        110.0,
-        120.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=110.0,
+        barrier=120.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         barrier_type="up_and_out",
         option_type="put",
         method="monte_carlo",
@@ -694,11 +850,11 @@ def test_barrier_mc_down_and_in_put():
     """MC down_and_in put — covers 'in' MC payoff (line 331) and put."""
     result = barrier_option_price(
         100.0,
-        100.0,
-        80.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        barrier=80.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         barrier_type="down_and_in",
         option_type="put",
         method="monte_carlo",
@@ -743,7 +899,13 @@ def test_lookback_cf_t0_fixed_put():
 def test_lookback_zero_sigma_floating_put():
     """sigma=0, floating put (line 368)."""
     result = lookback_option_price(
-        100.0, 100.0, 1.0, 0.05, 0.0, option_type="put", strike_type="floating"
+        100.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.0,
+        option_type="put",
+        strike_type="floating",
     )
     assert result["price"] >= 0
 
@@ -752,7 +914,13 @@ def test_lookback_zero_sigma_floating_put():
 def test_lookback_zero_sigma_fixed_put():
     """sigma=0, fixed put (line 371)."""
     result = lookback_option_price(
-        100.0, 95.0, 1.0, 0.05, 0.0, option_type="put", strike_type="fixed"
+        100.0,
+        strike=95.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.0,
+        option_type="put",
+        strike_type="fixed",
     )
     assert result["price"] >= 0
 
@@ -762,10 +930,10 @@ def test_lookback_b_zero_floating_call():
     """r == q → b=0 for floating call (lines 426-428)."""
     result = lookback_option_price(
         100.0,
-        100.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         option_type="call",
         strike_type="floating",
         dividend_yield=0.05,
@@ -777,10 +945,10 @@ def test_lookback_b_zero_floating_put():
     """r == q → b=0 for floating put (lines 444-446)."""
     result = lookback_option_price(
         100.0,
-        100.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         option_type="put",
         strike_type="floating",
         dividend_yield=0.05,
@@ -793,7 +961,13 @@ def test_lookback_fixed_call_m0_gt_k():
     """Fixed call with S > K tests M0 > K branch (lines 461-473)."""
     # S=110, K=100 → M0 = S = 110 > K = 100
     result = lookback_option_price(
-        110.0, 100.0, 1.0, 0.05, 0.20, option_type="call", strike_type="fixed"
+        110.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+        strike_type="fixed",
     )
     assert result["price"] > 0
 
@@ -801,7 +975,14 @@ def test_lookback_fixed_call_m0_gt_k():
 def test_lookback_fixed_call_m0_gt_k_b_zero():
     """Fixed call M0>K with b=0 (lines 472-473)."""
     result = lookback_option_price(
-        110.0, 100.0, 1.0, 0.05, 0.20, option_type="call", strike_type="fixed", dividend_yield=0.05
+        110.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+        strike_type="fixed",
+        dividend_yield=0.05,
     )
     assert result["price"] >= 0
 
@@ -810,7 +991,14 @@ def test_lookback_fixed_call_m0_gt_k_b_zero():
 def test_lookback_fixed_call_m0_le_k_b_zero():
     """Fixed call S < K (M0=S < K), b=0 branch (line 488)."""
     result = lookback_option_price(
-        90.0, 100.0, 1.0, 0.05, 0.20, option_type="call", strike_type="fixed", dividend_yield=0.05
+        90.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="call",
+        strike_type="fixed",
+        dividend_yield=0.05,
     )
     assert result["price"] >= 0
 
@@ -819,7 +1007,14 @@ def test_lookback_fixed_call_m0_le_k_b_zero():
 def test_lookback_fixed_put_m0_lt_k_b_zero():
     """Fixed put m0 < K with b=0 (line 506)."""
     result = lookback_option_price(
-        90.0, 100.0, 1.0, 0.05, 0.20, option_type="put", strike_type="fixed", dividend_yield=0.05
+        90.0,
+        strike=100.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+        strike_type="fixed",
+        dividend_yield=0.05,
     )
     assert result["price"] > 0
 
@@ -828,7 +1023,14 @@ def test_lookback_fixed_put_m0_lt_k_b_zero():
 def test_lookback_fixed_put_k_le_m0_b_zero():
     """Fixed put K <= S (m0=S), b=0 (line 521)."""
     result = lookback_option_price(
-        100.0, 90.0, 1.0, 0.05, 0.20, option_type="put", strike_type="fixed", dividend_yield=0.05
+        100.0,
+        strike=90.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
+        option_type="put",
+        strike_type="fixed",
+        dividend_yield=0.05,
     )
     assert result["price"] >= 0
 
@@ -836,42 +1038,79 @@ def test_lookback_fixed_put_k_le_m0_b_zero():
 # --- lookback_option_price validation (lines 583-595) ---
 def test_lookback_invalid_spot():
     with pytest.raises(ValueError, match="spot"):
-        lookback_option_price(0.0, 100.0, 1.0, 0.05, 0.20)
+        lookback_option_price(
+            0.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_lookback_invalid_strike():
     with pytest.raises(ValueError, match="strike"):
-        lookback_option_price(100.0, -5.0, 1.0, 0.05, 0.20)
+        lookback_option_price(
+            100.0, strike=-5.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_lookback_invalid_tte():
     with pytest.raises(ValueError, match="time"):
-        lookback_option_price(100.0, 100.0, -1.0, 0.05, 0.20)
+        lookback_option_price(
+            100.0, strike=100.0, time_to_expiry=-1.0, risk_free_rate=0.05, volatility=0.20
+        )
 
 
 def test_lookback_invalid_vol():
     with pytest.raises(ValueError, match="volatility"):
-        lookback_option_price(100.0, 100.0, 1.0, 0.05, -0.1)
+        lookback_option_price(
+            100.0, strike=100.0, time_to_expiry=1.0, risk_free_rate=0.05, volatility=-0.1
+        )
 
 
 def test_lookback_invalid_option_type():
     with pytest.raises(ValueError, match="option_type"):
-        lookback_option_price(100.0, 100.0, 1.0, 0.05, 0.20, option_type="straddle")
+        lookback_option_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            option_type="straddle",
+        )
 
 
 def test_lookback_invalid_strike_type():
     with pytest.raises(ValueError, match="strike_type"):
-        lookback_option_price(100.0, 100.0, 1.0, 0.05, 0.20, strike_type="dynamic")
+        lookback_option_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            strike_type="dynamic",
+        )
 
 
 def test_lookback_invalid_method():
     with pytest.raises(ValueError, match="method"):
-        lookback_option_price(100.0, 100.0, 1.0, 0.05, 0.20, method="binomial")
+        lookback_option_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            method="binomial",
+        )
 
 
 def test_lookback_mc_invalid_n_sims():
     with pytest.raises(ValueError, match="n_simulations"):
-        lookback_option_price(100.0, 100.0, 1.0, 0.05, 0.20, method="monte_carlo", n_simulations=0)
+        lookback_option_price(
+            100.0,
+            strike=100.0,
+            time_to_expiry=1.0,
+            risk_free_rate=0.05,
+            volatility=0.20,
+            method="monte_carlo",
+            n_simulations=0,
+        )
 
 
 # --- Lookback MC fixed strike (lines 635-638) ---
@@ -879,10 +1118,10 @@ def test_lookback_mc_fixed_call():
     """MC fixed lookback call (line 635-636)."""
     result = lookback_option_price(
         100.0,
-        95.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=95.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         option_type="call",
         strike_type="fixed",
         method="monte_carlo",
@@ -895,10 +1134,10 @@ def test_lookback_mc_fixed_put():
     """MC fixed lookback put (lines 637-638)."""
     result = lookback_option_price(
         100.0,
-        105.0,
-        1.0,
-        0.05,
-        0.20,
+        strike=105.0,
+        time_to_expiry=1.0,
+        risk_free_rate=0.05,
+        volatility=0.20,
         option_type="put",
         strike_type="fixed",
         method="monte_carlo",

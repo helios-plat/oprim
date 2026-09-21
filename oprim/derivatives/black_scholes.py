@@ -23,12 +23,11 @@ from oprim.derivatives._base import _bs_price_from_d1d2, _d1_d2
 
 
 def black_scholes_price(
-    spot: float,
+    spot: float, *,
     strike: float,
     time_to_expiry: float,
     risk_free_rate: float,
     volatility: float,
-    *,
     option_type: str = "call",
     dividend_yield: float = 0.0,
 ) -> float:
@@ -105,12 +104,11 @@ def black_scholes_price(
 
 
 def black_scholes_greeks(
-    spot: float,
+    spot: float, *,
     strike: float,
     time_to_expiry: float,
     risk_free_rate: float,
     volatility: float,
-    *,
     option_type: str = "call",
     dividend_yield: float = 0.0,
 ) -> dict[str, float]:
@@ -210,12 +208,11 @@ def black_scholes_greeks(
 
 
 def implied_volatility(
-    market_price: float,
+    market_price: float, *,
     spot: float,
     strike: float,
     time_to_expiry: float,
     risk_free_rate: float,
-    *,
     option_type: str = "call",
     dividend_yield: float = 0.0,
     method: str = "brent",
