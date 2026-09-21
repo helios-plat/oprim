@@ -30,8 +30,6 @@ ELEMENTS: list[str] = [
     "pearson_spearman_corr",
     "kde_density",
     "correlation_batch",
-    "bayesian_changepoint",
-    "posterior_run_length",
     # Cognitive (10)
     "bkt_new_state",
     "bkt_update",
@@ -102,8 +100,7 @@ ELEMENTS: list[str] = [
     # Risk (1)
     "cvar",
     # --- Phase 2 additions (v1.5.0) ---
-    # Performance (2)
-    "cumulative_returns_perf",
+    # Performance (1)
     "cagr",
     # Mean Reversion (2)
     "ornstein_uhlenbeck_fit",
@@ -335,8 +332,6 @@ CATEGORIES: dict[str, list[str]] = {
         "pearson_spearman_corr",
         "kde_density",
         "correlation_batch",
-        "bayesian_changepoint",
-        "posterior_run_length",
         "compute_peer_percentile",
     ],
     "cognitive": [
@@ -409,7 +404,7 @@ CATEGORIES: dict[str, list[str]] = {
     "serialization": ["canonical_json"],
     "risk": ["cvar", "mean_deviation"],
     # Phase 2 categories
-    "performance": ["cumulative_returns_perf", "cagr"],
+    "performance": ["cagr"],
     "mean_reversion": ["ornstein_uhlenbeck_fit", "ornstein_uhlenbeck_half_life"],
     "volatility": [
         "garch_fit",
