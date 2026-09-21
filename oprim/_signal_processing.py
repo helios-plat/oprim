@@ -6,7 +6,7 @@ import numpy as np
 
 
 def linear_slope(
-    values: np.ndarray,
+    values: np.ndarray, *,
     normalize: bool = True,
 ) -> float:
     """Absolute linear regression slope over a window.
@@ -40,7 +40,7 @@ def linear_slope(
 
 
 def atr(
-    highs: np.ndarray,
+    highs: np.ndarray, *,
     lows: np.ndarray,
     closes: np.ndarray,
     period: int = 14,
@@ -82,7 +82,7 @@ def atr(
 
 
 def hurst_exponent(
-    series: np.ndarray,
+    series: np.ndarray, *,
     min_window: int = 10,
 ) -> float:
     """Hurst exponent via rescaled range (R/S) analysis.
@@ -146,7 +146,7 @@ def hurst_exponent(
 
 
 def compute_dwt(  # pragma: no cover
-    returns: np.ndarray,
+    returns: np.ndarray, *,
     wavelet: str = "db4",
     level: int = 6,
 ) -> dict[str, np.ndarray | list[float]]:
@@ -195,7 +195,7 @@ def compute_dwt(  # pragma: no cover
 
 
 def h_change_rate_std(
-    values: np.ndarray,
+    values: np.ndarray, *,
     window: int = 6,
 ) -> float:
     """Standard deviation of first-differences over a window.

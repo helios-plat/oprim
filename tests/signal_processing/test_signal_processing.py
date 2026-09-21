@@ -72,7 +72,7 @@ class TestATR:
     def test_wilder_smoothing_triggered(self):
         """period=3, len=20 -> Wilder smoothing loop runs (trs[period:] has elements)."""
         highs, lows, closes = self._make_ohlc(20, range_val=2.0)
-        result = atr(highs, lows, closes, period=3)
+        result = atr(highs, lows=lows, closes=closes, period=3)
         assert np.isfinite(result)
         assert result > 0
 
@@ -82,7 +82,7 @@ class TestATR:
         closes = np.full(n, 100.0)
         highs = np.full(n, 101.0)
         lows = np.full(n, 99.0)
-        result = atr(highs, lows, closes, period=5)
+        result = atr(highs, lows=lows, closes=closes, period=5)
         # True range = max(H-L, |H-C_prev|, |L-C_prev|) = 2 for constant prices
         assert result == pytest.approx(2.0, rel=1e-6)
 
@@ -92,13 +92,13 @@ class TestATR:
         lows = np.array([99.0, 98.0])
         closes = np.array([100.0, 101.0])
         with pytest.raises(ValueError, match="at least"):
-            atr(highs, lows, closes, period=5)
+            atr(highs, lows=lows, closes=closes, period=5)
 
     def test_minimum_valid_length(self):
         """n == period + 1 is valid (SMA seed only, no smoothing loop)."""
         n = 4  # period=3, need 4 bars
         highs, lows, closes = self._make_ohlc(n)
-        result = atr(highs, lows, closes, period=3)
+        result = atr(highs, lows=lows, closes=closes, period=3)
         assert np.isfinite(result)
 
 

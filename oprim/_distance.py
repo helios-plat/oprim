@@ -11,7 +11,7 @@ from scipy.spatial.distance import cdist
 
 
 def wasserstein_distance(
-    u: np.ndarray,
+    u: np.ndarray, *,
     v: np.ndarray,
     mode: Literal["1d", "sliced_multi_d"] = "1d",
     n_projections: int = 100,
@@ -62,7 +62,7 @@ def wasserstein_distance(
 
 
 def dtw_distance(
-    x: np.ndarray,
+    x: np.ndarray, *,
     y: np.ndarray,
     window: int | None = None,
     distance_metric: Literal["euclidean", "manhattan"] = "euclidean",
@@ -182,7 +182,7 @@ def _dtw_multi(x, y, window, metric):
 
 
 def cosine_similarity_batch(
-    query: np.ndarray,
+    query: np.ndarray, *,
     database: np.ndarray,
     pre_normalize: bool = False,
     top_k: int | None = None,
@@ -241,7 +241,7 @@ def cosine_similarity_batch(
 
 
 def euclidean_distance_matrix(
-    x: np.ndarray,
+    x: np.ndarray, *,
     y: np.ndarray | None = None,
     weights: np.ndarray | None = None,
 ) -> np.ndarray:
@@ -282,7 +282,7 @@ def euclidean_distance_matrix(
 
 
 def symmetric_kl_divergence(
-    p: np.ndarray,
+    p: np.ndarray, *,
     q: np.ndarray,
     mode: Literal["js", "symmetric_kl"] = "js",
     base: Literal["e", "2"] = "e",
@@ -330,9 +330,8 @@ def symmetric_kl_divergence(
 
 
 def distributional_distance(
-    sample_a: np.ndarray | pd.Series,
+    sample_a: np.ndarray | pd.Series, *,
     sample_b: np.ndarray | pd.Series,
-    *,
     metric: Literal[
         "wasserstein_1", "kolmogorov_smirnov", "cramer_von_mises", "energy"
     ] = "wasserstein_1",

@@ -28,13 +28,13 @@ class TestIdenticalSamplesAllMetricsZero:
     @pytest.mark.parametrize("metric", METRICS)
     def test_identical(self, metric):
         a = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-        result = distributional_distance(a, a, metric=metric)
+        result = distributional_distance(a, sample_b=a, metric=metric)
         assert result == pytest.approx(0.0, abs=1e-10), f"metric={metric}: expected 0, got {result}"
 
     @pytest.mark.parametrize("metric", METRICS)
     def test_identical_large(self, metric):
         a = _rng(1).normal(0, 1, 200)
-        result = distributional_distance(a, a, metric=metric)
+        result = distributional_distance(a, sample_b=a, metric=metric)
         assert result == pytest.approx(0.0, abs=1e-9), f"metric={metric}: expected 0, got {result}"
 
 
@@ -45,7 +45,7 @@ class TestWassersteinShiftedDistribution:
     def test_shift_by_one(self):
         a = np.arange(100.0)
         b = a + 1.0
-        result = distributional_distance(a, b, metric="wasserstein_1")
+        result = distributional_distance(a, sample_b=b, metric="wasserstein_1")
         assert result == pytest.approx(1.0, abs=1e-9)
 
     def test_unit_normals_shifted_by_1(self):
@@ -53,7 +53,7 @@ class TestWassersteinShiftedDistribution:
         rng = _rng(0)
         a = rng.normal(0, 1, 50_000)
         b = rng.normal(1, 1, 50_000)
-        result = distributional_distance(a, b, metric="wasserstein_1")
+        result = distributional_distance(a, sample_b=b, metric="wasserstein_1")
         assert abs(result - 1.0) < 0.05
 
 
@@ -65,7 +65,7 @@ class TestKSMaxCDFDiff:
         # a = [0, 0, 1, 1], b = [0.5, 0.5, 0.5, 0.5]
         a = np.array([0.0, 0.0, 1.0, 1.0])
         b = np.array([0.5, 0.5, 0.5, 0.5])
-        result = distributional_distance(a, b, metric="kolmogorov_smirnov")
+        result = distributional_distance(a, sample_b=b, metric="kolmogorov_smirnov")
         # F_a at 0 = 0.5, F_b at 0 = 0; diff = 0.5
         # F_a at 0.5 = 0.5, F_b at 0.5 = 1.0; diff = 0.5
         # F_a at 1 = 1.0, F_b at 1 = 1.0; diff = 0.0
@@ -74,14 +74,14 @@ class TestKSMaxCDFDiff:
     def test_non_overlapping(self):
         a = np.array([1.0, 2.0, 3.0])
         b = np.array([10.0, 11.0, 12.0])
-        result = distributional_distance(a, b, metric="kolmogorov_smirnov")
+        result = distributional_distance(a, sample_b=b, metric="kolmogorov_smirnov")
         assert result == pytest.approx(1.0, abs=1e-10)
 
     def test_ks_nonnegative(self):
         rng = _rng(5)
         a = rng.normal(0, 1, 100)
         b = rng.normal(1, 2, 100)
-        result = distributional_distance(a, b, metric="kolmogorov_smirnov")
+        result = distributional_distance(a, sample_b=b, metric="kolmogorov_smirnov")
         assert result >= 0.0
         assert result <= 1.0  # KS stat is bounded in [0, 1]
 
@@ -92,20 +92,20 @@ class TestKSMaxCDFDiff:
 class TestCvMBasic:
     def test_identical_zero(self):
         a = np.linspace(0, 1, 50)
-        result = distributional_distance(a, a, metric="cramer_von_mises")
+        result = distributional_distance(a, sample_b=a, metric="cramer_von_mises")
         assert result == pytest.approx(0.0, abs=1e-10)
 
     def test_different_distributions_positive(self):
         a = np.array([0.0, 1.0, 2.0, 3.0])
         b = np.array([5.0, 6.0, 7.0, 8.0])
-        result = distributional_distance(a, b, metric="cramer_von_mises")
+        result = distributional_distance(a, sample_b=b, metric="cramer_von_mises")
         assert result > 0.0
 
     def test_cvm_nonnegative(self):
         rng = _rng(7)
         a = rng.normal(0, 1, 80)
         b = rng.exponential(1, 80)
-        result = distributional_distance(a, b, metric="cramer_von_mises")
+        result = distributional_distance(a, sample_b=b, metric="cramer_von_mises")
         assert result >= 0.0
 
 
@@ -116,14 +116,14 @@ class TestEnergyBasic:
     def test_different_distributions_positive(self):
         a = np.array([0.0, 0.0, 0.0])
         b = np.array([10.0, 10.0, 10.0])
-        result = distributional_distance(a, b, metric="energy")
+        result = distributional_distance(a, sample_b=b, metric="energy")
         assert result > 0.0
 
     def test_energy_known_value(self):
         """E(P, Q) for P=delta(0), Q=delta(1): 2*1 - 0 - 0 = 2.0."""
         a = np.array([0.0])
         b = np.array([1.0])
-        result = distributional_distance(a, b, metric="energy")
+        result = distributional_distance(a, sample_b=b, metric="energy")
         assert result == pytest.approx(2.0, abs=1e-10)
 
 
@@ -136,8 +136,8 @@ class TestSymmetricAllMetrics:
         rng = _rng(10)
         a = rng.normal(0, 1, 50)
         b = rng.normal(1, 1.5, 50)
-        d_ab = distributional_distance(a, b, metric=metric)
-        d_ba = distributional_distance(b, a, metric=metric)
+        d_ab = distributional_distance(a, sample_b=b, metric=metric)
+        d_ba = distributional_distance(b, sample_b=a, metric=metric)
         assert d_ab == pytest.approx(d_ba, rel=1e-9), (
             f"metric={metric}: d(a,b)={d_ab} != d(b,a)={d_ba}"
         )
@@ -154,7 +154,9 @@ class TestWeightsWasserstein:
         # All weight on a[0]=0.0 and b[0]=5.0
         wa = np.array([1.0, 0.0, 0.0])
         wb = np.array([1.0, 0.0, 0.0])
-        result = distributional_distance(a, b, metric="wasserstein_1", weights_a=wa, weights_b=wb)
+        result = distributional_distance(
+            a, sample_b=b, metric="wasserstein_1", weights_a=wa, weights_b=wb
+        )
         # W1 between delta(0) and delta(5) = 5.0
         assert result == pytest.approx(5.0, abs=1e-9)
 
@@ -164,7 +166,7 @@ class TestWeightsWasserstein:
         wa = np.array([1.0, 1.0])
         wb = np.array([1.0, 1.0])
         result = distributional_distance(
-            a, b, metric="kolmogorov_smirnov", weights_a=wa, weights_b=wb
+            a, sample_b=b, metric="kolmogorov_smirnov", weights_a=wa, weights_b=wb
         )
         assert result == pytest.approx(0.0, abs=1e-10)
 
@@ -175,23 +177,23 @@ class TestWeightsWasserstein:
 class TestEmptyRaises:
     def test_empty_sample_a_raises(self):
         with pytest.raises(ValueError, match="sample_a"):
-            distributional_distance(np.array([]), np.array([1.0]))
+            distributional_distance(np.array([]), sample_b=np.array([1.0]))
 
     def test_empty_sample_b_raises(self):
         with pytest.raises(ValueError, match="sample_b"):
-            distributional_distance(np.array([1.0]), np.array([]))
+            distributional_distance(np.array([1.0]), sample_b=np.array([]))
 
     def test_weight_length_mismatch_a(self):
         a = np.array([1.0, 2.0, 3.0])
         b = np.array([1.0, 2.0])
         with pytest.raises(ValueError, match="weights_a"):
-            distributional_distance(a, b, weights_a=np.array([1.0, 1.0]))
+            distributional_distance(a, sample_b=b, weights_a=np.array([1.0, 1.0]))
 
     def test_weight_length_mismatch_b(self):
         a = np.array([1.0, 2.0])
         b = np.array([1.0, 2.0, 3.0])
         with pytest.raises(ValueError, match="weights_b"):
-            distributional_distance(a, b, weights_b=np.array([1.0]))
+            distributional_distance(a, sample_b=b, weights_b=np.array([1.0]))
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +204,7 @@ class TestInvalidMetricRaises:
         with pytest.raises(ValueError, match="Unknown metric"):
             distributional_distance(
                 np.array([1.0, 2.0]),
-                np.array([1.0, 2.0]),
+                sample_b=np.array([1.0, 2.0]),
                 metric="not_a_metric",  # type: ignore[arg-type]
             )
 
@@ -215,7 +217,7 @@ class TestReturnsFloat:
     def test_return_type_is_float(self, metric):
         a = np.array([1.0, 2.0, 3.0])
         b = np.array([2.0, 3.0, 4.0])
-        result = distributional_distance(a, b, metric=metric)
+        result = distributional_distance(a, sample_b=b, metric=metric)
         assert isinstance(result, float), f"metric={metric}: expected float, got {type(result)}"
 
 
@@ -227,7 +229,7 @@ class TestWassersteinMatchesScipy:
         rng = _rng(99)
         a = rng.normal(0, 1, 200)
         b = rng.gamma(2, 2, 200)
-        result = distributional_distance(a, b, metric="wasserstein_1")
+        result = distributional_distance(a, sample_b=b, metric="wasserstein_1")
         expected = sp_stats.wasserstein_distance(a, b)
         np.testing.assert_allclose(result, expected, rtol=1e-10)
 
@@ -237,7 +239,9 @@ class TestWassersteinMatchesScipy:
         b = rng.normal(2, 1, 50)
         wa = rng.uniform(0.1, 1.0, 50)
         wb = rng.uniform(0.1, 1.0, 50)
-        result = distributional_distance(a, b, metric="wasserstein_1", weights_a=wa, weights_b=wb)
+        result = distributional_distance(
+            a, sample_b=b, metric="wasserstein_1", weights_a=wa, weights_b=wb
+        )
         expected = sp_stats.wasserstein_distance(a, b, wa, wb)
         np.testing.assert_allclose(result, expected, rtol=1e-10)
 
@@ -249,14 +253,14 @@ class TestEnergySzekelyProperty:
     def test_self_distance_zero(self):
         """E(X, X) = 0."""
         a = _rng(20).normal(0, 1, 100)
-        result = distributional_distance(a, a, metric="energy")
+        result = distributional_distance(a, sample_b=a, metric="energy")
         assert result == pytest.approx(0.0, abs=1e-10)
 
     def test_different_distributions_positive(self):
         """E(X, Y) > 0 for distributions with different means."""
         a = _rng(21).normal(0, 1, 100)
         b = _rng(22).normal(5, 1, 100)
-        result = distributional_distance(a, b, metric="energy")
+        result = distributional_distance(a, sample_b=b, metric="energy")
         assert result > 0.0
 
     def test_energy_single_points(self):
@@ -264,7 +268,7 @@ class TestEnergySzekelyProperty:
         x, y = 3.0, 7.0
         a = np.array([x])
         b = np.array([y])
-        result = distributional_distance(a, b, metric="energy")
+        result = distributional_distance(a, sample_b=b, metric="energy")
         assert result == pytest.approx(2.0 * abs(x - y), abs=1e-10)
 
 
@@ -276,7 +280,7 @@ class TestPdSeriesInput:
     def test_series_input(self, metric):
         a = pd.Series([1.0, 2.0, 3.0, 4.0])
         b = pd.Series([2.0, 3.0, 4.0, 5.0])
-        result = distributional_distance(a, b, metric=metric)
+        result = distributional_distance(a, sample_b=b, metric=metric)
         assert isinstance(result, float)
         assert result >= 0.0
 
@@ -284,8 +288,8 @@ class TestPdSeriesInput:
         rng = _rng(55)
         arr_a = rng.normal(0, 1, 30)
         arr_b = rng.normal(1, 1, 30)
-        result_arr = distributional_distance(arr_a, arr_b, metric="wasserstein_1")
+        result_arr = distributional_distance(arr_a, sample_b=arr_b, metric="wasserstein_1")
         result_ser = distributional_distance(
-            pd.Series(arr_a), pd.Series(arr_b), metric="wasserstein_1"
+            pd.Series(arr_a), sample_b=pd.Series(arr_b), metric="wasserstein_1"
         )
         assert result_arr == pytest.approx(result_ser, rel=1e-12)

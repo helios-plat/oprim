@@ -21,12 +21,12 @@ from oprim._distance import (
 class TestWassersteinDistance:
     def test_same_distribution(self):
         data = np.arange(100.0)
-        assert wasserstein_distance(data, data) == pytest.approx(0.0, abs=1e-10)
+        assert wasserstein_distance(data, v=data) == pytest.approx(0.0, abs=1e-10)
 
     def test_shifted(self):
         u = np.arange(100.0)
         v = u + 5.0
-        result = wasserstein_distance(u, v)
+        result = wasserstein_distance(u, v=v)
         assert result == pytest.approx(5.0, abs=1e-9)
 
     def test_gaussian_known(self):
@@ -34,28 +34,28 @@ class TestWassersteinDistance:
         rng = np.random.default_rng(42)
         u = rng.normal(0, 1, 10000)
         v = rng.normal(3, 1, 10000)
-        result = wasserstein_distance(u, v)
+        result = wasserstein_distance(u, v=v)
         assert abs(result - 3.0) < 0.1
 
     def test_sliced_multi_d(self):
         rng = np.random.default_rng(42)
         u = rng.normal(0, 1, (200, 5))
         v = rng.normal(0, 1, (200, 5))
-        result = wasserstein_distance(u, v, mode="sliced_multi_d", random_state=42)
+        result = wasserstein_distance(u, v=v, mode="sliced_multi_d", random_state=42)
         assert result >= 0
 
     def test_sliced_shifted(self):
         rng = np.random.default_rng(42)
         u = rng.normal(0, 1, (500, 3))
         v = rng.normal(5, 1, (500, 3))
-        result = wasserstein_distance(u, v, mode="sliced_multi_d", random_state=42)
+        result = wasserstein_distance(u, v=v, mode="sliced_multi_d", random_state=42)
         assert result > 1.0
 
     def test_academic_1d_vs_scipy(self):
         rng = np.random.default_rng(42)
         u = rng.normal(0, 1, 500)
         v = rng.normal(1, 2, 500)
-        result = wasserstein_distance(u, v, mode="1d")
+        result = wasserstein_distance(u, v=v, mode="1d")
         expected = sp_stats.wasserstein_distance(u, v)
         np.testing.assert_allclose(result, expected, rtol=1e-9)
 
@@ -66,55 +66,55 @@ class TestWassersteinDistance:
 class TestDtwDistance:
     def test_same_sequence(self):
         x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-        result = dtw_distance(x, x)
+        result = dtw_distance(x, y=x)
         assert result["distance"] == pytest.approx(0.0, abs=1e-10)
 
     def test_euclidean_vs_manhattan(self):
         """Euclidean should differ from manhattan."""
         x = np.array([0.0, 1.0, 2.0])
         y = np.array([0.0, 2.0, 4.0])
-        euclidean = dtw_distance(x, y, distance_metric="euclidean")
-        manhattan = dtw_distance(x, y, distance_metric="manhattan")
+        euclidean = dtw_distance(x, y=y, distance_metric="euclidean")
+        manhattan = dtw_distance(x, y=y, distance_metric="manhattan")
         assert euclidean["distance"] != manhattan["distance"]
 
     def test_shifted(self):
         x = np.array([0.0, 1.0, 2.0, 1.0, 0.0])
         y = np.array([0.0, 0.0, 1.0, 2.0, 1.0, 0.0])
-        result = dtw_distance(x, y)
+        result = dtw_distance(x, y=y)
         assert result["distance"] >= 0
         assert result["path"] is not None
 
     def test_with_window(self):
         x = np.arange(20.0)
         y = np.arange(20.0) + 0.5
-        result = dtw_distance(x, y, window=5)
+        result = dtw_distance(x, y=y, window=5)
         assert result["distance"] >= 0
 
     def test_multivariate_independent(self):
         x = np.random.default_rng(42).normal(0, 1, (10, 3))
         y = np.random.default_rng(43).normal(0, 1, (10, 3))
-        result = dtw_distance(x, y, multivariate_mode="independent")
+        result = dtw_distance(x, y=y, multivariate_mode="independent")
         assert result["distance"] >= 0
 
     def test_multivariate_dependent(self):
         x = np.random.default_rng(42).normal(0, 1, (10, 3))
         y = np.random.default_rng(43).normal(0, 1, (10, 3))
-        result = dtw_distance(x, y, multivariate_mode="dependent")
+        result = dtw_distance(x, y=y, multivariate_mode="dependent")
         assert result["distance"] >= 0
 
     def test_manhattan(self):
         x = np.array([0.0, 1.0, 2.0])
         y = np.array([0.0, 1.0, 2.0])
-        result = dtw_distance(x, y, distance_metric="manhattan")
+        result = dtw_distance(x, y=y, distance_metric="manhattan")
         assert result["distance"] == pytest.approx(0.0, abs=1e-10)
 
     def test_empty_raises(self):
         with pytest.raises(ValueError, match="empty"):
-            dtw_distance(np.array([]), np.array([1.0]))
+            dtw_distance(np.array([]), y=np.array([1.0]))
 
     def test_nan_raises(self):
         with pytest.raises(ValueError, match="NaN"):
-            dtw_distance(np.array([1.0, np.nan]), np.array([1.0, 2.0]))
+            dtw_distance(np.array([1.0, np.nan]), y=np.array([1.0, 2.0]))
 
     def test_large_warning(self):
         """Large sequences should warn about performance."""
@@ -124,7 +124,7 @@ class TestDtwDistance:
         y = np.arange(600.0)
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            dtw_distance(x, y)
+            dtw_distance(x, y=y)
             assert any("slow" in str(x.message) for x in w)
 
 
@@ -135,7 +135,7 @@ class TestCosineSimilarityBatch:
     def test_identical(self):
         query = np.array([1.0, 0.0, 0.0])
         db = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
-        result = cosine_similarity_batch(query, db)
+        result = cosine_similarity_batch(query, database=db)
         assert result[0] == pytest.approx(1.0, abs=1e-9)
         assert result[1] == pytest.approx(0.0, abs=1e-9)
 
@@ -143,20 +143,20 @@ class TestCosineSimilarityBatch:
         """top_k=1 should return 1D arrays, not scalars."""
         query = np.array([1.0, 0.0])
         db = np.array([[1.0, 0.0], [0.9, 0.1], [0.0, 1.0]])
-        scores, indices = cosine_similarity_batch(query, db, top_k=1)
+        scores, indices = cosine_similarity_batch(query, database=db, top_k=1)
         assert isinstance(scores, np.ndarray) and scores.ndim == 1
         assert isinstance(indices, np.ndarray) and indices.ndim == 1
 
     def test_batch_query(self):
         query = np.array([[1.0, 0.0], [0.0, 1.0]])
         db = np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])
-        result = cosine_similarity_batch(query, db)
+        result = cosine_similarity_batch(query, database=db)
         assert result.shape == (2, 3)
 
     def test_top_k(self):
         query = np.array([1.0, 0.0, 0.0])
         db = np.random.default_rng(42).normal(0, 1, (100, 3))
-        scores, indices = cosine_similarity_batch(query, db, top_k=5)
+        scores, indices = cosine_similarity_batch(query, database=db, top_k=5)
         assert len(scores) == 5
         assert len(indices) == 5
         # Scores should be sorted descending
@@ -169,15 +169,15 @@ class TestCosineSimilarityBatch:
         # Normalize
         query_n = query / np.linalg.norm(query, axis=1, keepdims=True)
         db_n = db / np.linalg.norm(db, axis=1, keepdims=True)
-        r1 = cosine_similarity_batch(query.squeeze(), db)
-        r2 = cosine_similarity_batch(query_n.squeeze(), db_n, pre_normalize=True)
+        r1 = cosine_similarity_batch(query.squeeze(), database=db)
+        r2 = cosine_similarity_batch(query_n.squeeze(), database=db_n, pre_normalize=True)
         np.testing.assert_allclose(r1, r2, rtol=1e-9)
 
     def test_academic_vs_sklearn(self):
         rng = np.random.default_rng(42)
         query = rng.normal(0, 1, (3, 10))
         db = rng.normal(0, 1, (20, 10))
-        result = cosine_similarity_batch(query, db)
+        result = cosine_similarity_batch(query, database=db)
         expected = sklearn_cosine(query, db)
         np.testing.assert_allclose(result, expected, rtol=1e-9)
 
@@ -195,14 +195,14 @@ class TestEuclideanDistanceMatrix:
     def test_x_vs_y(self):
         x_val = np.array([[0, 0.0]])
         y_val = np.array([[3, 4.0]])
-        result = euclidean_distance_matrix(x_val, y_val)
+        result = euclidean_distance_matrix(x_val, y=y_val)
         assert result[0, 0] == pytest.approx(5.0)
 
     def test_weighted(self):
         x_val = np.array([[1, 0.0]])
         y_val = np.array([[0, 0.0]])
         w = np.array([4.0, 1.0])
-        result = euclidean_distance_matrix(x_val, y_val, weights=w)
+        result = euclidean_distance_matrix(x_val, y=y_val, weights=w)
         # sqrt(4 * 1^2) = 2
         assert result[0, 0] == pytest.approx(2.0)
 
@@ -215,7 +215,7 @@ class TestEuclideanDistanceMatrix:
         rng = np.random.default_rng(42)
         x_val = rng.normal(0, 1, (50, 5))
         y_val = rng.normal(0, 1, (30, 5))
-        result = euclidean_distance_matrix(x_val, y_val)
+        result = euclidean_distance_matrix(x_val, y=y_val)
         expected = cdist(x_val, y_val, metric="euclidean")
         np.testing.assert_allclose(result, expected, rtol=1e-9)
 
@@ -226,14 +226,14 @@ class TestEuclideanDistanceMatrix:
 class TestSymmetricKLDivergence:
     def test_same_distribution(self):
         p = np.array([0.25, 0.25, 0.25, 0.25])
-        result = symmetric_kl_divergence(p, p)
+        result = symmetric_kl_divergence(p, q=p)
         assert result == pytest.approx(0.0, abs=1e-6)
 
     def test_js_vs_symmetric_kl(self):
         p = np.array([0.5, 0.3, 0.2])
         q = np.array([0.1, 0.6, 0.3])
-        js = symmetric_kl_divergence(p, q, mode="js")
-        skl = symmetric_kl_divergence(p, q, mode="symmetric_kl")
+        js = symmetric_kl_divergence(p, q=q, mode="js")
+        skl = symmetric_kl_divergence(p, q=q, mode="symmetric_kl")
         # JS is bounded by ln(2), symmetric KL is not
         assert js < skl
 
@@ -241,21 +241,21 @@ class TestSymmetricKLDivergence:
         """Epsilon smoothing handles zeros."""
         p = np.array([1.0, 0.0, 0.0])
         q = np.array([0.0, 0.0, 1.0])
-        result = symmetric_kl_divergence(p, q)
+        result = symmetric_kl_divergence(p, q=q)
         assert np.isfinite(result)
 
     def test_base_2(self):
         p = np.array([0.5, 0.5])
         q = np.array([0.9, 0.1])
-        r_e = symmetric_kl_divergence(p, q, base="e")
-        r_2 = symmetric_kl_divergence(p, q, base="2")
+        r_e = symmetric_kl_divergence(p, q=q, base="e")
+        r_2 = symmetric_kl_divergence(p, q=q, base="2")
         # log2 = ln / ln(2), so result_2 = result_e / ln(2)
         np.testing.assert_allclose(r_2, r_e / np.log(2), rtol=1e-6)
 
     def test_academic_js_vs_scipy(self):
         p = np.array([0.3, 0.4, 0.3])
         q = np.array([0.1, 0.5, 0.4])
-        result = symmetric_kl_divergence(p, q, mode="js", base="2")
+        result = symmetric_kl_divergence(p, q=q, mode="js", base="2")
         # scipy jensenshannon returns sqrt(JS), so square it
         expected = jensenshannon(p, q, base=2) ** 2
         np.testing.assert_allclose(result, expected, rtol=1e-4)
