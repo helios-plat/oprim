@@ -29,14 +29,14 @@ class TestBootstrapCI:
     def test_mean_normal(self):
         rng = np.random.default_rng(42)
         data = rng.normal(5.0, 1.0, 1000)
-        result = bootstrap_ci(data, np.mean, random_state=42)
+        result = bootstrap_ci(data, statistic_fn=np.mean, random_state=42)
         assert 4.8 < result["ci_lower"] < result["ci_upper"] < 5.2
         assert result["method"] == "percentile"
 
     def test_median(self):
         rng = np.random.default_rng(42)
         data = rng.normal(0, 1, 500)
-        result = bootstrap_ci(data, np.median, random_state=42)
+        result = bootstrap_ci(data, statistic_fn=np.median, random_state=42)
         assert result["ci_lower"] < 0 < result["ci_upper"]
 
     def test_sharpe_ratio(self):
@@ -46,55 +46,55 @@ class TestBootstrapCI:
         def sharpe_fn(x):
             return np.mean(x) / np.std(x, ddof=1) * np.sqrt(252)
 
-        result = bootstrap_ci(returns, sharpe_fn, random_state=42)
+        result = bootstrap_ci(returns, statistic_fn=sharpe_fn, random_state=42)
         assert "ci_lower" in result
 
     def test_method_basic(self):
         rng = np.random.default_rng(42)
         data = rng.normal(0, 1, 200)
-        result = bootstrap_ci(data, np.mean, method="basic", random_state=42)
+        result = bootstrap_ci(data, statistic_fn=np.mean, method="basic", random_state=42)
         assert result["method"] == "basic"
 
     def test_method_bca(self):
         rng = np.random.default_rng(42)
         data = rng.normal(0, 1, 100)
-        result = bootstrap_ci(data, np.mean, method="bca", random_state=42)
+        result = bootstrap_ci(data, statistic_fn=np.mean, method="bca", random_state=42)
         assert result["method"] == "bca"
 
     def test_reproducibility(self):
         data = np.arange(100.0)
-        r1 = bootstrap_ci(data, np.mean, random_state=123)
-        r2 = bootstrap_ci(data, np.mean, random_state=123)
+        r1 = bootstrap_ci(data, statistic_fn=np.mean, random_state=123)
+        r2 = bootstrap_ci(data, statistic_fn=np.mean, random_state=123)
         assert r1["ci_lower"] == r2["ci_lower"]
 
     def test_nan_handling(self):
         data = np.array([1.0, 2.0, np.nan, 4.0, 5.0])
-        result = bootstrap_ci(data, np.mean, random_state=42)
+        result = bootstrap_ci(data, statistic_fn=np.mean, random_state=42)
         assert not np.isnan(result["point_estimate"])
 
     def test_empty_raises(self):
         with pytest.raises(ValueError, match="empty"):
-            bootstrap_ci(np.array([]), np.mean)
+            bootstrap_ci(np.array([]), statistic_fn=np.mean)
 
     def test_all_nan_raises(self):
         with pytest.raises(ValueError, match="empty"):
-            bootstrap_ci(np.array([np.nan, np.nan]), np.mean)
+            bootstrap_ci(np.array([np.nan, np.nan]), statistic_fn=np.mean)
 
     def test_confidence_level_invalid(self):
         with pytest.raises(ValueError, match="confidence_level"):
-            bootstrap_ci(np.arange(10.0), np.mean, confidence_level=1.5)
+            bootstrap_ci(np.arange(10.0), statistic_fn=np.mean, confidence_level=1.5)
 
     def test_low_n_bootstrap_warning(self):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            bootstrap_ci(np.arange(50.0), np.mean, n_bootstrap=50, random_state=42)
+            bootstrap_ci(np.arange(50.0), statistic_fn=np.mean, n_bootstrap=50, random_state=42)
             assert any("unreliable" in str(x.message) for x in w)
 
     def test_academic_vs_scipy(self):
         """Compare percentile method with scipy.stats.bootstrap."""
         rng = np.random.default_rng(42)
         data = rng.normal(10, 2, 200)
-        result = bootstrap_ci(data, np.mean, n_bootstrap=5000, random_state=42)
+        result = bootstrap_ci(data, statistic_fn=np.mean, n_bootstrap=5000, random_state=42)
         # scipy reference
         res = sp_stats.bootstrap(
             (data,), np.mean, n_resamples=5000, random_state=42, method="percentile"
@@ -223,31 +223,31 @@ class TestKolmogorovSmirnovTest:
         rng = np.random.default_rng(42)
         a = rng.normal(0, 1, 500)
         b = rng.normal(0, 1, 500)
-        result = kolmogorov_smirnov_test(a, b)
+        result = kolmogorov_smirnov_test(a, sample_b=b)
         assert result["p_value"] > 0.05
 
     def test_two_sample_different(self):
         rng = np.random.default_rng(42)
         a = rng.normal(0, 1, 500)
         b = rng.normal(5, 1, 500)
-        result = kolmogorov_smirnov_test(a, b)
+        result = kolmogorov_smirnov_test(a, sample_b=b)
         assert result["p_value"] < 0.01
 
     def test_one_sample_normal(self):
         rng = np.random.default_rng(42)
         data = rng.normal(0, 1, 500)
-        result = kolmogorov_smirnov_test(data, "norm", mode="one_sample")
+        result = kolmogorov_smirnov_test(data, sample_b="norm", mode="one_sample")
         assert result["p_value"] > 0.05
 
     def test_no_sample_b_raises(self):
         with pytest.raises(ValueError, match="sample_b"):
-            kolmogorov_smirnov_test(np.arange(10.0), None, mode="two_sample")
+            kolmogorov_smirnov_test(np.arange(10.0), sample_b=None, mode="two_sample")
 
     def test_academic_vs_scipy(self):
         rng = np.random.default_rng(42)
         a = rng.normal(0, 1, 200)
         b = rng.normal(0.5, 1, 200)
-        result = kolmogorov_smirnov_test(a, b)
+        result = kolmogorov_smirnov_test(a, sample_b=b)
         stat, p = sp_stats.ks_2samp(a, b)
         np.testing.assert_allclose(result["statistic"], stat, rtol=1e-9)
         np.testing.assert_allclose(result["p_value"], p, rtol=1e-9)
@@ -315,31 +315,31 @@ class TestMannKendallTrend:
 # ============================================================
 class TestBayesBetaUpdate:
     def test_uniform_prior(self):
-        result = bayes_beta_update(1.0, 1.0, 5, 0)
+        result = bayes_beta_update(1.0, prior_beta=1.0, successes=5, failures=0)
         assert result["posterior_alpha"] == 6.0
         assert result["posterior_beta"] == 1.0
         assert result["posterior_mean"] == pytest.approx(6 / 7)
 
     def test_informative_prior(self):
-        result = bayes_beta_update(10.0, 5.0, 3, 2)
+        result = bayes_beta_update(10.0, prior_beta=5.0, successes=3, failures=2)
         assert result["posterior_alpha"] == 13.0
         assert result["posterior_beta"] == 7.0
 
     def test_mode_boundary(self):
         """Mode undefined when alpha < 1 or beta < 1."""
-        result = bayes_beta_update(0.5, 0.5, 0, 0)
+        result = bayes_beta_update(0.5, prior_beta=0.5, successes=0, failures=0)
         assert np.isnan(result["posterior_mode"])
 
     def test_invalid_prior_raises(self):
         with pytest.raises(ValueError, match="prior"):
-            bayes_beta_update(0, 1, 1, 1)
+            bayes_beta_update(0, prior_beta=1, successes=1, failures=1)
 
     def test_negative_counts_raises(self):
         with pytest.raises(ValueError, match="successes"):
-            bayes_beta_update(1, 1, -1, 0)
+            bayes_beta_update(1, prior_beta=1, successes=-1, failures=0)
 
     def test_academic_vs_scipy(self):
-        result = bayes_beta_update(2.0, 3.0, 10, 5)
+        result = bayes_beta_update(2.0, prior_beta=3.0, successes=10, failures=5)
         dist = sp_stats.beta(12, 8)
         np.testing.assert_allclose(result["posterior_mean"], dist.mean(), rtol=1e-9)
         np.testing.assert_allclose(result["q_0.5"], dist.ppf(0.5), rtol=1e-9)
@@ -352,30 +352,30 @@ class TestBrierScoreDecomposed:
     def test_perfect_forecast(self):
         forecasts = np.array([1.0, 0.0, 1.0, 0.0])
         outcomes = np.array([1, 0, 1, 0])
-        result = brier_score_decomposed(forecasts, outcomes)
+        result = brier_score_decomposed(forecasts, outcomes=outcomes)
         assert result["brier_score"] == pytest.approx(0.0, abs=1e-10)
 
     def test_constant_forecast(self):
         outcomes = np.array([1, 0, 1, 0, 1, 0, 1, 0, 1, 0])
         forecasts = np.full(10, 0.5)
-        result = brier_score_decomposed(forecasts, outcomes)
+        result = brier_score_decomposed(forecasts, outcomes=outcomes)
         assert result["brier_score"] == pytest.approx(0.25, abs=1e-10)
 
     def test_invalid_outcomes_raises(self):
         with pytest.raises(ValueError, match="binary"):
-            brier_score_decomposed(np.array([0.5]), np.array([0.5]))
+            brier_score_decomposed(np.array([0.5]), outcomes=np.array([0.5]))
 
     def test_clip_warning(self):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            brier_score_decomposed(np.array([1.5, -0.1]), np.array([1, 0]))
+            brier_score_decomposed(np.array([1.5, -0.1]), outcomes=np.array([1, 0]))
             assert any("clipped" in str(x.message) for x in w)
 
     def test_uncertainty(self):
         """Uncertainty = obar * (1 - obar)."""
         outcomes = np.array([1, 1, 0, 0, 0])  # obar = 0.4
         forecasts = np.array([0.5, 0.5, 0.5, 0.5, 0.5])
-        result = brier_score_decomposed(forecasts, outcomes)
+        result = brier_score_decomposed(forecasts, outcomes=outcomes)
         assert result["uncertainty"] == pytest.approx(0.4 * 0.6, abs=1e-10)
 
 
@@ -386,14 +386,14 @@ class TestPearsonSpearmanCorr:
     def test_linear(self):
         x = np.arange(100.0)
         y = 2 * x + 1
-        result = pearson_spearman_corr(x, y, min_samples=10)
+        result = pearson_spearman_corr(x, y=y, min_samples=10)
         assert result["pearson_r"] == pytest.approx(1.0, abs=1e-9)
         assert result["spearman_r"] == pytest.approx(1.0, abs=1e-9)
 
     def test_monotone_nonlinear(self):
         x = np.arange(1, 101.0)
         y = np.log(x)
-        result = pearson_spearman_corr(x, y, min_samples=10)
+        result = pearson_spearman_corr(x, y=y, min_samples=10)
         assert result["spearman_r"] == pytest.approx(1.0, abs=1e-9)
         assert result["pearson_r"] < 1.0
 
@@ -401,18 +401,18 @@ class TestPearsonSpearmanCorr:
         rng = np.random.default_rng(42)
         x = rng.normal(0, 1, 1000)
         y = rng.normal(0, 1, 1000)
-        result = pearson_spearman_corr(x, y, min_samples=10)
+        result = pearson_spearman_corr(x, y=y, min_samples=10)
         assert abs(result["pearson_r"]) < 0.1
 
     def test_min_samples_raises(self):
         with pytest.raises(ValueError, match="samples"):
-            pearson_spearman_corr(np.arange(5.0), np.arange(5.0), min_samples=30)
+            pearson_spearman_corr(np.arange(5.0), y=np.arange(5.0), min_samples=30)
 
     def test_nan_raise(self):
         with pytest.raises(ValueError, match="NaN"):
             pearson_spearman_corr(
                 np.array([1.0, np.nan, 3.0]),
-                np.array([1.0, 2.0, 3.0]),
+                y=np.array([1.0, 2.0, 3.0]),
                 min_samples=2,
                 nan_policy="raise",
             )
@@ -421,7 +421,7 @@ class TestPearsonSpearmanCorr:
         rng = np.random.default_rng(42)
         x = rng.normal(0, 1, 100)
         y = x + rng.normal(0, 0.5, 100)
-        result = pearson_spearman_corr(x, y, min_samples=10)
+        result = pearson_spearman_corr(x, y=y, min_samples=10)
         pr, pp = sp_stats.pearsonr(x, y)
         sr, sp = sp_stats.spearmanr(x, y)
         np.testing.assert_allclose(result["pearson_r"], pr, rtol=1e-9)
@@ -480,12 +480,12 @@ class TestBootstrapCIExtraGaps:
             return float("nan")
 
         with pytest.raises(ValueError, match="50%"):
-            bootstrap_ci(np.arange(50.0), always_nan, n_bootstrap=200, random_state=0)
+            bootstrap_ci(np.arange(50.0), statistic_fn=always_nan, n_bootstrap=200, random_state=0)
 
     def test_bootstrap_ci_unknown_method_raises(self):
         """Unknown bootstrap method raises ValueError."""
         with pytest.raises(ValueError, match="Unknown method"):
-            bootstrap_ci(np.arange(50.0), np.mean, method="jackknife", random_state=0)
+            bootstrap_ci(np.arange(50.0), statistic_fn=np.mean, method="jackknife", random_state=0)
 
 
 class TestNanPolicyOmit:
@@ -501,7 +501,7 @@ class TestNanPolicyOmit:
         """nan_policy='omit' removes paired NaN before correlation."""
         x = np.array([1.0, 2.0, np.nan, 4.0, 5.0] * 10)
         y = np.array([2.0, 4.0, np.nan, 8.0, 10.0] * 10)
-        result = pearson_spearman_corr(x, y, min_samples=10, nan_policy="omit")
+        result = pearson_spearman_corr(x, y=y, min_samples=10, nan_policy="omit")
         assert result["pearson_r"] == pytest.approx(1.0, abs=1e-6)
 
 
@@ -526,7 +526,7 @@ class TestBrierScoreExtraGaps:
         """method='binless' uses brier_score - uncertainty as reliability."""
         forecasts = np.array([0.8, 0.2, 0.7, 0.3])
         outcomes = np.array([1, 0, 1, 0])
-        result = brier_score_decomposed(forecasts, outcomes, method="binless")
+        result = brier_score_decomposed(forecasts, outcomes=outcomes, method="binless")
         assert "brier_score" in result
         assert result["resolution"] == pytest.approx(0.0, abs=1e-12)
         # reliability = brier_score - uncertainty

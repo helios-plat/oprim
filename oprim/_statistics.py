@@ -12,7 +12,7 @@ from scipy import stats
 
 
 def bootstrap_ci(
-    data: np.ndarray,
+    data: np.ndarray, *,
     statistic_fn: Callable[[np.ndarray], float],
     n_bootstrap: int = 1000,
     confidence_level: float = 0.95,
@@ -109,7 +109,7 @@ def bootstrap_ci(
 
 
 def percentile_ci(
-    samples: np.ndarray,
+    samples: np.ndarray, *,
     quantiles: list[float] | None = None,
     interpolation: str = "linear",
 ) -> dict[str, float]:
@@ -148,7 +148,7 @@ def percentile_ci(
 
 
 def distribution_summary(
-    data: np.ndarray,
+    data: np.ndarray, *,
     percentiles: list[float] | None = None,
 ) -> dict[str, float]:
     """Unified distribution descriptive statistics.
@@ -207,7 +207,7 @@ def distribution_summary(
 
 
 def skew_kurt_robust(
-    data: np.ndarray,
+    data: np.ndarray, *,
     bias: bool = False,
     nan_policy: Literal["propagate", "raise", "omit"] = "omit",
 ) -> dict[str, float]:
@@ -248,7 +248,7 @@ def skew_kurt_robust(
 
 
 def kolmogorov_smirnov_test(
-    sample_a: np.ndarray,
+    sample_a: np.ndarray, *,
     sample_b: np.ndarray | str | None = None,
     mode: Literal["one_sample", "two_sample"] = "two_sample",
     alternative: Literal["two-sided", "less", "greater"] = "two-sided",
@@ -293,7 +293,7 @@ def kolmogorov_smirnov_test(
 
 
 def mann_kendall_trend(
-    data: np.ndarray,
+    data: np.ndarray, *,
     alpha: float = 0.05,
     hamed_rao_correction: bool = True,
 ) -> dict[str, Any]:
@@ -393,7 +393,7 @@ def mann_kendall_trend(
 
 
 def bayes_beta_update(
-    prior_alpha: float,
+    prior_alpha: float, *,
     prior_beta: float,
     successes: int,
     failures: int,
@@ -444,7 +444,7 @@ def bayes_beta_update(
 
 
 def brier_score_decomposed(
-    forecasts: np.ndarray,
+    forecasts: np.ndarray, *,
     outcomes: np.ndarray,
     n_bins: int = 10,
     method: Literal["binned", "binless"] = "binned",
@@ -522,7 +522,7 @@ def brier_score_decomposed(
 
 
 def pearson_spearman_corr(
-    x: np.ndarray,
+    x: np.ndarray, *,
     y: np.ndarray,
     min_samples: int = 30,
     nan_policy: Literal["propagate", "raise", "omit"] = "omit",
@@ -568,7 +568,7 @@ def pearson_spearman_corr(
 
 
 def kde_density(
-    data: np.ndarray,
+    data: np.ndarray, *,
     bandwidth: Literal["silverman", "scott"] | float = "silverman",
     eval_points: np.ndarray | None = None,
 ) -> dict[str, np.ndarray]:
@@ -607,7 +607,7 @@ def kde_density(
 
 
 def correlation_batch(
-    data: pd.DataFrame,
+    data: pd.DataFrame, *,
     method: Literal["pearson", "spearman"] = "pearson",
 ) -> pd.DataFrame:
     """Compute full correlation matrix for a DataFrame.
@@ -635,7 +635,7 @@ def correlation_batch(
 
 
 def percentile_value(
-    data: np.ndarray,
+    data: np.ndarray, *,
     q: float,
     window: int | None = None,
     method: str = "linear",
