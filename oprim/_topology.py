@@ -6,7 +6,7 @@ import numpy as np
 
 
 def takens_embed(
-    x: np.ndarray,
+    x: np.ndarray, *,
     d: int = 4,
     tau: int = 1,
 ) -> np.ndarray:
@@ -41,7 +41,7 @@ def takens_embed(
 
 
 def persistence_landscape(
-    dgm: np.ndarray,
+    dgm: np.ndarray, *,
     resolution: int = 100,
     x_min: float = 0.0,
     x_max: float = 2.0,

@@ -11,7 +11,7 @@ from scipy.stats import rankdata
 
 
 def log_returns(
-    prices: pd.Series,
+    prices: pd.Series, *,
     periods: list[int] | None = None,
     handle_gaps: Literal["skip", "interpolate", "raise"] = "skip",
 ) -> pd.DataFrame:
@@ -65,7 +65,7 @@ def log_returns(
 
 
 def cumulative_returns(
-    returns: pd.Series,
+    returns: pd.Series, *,
     return_type: Literal["log", "simple"] = "log",
     initial_capital: float = 1.0,
     compound: bool = True,
@@ -108,7 +108,7 @@ def cumulative_returns(
 
 
 def rolling_window_split(
-    n_samples: int,
+    n_samples: int, *,
     window_size: int,
     step: int = 1,
     include_partial: bool = False,
@@ -153,7 +153,7 @@ def rolling_window_split(
 
 
 def lag_forward_fill(
-    data: pd.Series | pd.DataFrame,
+    data: pd.Series | pd.DataFrame, *,
     max_gap: int | pd.Timedelta = 5,
     lag: int = 0,
     strict: bool = False,
@@ -242,7 +242,7 @@ def _check_gap(series: pd.Series, max_gap: int | pd.Timedelta) -> None:
 
 
 def percentile_rank(
-    data: pd.Series | pd.DataFrame,
+    data: pd.Series | pd.DataFrame, *,
     window: int | None = None,
     method: Literal["rolling", "cross_sectional", "expanding"] = "rolling",
     ties: Literal["average", "min", "max"] = "average",
@@ -335,7 +335,7 @@ def _expanding_rank(series: pd.Series, ties: str) -> pd.Series:
 
 
 def ewma_smooth(
-    data: pd.Series,
+    data: pd.Series, *,
     half_life: float | None = None,
     span: int | None = None,
     alpha: float | None = None,
@@ -367,7 +367,7 @@ def ewma_smooth(
 
 
 def realized_vol(
-    returns: pd.Series,
+    returns: pd.Series, *,
     window: int = 20,
     estimator: Literal[
         "close_to_close", "garman_klass", "parkinson", "yang_zhang"
@@ -454,7 +454,7 @@ def realized_vol(
 
 
 def zscore_normalize(
-    data: pd.Series | pd.DataFrame,
+    data: pd.Series | pd.DataFrame, *,
     window: int | None = None,
     min_periods: int = 20,
     clip_extreme: float | None = 5.0,
@@ -499,7 +499,7 @@ def zscore_normalize(
 
 
 def gap_detect(
-    times: pd.DatetimeIndex,
+    times: pd.DatetimeIndex, *,
     expected_interval: pd.Timedelta | None = None,
     asset_class: Literal["equity", "crypto", "fx", "commodity"] = "equity",
     severity_thresholds: dict | None = None,
@@ -573,7 +573,7 @@ def _classify_severity(gap: pd.Timedelta, thresholds: dict) -> str:
 
 
 def resample_align(
-    data_dict: dict[str, pd.DataFrame],
+    data_dict: dict[str, pd.DataFrame], *,
     target_freq: str = "D",
     method: Literal["last", "mean", "ohlc"] = "last",
     timezone: str = "UTC",
@@ -635,7 +635,7 @@ def resample_align(
 
 
 def purge_embargo_split(
-    times: pd.DatetimeIndex,
+    times: pd.DatetimeIndex, *,
     n_splits: int,
     embargo_pct: float = 0.01,
     label_horizon: int | pd.Timedelta = 0,

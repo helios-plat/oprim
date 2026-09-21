@@ -103,7 +103,7 @@ class TestLogReturns:
 
     def test_performance(self, benchmark):
         prices = pd.Series(np.exp(np.cumsum(np.random.default_rng(42).normal(0.0001, 0.01, 10000))))
-        benchmark(log_returns, prices, [1, 5, 20, 60])
+        benchmark(lambda: log_returns(prices, periods=[1, 5, 20, 60]))
 
 
 # ============================================================
@@ -155,47 +155,47 @@ class TestCumulativeReturns:
 # ============================================================
 class TestRollingWindowSplit:
     def test_standard(self):
-        result = rolling_window_split(100, 20, step=1)
+        result = rolling_window_split(100, window_size=20, step=1)
         assert result[0] == (0, 19)
         assert len(result) == 81
 
     def test_step_5(self):
-        result = rolling_window_split(100, 20, step=5)
+        result = rolling_window_split(100, window_size=20, step=5)
         assert result[0] == (0, 19)
         assert result[1] == (5, 24)
 
     def test_non_overlapping(self):
-        result = rolling_window_split(100, 20, step=20)
+        result = rolling_window_split(100, window_size=20, step=20)
         assert len(result) == 5
         assert result[0] == (0, 19)
         assert result[1] == (20, 39)
 
     def test_exact_fit(self):
-        result = rolling_window_split(20, 20)
+        result = rolling_window_split(20, window_size=20)
         assert result == [(0, 19)]
 
     def test_too_short_no_partial(self):
-        result = rolling_window_split(10, 20, include_partial=False)
+        result = rolling_window_split(10, window_size=20, include_partial=False)
         assert result == []
 
     def test_too_short_with_partial(self):
-        result = rolling_window_split(10, 20, include_partial=True)
+        result = rolling_window_split(10, window_size=20, include_partial=True)
         assert result == [(0, 9)]
 
     def test_negative_n_raises(self):
         with pytest.raises(ValueError):
-            rolling_window_split(-1, 20)
+            rolling_window_split(-1, window_size=20)
 
     def test_zero_window_raises(self):
         with pytest.raises(ValueError):
-            rolling_window_split(100, 0)
+            rolling_window_split(100, window_size=0)
 
     def test_zero_step_raises(self):
         with pytest.raises(ValueError):
-            rolling_window_split(100, 20, step=0)
+            rolling_window_split(100, window_size=20, step=0)
 
     def test_performance(self, benchmark):
-        benchmark(rolling_window_split, 100000, 252, 21)
+        benchmark(lambda: rolling_window_split(100000, window_size=252, step=21))
 
 
 # ============================================================
