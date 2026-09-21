@@ -6,9 +6,8 @@ import numpy as np
 
 
 def salience_function(
-    payoff: np.ndarray,
+    payoff: np.ndarray, *,
     reference: np.ndarray | float,
-    *,
     theta: float = 0.1,
 ) -> np.ndarray:
     """Salience function (BGS 2012).

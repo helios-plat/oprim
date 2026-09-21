@@ -20,7 +20,7 @@ def _make_ohlc(n=100, seed=42):
 
 def test_stoch_output_shape():
     h, low, c = _make_ohlc(100)
-    r = stochastic_oscillator(h, low, c)
+    r = stochastic_oscillator(h, lows=low, closes=c)
     assert len(r["k"]) == 100
     assert len(r["d"]) == 100
     assert len(r["raw_k"]) == 100
@@ -28,7 +28,7 @@ def test_stoch_output_shape():
 
 def test_stoch_normalized_range():
     h, low, c = _make_ohlc(100)
-    r = stochastic_oscillator(h, low, c, normalize=True)
+    r = stochastic_oscillator(h, lows=low, closes=c, normalize=True)
     k = np.array(r["k"])
     valid = k[~np.isnan(k)]
     assert np.all((valid >= 0) & (valid <= 1))
@@ -36,7 +36,7 @@ def test_stoch_normalized_range():
 
 def test_stoch_unnormalized_range():
     h, low, c = _make_ohlc(100)
-    r = stochastic_oscillator(h, low, c, normalize=False)
+    r = stochastic_oscillator(h, lows=low, closes=c, normalize=False)
     k = np.array(r["k"])
     valid = k[~np.isnan(k)]
     assert np.all((valid >= 0) & (valid <= 100))
@@ -44,7 +44,7 @@ def test_stoch_unnormalized_range():
 
 def test_stoch_has_nan_prefix():
     h, low, c = _make_ohlc(100)
-    r = stochastic_oscillator(h, low, c, k_period=14, smooth_k=3, d_period=3)
+    r = stochastic_oscillator(h, lows=low, closes=c, k_period=14, smooth_k=3, d_period=3)
     k_arr = np.array(r["k"])
     # First k_period + smooth_k - 2 elements should be NaN
     assert np.isnan(k_arr[0])
@@ -52,31 +52,31 @@ def test_stoch_has_nan_prefix():
 
 def test_stoch_returns_dict_with_keys():
     h, low, c = _make_ohlc(100)
-    r = stochastic_oscillator(h, low, c)
+    r = stochastic_oscillator(h, lows=low, closes=c)
     assert "k" in r and "d" in r and "raw_k" in r
 
 
 def test_stoch_series_input():
     h, low, c = _make_ohlc(100)
-    r = stochastic_oscillator(pd.Series(h), pd.Series(low), pd.Series(c))
+    r = stochastic_oscillator(pd.Series(h), lows=pd.Series(low), closes=pd.Series(c))
     assert isinstance(r["k"], pd.Series)
 
 
 def test_stoch_empty_raises():
     with pytest.raises(ValueError):
-        stochastic_oscillator(np.array([]), np.array([]), np.array([]))
+        stochastic_oscillator(np.array([]), lows=np.array([]), closes=np.array([]))
 
 
 def test_stoch_length_mismatch_raises():
     h, low, c = _make_ohlc(100)
     with pytest.raises(ValueError, match="same length"):
-        stochastic_oscillator(h, low[:50], c)
+        stochastic_oscillator(h, lows=low[:50], closes=c)
 
 
 def test_stoch_invalid_period_raises():
     h, low, c = _make_ohlc(100)
     with pytest.raises(ValueError, match="k_period"):
-        stochastic_oscillator(h, low, c, k_period=0)
+        stochastic_oscillator(h, lows=low, closes=c, k_period=0)
 
 
 # ---------- CCI ----------
@@ -84,13 +84,13 @@ def test_stoch_invalid_period_raises():
 
 def test_cci_output_shape():
     h, low, c = _make_ohlc(100)
-    result = cci(h, low, c)
+    result = cci(h, lows=low, closes=c)
     assert len(result) == 100
 
 
 def test_cci_nan_prefix():
     h, low, c = _make_ohlc(100)
-    result = cci(h, low, c, period=20)
+    result = cci(h, lows=low, closes=c, period=20)
     assert np.all(np.isnan(np.array(result)[:19]))
     assert np.isfinite(float(result[19]))
 
@@ -98,7 +98,7 @@ def test_cci_nan_prefix():
 def test_cci_overbought_signal():
     """CCI > 100 indicates overbought condition."""
     h, low, c = _make_ohlc(100)
-    result = cci(h, low, c)
+    result = cci(h, lows=low, closes=c)
     arr = np.array(result)
     # Just check that the indicator produces some values above and below 0
     valid = arr[~np.isnan(arr)]
@@ -110,7 +110,7 @@ def test_cci_constant_prices():
     h = np.ones(30) * 10.0
     low = np.ones(30) * 10.0
     c = np.ones(30) * 10.0
-    result = cci(h, low, c, period=5)
+    result = cci(h, lows=low, closes=c, period=5)
     arr = np.array(result)
     valid = arr[~np.isnan(arr)]
     np.testing.assert_allclose(valid, 0.0, atol=1e-10)
@@ -118,25 +118,25 @@ def test_cci_constant_prices():
 
 def test_cci_empty_raises():
     with pytest.raises(ValueError):
-        cci(np.array([]), np.array([]), np.array([]))
+        cci(np.array([]), lows=np.array([]), closes=np.array([]))
 
 
 def test_cci_invalid_period_raises():
     h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="period"):
-        cci(h, low, c, period=0)
+        cci(h, lows=low, closes=c, period=0)
 
 
 def test_cci_series_input():
     h, low, c = _make_ohlc(50)
-    result = cci(pd.Series(h), pd.Series(low), pd.Series(c))
+    result = cci(pd.Series(h), lows=pd.Series(low), closes=pd.Series(c))
     assert isinstance(result, pd.Series)
 
 
 def test_cci_length_mismatch_raises():
     h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="same length"):
-        cci(h, low[:30], c)
+        cci(h, lows=low[:30], closes=c)
 
 
 # ---------- Williams %R ----------
@@ -144,13 +144,13 @@ def test_cci_length_mismatch_raises():
 
 def test_wr_output_shape():
     h, low, c = _make_ohlc(100)
-    result = williams_r(h, low, c)
+    result = williams_r(h, lows=low, closes=c)
     assert len(result) == 100
 
 
 def test_wr_normalized_range():
     h, low, c = _make_ohlc(100)
-    result = williams_r(h, low, c, normalize=True)
+    result = williams_r(h, lows=low, closes=c, normalize=True)
     arr = np.array(result)
     valid = arr[~np.isnan(arr)]
     assert np.all((valid >= 0) & (valid <= 1))
@@ -158,7 +158,7 @@ def test_wr_normalized_range():
 
 def test_wr_unnormalized_range():
     h, low, c = _make_ohlc(100)
-    result = williams_r(h, low, c, normalize=False)
+    result = williams_r(h, lows=low, closes=c, normalize=False)
     arr = np.array(result)
     valid = arr[~np.isnan(arr)]
     assert np.all((valid >= -100) & (valid <= 0))
@@ -166,7 +166,7 @@ def test_wr_unnormalized_range():
 
 def test_wr_nan_prefix():
     h, low, c = _make_ohlc(100)
-    result = williams_r(h, low, c, period=14)
+    result = williams_r(h, lows=low, closes=c, period=14)
     arr = np.array(result)
     assert np.all(np.isnan(arr[:13]))
     assert np.isfinite(arr[13])
@@ -174,25 +174,25 @@ def test_wr_nan_prefix():
 
 def test_wr_empty_raises():
     with pytest.raises(ValueError):
-        williams_r(np.array([]), np.array([]), np.array([]))
+        williams_r(np.array([]), lows=np.array([]), closes=np.array([]))
 
 
 def test_wr_invalid_period_raises():
     h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="period"):
-        williams_r(h, low, c, period=0)
+        williams_r(h, lows=low, closes=c, period=0)
 
 
 def test_wr_series_input():
     h, low, c = _make_ohlc(50)
-    result = williams_r(pd.Series(h), pd.Series(low), pd.Series(c))
+    result = williams_r(pd.Series(h), lows=pd.Series(low), closes=pd.Series(c))
     assert isinstance(result, pd.Series)
 
 
 def test_wr_length_mismatch_raises():
     h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="same length"):
-        williams_r(h, low[:30], c)
+        williams_r(h, lows=low[:30], closes=c)
 
 
 def test_stoch_zero_range():
@@ -200,7 +200,7 @@ def test_stoch_zero_range():
     h = np.ones(50) * 10.0
     low = np.ones(50) * 10.0
     c = np.ones(50) * 10.0
-    r = stochastic_oscillator(h, low, c, k_period=5)
+    r = stochastic_oscillator(h, lows=low, closes=c, k_period=5)
     raw_k = np.array(r["raw_k"])
     valid = raw_k[~np.isnan(raw_k)]
     assert np.all(valid == pytest.approx(0.5))
@@ -211,7 +211,7 @@ def test_wr_zero_range():
     h = np.ones(30) * 10.0
     low = np.ones(30) * 10.0
     c = np.ones(30) * 10.0
-    result = williams_r(h, low, c, normalize=False)
+    result = williams_r(h, lows=low, closes=c, normalize=False)
     arr = np.array(result)
     valid = arr[~np.isnan(arr)]
     assert np.all(valid == pytest.approx(-50.0))

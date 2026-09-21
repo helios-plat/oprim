@@ -9,7 +9,7 @@ from oprim.technical._base import _to_array, _wrap
 
 
 def obv(
-    closes: np.ndarray | pd.Series,
+    closes: np.ndarray | pd.Series, *,
     volumes: np.ndarray | pd.Series,
 ) -> np.ndarray | pd.Series:
     """On-Balance Volume (OBV).
@@ -65,11 +65,10 @@ def obv(
 
 
 def mfi(
-    highs: np.ndarray | pd.Series,
+    highs: np.ndarray | pd.Series, *,
     lows: np.ndarray | pd.Series,
     closes: np.ndarray | pd.Series,
     volumes: np.ndarray | pd.Series,
-    *,
     period: int = 14,
     normalize: bool = True,
 ) -> np.ndarray | pd.Series:

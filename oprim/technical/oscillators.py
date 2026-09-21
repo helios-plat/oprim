@@ -86,10 +86,9 @@ def rsi_normalized(
 
 
 def stochastic_oscillator(
-    highs: np.ndarray | pd.Series,
+    highs: np.ndarray | pd.Series, *,
     lows: np.ndarray | pd.Series,
     closes: np.ndarray | pd.Series,
-    *,
     k_period: int = 14,
     d_period: int = 3,
     smooth_k: int = 3,
@@ -177,10 +176,9 @@ def stochastic_oscillator(
 
 
 def cci(
-    highs: np.ndarray | pd.Series,
+    highs: np.ndarray | pd.Series, *,
     lows: np.ndarray | pd.Series,
     closes: np.ndarray | pd.Series,
-    *,
     period: int = 20,
     constant: float = 0.015,
 ) -> np.ndarray | pd.Series:
@@ -241,10 +239,9 @@ def cci(
 
 
 def williams_r(
-    highs: np.ndarray | pd.Series,
+    highs: np.ndarray | pd.Series, *,
     lows: np.ndarray | pd.Series,
     closes: np.ndarray | pd.Series,
-    *,
     period: int = 14,
     normalize: bool = True,
 ) -> np.ndarray | pd.Series:

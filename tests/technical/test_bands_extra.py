@@ -17,13 +17,13 @@ def _make_ohlc(n=100, seed=42):
 
 def test_keltner_output_keys():
     h, low, c = _make_ohlc()
-    r = keltner_channels(h, low, c)
+    r = keltner_channels(h, lows=low, closes=c)
     assert "upper" in r and "middle" in r and "lower" in r
 
 
 def test_keltner_upper_above_lower():
     h, low, c = _make_ohlc()
-    r = keltner_channels(h, low, c)
+    r = keltner_channels(h, lows=low, closes=c)
     upper = np.array(r["upper"])
     lower = np.array(r["lower"])
     valid = ~np.isnan(upper) & ~np.isnan(lower)
@@ -32,34 +32,34 @@ def test_keltner_upper_above_lower():
 
 def test_keltner_shape():
     h, low, c = _make_ohlc(80)
-    r = keltner_channels(h, low, c)
+    r = keltner_channels(h, lows=low, closes=c)
     assert len(r["middle"]) == 80
 
 
 def test_keltner_series_input():
     h, low, c = _make_ohlc(80)
-    r = keltner_channels(pd.Series(h), pd.Series(low), pd.Series(c))
+    r = keltner_channels(pd.Series(h), lows=pd.Series(low), closes=pd.Series(c))
     assert isinstance(r["middle"], pd.Series)
 
 
 def test_keltner_empty_raises():
     with pytest.raises(ValueError, match="empty"):
-        keltner_channels(np.array([]), np.array([]), np.array([]))
+        keltner_channels(np.array([]), lows=np.array([]), closes=np.array([]))
 
 
 def test_keltner_invalid_period_raises():
     h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="ema_period"):
-        keltner_channels(h, low, c, ema_period=0)
+        keltner_channels(h, lows=low, closes=c, ema_period=0)
 
 
 def test_keltner_length_mismatch_raises():
     h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="same length"):
-        keltner_channels(h, low[:30], c)
+        keltner_channels(h, lows=low[:30], closes=c)
 
 
 def test_keltner_invalid_multiplier_raises():
     h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError, match="multiplier"):
-        keltner_channels(h, low, c, multiplier=0.0)
+        keltner_channels(h, lows=low, closes=c, multiplier=0.0)

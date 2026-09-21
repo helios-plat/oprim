@@ -8,7 +8,7 @@ import pandas as pd
 from oprim.technical._base import _ema_recursive, _to_array, _wrap
 
 
-def sma(prices: np.ndarray | pd.Series, window: int) -> np.ndarray | pd.Series:
+def sma(prices: np.ndarray | pd.Series, *, window: int) -> np.ndarray | pd.Series:
     """Simple Moving Average.
 
     Mathematical definition:
@@ -56,9 +56,8 @@ def sma(prices: np.ndarray | pd.Series, window: int) -> np.ndarray | pd.Series:
 
 
 def ema(
-    prices: np.ndarray | pd.Series,
+    prices: np.ndarray | pd.Series, *,
     window: int,
-    *,
     adjust: bool = False,
 ) -> np.ndarray | pd.Series:
     """Exponential Moving Average.
@@ -109,7 +108,7 @@ def ema(
 
 
 def vwap(
-    prices: np.ndarray | pd.Series,
+    prices: np.ndarray | pd.Series, *,
     volumes: np.ndarray | pd.Series,
     window: int | None = None,
 ) -> np.ndarray | pd.Series:

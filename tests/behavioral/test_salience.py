@@ -15,7 +15,7 @@ from oprim.behavioral.salience import salience_function, salience_ranking_weight
 def test_salience_zero_when_equal():
     """sigma(x, x) = 0 for any x."""
     x = np.array([1.0, -2.0, 0.0, 5.0])
-    result = salience_function(x, x)
+    result = salience_function(x, reference=x)
     np.testing.assert_allclose(result, 0.0)
 
 
@@ -23,7 +23,7 @@ def test_salience_symmetric():
     """sigma(x, y) = sigma(y, x)."""
     x = np.array([1.0, 3.0, -1.0])
     y = np.array([2.0, 1.0, 4.0])
-    np.testing.assert_allclose(salience_function(x, y), salience_function(y, x))
+    np.testing.assert_allclose(salience_function(x, reference=y), salience_function(y, reference=x))
 
 
 def test_salience_output_range():
@@ -31,7 +31,7 @@ def test_salience_output_range():
     rng = np.random.default_rng(0)
     x = rng.uniform(-10, 10, 200)
     y = rng.uniform(-10, 10, 200)
-    result = salience_function(x, y)
+    result = salience_function(x, reference=y)
     assert np.all(result >= 0)
     assert np.all(result < 1)
 
@@ -39,7 +39,7 @@ def test_salience_output_range():
 def test_salience_scalar_reference():
     """Scalar reference broadcasts correctly."""
     x = np.array([0.0, 1.0, 2.0])
-    result = salience_function(x, 1.0)
+    result = salience_function(x, reference=1.0)
     assert result.shape == x.shape
     assert result[1] == pytest.approx(0.0)  # x==reference → 0
 
@@ -47,7 +47,7 @@ def test_salience_scalar_reference():
 def test_salience_theta_must_be_positive():
     """theta <= 0 raises ValueError."""
     with pytest.raises(ValueError, match="theta"):
-        salience_function(np.array([1.0]), np.array([2.0]), theta=0.0)
+        salience_function(np.array([1.0]), reference=np.array([2.0]), theta=0.0)
 
 
 def test_salience_formula():
@@ -55,15 +55,15 @@ def test_salience_formula():
     x = np.array([3.0])
     y = np.array([1.0])
     expected = abs(3.0 - 1.0) / (abs(3.0) + abs(1.0) + 0.1)
-    np.testing.assert_allclose(salience_function(x, y), expected)
+    np.testing.assert_allclose(salience_function(x, reference=y), expected)
 
 
 def test_salience_theta_effect():
     """Larger theta reduces salience magnitude."""
     x = np.array([5.0])
     y = np.array([1.0])
-    s_small = salience_function(x, y, theta=0.01)
-    s_large = salience_function(x, y, theta=1.0)
+    s_small = salience_function(x, reference=y, theta=0.01)
+    s_large = salience_function(x, reference=y, theta=1.0)
     assert s_small > s_large
 
 
