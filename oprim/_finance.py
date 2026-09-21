@@ -12,7 +12,7 @@ from scipy import stats
 
 
 def drawdown_curve(
-    equity_or_returns: pd.Series,
+    equity_or_returns: pd.Series, *,
     input_type: Literal["equity", "returns"] = "equity",
     compound: bool = True,
 ) -> dict[str, Any]:
@@ -100,7 +100,7 @@ def drawdown_curve(
 
 
 def sharpe_ratio(
-    returns: pd.Series,
+    returns: pd.Series, *,
     risk_free_rate: float | pd.Series = 0.0,
     annualization_factor: int = 252,
     ddof: int = 1,
@@ -152,7 +152,7 @@ def sharpe_ratio(
 
 
 def beta_alpha_ols(
-    asset_returns: pd.Series,
+    asset_returns: pd.Series, *,
     market_returns: pd.Series | pd.DataFrame,
     use_hac: bool = False,
     hac_lags: int | None = None,
@@ -231,7 +231,7 @@ def beta_alpha_ols(
 
 
 def value_at_risk(
-    returns: pd.Series,
+    returns: pd.Series, *,
     confidence_level: float = 0.95,
     method: Literal["historical", "parametric", "cornish_fisher"] = "historical",
     include_es: bool = True,
@@ -302,7 +302,7 @@ def value_at_risk(
 
 
 def nelson_siegel_yield_curve(
-    tenors: np.ndarray,
+    tenors: np.ndarray, *,
     yields: np.ndarray,
     initial_lambda: float = 1.0,
 ) -> dict[str, Any]:
@@ -363,7 +363,7 @@ def nelson_siegel_yield_curve(
 
 
 def futures_curve_shape(
-    prices_by_tenor: dict[int, float],
+    prices_by_tenor: dict[int, float], *,
     spot_price: float,
 ) -> dict[str, Any]:
     """Analyze futures curve shape (contango/backwardation).

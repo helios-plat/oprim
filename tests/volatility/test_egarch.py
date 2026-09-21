@@ -109,7 +109,9 @@ def test_egarch_forecast_horizon_1():
     last_sigma = float(np.sqrt(max(last_var, 1e-10)))
     last_z = float(eps[-1] / last_sigma)
     last_log_var = float(np.log(max(last_var, 1e-10)))
-    forecast = egarch_forecast(r["params"], last_z, last_log_var, horizon=1)
+    forecast = egarch_forecast(
+        r["params"], last_z=last_z, last_log_variance=last_log_var, horizon=1
+    )
     assert len(forecast) == 1
     assert forecast[0] > 0
 
@@ -122,7 +124,9 @@ def test_egarch_forecast_horizon_5():
     last_sigma = float(np.sqrt(max(last_var, 1e-10)))
     last_z = float(eps[-1] / last_sigma)
     last_log_var = float(np.log(max(last_var, 1e-10)))
-    forecast = egarch_forecast(r["params"], last_z, last_log_var, horizon=5)
+    forecast = egarch_forecast(
+        r["params"], last_z=last_z, last_log_variance=last_log_var, horizon=5
+    )
     assert len(forecast) == 5
     assert np.all(forecast > 0)
 
@@ -132,7 +136,7 @@ def test_egarch_forecast_all_positive():
     r = egarch_fit(x)
     last_var = r["conditional_variance"][-1]
     last_log_var = float(np.log(max(last_var, 1e-10)))
-    forecast = egarch_forecast(r["params"], 0.0, last_log_var, horizon=10)
+    forecast = egarch_forecast(r["params"], last_z=0.0, last_log_variance=last_log_var, horizon=10)
     assert np.all(forecast > 0)
 
 
@@ -149,6 +153,6 @@ def test_egarch_forecast_beta_ge_1():
     """Covers the else branch at line 256 (|beta| >= 1)."""
     params = {"omega": -0.1, "alpha": 0.1, "gamma": -0.05, "beta": 1.0, "mu": 0.0}
     last_log_var = -2.0
-    forecast = egarch_forecast(params, 0.5, last_log_var, horizon=3)
+    forecast = egarch_forecast(params, last_z=0.5, last_log_variance=last_log_var, horizon=3)
     assert len(forecast) == 3
     assert np.all(forecast > 0)

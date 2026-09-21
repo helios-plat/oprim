@@ -149,10 +149,9 @@ def garch_fit(
 
 
 def garch_forecast(
-    params: dict,
+    params: dict, *,
     last_residual: float,
     last_variance: float,
-    *,
     horizon: int = 1,
     p: int = 1,
     q: int = 1,

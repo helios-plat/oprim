@@ -24,9 +24,8 @@ def _to_array(x) -> np.ndarray:
 
 
 def parkinson_volatility(
-    highs,
+    highs, *,
     lows,
-    *,
     annualize: bool = False,
     periods_per_year: int = 252,
 ) -> float:
@@ -80,11 +79,10 @@ def parkinson_volatility(
 
 
 def garman_klass_volatility(
-    opens,
+    opens, *,
     highs,
     lows,
     closes,
-    *,
     annualize: bool = False,
     periods_per_year: int = 252,
 ) -> float:
@@ -143,11 +141,10 @@ def garman_klass_volatility(
 
 
 def yang_zhang_volatility(
-    opens,
+    opens, *,
     highs,
     lows,
     closes,
-    *,
     window: int = 20,
     annualize: bool = False,
     periods_per_year: int = 252,

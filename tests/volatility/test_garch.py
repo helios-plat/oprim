@@ -129,20 +129,20 @@ class TestGARCHForecast:
         params = {"omega": 0.0001, "alpha": 0.05, "beta": 0.90, "mu": 0.0}
         last_eps = 0.02
         last_var = 0.0004
-        result = garch_forecast(params, last_eps, last_var, horizon=1)
+        result = garch_forecast(params, last_residual=last_eps, last_variance=last_var, horizon=1)
         expected = params["omega"] + params["alpha"] * last_eps**2 + params["beta"] * last_var
         assert result[0] == pytest.approx(expected, rel=1e-12)
 
     def test_garch_forecast_horizon_10_returns_10_values(self):
         """horizon=10 → array of length 10."""
         params = {"omega": 0.0001, "alpha": 0.05, "beta": 0.90}
-        result = garch_forecast(params, 0.01, 0.0004, horizon=10)
+        result = garch_forecast(params, last_residual=0.01, last_variance=0.0004, horizon=10)
         assert len(result) == 10
 
     def test_garch_forecast_converges_to_unconditional(self):
         """Many steps → omega/(1-alpha-beta)."""
         params = {"omega": 0.0001, "alpha": 0.05, "beta": 0.90}
-        result = garch_forecast(params, 0.0, 0.0001, horizon=5000)
+        result = garch_forecast(params, last_residual=0.0, last_variance=0.0001, horizon=5000)
         uv = params["omega"] / (1.0 - params["alpha"] - params["beta"])
         assert result[-1] == pytest.approx(uv, rel=0.001)
 
@@ -151,7 +151,7 @@ class TestGARCHForecast:
         params = {"omega": 0.0001, "alpha": 0.05, "beta": 0.96}
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            garch_forecast(params, 0.01, 0.0004, horizon=5)
+            garch_forecast(params, last_residual=0.01, last_variance=0.0004, horizon=5)
             assert len(w) >= 1
             assert issubclass(w[0].category, RuntimeWarning)
 
@@ -174,7 +174,7 @@ class TestGARCHForecast:
         params = {"omega": omega, "alpha": alpha, "beta": beta}
         last_eps = 0.015
         last_var = 0.0003
-        result = garch_forecast(params, last_eps, last_var, horizon=3)
+        result = garch_forecast(params, last_residual=last_eps, last_variance=last_var, horizon=3)
 
         # Manual computation
         v1 = omega + alpha * last_eps**2 + beta * last_var

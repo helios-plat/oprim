@@ -105,7 +105,9 @@ def test_gjr_forecast_horizon_1():
     r = gjr_garch_fit(x)
     last_eps2 = float(r["residuals"][-1] ** 2)
     last_sigma2 = float(r["conditional_variance"][-1])
-    forecast = gjr_garch_forecast(r["params"], last_eps2, last_sigma2, horizon=1)
+    forecast = gjr_garch_forecast(
+        r["params"], last_eps2=last_eps2, last_sigma2=last_sigma2, horizon=1
+    )
     assert len(forecast) == 1
     assert forecast[0] > 0
 
@@ -115,7 +117,9 @@ def test_gjr_forecast_horizon_10():
     r = gjr_garch_fit(x)
     last_eps2 = float(r["residuals"][-1] ** 2)
     last_sigma2 = float(r["conditional_variance"][-1])
-    forecast = gjr_garch_forecast(r["params"], last_eps2, last_sigma2, horizon=10)
+    forecast = gjr_garch_forecast(
+        r["params"], last_eps2=last_eps2, last_sigma2=last_sigma2, horizon=10
+    )
     assert len(forecast) == 10
     assert np.all(forecast > 0)
 
@@ -125,13 +129,17 @@ def test_gjr_forecast_positive():
     r = gjr_garch_fit(x)
     last_eps2 = float(r["residuals"][-1] ** 2)
     last_sigma2 = float(r["conditional_variance"][-1])
-    forecast = gjr_garch_forecast(r["params"], last_eps2, last_sigma2, horizon=20)
+    forecast = gjr_garch_forecast(
+        r["params"], last_eps2=last_eps2, last_sigma2=last_sigma2, horizon=20
+    )
     assert np.all(forecast > 0)
 
 
 def test_gjr_forecast_expected_neg_frac_symmetric():
     params = {"omega": 1e-5, "alpha": 0.05, "gamma": 0.10, "beta": 0.80}
-    forecast = gjr_garch_forecast(params, 1e-4, 1e-4, horizon=1, expected_neg_frac=0.5)
+    forecast = gjr_garch_forecast(
+        params, last_eps2=1e-4, last_sigma2=1e-4, horizon=1, expected_neg_frac=0.5
+    )
     assert forecast[0] > 0
 
 

@@ -218,10 +218,9 @@ def gjr_garch_fit(
 
 
 def gjr_garch_forecast(
-    params: dict,
+    params: dict, *,
     last_eps2: float,
     last_sigma2: float,
-    *,
     horizon: int = 1,
     expected_neg_frac: float = 0.5,
 ) -> np.ndarray:

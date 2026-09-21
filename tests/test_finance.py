@@ -120,7 +120,7 @@ class TestBetaAlphaOLS:
         rng = np.random.default_rng(42)
         market = pd.Series(rng.normal(0.001, 0.02, 100))
         asset = 0.001 + 1.2 * market + pd.Series(rng.normal(0, 0.005, 100))
-        result = beta_alpha_ols(asset, market, min_samples=10)
+        result = beta_alpha_ols(asset, market_returns=market, min_samples=10)
         assert abs(result["beta"] - 1.2) < 0.2
         assert result["r_squared"] > 0.5
 
@@ -135,7 +135,7 @@ class TestBetaAlphaOLS:
         asset = pd.Series(
             0.0005 + 1.0 * factors["mkt"] + 0.5 * factors["smb"] + rng.normal(0, 0.005, 100)
         )
-        result = beta_alpha_ols(asset, factors, min_samples=10)
+        result = beta_alpha_ols(asset, market_returns=factors, min_samples=10)
         assert isinstance(result["beta"], dict)
         assert "mkt" in result["beta"]
 
@@ -143,12 +143,14 @@ class TestBetaAlphaOLS:
         rng = np.random.default_rng(42)
         market = pd.Series(rng.normal(0, 0.02, 100))
         asset = pd.Series(0.5 * market.values + rng.normal(0, 0.01, 100))
-        result = beta_alpha_ols(asset, market, use_hac=True, min_samples=10)
+        result = beta_alpha_ols(asset, market_returns=market, use_hac=True, min_samples=10)
         assert "alpha_se" in result
 
     def test_min_samples_raises(self):
         with pytest.raises(ValueError, match="samples"):
-            beta_alpha_ols(pd.Series([0.01] * 10), pd.Series([0.02] * 10), min_samples=30)
+            beta_alpha_ols(
+                pd.Series([0.01] * 10), market_returns=pd.Series([0.02] * 10), min_samples=30
+            )
 
     def test_academic_vs_statsmodels(self):
         """Compare with direct statsmodels OLS."""
@@ -158,7 +160,7 @@ class TestBetaAlphaOLS:
         market = rng.normal(0, 0.02, 200)
         asset = 0.001 + 0.8 * market + rng.normal(0, 0.005, 200)
 
-        result = beta_alpha_ols(pd.Series(asset), pd.Series(market), min_samples=10)
+        result = beta_alpha_ols(pd.Series(asset), market_returns=pd.Series(market), min_samples=10)
 
         x_mat = sm.add_constant(market)
         model = sm.OLS(asset, x_mat).fit()

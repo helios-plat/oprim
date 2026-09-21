@@ -14,7 +14,7 @@ class TestNelsonSiegelYieldCurve:
         """Result must contain expected keys."""
         tenors = self._standard_tenors()
         yields = np.array([0.02, 0.021, 0.022, 0.024, 0.025, 0.027, 0.028, 0.03])
-        result = nelson_siegel_yield_curve(tenors, yields)
+        result = nelson_siegel_yield_curve(tenors, yields=yields)
         expected_keys = {
             "beta_0",
             "beta_1",
@@ -31,7 +31,7 @@ class TestNelsonSiegelYieldCurve:
         tenors = self._standard_tenors()
         level = 0.03
         yields = np.full(len(tenors), level)
-        result = nelson_siegel_yield_curve(tenors, yields)
+        result = nelson_siegel_yield_curve(tenors, yields=yields)
         assert abs(result["beta_1"]) < 0.1
         assert abs(result["beta_2"]) < 0.1
 
@@ -40,7 +40,7 @@ class TestNelsonSiegelYieldCurve:
         for upward slope)."""
         tenors = self._standard_tenors()
         yields = np.array([0.01, 0.015, 0.02, 0.025, 0.027, 0.03, 0.032, 0.035])
-        result = nelson_siegel_yield_curve(tenors, yields)
+        result = nelson_siegel_yield_curve(tenors, yields=yields)
         # beta_0 is long-term level; fitted curve should be increasing
         assert result["fitted_yields"][-1] > result["fitted_yields"][0]
 
@@ -48,14 +48,14 @@ class TestNelsonSiegelYieldCurve:
         """r_squared must be in [0, 1]."""
         tenors = self._standard_tenors()
         yields = np.array([0.02, 0.021, 0.022, 0.024, 0.025, 0.027, 0.028, 0.03])
-        result = nelson_siegel_yield_curve(tenors, yields)
+        result = nelson_siegel_yield_curve(tenors, yields=yields)
         assert 0.0 <= result["r_squared"] <= 1.0
 
     def test_residuals_length(self):
         """Residuals must have same length as tenors."""
         tenors = self._standard_tenors()
         yields = np.array([0.02, 0.021, 0.022, 0.024, 0.025, 0.027, 0.028, 0.03])
-        result = nelson_siegel_yield_curve(tenors, yields)
+        result = nelson_siegel_yield_curve(tenors, yields=yields)
         assert len(result["residuals"]) == len(tenors)
 
     def test_insufficient_data_raises(self):
@@ -63,7 +63,7 @@ class TestNelsonSiegelYieldCurve:
         with pytest.raises(ValueError):
             nelson_siegel_yield_curve(
                 np.array([1.0, 2.0, 3.0]),
-                np.array([0.02, 0.025, 0.03]),
+                yields=np.array([0.02, 0.025, 0.03]),
             )
 
     def test_length_mismatch_raises(self):
@@ -71,7 +71,7 @@ class TestNelsonSiegelYieldCurve:
         with pytest.raises(ValueError, match="same length"):
             nelson_siegel_yield_curve(
                 np.array([1.0, 2.0, 5.0, 10.0]),
-                np.array([0.02, 0.025]),
+                yields=np.array([0.02, 0.025]),
             )
 
     @pytest.mark.academic_reference
@@ -84,7 +84,7 @@ class TestNelsonSiegelYieldCurve:
         # Use a wide range of tenors including very long maturity
         tenors = np.array([0.25, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 30.0])
         yields = np.array([0.02, 0.022, 0.025, 0.028, 0.031, 0.033, 0.034, 0.035])
-        result = nelson_siegel_yield_curve(tenors, yields)
+        result = nelson_siegel_yield_curve(tenors, yields=yields)
         # The long end of the fitted curve should be close to beta_0
         beta_0 = result["beta_0"]
         fitted_last = result["fitted_yields"][-1]

@@ -199,10 +199,9 @@ def egarch_fit(
 
 
 def egarch_forecast(
-    params: dict,
+    params: dict, *,
     last_z: float,
     last_log_variance: float,
-    *,
     horizon: int = 1,
 ) -> np.ndarray:
     """Forecast conditional variance from a fitted EGARCH(1,1) model.
