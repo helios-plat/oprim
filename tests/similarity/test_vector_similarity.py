@@ -33,7 +33,7 @@ def _unit(v: np.ndarray) -> np.ndarray:
 def test_vector_similarity_cosine_identical_returns_one():
     q = np.array([1.0, 2.0, 3.0])
     c_val = np.array([[1.0, 2.0, 3.0]])
-    result = vector_similarity(q, c_val, metric="cosine")
+    result = vector_similarity(q, corpus=c_val, metric="cosine")
     assert result.shape == (1,)
     np.testing.assert_allclose(result, [1.0], rtol=1e-7)
 
@@ -46,7 +46,7 @@ def test_vector_similarity_cosine_identical_returns_one():
 def test_vector_similarity_cosine_orthogonal_returns_zero():
     q = np.array([1.0, 0.0])
     c_val = np.array([[0.0, 1.0]])
-    result = vector_similarity(q, c_val, metric="cosine")
+    result = vector_similarity(q, corpus=c_val, metric="cosine")
     np.testing.assert_allclose(result, [0.0], atol=1e-15)
 
 
@@ -58,7 +58,7 @@ def test_vector_similarity_cosine_orthogonal_returns_zero():
 def test_vector_similarity_cosine_opposite_returns_minus_one():
     q = np.array([1.0, 2.0, 3.0])
     c_val = np.array([[-1.0, -2.0, -3.0]])
-    result = vector_similarity(q, c_val, metric="cosine")
+    result = vector_similarity(q, corpus=c_val, metric="cosine")
     np.testing.assert_allclose(result, [-1.0], rtol=1e-7)
 
 
@@ -70,7 +70,7 @@ def test_vector_similarity_cosine_opposite_returns_minus_one():
 def test_vector_similarity_dot_unnormalized_scales_with_magnitude():
     q = np.array([1.0, 0.0])
     c_val = np.array([[2.0, 0.0], [4.0, 0.0]])
-    result = vector_similarity(q, c_val, metric="dot", normalize=False)
+    result = vector_similarity(q, corpus=c_val, metric="dot", normalize=False)
     # raw dot products: 2.0 and 4.0
     np.testing.assert_allclose(result, [2.0, 4.0], rtol=1e-7)
     # ratio should be 2× — proves magnitude is not removed
@@ -86,8 +86,8 @@ def test_vector_similarity_dot_normalized_equals_cosine():
     rng = np.random.default_rng(42)
     q = rng.standard_normal(8)
     c_val = rng.standard_normal((20, 8))
-    cosine_result = vector_similarity(q, c_val, metric="cosine", normalize=True)
-    dot_result = vector_similarity(q, c_val, metric="dot", normalize=True)
+    cosine_result = vector_similarity(q, corpus=c_val, metric="cosine", normalize=True)
+    dot_result = vector_similarity(q, corpus=c_val, metric="dot", normalize=True)
     np.testing.assert_allclose(dot_result, cosine_result, rtol=1e-12)
 
 
@@ -104,7 +104,7 @@ def test_vector_similarity_euclidean_basic():
             [2.0, 2.0, 3.0],
         ]
     )  # differs by 1 in dim 0 → −1
-    result = vector_similarity(q, c_val, metric="euclidean")
+    result = vector_similarity(q, corpus=c_val, metric="euclidean")
     np.testing.assert_allclose(result, [0.0, -1.0], rtol=1e-7)
 
 
@@ -121,7 +121,7 @@ def test_vector_similarity_manhattan_basic():
             [2.0, 3.0, 4.0],
         ]
     )  # differs by 1 in each → −3
-    result = vector_similarity(q, c_val, metric="manhattan")
+    result = vector_similarity(q, corpus=c_val, metric="manhattan")
     np.testing.assert_allclose(result, [0.0, -3.0], rtol=1e-7)
 
 
@@ -134,7 +134,7 @@ def test_vector_similarity_shape_mismatch_raises():
     q = np.array([1.0, 2.0, 3.0])  # D=3
     c_val = np.array([[1.0, 2.0]])  # D=2  → mismatch
     with pytest.raises(ValueError, match="[Dd]imension"):
-        vector_similarity(q, c_val)
+        vector_similarity(q, corpus=c_val)
 
 
 # ---------------------------------------------------------------------------
@@ -146,7 +146,7 @@ def test_vector_similarity_invalid_metric_raises():
     q = np.array([1.0, 2.0])
     c_val = np.array([[1.0, 2.0]])
     with pytest.raises(ValueError, match="[Mm]etric"):
-        vector_similarity(q, c_val, metric="chebyshev")  # type: ignore[arg-type]
+        vector_similarity(q, corpus=c_val, metric="chebyshev")  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------
@@ -159,7 +159,7 @@ def test_vector_similarity_output_shape():
     q = rng.standard_normal(16)
     c_val = rng.standard_normal((50, 16))
     for metric in ("cosine", "dot", "euclidean", "manhattan"):
-        out = vector_similarity(q, c_val, metric=metric)  # type: ignore[arg-type]
+        out = vector_similarity(q, corpus=c_val, metric=metric)  # type: ignore[arg-type]
         assert out.shape == (50,), f"metric={metric}: expected (50,), got {out.shape}"
 
 
@@ -177,7 +177,7 @@ def test_vector_similarity_cosine_matches_sklearn():
     q = rng.standard_normal(32)
     c_val = rng.standard_normal((100, 32))
 
-    oprim_result = vector_similarity(q, c_val, metric="cosine", normalize=True)
+    oprim_result = vector_similarity(q, corpus=c_val, metric="cosine", normalize=True)
     # sklearn returns (1, N); flatten to (N,)
     sklearn_result = cosine_similarity(q.reshape(1, -1), c_val).flatten()
 
@@ -193,14 +193,14 @@ def test_vector_similarity_query_ndim_not_1_raises():
     q = np.array([[1.0, 2.0]])  # 2-D — must raise
     c_val = np.array([[1.0, 2.0]])
     with pytest.raises(ValueError, match="1-D"):
-        vector_similarity(q, c_val)
+        vector_similarity(q, corpus=c_val)
 
 
 def test_vector_similarity_corpus_ndim_not_2_raises():
     q = np.array([1.0, 2.0])
     c_val = np.array([1.0, 2.0])  # 1-D — must raise
     with pytest.raises(ValueError, match="2-D"):
-        vector_similarity(q, c_val)
+        vector_similarity(q, corpus=c_val)
 
 
 def test_vector_similarity_euclidean_ordering():
@@ -213,7 +213,7 @@ def test_vector_similarity_euclidean_ordering():
             [0.1, 0.0],
         ]
     )  # dist = 0.1  — closest
-    result = vector_similarity(q, c_val, metric="euclidean")
+    result = vector_similarity(q, corpus=c_val, metric="euclidean")
     assert np.argmax(result) == 2, f"Expected index 2 to be closest, got {np.argmax(result)}"
 
 
@@ -227,7 +227,7 @@ def test_vector_similarity_manhattan_ordering():
             [0.1, 0.1],
         ]
     )  # L1 = 0.2  — closest
-    result = vector_similarity(q, c_val, metric="manhattan")
+    result = vector_similarity(q, corpus=c_val, metric="manhattan")
     assert np.argmax(result) == 2, f"Expected index 2 to be closest, got {np.argmax(result)}"
 
 
@@ -235,6 +235,6 @@ def test_vector_similarity_single_corpus_row():
     """Works correctly when corpus has exactly 1 row."""
     q = np.array([3.0, 4.0])
     c_val = np.array([[3.0, 4.0]])
-    result = vector_similarity(q, c_val, metric="cosine")
+    result = vector_similarity(q, corpus=c_val, metric="cosine")
     assert result.shape == (1,)
     np.testing.assert_allclose(result, [1.0], rtol=1e-7)

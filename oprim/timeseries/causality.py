@@ -16,9 +16,8 @@ from oprim.timeseries._base import _ols_fit
 
 
 def granger_causality_test(
-    y: np.ndarray | pd.Series,
+    y: np.ndarray | pd.Series, *,
     x: np.ndarray | pd.Series,
-    *,
     max_lag: int = 4,
     test: str = "F",
 ) -> dict:

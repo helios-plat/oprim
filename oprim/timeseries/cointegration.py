@@ -87,9 +87,8 @@ def _eg_pvalue(stat: float, trend: str) -> float:
 
 
 def engle_granger_cointegration(
-    y: np.ndarray | pd.Series,
+    y: np.ndarray | pd.Series, *,
     x: np.ndarray | pd.Series,
-    *,
     trend: str = "c",
 ) -> dict:
     """Engle-Granger two-step cointegration test.

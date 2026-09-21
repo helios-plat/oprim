@@ -16,7 +16,7 @@ from oprim.timeseries._base import _ols_fit
 
 
 def breusch_pagan_test(
-    residuals: np.ndarray | pd.Series,
+    residuals: np.ndarray | pd.Series, *,
     exog: np.ndarray | pd.DataFrame,
 ) -> dict:
     """Breusch-Pagan test for heteroskedasticity.

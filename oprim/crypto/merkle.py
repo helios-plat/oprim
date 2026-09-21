@@ -59,7 +59,7 @@ def _mth(leaves: list[bytes]) -> bytes:
     return hashlib.sha256(b"\x01" + _mth(leaves[:k]) + _mth(leaves[k:])).digest()
 
 
-def rfc6962_inclusion_proof(leaves: list[bytes], leaf_index: int) -> list[bytes]:
+def rfc6962_inclusion_proof(leaves: list[bytes], *, leaf_index: int) -> list[bytes]:
     """RFC 6962 Merkle Audit Path (inclusion proof) for a specific leaf.
 
     Mathematical definition (RFC 6962 Section 2.1.1):

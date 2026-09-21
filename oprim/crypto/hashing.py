@@ -40,7 +40,7 @@ def sha256_hash(data: bytes | str) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def hmac_sha256(key: bytes, data: bytes | str) -> str:
+def hmac_sha256(key: bytes, *, data: bytes | str) -> str:
     """HMAC-SHA-256.
 
     Mathematical definition: RFC 2104 HMAC construction with SHA-256.

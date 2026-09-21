@@ -22,9 +22,8 @@ import numpy as np
 
 
 def vector_similarity(
-    query: np.ndarray,
+    query: np.ndarray, *,
     corpus: np.ndarray,
-    *,
     metric: Literal["cosine", "dot", "euclidean", "manhattan"] = "cosine",
     normalize: bool = True,
 ) -> np.ndarray:

@@ -105,9 +105,8 @@ def _fr_multivariate_gaussian(
 
 
 def fisher_rao_distance(
-    distribution_a: dict[str, Any],
+    distribution_a: dict[str, Any], *,
     distribution_b: dict[str, Any],
-    *,
     distribution_family: str = "univariate_gaussian",
     family_params: dict[str, Any] | None = None,
 ) -> dict[str, Any]:

@@ -12,9 +12,8 @@ import math
 
 
 def marchenko_pastur_threshold(
-    n_samples: int,
+    n_samples: int, *,
     n_features: int,
-    *,
     sigma_sq: float = 1.0,
 ) -> dict[str, float]:
     """Compute Marchenko-Pastur bulk eigenvalue bounds.

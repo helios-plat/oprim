@@ -72,13 +72,13 @@ def test_merkle_root_non_bytes_leaf_raises():
 
 
 def test_inclusion_proof_single_leaf():
-    proof = rfc6962_inclusion_proof([b"only"], 0)
+    proof = rfc6962_inclusion_proof([b"only"], leaf_index=0)
     assert proof == []
 
 
 def test_inclusion_proof_two_leaves():
     leaves = [b"a", b"b"]
-    proof0 = rfc6962_inclusion_proof(leaves, 0)
+    proof0 = rfc6962_inclusion_proof(leaves, leaf_index=0)
     assert len(proof0) == 1
     expected_sibling = hashlib.sha256(b"\x00" + b"b").digest()
     assert proof0[0] == expected_sibling
@@ -86,33 +86,33 @@ def test_inclusion_proof_two_leaves():
 
 def test_inclusion_proof_eight_leaves():
     leaves = [bytes([i]) for i in range(8)]
-    proof = rfc6962_inclusion_proof(leaves, 0)
+    proof = rfc6962_inclusion_proof(leaves, leaf_index=0)
     assert len(proof) == 3
 
 
 def test_inclusion_proof_invalid_index_raises():
     leaves = [b"a", b"b", b"c"]
     with pytest.raises(ValueError):
-        rfc6962_inclusion_proof(leaves, 3)
+        rfc6962_inclusion_proof(leaves, leaf_index=3)
     with pytest.raises(ValueError):
-        rfc6962_inclusion_proof(leaves, 5)
+        rfc6962_inclusion_proof(leaves, leaf_index=5)
 
 
 def test_inclusion_proof_negative_index_raises():
     with pytest.raises(ValueError):
-        rfc6962_inclusion_proof([b"a", b"b"], -1)
+        rfc6962_inclusion_proof([b"a", b"b"], leaf_index=-1)
 
 
 def test_inclusion_proof_empty_leaves_raises():
     with pytest.raises(ValueError):
-        rfc6962_inclusion_proof([], 0)
+        rfc6962_inclusion_proof([], leaf_index=0)
 
 
 def test_inclusion_proof_verify_roundtrip():
     leaves = [bytes([i]) for i in range(8)]
     root = rfc6962_merkle_root(leaves)
     for i in range(8):
-        proof = rfc6962_inclusion_proof(leaves, i)
+        proof = rfc6962_inclusion_proof(leaves, leaf_index=i)
         assert _verify_inclusion(leaves[i], i, 8, proof, root), f"failed for i={i}"
 
 
@@ -123,18 +123,18 @@ def test_inclusion_proof_rfc6962_test_vectors():
         leaves = [bytes([i % 256]) for i in range(n)]
         root = rfc6962_merkle_root(leaves)
         for i in range(n):
-            proof = rfc6962_inclusion_proof(leaves, i)
+            proof = rfc6962_inclusion_proof(leaves, leaf_index=i)
             assert _verify_inclusion(leaves[i], i, n, proof, root), f"verify failed: n={n}, i={i}"
 
 
 def test_inclusion_proof_non_list_raises():
     with pytest.raises(TypeError):
-        rfc6962_inclusion_proof((b"a", b"b"), 0)
+        rfc6962_inclusion_proof((b"a", b"b"), leaf_index=0)
 
 
 def test_inclusion_proof_non_bytes_leaf_raises():
     with pytest.raises(TypeError):
-        rfc6962_inclusion_proof(["not bytes", "also not bytes"], 0)
+        rfc6962_inclusion_proof(["not bytes", "also not bytes"], leaf_index=0)
 
 
 def test_verify_inclusion_single_leaf():
