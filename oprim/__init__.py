@@ -57,6 +57,11 @@ _build_element_map()
 # __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
 _ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
 
+# 无前缀 BKT 别名（单源 oprim._cognitive，经 oprim.bkt 别名层暴露）。
+# bkt.py 不是 __init__ 包文件，AST 元素扫描不收录其 ImportFrom 别名，故在此显式登记，
+# 以保持 `from oprim import classify_error` 可达（M2 collection 契约）。
+_ELEMENT_MAP["classify_error"] = "oprim.bkt"
+
 
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
 def llm_summarize(*args, **kwargs):

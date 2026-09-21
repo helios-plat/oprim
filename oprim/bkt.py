@@ -30,6 +30,15 @@ from oprim._cognitive import (
     _item_adjust as _item_adjust,
 )
 from oprim._cognitive import (  # noqa: F401  (re-export 别名层)
+    bkt_classify_error as classify_error,
+)
+from oprim._cognitive import (  # noqa: F401  (re-export 别名层)
+    bkt_new_state as new_state_from_prior,
+)
+from oprim._cognitive import (  # noqa: F401  (re-export 别名层)
+    bkt_predict_correct as predict_correct,
+)
+from oprim._cognitive import (  # noqa: F401  (re-export 别名层)
     bkt_update as bkt_update,
 )
 from oprim._cognitive import (
