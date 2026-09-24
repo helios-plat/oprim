@@ -2,59 +2,57 @@
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
 from oprim import edge_tts_word_boundary, probe_duration
 from oprim._edge_tts_word_boundary import EdgeTtsWordBoundaryError
+from oprim._media_probe import MediaInfo
 from oprim._probe_duration import ProbeDurationError
+
+_MEDIA_PROBE = "oprim._probe_duration.media_probe"
 
 
 class TestProbeDuration:
-    def test_parses_ffprobe_stdout(self, tmp_path: Path) -> None:
+    def test_delegates_to_media_probe(self, tmp_path: Path) -> None:
         media = tmp_path / "a.mp4"
-        media.write_bytes(b"x")
-        mock_proc = MagicMock()
-        mock_proc.stdout = "1.5\n"
-        with patch("subprocess.run", return_value=mock_proc) as run:
+        with patch(
+            _MEDIA_PROBE, return_value=MediaInfo(duration_seconds=1.5)
+        ) as mocked:
             assert probe_duration(media) == pytest.approx(1.5)
-        assert run.call_args is not None
-        assert "ffprobe" in run.call_args.args[0]
+        mocked.assert_called_once_with(path=str(media))
 
-    def test_missing_binary_raises(self, tmp_path: Path) -> None:
+    def test_missing_duration_raises(self, tmp_path: Path) -> None:
         media = tmp_path / "a.mp4"
-        media.write_bytes(b"x")
         with (
-            patch("subprocess.run", side_effect=OSError("no ffprobe")),
-            pytest.raises(ProbeDurationError, match="ffprobe failed"),
+            patch(_MEDIA_PROBE, return_value=MediaInfo(duration_seconds=None)),
+            pytest.raises(ProbeDurationError, match="missing"),
         ):
             probe_duration(media)
 
-    def test_unparsable_stdout_raises(self, tmp_path: Path) -> None:
+    def test_unparsable_duration_raises(self, tmp_path: Path) -> None:
         media = tmp_path / "a.mp4"
-        media.write_bytes(b"x")
-        mock_proc = MagicMock()
-        mock_proc.stdout = "N/A"
         with (
-            patch("subprocess.run", return_value=mock_proc),
+            patch(
+                _MEDIA_PROBE,
+                return_value=SimpleNamespace(duration_seconds="N/A"),
+            ),
             pytest.raises(ProbeDurationError, match="unparsable"),
         ):
             probe_duration(media)
 
-    def test_nonzero_exit_raises(self, tmp_path: Path) -> None:
+    def test_probe_failure_wrapped(self, tmp_path: Path) -> None:
         media = tmp_path / "a.mp4"
-        media.write_bytes(b"x")
+        cause = RuntimeError("no ffprobe")
         with (
-            patch(
-                "subprocess.run",
-                side_effect=subprocess.CalledProcessError(1, "ffprobe"),
-            ),
-            pytest.raises(ProbeDurationError, match="ffprobe failed"),
+            patch(_MEDIA_PROBE, side_effect=cause),
+            pytest.raises(ProbeDurationError, match="ffprobe failed") as excinfo,
         ):
             probe_duration(media)
+        assert excinfo.value.__cause__ is cause
 
 
 class TestEdgeTtsWordBoundary:
