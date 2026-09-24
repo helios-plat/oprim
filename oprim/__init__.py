@@ -165,3 +165,51 @@ def _get_epub_book():
     from oprim._epub_toc_split import EpubBook
 
     return EpubBook
+
+
+__manifest__ = {
+    "package": 'oprim',
+    "version": __version__,
+    "elements": [
+        {
+            "name": 'video_generate',
+            "kind": 'oprim',
+            "module": 'oprim._video_generate',
+            "signature": '(request, /, *, provider, output_path) -> Path',
+            "depends_on": ['obase.provider_registry'],
+            "pillars": ['cost', 'fingerprint', 'trail', 'report'],
+        },
+        {
+            "name": 'edge_tts_synthesize',
+            "kind": 'oprim',
+            "module": 'oprim._edge_tts_synthesize',
+            "signature": '(request, /, *, output_path) -> Path',
+            "depends_on": ['obase.ffmpeg'],
+            "pillars": ['cost', 'fingerprint', 'trail', 'report'],
+        },
+        {
+            "name": 'avatar_generate',
+            "kind": 'oprim',
+            "module": 'oprim._avatar_generate',
+            "signature": '(request, /, *, provider, output_path) -> Path',
+            "depends_on": ['obase.provider_registry'],
+            "pillars": ['cost', 'fingerprint', 'trail', 'report'],
+        },
+        {
+            "name": 'style_marker_prompt',
+            "kind": 'oprim',
+            "module": 'oprim.style_marker_prompt',
+            "signature": '(*, base_prompt, style) -> str',
+            "depends_on": [],
+            "pillars": ['cost', 'fingerprint', 'trail', 'report'],
+        },
+        {
+            "name": 'hevi_types',
+            "kind": 'oprim',
+            "module": 'oprim.hevi_types',
+            "signature": '(public consumer types) -> module',
+            "depends_on": [],
+            "pillars": ['cost', 'fingerprint', 'trail', 'report'],
+        },
+    ],
+}
