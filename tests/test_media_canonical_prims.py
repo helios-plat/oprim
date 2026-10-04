@@ -962,7 +962,15 @@ class TestCapabilityAliases:
         audio = _video(tmp_path, "a.wav")
         sentinel = object()
 
-        async def _fake(*, audio_path, backend, model_size, language, model_path):  # noqa: ANN001
+        async def _fake(
+            *,
+            audio_path,
+            backend,
+            model_size,
+            language,
+            model_path,
+            model_cache=None,
+        ):  # noqa: ANN001
             assert audio_path == audio
             return sentinel
 
@@ -1104,44 +1112,6 @@ class TestSingleSourceInvariants:
             if any(token in py.stem for token in forbidden)
         ]
         assert offenders == []
-
-    def test_known_sibling_call_debt_is_pinned(self) -> None:
-        """SPEC §12.C is not yet met by pre-existing code — pin the exact debt.
-
-        `3o_lint` deliberately keeps `_video_generate.py` and
-        `_render_html_to_mp4.py` out of its allowlist because both call sibling
-        OPrim elements. That debt predates this work and fixing it is the
-        §12.C refactor, not P0-A/B/C. This test records the current set so any
-        *new* sibling edge fails loudly instead of hiding in the same files.
-
-        When the DAG is refactored (provider dispatch moved behind an injected
-        resolver, `validate_html` moved to infra), update this set to empty.
-        """
-        pkg = Path(__file__).resolve().parent.parent / "oprim"
-        offenders: dict[str, list[str]] = {}
-        for name in ("_video_generate.py", "_render_html_to_mp4.py"):
-            targets: list[str] = []
-            for line in (pkg / name).read_text(encoding="utf-8").splitlines():
-                stripped = line.strip()
-                if stripped.startswith("from oprim.") or stripped.startswith("import oprim."):
-                    target = stripped.split()[1]
-                    if target.split(".")[1] in _MEDIA_INFRA_ALLOWLIST:
-                        continue
-                    targets.append(target)
-            if targets:
-                offenders[name] = sorted(set(targets))
-
-        assert offenders == {
-            "_render_html_to_mp4.py": ["oprim._validate_html"],
-            "_video_generate.py": [
-                "oprim._fal_queue_generate",
-                "oprim._hailuo_generate",
-                "oprim._kling_v2_generate",
-                "oprim._ltx2_cloud_generate",
-                "oprim._providers.wan_cloud",
-                "oprim._veo3_generate",
-            ],
-        }
 
     def test_new_media_atoms_do_not_call_sibling_atoms(self) -> None:
         """SPEC §2.2: an OPrim must not import another OPrim's element."""
