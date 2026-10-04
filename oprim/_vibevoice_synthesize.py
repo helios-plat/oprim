@@ -83,7 +83,7 @@ async def vibevoice_synthesize(
 
     if _inference_fn is None:
         model_bundle = _load_model(model_dir)
-        infer = _make_inference(model_bundle, watermark)
+        infer = _make_inference(model_bundle, watermark, _speaker_numbers(script))
     else:
         infer = _inference_fn
 
@@ -134,18 +134,31 @@ def _load_model(model_dir: Path) -> Any:
     return (processor, model, device)
 
 
-def _make_inference(model_bundle: Any, watermark: bool) -> Any:
+def _speaker_numbers(script: list[Any]) -> dict[str, int]:
+    """Stable speaker_id → "Speaker N" number map for a script.
+
+    VibeVoice's processor requires `Speaker N: text`, but N must not depend on
+    the order lines happen to be synthesised in. Numbering by first-seen order
+    (the previous behaviour, via a dict mutated inside the inference closure)
+    made the mapping drift whenever line order or concurrency changed, and left
+    mutable state alive inside a closure. Deriving it up front from the sorted
+    distinct speaker ids makes synthesis order-independent and the closure pure.
+    """
+    ids = sorted({str(getattr(line, "speaker_id", "")) for line in script})
+    return {speaker_id: i + 1 for i, speaker_id in enumerate(ids)}
+
+
+def _make_inference(model_bundle: Any, watermark: bool, speaker_numbers: dict[str, int]) -> Any:
     """Return a closure that synthesizes a single line (runs in executor)."""
-    # Maps arbitrary speaker_id strings to stable Speaker 1/2/3... numbers.
-    # VibeVoiceProcessor._parse_script requires "Speaker N: text" format.
-    _spk_map: dict[str, int] = {}
+    # Immutable: resolved from the whole script before any inference runs.
+    _spk_map = dict(speaker_numbers)
 
     def _infer(text: str, speaker_id: str, voice_ref: Path | None) -> bytes:
-        import torch
+        speaker_num = _spk_map.get(str(speaker_id))
+        if speaker_num is None:
+            raise VibeVoiceError(f"Speaker not in script roster: {speaker_id!r}")
 
-        if speaker_id not in _spk_map:
-            _spk_map[speaker_id] = len(_spk_map) + 1
-        speaker_num = _spk_map[speaker_id]
+        import torch
 
         processor, model, device = model_bundle
         inputs: dict[str, Any] = {

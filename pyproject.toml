@@ -112,7 +112,6 @@ source = ["oprim"]
 branch = true
 omit = [
     "oprim/_base.py",
-    "oprim/_manifest.py",
     "oprim/_validation.py",
 ]
 

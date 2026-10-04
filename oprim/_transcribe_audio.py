@@ -21,6 +21,12 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
+from oprim._asr_runtime import (
+    DEFAULT_COMPUTE_TYPE,
+    DEFAULT_DEVICE,
+    AsrModelCache,
+    default_asr_cache,
+)
 from oprim._media_types import TranscriptResult
 
 
@@ -31,6 +37,7 @@ async def transcribe_audio(
     model_size: str = "base",
     language: str = "zh",
     model_path: str = "/models/whisper",
+    model_cache: AsrModelCache | None = None,
 ) -> TranscriptResult:
     """Transcribe audio to text.
 
@@ -41,6 +48,9 @@ async def transcribe_audio(
         language: BCP-47 language tag ("zh", "en", etc.).
         model_path: Directory containing the faster-whisper model weights.
                     Ignored for dashscope. Must exist — model is not downloaded automatically.
+        model_cache: Local-ASR model cache. Defaults to the process-wide cache so
+                    repeated calls reuse one loaded model; pass your own
+                    `AsrModelCache` for isolation.
 
     Returns:
         TranscriptResult with text, segments, language, and duration.
@@ -56,7 +66,11 @@ async def transcribe_audio(
 
     if backend == "local":
         return await _transcribe_local(
-            audio_path, model_size=model_size, language=language, model_path=model_path
+            audio_path,
+            model_size=model_size,
+            language=language,
+            model_path=model_path,
+            model_cache=model_cache,
         )
     elif backend == "dashscope":
         return await _transcribe_dashscope(audio_path, language=language)
@@ -71,6 +85,7 @@ async def transcribe_media(
     model_size: str = "base",
     language: str = "zh",
     model_path: str = "/models/whisper",
+    model_cache: AsrModelCache | None = None,
 ) -> TranscriptResult:
     """Capability-oriented alias for `transcribe_audio` (SPEC §4.2 canonical name).
 
@@ -84,6 +99,7 @@ async def transcribe_media(
         model_size=model_size,
         language=language,
         model_path=model_path,
+        model_cache=model_cache,
     )
 
 
@@ -98,14 +114,8 @@ async def _transcribe_local(
     model_size: str,
     language: str,
     model_path: str,
+    model_cache: AsrModelCache | None = None,
 ) -> TranscriptResult:
-    try:
-        from faster_whisper import WhisperModel  # type: ignore[import]
-    except ImportError as e:
-        raise RuntimeError(
-            "faster-whisper is not installed. Install with: pip install faster-whisper"
-        ) from e
-
     mp = Path(model_path)
     if not mp.exists():
         raise RuntimeError(
@@ -113,10 +123,14 @@ async def _transcribe_local(
             "Download the model first (see module docstring)."
         )
 
+    cache = model_cache if model_cache is not None else default_asr_cache()
     loop = asyncio.get_event_loop()
 
     def _run() -> tuple[str, list[dict], str, float]:
-        model = WhisperModel(str(mp), device="cpu", compute_type="int8")
+        # Cached: the same weights load once per process, not once per call.
+        model = cache.get(
+            model_path=mp, device=DEFAULT_DEVICE, compute_type=DEFAULT_COMPUTE_TYPE
+        )
         segments_gen, info = model.transcribe(str(audio_path), language=language)
         segments: list[dict] = []
         parts: list[str] = []
