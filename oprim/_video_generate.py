@@ -111,6 +111,27 @@ async def video_generate(
         except FalQueueError as exc:
             raise VideoGenError(f"{provider} generation failed: {exc}") from exc
 
+    # B7: ltx2_cloud 走同一条 canonical 入口。此前 ltx2_cloud_generate 虽已导出,
+    # 但 video_generate 无法到达它 —— 供应商名出现在 __all__ 却不在 dispatch 表里,
+    # 等于第二套事实来源。此处按其签名适配参数(t2v/i2v + resolution 元组)。
+    if provider == "ltx2_cloud":
+        from oprim._ltx2_cloud_generate import Ltx2CloudError
+        from oprim._ltx2_cloud_generate import ltx2_cloud_generate as _ltx2_invoke
+
+        try:
+            return await _ltx2_invoke(
+                mode="i2v" if reference_image is not None else "t2v",
+                prompt=prompt,
+                reference_image=reference_image,
+                duration_s=duration_s,
+                resolution=(width, height),
+                output_path=output_path,
+                fps=fps,
+                bitrate_kbps=bitrate_kbps,
+            )
+        except Ltx2CloudError as exc:
+            raise VideoGenError(f"ltx2_cloud generation failed: {exc}") from exc
+
     if not ProviderRegistry.has("video_gen", provider):
         raise VideoGenProviderNotFoundError(f"Video generation provider not found: {provider!r}")
     gen_fn = ProviderRegistry.get().generic("video_gen", provider)

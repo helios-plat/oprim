@@ -1,9 +1,16 @@
-"""oprim.probe_duration — ffprobe 实测媒体文件时长(秒)。"""
+"""oprim.probe_duration — compatibility wrapper returning media duration in seconds.
+
+Superseded by `media_probe` (SPEC §8.1): duration is one field of the canonical
+`MediaInfo`. Kept as a thin wrapper so existing callers keep working — the
+underlying implementation is the single `_ffprobe` executor, never a second
+ffprobe invocation path.
+"""
 
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
+
+from oprim._ffprobe import FFprobeError, probe_text
 
 
 class ProbeDurationError(Exception):
@@ -11,26 +18,25 @@ class ProbeDurationError(Exception):
 
 
 def probe_duration(path: Path | str) -> float:
-    """返回媒体文件真实时长(秒);探测失败抛 ProbeDurationError。"""
+    """Return the media duration in seconds.
+
+    Compatibility wrapper: prefer `media_probe(path=...).duration_seconds`, which
+    returns the full metadata set in one ffprobe call.
+
+    Args:
+        path: Media file path.
+
+    Returns:
+        Duration in seconds.
+
+    Raises:
+        ProbeDurationError: ffprobe failed, or returned an unparsable value.
+    """
     try:
-        out = subprocess.run(
-            [
-                "ffprobe",
-                "-v",
-                "error",
-                "-show_entries",
-                "format=duration",
-                "-of",
-                "default=nw=1:nk=1",
-                str(path),
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-    except (subprocess.CalledProcessError, OSError) as exc:
+        out = probe_text(path, entries="duration")
+    except FFprobeError as exc:
         raise ProbeDurationError(f"ffprobe failed for {path}: {exc}") from exc
     try:
-        return float(out.stdout.strip())
+        return float(out)
     except ValueError as exc:
-        raise ProbeDurationError(f"unparsable ffprobe duration for {path}: {out.stdout!r}") from exc
+        raise ProbeDurationError(f"unparsable ffprobe duration for {path}: {out!r}") from exc

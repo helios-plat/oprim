@@ -14,8 +14,7 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from obase.ffmpeg import run as ffmpeg_run
-
+from oprim._encode_frames import encode_frames_to_mp4
 from oprim._validate_html import validate_html
 
 
@@ -96,7 +95,6 @@ async def render_html_to_mp4(
 
     return output_path
 
-
 async def _capture_html_frames(
     *,
     html_path: Path,
@@ -149,20 +147,12 @@ async def _encode_frames_to_mp4(
     height: int,
     timeout_s: float,
 ) -> None:
-    """Encode captured PNG frames to H.264 MP4 via ffmpeg."""
-    args = [
-        "-framerate",
-        str(fps),
-        "-i",
-        str(frames_dir / "frame_%06d.png"),
-        "-c:v",
-        "libx264",
-        "-pix_fmt",
-        "yuv420p",
-        "-vf",
-        f"scale={width}:{height}",
-        "-movflags",
-        "+faststart",
-        str(output_path),
-    ]
-    await ffmpeg_run(args=args, timeout_s=timeout_s, expected_output=output_path)
+    """Encode captured PNG frames to H.264 MP4 via the shared `_encode_frames` atom."""
+    await encode_frames_to_mp4(
+        input_pattern=str(frames_dir / "frame_%06d.png"),
+        output_path=output_path,
+        fps=fps,
+        width=width,
+        height=height,
+        timeout_s=timeout_s,
+    )

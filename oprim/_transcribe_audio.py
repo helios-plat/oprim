@@ -64,6 +64,29 @@ async def transcribe_audio(
         raise ValueError(f"Unknown backend: {backend!r}. Choose 'local' or 'dashscope'.")
 
 
+async def transcribe_media(
+    *,
+    audio_path: Path,
+    backend: str = "local",
+    model_size: str = "base",
+    language: str = "zh",
+    model_path: str = "/models/whisper",
+) -> TranscriptResult:
+    """Capability-oriented alias for `transcribe_audio` (SPEC §4.2 canonical name).
+
+    Same-module alias: both names resolve to one implementation, and the
+    returned `TranscriptResult` is the normalized segment shape callers see —
+    backend-specific transcript objects never leak past this element.
+    """
+    return await transcribe_audio(
+        audio_path=audio_path,
+        backend=backend,
+        model_size=model_size,
+        language=language,
+        model_path=model_path,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Backends
 # ---------------------------------------------------------------------------

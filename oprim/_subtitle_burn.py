@@ -105,3 +105,27 @@ def _dual_sub_filter(primary: Path, secondary: Path, pri_align: int, sec_align: 
         f"subtitles='{pri_escaped}':force_style='Alignment={pri_align}',"
         f"subtitles='{sec_escaped}':force_style='Alignment={sec_align}'"
     )
+
+
+async def burn_subtitles(
+    *,
+    video_path: Path,
+    srt_paths: list[Path],
+    output_path: Path,
+    primary_alignment: int = 2,
+    secondary_alignment: int = 8,
+    timeout_s: float = 300.0,
+) -> Path:
+    """Capability-oriented alias for `subtitle_burn` (SPEC §4.9 canonical name).
+
+    Same-module alias: burn-in has exactly one canonical implementation.
+    Subtitle *authoring* is not this element's concern.
+    """
+    return await subtitle_burn(
+        video_path=video_path,
+        srt_paths=srt_paths,
+        output_path=output_path,
+        primary_alignment=primary_alignment,
+        secondary_alignment=secondary_alignment,
+        timeout_s=timeout_s,
+    )
