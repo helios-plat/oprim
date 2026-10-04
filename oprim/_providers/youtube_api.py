@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 from datetime import datetime
 
 import httpx
@@ -11,10 +13,8 @@ from pydantic import BaseModel
 class YouTubeAPIError(Exception):
     """YouTube API call failed."""
 
-
 class YouTubeAuthError(YouTubeAPIError):
     """OAuth token invalid or expired."""
-
 
 class VideoStats(BaseModel):
     """YouTube video statistics."""
@@ -26,7 +26,6 @@ class VideoStats(BaseModel):
     comments_count: int
     duration_s: float
 
-
 class Comment(BaseModel):
     """Single YouTube comment."""
 
@@ -36,13 +35,11 @@ class Comment(BaseModel):
     published_at: datetime
     likes: int
 
-
 class CommentsPage(BaseModel):
     """Paginated comments response."""
 
     comments: list[Comment]
     next_page_token: str | None = None
-
 
 class ChannelAnalytics(BaseModel):
     """Channel-level analytics."""
@@ -51,9 +48,7 @@ class ChannelAnalytics(BaseModel):
     avg_view_duration_s: float
     completion_rate: float | None = None
 
-
 _BASE = "https://www.googleapis.com/youtube/v3"
-
 
 async def video_stats(*, video_id: str, oauth_token: str) -> VideoStats:
     """Fetch video statistics.
@@ -90,7 +85,6 @@ async def video_stats(*, video_id: str, oauth_token: str) -> VideoStats:
         comments_count=int(stats.get("commentCount", 0)),
         duration_s=_parse_iso_duration(duration_iso),
     )
-
 
 async def video_comments(
     *, video_id: str, oauth_token: str, max_count: int = 100, page_token: str | None = None
@@ -136,7 +130,6 @@ async def video_comments(
         )
     return CommentsPage(comments=comments, next_page_token=data.get("nextPageToken"))
 
-
 async def channel_analytics(
     *,
     channel_id: str,
@@ -174,7 +167,6 @@ async def channel_analytics(
         views=int(row[0]) if len(row) > 0 else 0,
         avg_view_duration_s=float(row[1]) if len(row) > 1 else 0.0,
     )
-
 
 def _parse_iso_duration(iso: str) -> float:
     """Parse ISO 8601 duration (PT1H2M3S) to seconds."""

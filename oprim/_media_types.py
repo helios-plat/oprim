@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "FilterRules",
+    "MediaFindings",
+    "MediaResult",
+    "SourceResult",
+    "TranscriptResult",
+    "VideoMeta",
+]
+
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -16,7 +26,6 @@ class VideoMeta:
     upload_date: str | None  # YYYYMMDD
     description: str | None
 
-
 @dataclass
 class MediaResult:
     has_subtitle: bool
@@ -26,14 +35,12 @@ class MediaResult:
     duration: float
     metadata: dict  # uploader / upload_date / description
 
-
 @dataclass
 class TranscriptResult:
     text: str
     segments: list[dict]  # [{start, end, text}]
     language: str
     duration: float
-
 
 @dataclass
 class FilterRules:
@@ -45,7 +52,6 @@ class FilterRules:
     title_exclude: list[str] = field(default_factory=list)
     llm_filter: str | None = None  # LLM smart-filter description
 
-
 @dataclass
 class MediaFindings:
     substrate_id: str
@@ -53,7 +59,6 @@ class MediaFindings:
     has_subtitle: bool
     transcribed: bool
     md_path: str | None
-
 
 @dataclass
 class SourceResult:

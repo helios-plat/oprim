@@ -2,6 +2,22 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "TYPE_CHECKING",
+    "annotations",
+    "bkt_classify_error",
+    "bkt_predict_correct",
+    "bkt_update",
+    "datetime",
+    "exp_forgetting",
+    "fsrs_due_date",
+    "fsrs_map_rating",
+    "fsrs_new_card",
+    "fsrs_retrievability",
+    "fsrs_review",
+]
+
 import math
 from datetime import datetime
 from typing import TYPE_CHECKING

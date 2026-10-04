@@ -16,6 +16,8 @@ Raises:
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # vendor-specific video provider adapter; not a capability
+
 import asyncio
 import base64
 from pathlib import Path
@@ -27,10 +29,8 @@ from oprim._config import cfg
 class Ltx2CloudError(Exception):
     """LTX-2 fal.ai generation failed."""
 
-
 # B3: 轮询总超时(秒),避免 fal 任务卡住时 `while True` 无限轮询。
 _POLL_TIMEOUT_S = 600.0
-
 
 async def ltx2_cloud_generate(
     *,

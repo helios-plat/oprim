@@ -20,6 +20,8 @@ Raises:
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # vendor-specific video provider adapter; not a capability
+
 import asyncio
 import logging
 from pathlib import Path
@@ -29,15 +31,12 @@ from oprim._config import cfg
 
 logger = logging.getLogger(__name__)
 
-
 class FalQueueError(Exception):
     """fal.ai queue submission / polling / download failed."""
-
 
 _FAL_BASE = "https://queue.fal.run"
 _POLL_INTERVAL_S = 5.0
 _DEFAULT_TIMEOUT_S = 600.0
-
 
 def _fal_aspect_ratio(aspect_ratio: str | None, kw: dict[str, Any]) -> str:
     """解析朝向:优先显式合法值,否则从 (w, h) size 推导;缺省 9:16(短视频主场景)。"""
@@ -48,7 +47,6 @@ def _fal_aspect_ratio(aspect_ratio: str | None, kw: dict[str, Any]) -> str:
         w, h = size
         return "16:9" if w > h else "1:1" if w == h else "9:16"
     return "9:16"
-
 
 async def fal_queue_generate(
     *,

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 import asyncio
 import shutil
 from pathlib import Path
@@ -11,10 +13,8 @@ from typing import Literal
 class MuseTalkError(Exception):
     """MuseTalk invocation failed."""
 
-
 class MuseTalkSetupError(MuseTalkError):
     """Vendor not found."""
-
 
 async def invoke(
     *,

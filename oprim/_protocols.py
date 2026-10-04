@@ -17,6 +17,24 @@ oprim 内部不 import obase，只调用 handle 上的方法。V1 守住。
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "Any",
+    "AsyncIterator",
+    "CacheClient",
+    "DbExecutor",
+    "EmbedCaller",
+    "HttpClient",
+    "LspServerHandle",
+    "McpClientHandle",
+    "PersistenceHandle",
+    "Protocol",
+    "SearchCaller",
+    "StreamingLLMCaller",
+    "annotations",
+    "runtime_checkable",
+]
+
 from collections.abc import AsyncIterator
 from typing import Any, Protocol, runtime_checkable
 

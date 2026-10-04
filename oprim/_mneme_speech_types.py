@@ -5,6 +5,14 @@ All concrete types are dataclasses so oprim stays pydantic-free.
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "EssayAssessmentInput",
+    "EssayAssessmentResult",
+    "PronunciationResult",
+    "SpeakingPracticeResult",
+]
+
 from dataclasses import dataclass
 
 
@@ -15,20 +23,17 @@ class PronunciationResult:
     accuracy_score: float
     word_scores: list[dict]  # [{word: str, score: float, issue: str}]
 
-
 @dataclass
 class SpeakingPracticeResult:
     turns: list[dict]  # per-turn interaction records
     pronunciation_scores: list[PronunciationResult]
     overall_progress: float  # mean overall_score across turns
 
-
 @dataclass
 class EssayAssessmentResult:
     rubric_scores: dict[str, float]  # {dimension: 0–100}
     guidance_questions: list[str]  # each ends with "？"
     revision_needed: bool
-
 
 @dataclass
 class EssayAssessmentInput:

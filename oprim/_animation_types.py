@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "AnimationInput",
+    "AnimationResult",
+    "HtmlValidationResult",
+]
+
 from dataclasses import dataclass
 
 
@@ -12,7 +19,6 @@ class HtmlValidationResult:
     sanitized: str | None  # dangerous content removed
     # None when html is safe
 
-
 @dataclass
 class AnimationResult:
     html: str
@@ -20,13 +26,11 @@ class AnimationResult:
     validation_violations: list[str]
     entity_meta: dict  # generation metadata (no DB fields)
 
-
 @dataclass
 class AnimationInput:
     template: str  # prompt template with {placeholder} vars
     variables: dict  # values to fill the template
     domain_prompt: str  # domain-specific generation instruction
-
 
 # ---------------------------------------------------------------------------
 # Reference schema constants — Layer4 can override (table/column names vary)

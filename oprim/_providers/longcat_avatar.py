@@ -21,6 +21,8 @@ Registration:
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 import asyncio
 import subprocess
 from pathlib import Path
@@ -29,13 +31,10 @@ from pathlib import Path
 class LongCatAvatarError(Exception):
     """LongCat-Avatar invocation failed."""
 
-
 class LongCatAvatarSetupError(LongCatAvatarError):
     """Vendor binary or model files missing."""
 
-
 _LONGCAT_SCRIPT = "inference.py"  # Standard script name in LongCat repo
-
 
 async def invoke_local(
     *,
@@ -124,7 +123,6 @@ async def invoke_local(
 
     return output_path
 
-
 async def invoke_cloud(
     *,
     portrait_image: Path,
@@ -173,7 +171,6 @@ async def invoke_cloud(
         "No official Meituan cloud API exists as of 2026-05-27. "
         "TECHNICAL_DEBT: Implement when official API ships."
     )
-
 
 __all__ = [
     "invoke_local",

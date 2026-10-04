@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 import asyncio
 import shutil
 from pathlib import Path
@@ -10,10 +12,8 @@ from pathlib import Path
 class SadTalkerError(Exception):
     """SadTalker invocation failed."""
 
-
 class SadTalkerSetupError(SadTalkerError):
     """Vendor not found."""
-
 
 async def invoke(
     *,

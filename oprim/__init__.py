@@ -7,10 +7,14 @@ import importlib
 from pathlib import Path
 from typing import Any
 
+from oprim._layering import LAYER_INFRA, declared_exports, layer_from_tree
 from oprim._version import __version__
 
 _ELEMENT_MAP: dict[str, str] = {}
 _SUBMODULE_SET: set[str] = set()
+#: module path → declared layer (from `__oprim_layer__`). Authoritative for
+#: dependency-direction checks; see `oprim._layering`.
+_MODULE_LAYERS: dict[str, str] = {}
 
 
 def _build_element_map() -> None:
@@ -30,6 +34,20 @@ def _build_element_map() -> None:
         _SUBMODULE_SET.add(stem)
         try:
             tree = ast.parse(py.read_text(encoding="utf-8"))
+            layer = layer_from_tree(tree)
+            _MODULE_LAYERS[mod_path] = layer
+            # Infra modules are shared bases, not capabilities. Their unlisted
+            # helpers stay reachable by direct module path
+            # (`from oprim._ffprobe import probe_json`) but never enter the
+            # element namespace. `__oprim_exports__` re-publishes the names that
+            # are genuinely public API (e.g. the dataclasses in `_media_types`).
+            #
+            # Provider modules always export: their layer governs dependency
+            # direction only, while the export surface is backward-compatibility
+            # governed and known consumers do `from oprim import veo3_generate`.
+            allowed: set[str] | None = None
+            if layer == LAYER_INFRA:
+                allowed = set(declared_exports(tree))
             for node in tree.body:
                 names = []
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
@@ -39,13 +57,16 @@ def _build_element_map() -> None:
                         if alias.name != "*":
                             names.append(alias.asname or alias.name)
                 for name in names:
-                    if not name.startswith("_"):
-                        cond = name not in _ELEMENT_MAP or (
-                            not mod_path.split(".")[-1].startswith("_")
-                            and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
-                        )
-                        if cond:
-                            _ELEMENT_MAP[name] = mod_path
+                    if name.startswith("_"):
+                        continue
+                    if allowed is not None and name not in allowed:
+                        continue
+                    cond = name not in _ELEMENT_MAP or (
+                        not mod_path.split(".")[-1].startswith("_")
+                        and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
+                    )
+                    if cond:
+                        _ELEMENT_MAP[name] = mod_path
         except Exception:
             continue
 

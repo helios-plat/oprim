@@ -11,6 +11,14 @@ executes it (no duplicated schema definition).
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "MetaDB",
+    "Path",
+    "annotations",
+    "ensure_schema",
+]
+
 from pathlib import Path
 
 from oprim.meta_db.duckdb import MetaDB

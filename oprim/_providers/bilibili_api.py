@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 from datetime import UTC, datetime
 
 import httpx
@@ -10,7 +12,6 @@ from pydantic import BaseModel
 
 class BilibiliAPIError(Exception):
     """Bilibili API call failed."""
-
 
 class BiliVideoStats(BaseModel):
     """Bilibili video statistics."""
@@ -22,7 +23,6 @@ class BiliVideoStats(BaseModel):
     favorites: int
     shares: int
 
-
 class BiliComment(BaseModel):
     """Single Bilibili comment."""
 
@@ -32,16 +32,13 @@ class BiliComment(BaseModel):
     published_at: datetime
     likes: int
 
-
 class BiliCommentsPage(BaseModel):
     """Paginated comments response."""
 
     comments: list[BiliComment]
     has_next: bool
 
-
 _BASE = "https://api.bilibili.com"
-
 
 async def video_stats(*, bvid: str, cookies: dict[str, str]) -> BiliVideoStats:
     """Fetch video statistics.
@@ -70,7 +67,6 @@ async def video_stats(*, bvid: str, cookies: dict[str, str]) -> BiliVideoStats:
         favorites=stat["favorite"],
         shares=stat["share"],
     )
-
 
 async def video_comments(
     *, bvid: str, cookies: dict[str, str], max_count: int = 100, page: int = 1

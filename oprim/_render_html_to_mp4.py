@@ -15,7 +15,7 @@ import tempfile
 from pathlib import Path
 
 from oprim._encode_frames import encode_frames_to_mp4
-from oprim._validate_html import validate_html
+from oprim._html_safety import scan_html
 
 
 class RenderHtmlError(Exception):
@@ -58,7 +58,7 @@ async def render_html_to_mp4(
         RenderHtmlError: Safety validation failed or rendering error.
     """
     if validate:
-        val = validate_html(html=html)
+        val = scan_html(html=html)
         if not val.is_safe:
             raise RenderHtmlError(
                 f"HTML validation failed — rendering blocked. Violations: {val.violations}"

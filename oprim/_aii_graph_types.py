@@ -5,6 +5,25 @@ Used across oprim (P-AII-3), oskill (K-AII-3/4), and omodul (M-AII-3/4).
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "BookUnderstandingInput",
+    "CascadeDeleteResult",
+    "Community",
+    "ConflictDetectionInput",
+    "ConflictPair",
+    "ConflictSignal",
+    "GraphRetrievalResult",
+    "OntologyExtractResult",
+    "RegisterKuOntologyInput",
+    "RelationCandidate",
+    "RelationResult",
+    "SourceTraceResult",
+    "SummarySynthesizeInput",
+    "TheoremVerifyResult",
+    "TwoStepIngestResult",
+]
+
 from dataclasses import dataclass, field
 
 
@@ -16,7 +35,6 @@ class RelationCandidate:
     target_ref: str  # target KU name or ID
     evidence: str  # matched pattern / evidence string for traceability
     confidence_signal: str  # "rule_match"|"symbol_dep"|"citation"|"ambiguous"
-
 
 @dataclass
 class RelationResult:
@@ -33,7 +51,6 @@ class RelationResult:
     def __post_init__(self) -> None:
         self.grade = "unverified"
 
-
 @dataclass
 class Community:
     """One community produced by community_cluster (K-AII-4)."""
@@ -43,7 +60,6 @@ class Community:
     centroid: list[float]  # centroid vector
     size: int
 
-
 @dataclass
 class SummarySynthesizeInput:
     """Input for summary_synthesize (M-AII-3)."""
@@ -52,7 +68,6 @@ class SummarySynthesizeInput:
     ku_texts: list[str]
     source_grades: list[str]
 
-
 @dataclass
 class BookUnderstandingInput:
     """Input for book_understanding_synthesize (M-AII-4)."""
@@ -60,7 +75,6 @@ class BookUnderstandingInput:
     ku_ids: list[str]
     ku_texts: list[str]
     ku_grades: list[str]
-
 
 @dataclass
 class TheoremVerifyResult:
@@ -77,7 +91,6 @@ class TheoremVerifyResult:
     reason: str  # rejection/ambiguity reason
     # "" when verified
 
-
 @dataclass
 class ConflictSignal:
     """Output of ku_conflict_detect (P-G1)."""
@@ -86,7 +99,6 @@ class ConflictSignal:
     similarity: float
     polarity_signal: str  # "opposing"|"neutral"|"insufficient"
     evidence: str  # matched polarity pair, traceable
-
 
 @dataclass
 class ConflictPair:
@@ -105,7 +117,6 @@ class ConflictPair:
     def __post_init__(self) -> None:
         self.grade = "unverified"
 
-
 @dataclass
 class SourceTraceResult:
     """Output of source_trace (P-G3)."""
@@ -114,7 +125,6 @@ class SourceTraceResult:
     source_ids: list[str]
     source_positions: list[dict]  # [{source_id, page, chunk_idx, text_snippet}]
     trace_depth: int
-
 
 @dataclass
 class GraphRetrievalResult:
@@ -125,7 +135,6 @@ class GraphRetrievalResult:
     hop_distance: int
     retrieval_path: list[str]  # path from seed to this KU
 
-
 @dataclass
 class CascadeDeleteResult:
     """Output of cascade_delete (K-G5)."""
@@ -135,7 +144,6 @@ class CascadeDeleteResult:
     dangling_deps_cleared: int  # dangling dependency references cleared
     dry_run: bool
 
-
 @dataclass
 class TwoStepIngestResult:
     """Output of two_step_ingest (K-G2)."""
@@ -143,7 +151,6 @@ class TwoStepIngestResult:
     analysis: dict  # Step 1: entities/concepts/conflict candidates/structure
     ku_candidates: list[dict]  # Step 2: generated KU candidates
     conflict_candidates: list[str]  # conflict descriptions (pending conflict_resolution)
-
 
 @dataclass
 class ConflictDetectionInput:
@@ -154,7 +161,6 @@ class ConflictDetectionInput:
     existing_ku_texts: list[str]
     existing_ku_embeddings: list[list[float]]
     existing_ku_ids: list[str]
-
 
 # ---------------------------------------------------------------------------
 # Controlled vocabularies (K-ONT-1 / M-ONT-1)
@@ -213,11 +219,9 @@ VALID_SUB_TYPES: frozenset[str] = frozenset(
     ]
 )
 
-
 # ---------------------------------------------------------------------------
 # ONT types (K-ONT-1 / M-ONT-1)
 # ---------------------------------------------------------------------------
-
 
 @dataclass
 class OntologyExtractResult:
@@ -228,7 +232,6 @@ class OntologyExtractResult:
     edge_candidates: list[dict]  # relation candidates (controlled relation_type)
     concept_candidates: list[str]  # concept candidates
     stats: dict  # {total, by_type, explains_count}
-
 
 @dataclass
 class RegisterKuOntologyInput:

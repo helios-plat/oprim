@@ -11,26 +11,23 @@ oprim element: it performs no media operation on its own.
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # sole ffprobe executor / encoder; not a capability
+
 import json
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
 
-from oprim._exceptions import OprimError
+from oprim._exceptions import FFprobeError
 
 DEFAULT_TIMEOUT_S = 30.0
-
-
-class FFprobeError(OprimError):
-    """ffprobe could not be executed, or produced unusable output."""
 
 
 def require_ffprobe() -> None:
     """Raise FFprobeError when the ffprobe binary is absent from PATH."""
     if shutil.which("ffprobe") is None:
         raise FFprobeError("ffprobe not found on PATH (ffmpeg installation required)")
-
 
 def _exec(args: list[str], *, path: str, timeout_s: float) -> tuple[str, str]:
     """Run ffprobe with `args` (binary name excluded); return (stdout, stderr)."""
@@ -50,7 +47,6 @@ def _exec(args: list[str], *, path: str, timeout_s: float) -> tuple[str, str]:
         raise FFprobeError(f"ffprobe failed for {path}: {exc}", cause=exc) from exc
     return proc.stdout, proc.stderr
 
-
 def probe_text(
     path: str | Path,
     *,
@@ -64,7 +60,6 @@ def probe_text(
         timeout_s=timeout_s,
     )
     return stdout.strip()
-
 
 def probe_json(
     path: str | Path,
@@ -87,7 +82,6 @@ def probe_json(
         raise FFprobeError(f"ffprobe returned non-object JSON for {path}")
     return data
 
-
 def parse_rational(value: Any) -> float | None:
     """Parse an ffprobe rational string ("30000/1001") or bare number into a float."""
     if value is None:
@@ -109,12 +103,10 @@ def parse_rational(value: Any) -> float | None:
     except ValueError:
         return None
 
-
 def coerce_float(value: Any) -> float | None:
     """Parse an ffprobe numeric field, tolerating "N/A" and empty strings."""
     parsed = parse_rational(value)
     return None if parsed is None else float(parsed)
-
 
 def coerce_int(value: Any) -> int | None:
     """Parse an ffprobe integer field, tolerating "N/A" and empty strings."""

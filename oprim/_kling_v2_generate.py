@@ -18,6 +18,8 @@ Raises:
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # vendor-specific video provider adapter; not a capability
+
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +28,6 @@ from oprim._fal_queue_generate import _fal_aspect_ratio, fal_queue_generate
 _ENDPOINT = "fal-ai/kling-video/v2/master/text-to-video"
 # 默认负向提示:压制常见写实缺陷(崩手/多指/畸变)。
 _DEFAULT_NEGATIVE = "blur, distort, low quality, deformed hands, extra fingers, bad anatomy"
-
 
 async def kling_v2_generate(
     *,

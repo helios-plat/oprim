@@ -14,6 +14,27 @@ oprim: Git 原子操作集
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "BlameLine",
+    "Commit",
+    "FileStatus",
+    "GitOprimError",
+    "Path",
+    "annotations",
+    "dataclass",
+    "git_add",
+    "git_blame",
+    "git_branch",
+    "git_checkout",
+    "git_commit",
+    "git_diff",
+    "git_log",
+    "git_show",
+    "git_stash",
+    "git_status",
+]
+
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path

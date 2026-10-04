@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "CanvasEdge",
+    "CanvasNode",
+    "ProviderCapability",
+    "Subject",
+    "VideoQuality",
+]
+
 from enum import StrEnum
 from typing import Any
 
@@ -14,7 +23,6 @@ class VideoQuality(StrEnum):
     HIGH = "high"
     ULTRA = "ultra"
 
-
 class ProviderCapability(StrEnum):
     TEXT_TO_VIDEO = "t2v"
     IMAGE_TO_VIDEO = "i2v"
@@ -23,7 +31,6 @@ class ProviderCapability(StrEnum):
     IMAGE_TO_IMAGE = "i2i"
     AUDIO = "audio"
     SCRIPT = "script"
-
 
 class Subject(BaseModel):
     """A persistent creative subject (character, prop, location, etc.)."""
@@ -37,7 +44,6 @@ class Subject(BaseModel):
     tags: list[str] = []
     version: int = 1
 
-
 class CanvasNode(BaseModel):
     """A node in a creative workflow canvas."""
 
@@ -46,7 +52,6 @@ class CanvasNode(BaseModel):
     label: str = ""
     config: dict[str, Any] = {}
     position: dict[str, float] = {}
-
 
 class CanvasEdge(BaseModel):
     """A directed edge connecting two canvas nodes."""

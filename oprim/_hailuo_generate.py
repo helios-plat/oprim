@@ -20,13 +20,14 @@ Raises:
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # vendor-specific video provider adapter; not a capability
+
 from pathlib import Path
 from typing import Any
 
 from oprim._fal_queue_generate import fal_queue_generate
 
 _ENDPOINT = "fal-ai/minimax/hailuo-02/standard/text-to-video"
-
 
 async def hailuo_generate(
     *,

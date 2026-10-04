@@ -5,6 +5,22 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "BaseModel",
+    "GradeResult",
+    "PeerPercentileResult",
+    "Plot2DData",
+    "SocraticTurnResult",
+    "SolveResult",
+    "SolveStep",
+    "StepCheckResult",
+    "Three3DData",
+    "annotations",
+    "dataclass",
+    "field",
+]
+
 from dataclasses import dataclass, field
 
 from pydantic import BaseModel

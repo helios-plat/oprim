@@ -6,6 +6,8 @@ Endpoint: POST 127.0.0.1:8383/easy/submit → poll GET /easy/query?code=<uuid>
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 import asyncio
 import uuid
 from pathlib import Path
@@ -14,14 +16,11 @@ from pathlib import Path
 class DuixError(Exception):
     """Duix avatar generation failed."""
 
-
 class DuixSubmitError(DuixError):
     """Submit request to Duix service failed."""
 
-
 class DuixPollTimeoutError(DuixError):
     """Polling timed out before completion."""
-
 
 def _map_path(
     p: Path,
@@ -40,7 +39,6 @@ def _map_path(
     if src and s.startswith(src):
         return dst.rstrip("/") + "/" + s[len(src) :].lstrip("/")
     return s
-
 
 async def submit_and_poll(
     *,

@@ -2,6 +2,25 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "ConfigError",
+    "DuplicateSubstrateError",
+    "EmbeddingError",
+    "FulltextError",
+    "IngestError",
+    "LLMError",
+    "LLMRateLimitError",
+    "MetaDBError",
+    "PDFParseError",
+    "QuotaExceededError",
+    "StratumError",
+    "UnsupportedFileTypeError",
+    "UnsupportedImageError",
+    "VectorDBError",
+    "annotations",
+]
+
 
 class StratumError(Exception):
     """Base class for all Stratum errors."""

@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "MissingOptionalDependency",
+    "require_optional",
+]
 
 class MissingOptionalDependency(ImportError):  # noqa: N818 - public error name is contractual
     def __init__(self, *, feature: str, extra: str, package: str) -> None:
@@ -12,7 +17,6 @@ class MissingOptionalDependency(ImportError):  # noqa: N818 - public error name 
         self.feature = feature
         self.extra = extra
         self.package = package
-
 
 def require_optional(module: object | None, *, feature: str, extra: str, package: str) -> object:
     if module is None:

@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "CheckpointData",
+    "PluginManifest",
+    "PluginRegistry",
+    "PluginSpec",
+    "RunState",
+    "SkillRef",
+]
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -15,7 +25,6 @@ class SkillRef:
     args: list[str] = field(default_factory=list)
     raw_input: str = ""
 
-
 @dataclass
 class PluginManifest:
     """Parsed plugin.json manifest."""
@@ -28,7 +37,6 @@ class PluginManifest:
     hooks: list[dict[str, Any]] = field(default_factory=list)
     mcp_defs: list[dict[str, Any]] = field(default_factory=list)
     description: str = ""
-
 
 @dataclass
 class PluginSpec:
@@ -44,7 +52,6 @@ class PluginSpec:
     def is_valid(self) -> bool:
         return len(self.validation_errors) == 0
 
-
 @dataclass
 class PluginRegistry:
     """Read-only snapshot of installed plugins (for conflict checking)."""
@@ -52,7 +59,6 @@ class PluginRegistry:
     plugins: dict[str, PluginSpec] = field(default_factory=dict)
     command_names: set[str] = field(default_factory=set)
     skill_names: set[str] = field(default_factory=set)
-
 
 @dataclass
 class RunState:
@@ -62,7 +68,6 @@ class RunState:
     step: int = 0
     data: dict[str, Any] = field(default_factory=dict)
     completed_steps: list[str] = field(default_factory=list)
-
 
 @dataclass
 class CheckpointData:

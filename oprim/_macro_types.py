@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "MacroDataPoint",
+    "MacroFetchError",
+]
+
 from datetime import date
 from typing import Any
 
@@ -32,14 +38,12 @@ class MacroDataPoint(BaseModel):
     value: float
     metadata: dict[str, Any] = Field(default_factory=dict)
 
-
 class MacroFetchError(OprimError):
     """Raised when a macro data fetch fails.
 
     Covers: network errors, data source unavailable, source requiring licensed access,
     unexpected API response shapes, and empty mandatory responses.
     """
-
 
 def _filter_by_date(
     points: list[MacroDataPoint],
@@ -50,7 +54,6 @@ def _filter_by_date(
     return [
         p for p in points if (start is None or p.date >= start) and (end is None or p.date <= end)
     ]
-
 
 def _guard_source(source: str) -> None:
     """Raise MacroFetchError immediately for licensed sources."""

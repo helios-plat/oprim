@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 import asyncio
 import shutil
 from pathlib import Path
@@ -10,14 +12,11 @@ from pathlib import Path
 class Wan22Error(Exception):
     """Wan2.2 invocation failed."""
 
-
 class Wan22LocalSetupError(Wan22Error):
     """Vendor binary not found."""
 
-
 class Wan22CloudError(Wan22Error):
     """Cloud API call failed."""
-
 
 async def invoke_local(
     *,
@@ -72,7 +71,6 @@ async def invoke_local(
     if not output_path.exists():
         raise Wan22Error(f"Wan2.2 did not produce output: {output_path}")
     return output_path
-
 
 async def invoke_cloud(
     *,

@@ -11,14 +11,14 @@ assemblable by `video_concat`.
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # sole ffprobe executor / encoder; not a capability
+
 from pathlib import Path
 
 from obase.ffmpeg import FFmpegError
 from obase.ffmpeg import run as ffmpeg_run
 
-
-class EncodeFramesError(Exception):
-    """Frame encoding failed."""
+from oprim._exceptions import EncodeFramesError
 
 
 async def encode_frames_to_mp4(
