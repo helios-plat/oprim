@@ -7,7 +7,7 @@ import importlib
 from pathlib import Path
 from typing import Any
 
-from oprim._layering import LAYER_INFRA, declared_exports, layer_from_tree
+from oprim._layering import LAYER_ELEMENT, LAYER_INFRA, declared_exports, layer_from_tree
 from oprim._version import __version__
 
 _ELEMENT_MAP: dict[str, str] = {}
@@ -186,3 +186,154 @@ def _get_epub_book():
     from oprim._epub_toc_split import EpubBook
 
     return EpubBook
+
+
+# ---------------------------------------------------------------------------
+# Release manifest (consumed by HEVI's `test_three_o_contracts` and
+# `scripts/ci/run_3o_v3_manifest_audit.py`).
+#
+# Derived from `_ELEMENT_MAP`, never hand-written. The previous hardcoded
+# manifest listed 5 entries with signatures that did not match the real
+# functions (`(request, /, *, provider, output_path)` — there is no `request`
+# parameter), so it was a second, wrong source of truth of exactly the kind
+# `_manifest.py` was. `_build_element_map` is the only authority now.
+#
+# `signature` is computed lazily by `element_signature()` rather than eagerly:
+# introspecting every element would import the whole package at import time.
+# The audit script treats `signature` as optional (`entry.get("signature")`).
+# ---------------------------------------------------------------------------
+
+#: Elements the manifest publishes. Keep this list to the canonical surface a
+#: release is contracted on — not every one of the 1400+ discovered names.
+_MANIFEST_ELEMENTS: tuple[str, ...] = (
+    # media inspection
+    "media_probe",
+    "probe_duration",
+    # transcription
+    "transcribe_audio",
+    # frames / waveform / segmentation
+    "extract_video_frames",
+    "extract_audio_waveform",
+    "segment_media",
+    "extract_media_segment",
+    # render / mix / burn
+    "render_html_to_mp4",
+    "render_media",
+    "audio_mix",
+    "audio_normalize",
+    "audio_video_merge",
+    "subtitle_burn",
+    # generation
+    "video_generate",
+    "tts_synthesize",
+    "avatar_generate",
+    "encode_voice_reference",
+    # origin's 5d992f2 manifest also lists edge_tts_synthesize
+    "edge_tts_synthesize",
+    # safety / prompt
+    "validate_html",
+    "style_marker_prompt",
+    # consumer-facing types (HEVI imports these from `oprim.hevi_types`;
+    # the module itself is a namespace, not a resolvable entity, so the
+    # manifest names the types rather than the module)
+    "CanvasEdge",
+    "CanvasNode",
+    "ProviderCapability",
+    "Subject",
+    "VideoQuality",
+)
+
+
+def element_signature(name: str) -> str | None:
+    """Real signature of a manifest element, or None if it cannot be resolved.
+
+    Imports the owning module on demand. Kept out of the eager manifest build
+    so `import oprim` stays cheap.
+    """
+    import importlib
+    import inspect
+
+    module_path = _ELEMENT_MAP.get(name)
+    if module_path is None:
+        return None
+    try:
+        obj = getattr(importlib.import_module(module_path), name)
+    except Exception:  # pragma: no cover - defensive: manifest must never break import
+        return None
+    try:
+        return f"{name}{inspect.signature(obj)}"
+    except (TypeError, ValueError):  # pragma: no cover - builtins have no signature
+        return None
+
+
+def _source_path_for(module_path: str) -> Path | None:
+    """File that defines `module_path`, whether it is a module or a subpackage."""
+    rel = Path(*module_path.split(".")[1:])
+    direct = Path(__file__).parent / rel.with_suffix(".py")
+    if direct.exists():
+        return direct
+    pkg_init = Path(__file__).parent / rel / "__init__.py"
+    return pkg_init if pkg_init.exists() else None
+
+
+def _element_depends_on(name: str) -> list[str]:
+    """Intra-package modules the element's implementation imports."""
+    module_path = _ELEMENT_MAP.get(name)
+    if module_path is None:
+        return []
+    source = _source_path_for(module_path)
+    if source is None:
+        return []
+    try:
+        tree = ast.parse(source.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):  # pragma: no cover - defensive
+        return []
+    deps: set[str] = set()
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and node.level == 0
+            and node.module.split(".")[0] == "oprim"
+        ):
+            deps.add(node.module)
+    return sorted(deps)
+
+
+def _module_path_for(name: str) -> str | None:
+    """Resolve a manifest name to the module that defines it.
+
+    Two shapes are legitimate. Most elements resolve through `_ELEMENT_MAP`.
+    A few are pure module re-exports (`hevi_types`) that consumers import as a
+    namespace rather than a callable; those resolve to the module itself.
+    """
+    via_element = _ELEMENT_MAP.get(name)
+    if via_element is not None:
+        return via_element
+    if _source_path_for(f"{__name__}.{name}") is not None:
+        return f"{__name__}.{name}"
+    return None
+
+
+def _build_manifest() -> dict[str, object]:
+    elements: list[dict[str, object]] = []
+    for name in _MANIFEST_ELEMENTS:
+        module_path = _module_path_for(name)
+        if module_path is None:
+            # Never publish a name discovery cannot resolve: the audit script
+            # flags such entries as dangling.
+            continue
+        elements.append(
+            {
+                "name": name,
+                "kind": "oprim",
+                "module": module_path,
+                "layer": _MODULE_LAYERS.get(module_path, LAYER_ELEMENT),
+                "depends_on": _element_depends_on(name),
+                "pillars": [],
+            }
+        )
+    return {"package": __name__, "version": __version__, "elements": elements}
+
+
+__manifest__: dict[str, object] = _build_manifest()
