@@ -17,5 +17,5 @@ def controller_generation_id(root_run_id: str, generation: int) -> str:
         raise ValueError("root_run_id must not be empty")
     if generation < 1:
         raise ValueError("generation must be >= 1")
-    payload = f"{root_run_id}\x00{generation}".encode("utf-8")
+    payload = f"{root_run_id}\x00{generation}".encode()
     return "cg_" + hashlib.sha256(payload).hexdigest()[:24]

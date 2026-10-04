@@ -28,7 +28,7 @@ class ExecutionLineage:
         task_id: str | None = None,
         attempt_id: str | None = None,
         controller_generation: int | None = None,
-    ) -> "ExecutionLineage":
+    ) -> ExecutionLineage:
         """Create the next immutable lineage node."""
         if not execution_id:
             raise ValueError("execution_id must not be empty")
