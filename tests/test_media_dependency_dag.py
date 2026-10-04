@@ -290,7 +290,7 @@ class TestNonMediaBacklogPinned:
     contribute.
     """
 
-    EXPECTED_COUNT = 151
+    EXPECTED_COUNT = 142
 
     #: Element→element compositions outside the media scope, same defect class as
     #: the pre-D video DAG. Removed from the 3o_lint allowlist in P0-D (the old

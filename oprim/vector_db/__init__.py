@@ -1,3 +1,5 @@
+
+__oprim_layer__ = "infra"  # publishes no element of its own; shared base
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

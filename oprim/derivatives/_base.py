@@ -1,4 +1,5 @@
 """Shared Black-Scholes helpers."""
+__oprim_layer__ = "infra"  # publishes no element of its own; shared base
 
 
 def _d1_d2(s, k, t, r, sigma, q=0.0):
