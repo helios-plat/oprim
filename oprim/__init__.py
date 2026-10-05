@@ -216,6 +216,8 @@ _MANIFEST_ELEMENTS: tuple[str, ...] = (
     "extract_audio_waveform",
     "segment_media",
     "extract_media_segment",
+    # transcript-aware timing
+    "word_boundary_snap",
     # render / mix / burn
     "render_html_to_mp4",
     "render_media",
