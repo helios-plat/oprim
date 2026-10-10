@@ -8,7 +8,8 @@
 
 3O 范式 oprim 约束：
 - 每个公开函数是一次原子计算，公开函数之间互不调用（只共享 ``_`` 私有工具）
-- 纯函数：无 IO、无全局状态、无随机
+- 纯函数：无 IO、无全局状态、无随机；纯计算故为同步函数
+- 签名：≤1 个核心位置参数，其余 keyword-only
 - 输入输出类型显式（Pydantic 模型 / sympy 对象）
 
 安全：尺寸只接受受限字面量（整数、分数、``k*sqrt(m)`` 形式），
@@ -202,7 +203,7 @@ def parse_dimension(value: int | float | str) -> sp.Expr:
     return sp.nsimplify(expr)
 
 
-def build_body_points(body: str, dims: dict[str, sp.Expr]) -> dict[str, sp.Matrix]:
+def build_body_points(body: str, *, dims: dict[str, sp.Expr]) -> dict[str, sp.Matrix]:
     """按标准建系约定给出几何体全部顶点的精确数学坐标。"""
     if body in ("cube", "cuboid"):
         if body == "cube":
@@ -260,7 +261,7 @@ def body_topology(body: str) -> dict[str, list]:
 
 
 def derive_given_points(
-    points: dict[str, sp.Matrix], givens: list[GivenPoint]
+    points: dict[str, sp.Matrix], *, givens: list[GivenPoint]
 ) -> dict[str, sp.Matrix]:
     """按顺序构造派生点，返回新的点表（不修改入参）。"""
     out = dict(points)
@@ -291,8 +292,9 @@ def derive_given_points(
     return out
 
 
-def plane_normal(p: sp.Matrix, q: sp.Matrix, r: sp.Matrix) -> tuple[sp.Matrix, sp.Matrix]:
+def plane_normal(plane: tuple[sp.Matrix, sp.Matrix, sp.Matrix]) -> tuple[sp.Matrix, sp.Matrix]:
     """三点确定平面的法向量：返回 (叉积原值, 约简后的最简方向)。"""
+    p, q, r = plane
     raw = (q - p).cross(r - p)
     raw = sp.Matrix([_simp(c) for c in raw])
     if all(c == 0 for c in raw):
@@ -311,30 +313,36 @@ def plane_normal(p: sp.Matrix, q: sp.Matrix, r: sp.Matrix) -> tuple[sp.Matrix, s
     return raw, reduced
 
 
-def line_plane_angle_sin(direction: sp.Matrix, normal: sp.Matrix) -> sp.Expr:
+def line_plane_angle_sin(direction: sp.Matrix, *, normal: sp.Matrix) -> sp.Expr:
     """线面角正弦 sinθ = |v·n| / (|v||n|)。"""
     if all(c == 0 for c in direction):
         raise ValueError("degenerate line")
     return _simp(sp.Abs(direction.dot(normal)) / (_norm(direction) * _norm(normal)))
 
 
-def line_line_angle_cos(d1: sp.Matrix, d2: sp.Matrix) -> sp.Expr:
+def line_line_angle_cos(direction: sp.Matrix, *, other: sp.Matrix) -> sp.Expr:
     """两直线夹角余弦 cosθ = |d1·d2| / (|d1||d2|)（取锐角）。"""
+    d1, d2 = direction, other
     if all(c == 0 for c in d1) or all(c == 0 for c in d2):
         raise ValueError("degenerate line")
     return _simp(sp.Abs(d1.dot(d2)) / (_norm(d1) * _norm(d2)))
 
 
-def point_plane_distance(point: sp.Matrix, plane_point: sp.Matrix, normal: sp.Matrix) -> sp.Expr:
+def point_plane_distance(point: sp.Matrix, *, plane_point: sp.Matrix, normal: sp.Matrix) -> sp.Expr:
     """点到平面距离 |(P − P0)·n| / |n|。"""
     return _simp(sp.Abs((point - plane_point).dot(normal)) / _norm(normal))
 
 
-def dihedral_angle_cos(a: sp.Matrix, b: sp.Matrix, c: sp.Matrix, d: sp.Matrix) -> sp.Expr:
+def dihedral_angle_cos(
+    edge: tuple[sp.Matrix, sp.Matrix], *, faces: tuple[sp.Matrix, sp.Matrix]
+) -> sp.Expr:
     """二面角 C-AB-D 的带符号余弦（正=锐角，负=钝角）。
 
+    ``edge=(A, B)`` 为棱，``faces=(C, D)`` 分别位于两个半平面内；
     在两个半平面内各取垂直于棱 AB 的向量再求夹角。
     """
+    a, b = edge
+    c, d = faces
     u = b - a
     if all(x == 0 for x in u):
         raise ValueError("degenerate edge")
@@ -349,17 +357,19 @@ def dihedral_angle_cos(a: sp.Matrix, b: sp.Matrix, c: sp.Matrix, d: sp.Matrix) -
     return _simp(v1.dot(v2) / (_norm(v1) * _norm(v2)))
 
 
-def tetra_volume(a: sp.Matrix, b: sp.Matrix, c: sp.Matrix, d: sp.Matrix) -> sp.Expr:
+def tetra_volume(vertices: tuple[sp.Matrix, sp.Matrix, sp.Matrix, sp.Matrix]) -> sp.Expr:
     """四面体体积 |(AB × AC)·AD| / 6。"""
+    a, b, c, d = vertices
     return _simp(sp.Abs((b - a).cross(c - a).dot(d - a)) / 6)
 
 
-def segment_length(a: sp.Matrix, b: sp.Matrix) -> sp.Expr:
+def segment_length(endpoints: tuple[sp.Matrix, sp.Matrix]) -> sp.Expr:
     """线段长度 |AB|。"""
+    a, b = endpoints
     return _simp(_norm(b - a))
 
 
-def to_three_coords(points: dict[str, sp.Matrix], scale: float = 1.5) -> dict[str, list[float]]:
+def to_three_coords(points: dict[str, sp.Matrix], *, scale: float = 1.5) -> dict[str, list[float]]:
     """数学坐标 → three.js 坐标（y 向上），浮点，保留 6 位。"""
     return {
         n: [round(float(p[0]) * scale, 6), round(float(p[2]) * scale, 6), round(float(p[1]) * scale, 6)]
@@ -381,7 +391,7 @@ def latex_vector(v: sp.Matrix) -> str:
     return r"\left(" + ", ".join(sp.latex(_simp(c)) for c in v) + r"\right)"
 
 
-def numeric_query_value(query_type: str, coords: list[list[float]]) -> float:
+def numeric_query_value(query_type: str, *, coords: list[list[float]]) -> float:
     """独立浮点复核：只用 ``math``，不走 sympy，供上层与精确解比对。
 
     ``coords`` 依次为该题型所需的点（数学坐标浮点），顺序同 ``QUERY_ARITY``。
