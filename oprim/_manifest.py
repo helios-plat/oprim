@@ -345,6 +345,11 @@ ELEMENTS: list[str] = [
     "molar_mass",
     "format_equation_latex",
     "numeric_balance_check",
+    # --- Education: Echo Loop listening practice (consumer: Mneme) ---
+    "blind_listen_generate",
+    "intensive_listen_parse",
+    "shadowing_evaluate",
+    "retell_evaluate",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -622,6 +627,10 @@ CATEGORIES: dict[str, list[str]] = {
         "molar_mass",
         "format_equation_latex",
         "numeric_balance_check",
+        "blind_listen_generate",
+        "intensive_listen_parse",
+        "shadowing_evaluate",
+        "retell_evaluate",
     ],
 }
 
