@@ -611,7 +611,7 @@ def interval_latex(pieces: Sequence[tuple[sp.Expr, sp.Expr, bool, bool]]) -> str
     return _interval_latex(pieces)
 
 
-def latex_expr(expr: sp.Expr) -> str:
+def conic_latex_expr(expr: sp.Expr) -> str:
     """化简后的 LaTeX（±∞ 写作 ``\\pm\\infty``）。"""
     return _latex(expr)
 
