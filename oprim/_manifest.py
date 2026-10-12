@@ -350,6 +350,19 @@ ELEMENTS: list[str] = [
     "intensive_listen_parse",
     "shadowing_evaluate",
     "retell_evaluate",
+    # --- Education: deterministic English grading (from recepyagmur/EnglishPractice, MIT) ---
+    "normalize_english_answer",
+    "english_answer_forms",
+    "english_answers_equivalent",
+    "dictation_words",
+    "dictation_word_edits",
+    "score_dictation_words",
+    "english_word_forms",
+    "pattern_fixed_parts",
+    "contains_pattern",
+    "uses_pattern",
+    "find_pronoun_errors",
+    "apply_pronoun_fixes",
 ]
 
 CATEGORIES: dict[str, list[str]] = {
@@ -631,6 +644,18 @@ CATEGORIES: dict[str, list[str]] = {
         "intensive_listen_parse",
         "shadowing_evaluate",
         "retell_evaluate",
+        "normalize_english_answer",
+        "english_answer_forms",
+        "english_answers_equivalent",
+        "dictation_words",
+        "dictation_word_edits",
+        "score_dictation_words",
+        "english_word_forms",
+        "pattern_fixed_parts",
+        "contains_pattern",
+        "uses_pattern",
+        "find_pronoun_errors",
+        "apply_pronoun_fixes",
     ],
 }
 
