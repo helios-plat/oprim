@@ -1,7 +1,7 @@
 """Tests for crypto_technical oprims."""
 import pytest
 
-from oprim.crypto_technical import (
+from oprim._crypto_technical import (
     CryptoTechnicalError,
     compute_cross_asset_divergence_revert,
     compute_stablecoin_event_revert,

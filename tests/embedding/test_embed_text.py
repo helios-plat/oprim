@@ -48,8 +48,7 @@ class TestEmbedText:
     def test_batching_at_boundary(self):
         """11 texts should trigger 2 DashScope calls (batch_size=10 at provider level)."""
         texts = [f"text {i}" for i in range(11)]
-        mock_vecs_10 = [[0.1] * 1024 for _ in range(10)]
-        mock_vecs_1 = [[0.2] * 1024]
+        [[0.1] * 1024 for _ in range(10)]
 
         call_count = {"n": 0}
 
@@ -127,8 +126,10 @@ class TestBgeM3Embedder:
     def test_flagembedding_path(self):
         import sys
         from unittest.mock import MagicMock, patch
-        from oprim.embedding.bge_m3 import BgeM3Embedder
+
         import numpy as np
+
+        from oprim.embedding.bge_m3 import BgeM3Embedder
 
         mock_flag_pkg = MagicMock()
         mock_model = MagicMock()
@@ -146,8 +147,10 @@ class TestBgeM3Embedder:
     def test_sentence_transformers_path(self):
         import sys
         from unittest.mock import MagicMock, patch
-        from oprim.embedding.bge_m3 import BgeM3Embedder
+
         import numpy as np
+
+        from oprim.embedding.bge_m3 import BgeM3Embedder
 
         mock_st_pkg = MagicMock()
         mock_model = MagicMock()
@@ -165,6 +168,7 @@ class TestBgeM3Embedder:
     def test_embed_exception_raises_embeddingerror(self):
         import sys
         from unittest.mock import MagicMock, patch
+
         from oprim.embedding.bge_m3 import BgeM3Embedder
         from oprim.errors import EmbeddingError
 

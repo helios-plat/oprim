@@ -25,11 +25,22 @@ def parse_epub(path: Path) -> ParsedContent:
         book = epub.read_epub(str(path))
         chapters = []
         all_md: list[str] = []
+        # Build TOC title map: file_name → semantic title
+        toc_map: dict[str, str] = {}
+        def _walk_toc(nodes):
+            for node in nodes:
+                if hasattr(node, "href") and hasattr(node, "title"):
+                    toc_map[node.href.split("#")[0]] = node.title
+                if hasattr(node, "__iter__") and not hasattr(node, "href"):
+                    _walk_toc(node)
+        _walk_toc(book.toc)
+
         for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
             content = item.get_content().decode("utf-8", errors="replace")
             plain = re.sub(r"<[^>]+>", " ", content)
             plain = re.sub(r"\s+", " ", plain).strip()
-            title = item.get_name()
+            # Use TOC semantic title if available, fall back to file name
+            title = toc_map.get(item.get_name(), item.get_name())
             chapters.append({"title": title, "content_len": len(plain)})
             all_md.append(f"## {title}\n\n{plain}")
 
@@ -41,7 +52,14 @@ def parse_epub(path: Path) -> ParsedContent:
             plaintext=plaintext,
             page_count=len(chapters),
             chapters=chapters,
-            metadata={"title": book.title or ""},
+            metadata={
+                "title": book.title or "",
+                "author": ", ".join(
+                    str(v[0][0]) for v in [book.get_metadata("DC", "creator")]
+                    if v
+                ) or "",
+                "language": (book.get_metadata("DC", "language") or [("",)])[0][0] or "",
+            },
             parser_name="ebooklib",
             parse_quality_score=0.8 if chapters else 0.1,
         )

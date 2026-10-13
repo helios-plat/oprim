@@ -1,4 +1,4 @@
-"""Tests for oprim.video_recompose."""
+"""Tests for oprim._video_recompose."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from oprim.video_recompose import (
+from oprim._video_recompose import (
     VideoRecomposeError,
     VideoRecomposeSetupError,
     video_recompose,
@@ -43,9 +43,9 @@ class TestVideoRecompose:
         inp.write_bytes(b"\x00" * 64)
         out = tmp_path / "portrait.mp4"
         with (
-            patch("oprim.video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
+            patch("oprim._video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
             patch("asyncio.create_subprocess_exec", side_effect=_mock_probe(1920, 1080)),
-            patch("oprim.video_recompose.ffmpeg_run", side_effect=_mock_ffmpeg_run()),
+            patch("oprim._video_recompose.ffmpeg_run", side_effect=_mock_ffmpeg_run()),
         ):
             result = await video_recompose(input_path=inp, output_path=out)
         assert result == out
@@ -55,9 +55,9 @@ class TestVideoRecompose:
         inp.write_bytes(b"\x00" * 64)
         out = tmp_path / "portrait.mp4"
         with (
-            patch("oprim.video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
+            patch("oprim._video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
             patch("asyncio.create_subprocess_exec", side_effect=_mock_probe(1080, 1080)),
-            patch("oprim.video_recompose.ffmpeg_run", side_effect=_mock_ffmpeg_run()),
+            patch("oprim._video_recompose.ffmpeg_run", side_effect=_mock_ffmpeg_run()),
         ):
             result = await video_recompose(input_path=inp, output_path=out)
         assert result == out
@@ -66,7 +66,7 @@ class TestVideoRecompose:
         inp = tmp_path / "portrait.mp4"
         inp.write_bytes(b"\x00" * 64)
         with (
-            patch("oprim.video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
+            patch("oprim._video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
             patch("asyncio.create_subprocess_exec", side_effect=_mock_probe(1080, 1920)),
         ):
             with pytest.raises(VideoRecomposeError, match="already matches"):
@@ -75,7 +75,7 @@ class TestVideoRecompose:
     async def test_ffprobe_missing_raises(self, tmp_path: Path) -> None:
         inp = tmp_path / "video.mp4"
         inp.write_bytes(b"\x00" * 64)
-        with patch("oprim.video_recompose.shutil.which", return_value=None):
+        with patch("oprim._video_recompose.shutil.which", return_value=None):
             with pytest.raises(VideoRecomposeSetupError, match="ffprobe"):
                 await video_recompose(input_path=inp, output_path=tmp_path / "out.mp4")
 
@@ -89,7 +89,7 @@ class TestVideoRecompose:
 
     async def test_input_not_found_raises(self, tmp_path: Path) -> None:
         with (
-            patch("oprim.video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
+            patch("oprim._video_recompose.shutil.which", return_value="/usr/bin/ffprobe"),
         ):
             with pytest.raises(VideoRecomposeError, match="not found"):
                 await video_recompose(

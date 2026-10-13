@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class TranslationResult(BaseModel):
     text: str
     detected_source_language: str

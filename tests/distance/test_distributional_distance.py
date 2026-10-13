@@ -1,4 +1,4 @@
-"""Tests for distributional_distance in oprim.distance."""
+"""Tests for distributional_distance in oprim._distance."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from scipy import stats as sp_stats
 
-from oprim.distance import distributional_distance
+from oprim._distance import distributional_distance
 
 METRICS = ["wasserstein_1", "kolmogorov_smirnov", "cramer_von_mises", "energy"]
 

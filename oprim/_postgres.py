@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import re
 from typing import Any
 
 from pydantic import BaseModel
@@ -11,6 +13,7 @@ from oprim._exceptions import (
     OprimConnectionError,
     OprimError,
     OprimTimeoutError,
+    OprimValidationError,
 )
 
 try:
@@ -22,6 +25,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
+
 
 class PoolStatus(BaseModel):
     total_connections: int
@@ -70,9 +74,30 @@ class ReplicationLag(BaseModel):
     max_lag_seconds: float | None
 
 
+class AdvisoryLockPlan(BaseModel):
+    name: str
+    key: int  # 由 name 派生的稳定 signed 64-bit key(PG advisory lock 用 bigint)
+    try_lock_sql: str  # session 级 try-lock;执行后 fetchone()[0] 为 bool(是否获锁)
+    unlock_sql: str
+
+
+class PruneResult(BaseModel):
+    table: str
+    deleted_rows: int
+    cutoff: str  # ISO 时间戳:此次运行删除的行的 ts 上界(不含)
+
+
+class RollupResult(BaseModel):
+    source_table: str
+    dest_table: str
+    rows_written: int
+    bucket_seconds: int
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _connect(dsn: str, timeout_sec: int) -> Any:
     """Return a psycopg connection; raise oprim-typed errors on failure."""
@@ -98,6 +123,7 @@ def _connect(dsn: str, timeout_sec: int) -> Any:
 # 3.2 postgres_pool_status
 # ---------------------------------------------------------------------------
 
+
 def postgres_pool_status(
     *,
     dsn: str,
@@ -118,9 +144,7 @@ def postgres_pool_status(
     conn = _connect(dsn, timeout_sec)
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT state, COUNT(*) FROM pg_stat_activity GROUP BY state;"
-            )
+            cur.execute("SELECT state, COUNT(*) FROM pg_stat_activity GROUP BY state;")
             rows = cur.fetchall()
             state_counts: dict[str, int] = {}
             for state, count in rows:
@@ -130,9 +154,7 @@ def postgres_pool_status(
             max_conn_row = cur.fetchone()
             max_connections = int(max_conn_row[0]) if max_conn_row else 0
 
-            cur.execute(
-                "SELECT COUNT(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock';"
-            )
+            cur.execute("SELECT COUNT(*) FROM pg_stat_activity WHERE wait_event_type = 'Lock';")
             wait_row = cur.fetchone()
             waiting = int(wait_row[0]) if wait_row else 0
     finally:
@@ -158,6 +180,7 @@ def postgres_pool_status(
 # ---------------------------------------------------------------------------
 # 3.3 postgres_slow_queries
 # ---------------------------------------------------------------------------
+
 
 def postgres_slow_queries(
     *,
@@ -185,9 +208,7 @@ def postgres_slow_queries(
     try:
         with conn.cursor() as cur:
             # Verify pg_stat_statements is available
-            cur.execute(
-                "SELECT 1 FROM pg_extension WHERE extname = 'pg_stat_statements';"
-            )
+            cur.execute("SELECT 1 FROM pg_extension WHERE extname = 'pg_stat_statements';")
             if cur.fetchone() is None:
                 raise OprimError(
                     "pg_stat_statements extension is not installed. "
@@ -226,6 +247,7 @@ def postgres_slow_queries(
 # ---------------------------------------------------------------------------
 # 3.4 postgres_locks_status
 # ---------------------------------------------------------------------------
+
 
 def postgres_locks_status(
     *,
@@ -291,6 +313,7 @@ def postgres_locks_status(
 # ---------------------------------------------------------------------------
 # 3.5 postgres_table_size
 # ---------------------------------------------------------------------------
+
 
 def postgres_table_size(
     *,
@@ -363,6 +386,7 @@ def postgres_table_size(
 # 3.6 postgres_replication_lag
 # ---------------------------------------------------------------------------
 
+
 def postgres_replication_lag(
     *,
     dsn: str,
@@ -406,13 +430,15 @@ def postgres_replication_lag(
                     """
                 )
                 for r in cur.fetchall():
-                    replicas.append({
-                        "client_addr": r[0],
-                        "state": r[1],
-                        "sync_state": r[2],
-                        "lag_seconds": float(r[3]),
-                        "lag_bytes": int(r[4]),
-                    })
+                    replicas.append(
+                        {
+                            "client_addr": r[0],
+                            "state": r[1],
+                            "sync_state": r[2],
+                            "lag_seconds": float(r[3]),
+                            "lag_bytes": int(r[4]),
+                        }
+                    )
     finally:
         conn.close()
 
@@ -422,4 +448,206 @@ def postgres_replication_lag(
         is_primary=is_primary,
         replicas=replicas,
         max_lag_seconds=max_lag,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Aegis IMPL SPEC v1.0 — short-name aliases (B2)
+# ---------------------------------------------------------------------------
+
+postgres_long_running_queries = postgres_slow_queries
+postgres_locks = postgres_locks_status
+
+
+# ---------------------------------------------------------------------------
+# pg_advisory_lock_plan — 无状态 advisory lock 规划 (aegis DESIGN #1)
+# ---------------------------------------------------------------------------
+
+
+def _derive_advisory_key(name: str) -> int:
+    """由角色名派生稳定的 signed 64-bit key(PG advisory lock 用 bigint)。"""
+    digest = hashlib.sha256(name.encode("utf-8")).digest()[:8]
+    return int.from_bytes(digest, "big", signed=True)
+
+
+def pg_advisory_lock_plan(*, name: str) -> AdvisoryLockPlan:
+    """为命名角色锁生成 session 级 advisory lock 的 key 与 SQL(无状态)。
+
+    oprim 不持连接、不获锁:仅由 name 派生稳定 bigint key 并给出参数化 try-lock/unlock
+    SQL。"锁随连接存活"是有状态且与运行时(async)强绑定的责任,归调用方——aegis 在一条
+    **专用长连接**上执行 try_lock_sql,`fetchone()[0]` 为是否获得角色(如 loop-runner)的
+    bool;放弃角色/进程退出时执行 unlock_sql(或直接关连接由 PG 自动释放 session 锁)。
+
+    Args:
+        name: 角色/资源名(如 "aegis.loop_runner")。同名跨进程派生同 key → 全局互斥。
+
+    Returns:
+        AdvisoryLockPlan 含 key 与参数化 SQL(占位符绑定 key)。
+
+    Example:
+        >>> plan = pg_advisory_lock_plan(name="aegis.loop_runner")
+        >>> plan.try_lock_sql
+        'SELECT pg_try_advisory_lock(%s)'
+        >>> # 调用方: cur.execute(plan.try_lock_sql, (plan.key,)); got = cur.fetchone()[0]
+    """
+    return AdvisoryLockPlan(
+        name=name,
+        key=_derive_advisory_key(name),
+        try_lock_sql="SELECT pg_try_advisory_lock(%s)",
+        unlock_sql="SELECT pg_advisory_unlock(%s)",
+    )
+
+
+# ---------------------------------------------------------------------------
+# retention_prune (#5) / metric_downsample_rollup (#6) — 共享标识符校验
+# ---------------------------------------------------------------------------
+
+_IDENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
+_AGGS = {"avg", "max", "min", "sum"}
+
+
+def _check_identifier(name: str, kind: str) -> str:
+    """校验 SQL 标识符(可选 schema.table),拒绝注入。返回原值。"""
+    if not _IDENT_RE.match(name):
+        raise OprimValidationError(f"invalid {kind} identifier: {name!r}")
+    return name
+
+
+def retention_prune(
+    *,
+    dsn: str,
+    table: str,
+    ts_column: str,
+    retain_days: float,
+    batch_size: int = 10_000,
+    timeout_sec: int = 30,
+) -> PruneResult:
+    """按保留期删除 table 中 ts_column 早于 now()-retain_days 的行(分批).
+
+    幂等:cutoff 在运行开始一次性求值并跨批复用,重跑只删新到期行。分批(ctid IN ...
+    LIMIT)避免长事务/长锁;每批 commit。
+
+    Args:
+        dsn: PostgreSQL 连接串.
+        table: 目标表(可 schema.table). 标识符经正则校验防注入.
+        ts_column: 时间戳列名. 同样校验.
+        retain_days: 保留天数(支持小数). 早于 now()-retain_days 的行被删.
+        batch_size: 每批删除行数上限.
+        timeout_sec: 连接超时秒数.
+
+    Returns:
+        PruneResult 含删除行数与本次 cutoff.
+
+    Raises:
+        OprimValidationError: 标识符非法、retain_days<0 或 batch_size<=0.
+        OprimConnectionError / OprimTimeoutError / OprimAuthError.
+    """
+    _check_identifier(table, "table")
+    _check_identifier(ts_column, "ts_column")
+    if retain_days < 0:
+        raise OprimValidationError(f"retain_days must be >= 0, got {retain_days}")
+    if batch_size <= 0:
+        raise OprimValidationError(f"batch_size must be > 0, got {batch_size}")
+
+    conn = _connect(dsn, timeout_sec)
+    deleted = 0
+    try:
+        with conn.cursor() as cur:
+            # cutoff 一次求值,保证跨批一致(幂等边界)
+            cur.execute("SELECT now() - (%s * interval '1 day')", (retain_days,))
+            row = cur.fetchone()
+            cutoff = row[0] if row else None
+
+            del_sql = (
+                f"DELETE FROM {table} WHERE ctid IN ("  # noqa: S608 — 标识符已校验
+                f"SELECT ctid FROM {table} WHERE {ts_column} < %s LIMIT %s)"
+            )
+            while True:
+                cur.execute(del_sql, (cutoff, batch_size))
+                n = cur.rowcount
+                conn.commit()
+                deleted += n if n > 0 else 0
+                if n < batch_size:
+                    break
+    finally:
+        conn.close()
+
+    return PruneResult(table=table, deleted_rows=deleted, cutoff=str(cutoff))
+
+
+def metric_downsample_rollup(
+    *,
+    dsn: str,
+    source_table: str,
+    dest_table: str,
+    ts_column: str,
+    value_column: str,
+    agg: str,
+    bucket_seconds: int,
+    since: Any,
+    label_columns: list[str] | None = None,
+    timeout_sec: int = 30,
+) -> RollupResult:
+    """把 source 原始点按时间桶聚合 upsert 进 dest(幂等)。
+
+    以 date_bin 将 ts_column 分桶(bucket_seconds),按 label_columns 分组,对 value_column
+    取 agg(avg/max/min/sum),ON CONFLICT (bucket, *labels) DO UPDATE —— 重跑同一区间只覆盖
+    对应桶,幂等(DESIGN §7 保留/降采样,C-7)。持连接由本函数管理(与 _postgres 其它函数一致)。
+
+    dest 表约定:列 (bucket timestamptz, *label_columns, value),且在 (bucket, *label_columns)
+    上有唯一约束(供 ON CONFLICT)。表结构由调用方(migration)保证。
+
+    Args:
+        dsn: 连接串.
+        source_table / dest_table: 源表 / 目标表(标识符校验).
+        ts_column / value_column: 时间戳列 / 值列(标识符校验).
+        agg: 聚合函数,取 avg/max/min/sum.
+        bucket_seconds: 桶宽秒.
+        since: 只聚合 ts_column >= since 的行(参数化传入).
+        label_columns: 分组维度列(标识符校验);None=无分组.
+        timeout_sec: 连接超时.
+
+    Returns:
+        RollupResult(rows_written 为本次 upsert 影响行数).
+
+    Raises:
+        OprimValidationError: 标识符非法、agg 不支持、或 bucket_seconds<=0.
+        OprimConnectionError / OprimTimeoutError / OprimAuthError.
+    """
+    _check_identifier(source_table, "source_table")
+    _check_identifier(dest_table, "dest_table")
+    _check_identifier(ts_column, "ts_column")
+    _check_identifier(value_column, "value_column")
+    labels = label_columns or []
+    for c in labels:
+        _check_identifier(c, "label_column")
+    if agg not in _AGGS:
+        raise OprimValidationError(f"agg must be one of {sorted(_AGGS)}, got {agg!r}")
+    if bucket_seconds <= 0:
+        raise OprimValidationError(f"bucket_seconds must be > 0, got {bucket_seconds}")
+
+    label_sql = "".join(f", {c}" for c in labels)
+    sql = (
+        f"INSERT INTO {dest_table} (bucket{label_sql}, value) "  # noqa: S608 — 标识符已校验
+        f"SELECT date_bin(make_interval(secs => %s), {ts_column}, 'epoch'::timestamptz) AS bucket"
+        f"{label_sql}, {agg}({value_column}) "
+        f"FROM {source_table} WHERE {ts_column} >= %s "
+        f"GROUP BY bucket{label_sql} "
+        f"ON CONFLICT (bucket{label_sql}) DO UPDATE SET value = EXCLUDED.value"
+    )
+
+    conn = _connect(dsn, timeout_sec)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, (bucket_seconds, since))
+            written = cur.rowcount
+            conn.commit()
+    finally:
+        conn.close()
+
+    return RollupResult(
+        source_table=source_table,
+        dest_table=dest_table,
+        rows_written=written if written > 0 else 0,
+        bucket_seconds=bucket_seconds,
     )

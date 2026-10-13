@@ -1,6 +1,5 @@
 """Tests for oprim.finance.futures_curve_shape."""
 
-import numpy as np
 import pytest
 
 from oprim.finance import futures_curve_shape

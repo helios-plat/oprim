@@ -105,7 +105,8 @@ def test_garman_klass_more_efficient_than_cc():
     c = np.cumprod(np.exp(log_r)) * 100
     h = c * (1 + np.abs(rng.standard_normal(n)) * 0.005)
     l = c * (1 - np.abs(rng.standard_normal(n)) * 0.005)
-    o = np.roll(c, 1); o[0] = c[0]
+    o = np.roll(c, 1)
+    o[0] = c[0]
     sigma_gk = garman_klass_volatility(o, h, l, c)
     assert sigma_gk > 0
 

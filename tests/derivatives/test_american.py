@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-import numpy as np
 
 from oprim.derivatives.american import lsm_american_price
 from oprim.derivatives.binomial_tree import binomial_tree_price

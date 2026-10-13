@@ -1,4 +1,4 @@
-"""Tests for oprim.numerics module."""
+"""Tests for oprim._numerics module."""
 
 import logging
 import warnings
@@ -8,7 +8,7 @@ import pytest
 from scipy.special import logsumexp as scipy_logsumexp
 from scipy.special import softmax as scipy_softmax
 
-from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
+from oprim._numerics import clip_with_warning, logsumexp_safe, softmax_safe
 
 
 # ============================================================
@@ -137,7 +137,7 @@ class TestClipWithWarning:
 
     def test_logger(self):
         logger = logging.getLogger("test_clip")
-        handler = logging.handlers = []
+        logging.handlers = []
         x = np.zeros(10)
         x[0:8] = 100  # 80% will be clipped
         with warnings.catch_warnings(record=True) as w:

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -60,7 +59,7 @@ class TestS3UploadFile:
 
         with patch("oprim._s3.boto3") as mock_boto3:
             mock_boto3.client.return_value = s3_client
-            result = s3_upload_file(
+            s3_upload_file(
                 local_path=str(f),
                 s3_url="s3://bucket/data.json",
                 content_type="application/json",
@@ -120,9 +119,8 @@ class TestS3UploadFile:
     def test_boto3_not_installed(self, tmp_path):
         f = tmp_path / "test.txt"
         f.write_bytes(b"data")
-        with patch("oprim._s3.boto3", None):
-            with pytest.raises(OprimError, match="boto3"):
-                s3_upload_file(local_path=str(f), s3_url="s3://bucket/file.txt")
+        with patch("oprim._s3.boto3", None), pytest.raises(OprimError, match="boto3"):
+            s3_upload_file(local_path=str(f), s3_url="s3://bucket/file.txt")
 
     def test_client_creation_fails(self, tmp_path):
         f = tmp_path / "test.txt"
@@ -139,7 +137,7 @@ class TestS3UploadFile:
 
         with patch("oprim._s3.boto3") as mock_boto3:
             mock_boto3.client.return_value = s3_client
-            result = s3_upload_file(
+            s3_upload_file(
                 local_path=str(f),
                 s3_url="s3://bucket/file.txt",
                 sse="AES256",

@@ -5,18 +5,18 @@ from pathlib import Path
 
 import pytest
 
+from oprim.errors import FulltextError
 from oprim.fulltext.tantivy import (
     FulltextDoc,
     FulltextHit,
     TantivyFulltextIndex,
     open_fulltext_index,
 )
-from oprim.errors import FulltextError
 
 
 class TestTantivyFulltextIndex:
     def test_create_empty_index(self, tmp_path: Path):
-        idx = open_fulltext_index(tmp_path / "idx")
+        open_fulltext_index(tmp_path / "idx")
         # Should not raise
 
     def test_add_and_search(self, tmp_path: Path):
@@ -115,6 +115,7 @@ class TestTantivyFulltextIndex:
 
     def test_index_creation_failure_raises_fulltexterror(self, tmp_path: Path):
         from unittest.mock import patch
+
         import tantivy
         with patch.object(tantivy, "Index", side_effect=RuntimeError("index creation fail")):
             with pytest.raises(FulltextError, match="Failed to open tantivy index"):

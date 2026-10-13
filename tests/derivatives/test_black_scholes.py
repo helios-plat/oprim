@@ -1,14 +1,13 @@
 """Tests for oprim.derivatives.black_scholes."""
 import math
-import numpy as np
+
 import pytest
 
 from oprim.derivatives.black_scholes import (
-    black_scholes_price,
     black_scholes_greeks,
+    black_scholes_price,
     implied_volatility,
 )
-
 
 # Standard parameters for ATM tests
 ATM = dict(spot=100, strike=100, time_to_expiry=1.0, risk_free_rate=0.05, volatility=0.20)

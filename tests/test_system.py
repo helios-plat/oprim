@@ -9,7 +9,6 @@ import pytest
 from oprim import cpu_memory_snapshot, process_list_top
 from oprim._system import ProcessInfo, SystemSnapshot
 
-
 # ---------------------------------------------------------------------------
 # cpu_memory_snapshot
 # ---------------------------------------------------------------------------

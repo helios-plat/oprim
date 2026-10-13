@@ -1,4 +1,4 @@
-"""Tests for oprim.distance module."""
+"""Tests for oprim._distance module."""
 
 import numpy as np
 import pytest
@@ -6,7 +6,7 @@ from scipy import stats as sp_stats
 from scipy.spatial.distance import cdist, jensenshannon
 from sklearn.metrics.pairwise import cosine_similarity as sklearn_cosine
 
-from oprim.distance import (
+from oprim._distance import (
     cosine_similarity_batch,
     dtw_distance,
     euclidean_distance_matrix,

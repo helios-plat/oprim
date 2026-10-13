@@ -59,7 +59,7 @@ class TestDetectImageExif:
         assert hasattr(result, "is_screenshot_likely")
 
     def test_jpeg_with_camera_exif(self, tmp_path: Path):
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
         path = tmp_path / "camera.jpg"
         Image.new("RGB", (640, 480), color=(128, 64, 32)).save(str(path), "JPEG")
 
@@ -80,7 +80,7 @@ class TestDetectImageExif:
         assert result.datetime_taken is not None
 
     def test_exif_with_none_make(self, tmp_path: Path):
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
         path = tmp_path / "cam.jpg"
         Image.new("RGB", (100, 100)).save(str(path), "JPEG")
 
@@ -99,7 +99,7 @@ class TestDetectImageExif:
         assert result.camera_model is None
 
     def test_getexif_raises_is_silenced(self, tmp_path: Path):
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
         path = tmp_path / "weird.jpg"
         Image.new("RGB", (100, 100)).save(str(path), "JPEG")
 
