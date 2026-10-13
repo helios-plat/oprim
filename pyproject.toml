@@ -146,9 +146,10 @@ omit = [
 ]
 
 [tool.coverage.report]
-# Ratchet floor: the suite measured 76.5% in a clean 3.12 env (Oct 2026) when CI was
-# repaired; the historical 95% target was never enforced (CI was red). Raise as tests land.
-fail_under = 75
+# Ratchet floor: the suite measured ~76.4% in a clean 3.12 env (Oct 2026) when CI was
+# repaired; the historical 95% target was never enforced (CI was red). This is a
+# ratchet — only ever raise it as tests land, never lower it.
+fail_under = 76
 show_missing = true
 
 [dependency-groups]

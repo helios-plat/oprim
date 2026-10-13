@@ -62,6 +62,9 @@ _build_element_map()
 # `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
 # __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
 _ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
+# `oprim.storage` (storage adapter contracts) also defines an UploadResult; keep the
+# historical top-level binding pointing at the file-upload handler type.
+_ELEMENT_MAP["UploadResult"] = "oprim._file_upload_handler"
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
 def llm_summarize(*args, **kwargs):
     """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
