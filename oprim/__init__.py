@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ast
 import importlib
+import sys as _sys
+import types as _types
 from pathlib import Path
 from typing import Any
 
@@ -84,6 +86,37 @@ def __getattr__(name: str) -> Any:
 
 def __dir__() -> list[str]:
     return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
+
+
+class _OprimPackage(_types.ModuleType):
+    """Keep exported callables winning over same-named submodules.
+
+    Many atoms live in ``oprim/<name>.py`` and export a callable also called ``<name>``.
+    ``oprim.<name>`` must be that callable (``__getattr__`` resolves it via
+    ``_ELEMENT_MAP``), but once anything imports the submodule ``oprim.<name>`` the
+    import system does ``setattr(oprim, "<name>", <module>)``, shadowing ``__getattr__``
+    — so ``oprim.<name>(...)`` raised "'module' object is not callable" depending on
+    import order. Intercept that binding and store the exported callable instead; the
+    submodule stays reachable via ``sys.modules`` / ``importlib.import_module`` / ``mock.patch``.
+    """
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if (
+            isinstance(value, _types.ModuleType)
+            and value.__name__ == f"{self.__name__}.{name}"
+            and name in _ELEMENT_MAP
+        ):
+            if _ELEMENT_MAP[name] != value.__name__:
+                # The export lives in another module (e.g. ``_<name>.py``); leave the
+                # attribute unbound so ``__getattr__`` resolves the export lazily.
+                return
+            exported = getattr(value, name, None)
+            if exported is not None and not isinstance(exported, _types.ModuleType):
+                value = exported
+        super().__setattr__(name, value)
+
+
+_sys.modules[__name__].__class__ = _OprimPackage
 
 __all__ = sorted(_ELEMENT_MAP.keys())
 
