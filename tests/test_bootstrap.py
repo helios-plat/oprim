@@ -1,12 +1,9 @@
-"""Tests for oprim.bootstrap."""
+"""Tests for oprim._bootstrap."""
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
 
-import pytest
-
-from oprim.bootstrap import bootstrap
+from oprim._bootstrap import bootstrap
 
 
 class TestBootstrap:

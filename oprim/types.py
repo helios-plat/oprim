@@ -6,10 +6,8 @@ Version: oprim v3.4.0
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict
-
+from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Mneme types — SolveResult / SolveStep / StepCheckResult

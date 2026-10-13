@@ -7,16 +7,15 @@ from unittest.mock import patch
 
 import pytest
 
+from oprim._fetch_macro_calendar import fetch_macro_calendar
+from oprim._fetch_macro_cpi_ppi_pmi import fetch_macro_cpi_ppi_pmi
+from oprim._fetch_macro_lpr import fetch_macro_lpr
+from oprim._fetch_macro_m2 import fetch_macro_m2
+from oprim._fetch_macro_pboc import fetch_macro_pboc
+from oprim._fetch_macro_policy_news import fetch_macro_policy_news
+from oprim._fetch_macro_rrr import fetch_macro_rrr
+from oprim._fetch_macro_yield_spread import fetch_macro_yield_spread
 from oprim._macro_types import MacroDataPoint, MacroFetchError
-from oprim.fetch_macro_m2 import fetch_macro_m2
-from oprim.fetch_macro_pboc import fetch_macro_pboc
-from oprim.fetch_macro_cpi_ppi_pmi import fetch_macro_cpi_ppi_pmi
-from oprim.fetch_macro_lpr import fetch_macro_lpr
-from oprim.fetch_macro_rrr import fetch_macro_rrr
-from oprim.fetch_macro_yield_spread import fetch_macro_yield_spread
-from oprim.fetch_macro_calendar import fetch_macro_calendar
-from oprim.fetch_macro_policy_news import fetch_macro_policy_news
-
 
 # ── shared helpers ────────────────────────────────────────────────────────────
 
@@ -102,19 +101,19 @@ def _news_rows() -> list[dict]:
 
 class TestFetchMacroM2:
     async def test_returns_macro_data_points(self):
-        with patch("oprim.fetch_macro_m2._akshare_fetch_m2", return_value=_m2_rows()):
+        with patch("oprim._fetch_macro_m2._akshare_fetch_m2", return_value=_m2_rows()):
             pts = await fetch_macro_m2()
         assert all(isinstance(p, MacroDataPoint) for p in pts)
         assert len(pts) == 6  # 3 dates × 2 indicators
 
     async def test_indicator_values_correct(self):
-        with patch("oprim.fetch_macro_m2._akshare_fetch_m2", return_value=_m2_rows()):
+        with patch("oprim._fetch_macro_m2._akshare_fetch_m2", return_value=_m2_rows()):
             pts = await fetch_macro_m2()
         indicators = {p.indicator for p in pts}
         assert indicators == {"m2_yoy", "m2_abs"}
 
     async def test_date_range_filtering(self):
-        with patch("oprim.fetch_macro_m2._akshare_fetch_m2", return_value=_m2_rows()):
+        with patch("oprim._fetch_macro_m2._akshare_fetch_m2", return_value=_m2_rows()):
             pts = await fetch_macro_m2(start_date=date(2024, 2, 1), end_date=date(2024, 2, 29))
         assert all(date(2024, 2, 1) <= p.date <= date(2024, 2, 29) for p in pts)
         assert len(pts) == 2
@@ -125,14 +124,13 @@ class TestFetchMacroM2:
 
     async def test_network_error_wraps_to_macro_fetch_error(self):
         with patch(
-            "oprim.fetch_macro_m2._akshare_fetch_m2", side_effect=ConnectionError("timeout")
-        ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_m2"):
-                await fetch_macro_m2()
+            "oprim._fetch_macro_m2._akshare_fetch_m2", side_effect=ConnectionError("timeout")
+        ), pytest.raises(MacroFetchError, match="fetch_macro_m2"):
+            await fetch_macro_m2()
 
     async def test_sorted_by_date(self):
         rows = list(reversed(_m2_rows()))
-        with patch("oprim.fetch_macro_m2._akshare_fetch_m2", return_value=rows):
+        with patch("oprim._fetch_macro_m2._akshare_fetch_m2", return_value=rows):
             pts = await fetch_macro_m2()
         dates = [p.date for p in pts]
         assert dates == sorted(dates)
@@ -143,20 +141,20 @@ class TestFetchMacroM2:
 
 class TestFetchMacroPboc:
     async def test_returns_macro_data_points(self):
-        with patch("oprim.fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
+        with patch("oprim._fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
             pts = await fetch_macro_pboc()
         assert all(isinstance(p, MacroDataPoint) for p in pts)
         assert len(pts) == 3
 
     async def test_indicator_reverse_repo(self):
-        with patch("oprim.fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
+        with patch("oprim._fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
             pts = await fetch_macro_pboc()
         repo_pts = [p for p in pts if p.indicator == "pboc_reverse_repo_rate"]
         assert len(repo_pts) == 2
         assert repo_pts[0].value == 1.8
 
     async def test_mlf_in_metadata_volume(self):
-        with patch("oprim.fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
+        with patch("oprim._fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
             pts = await fetch_macro_pboc()
         mlf = [p for p in pts if p.indicator == "pboc_mlf_rate"][0]
         assert mlf.metadata["volume_bn"] == 5000
@@ -167,13 +165,12 @@ class TestFetchMacroPboc:
 
     async def test_network_error_wraps(self):
         with patch(
-            "oprim.fetch_macro_pboc._akshare_fetch_pboc", side_effect=OSError("unreachable")
-        ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_pboc"):
-                await fetch_macro_pboc()
+            "oprim._fetch_macro_pboc._akshare_fetch_pboc", side_effect=OSError("unreachable")
+        ), pytest.raises(MacroFetchError, match="fetch_macro_pboc"):
+            await fetch_macro_pboc()
 
     async def test_date_filter_applied(self):
-        with patch("oprim.fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
+        with patch("oprim._fetch_macro_pboc._akshare_fetch_pboc", return_value=_pboc_rows()):
             pts = await fetch_macro_pboc(start_date=date(2024, 1, 20))
         assert all(p.date >= date(2024, 1, 20) for p in pts)
 
@@ -184,9 +181,9 @@ class TestFetchMacroPboc:
 class TestFetchMacroCpiPpiPmi:
     async def test_returns_all_three_indicators(self):
         with (
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", return_value=_cpi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", return_value=_cpi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
         ):
             pts = await fetch_macro_cpi_ppi_pmi()
         indicators = {p.indicator for p in pts}
@@ -194,9 +191,9 @@ class TestFetchMacroCpiPpiPmi:
 
     async def test_cpi_value_correct(self):
         with (
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", return_value=_cpi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", return_value=_cpi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
         ):
             pts = await fetch_macro_cpi_ppi_pmi()
         cpi = [p for p in pts if p.indicator == "cpi_yoy"]
@@ -204,9 +201,9 @@ class TestFetchMacroCpiPpiPmi:
 
     async def test_date_range_filtering(self):
         with (
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", return_value=_cpi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", return_value=_cpi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
         ):
             pts = await fetch_macro_cpi_ppi_pmi(start_date=date(2024, 2, 1))
         assert all(p.date >= date(2024, 2, 1) for p in pts)
@@ -218,19 +215,19 @@ class TestFetchMacroCpiPpiPmi:
     async def test_network_error_wraps(self):
         with (
             patch(
-                "oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", side_effect=RuntimeError("down")
+                "oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", side_effect=RuntimeError("down")
             ),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
         ):
             with pytest.raises(MacroFetchError, match="fetch_macro_cpi_ppi_pmi"):
                 await fetch_macro_cpi_ppi_pmi()
 
     async def test_ppi_negative_value(self):
         with (
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", return_value=_cpi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
-            patch("oprim.fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_cpi", return_value=_cpi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_ppi", return_value=_ppi_rows()),
+            patch("oprim._fetch_macro_cpi_ppi_pmi._akshare_fetch_pmi", return_value=_pmi_rows()),
         ):
             pts = await fetch_macro_cpi_ppi_pmi()
         ppi = [p for p in pts if p.indicator == "ppi_yoy"]
@@ -242,18 +239,18 @@ class TestFetchMacroCpiPpiPmi:
 
 class TestFetchMacroLpr:
     async def test_returns_1y_and_5y(self):
-        with patch("oprim.fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
+        with patch("oprim._fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
             pts = await fetch_macro_lpr()
         assert {p.indicator for p in pts} == {"lpr_1y", "lpr_5y"}
 
     async def test_value_correct(self):
-        with patch("oprim.fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
+        with patch("oprim._fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
             pts = await fetch_macro_lpr()
         first_1y = [p for p in pts if p.indicator == "lpr_1y"][0]
         assert first_1y.value == pytest.approx(3.45)
 
     async def test_date_filter(self):
-        with patch("oprim.fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
+        with patch("oprim._fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
             pts = await fetch_macro_lpr(start_date=date(2024, 2, 1))
         assert all(p.date >= date(2024, 2, 1) for p in pts)
         assert len(pts) == 2  # 1y + 5y for 2024-02-20
@@ -263,12 +260,12 @@ class TestFetchMacroLpr:
             await fetch_macro_lpr(source="wind")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch("oprim.fetch_macro_lpr._akshare_fetch_lpr", side_effect=ConnectionError("x")):
+        with patch("oprim._fetch_macro_lpr._akshare_fetch_lpr", side_effect=ConnectionError("x")):
             with pytest.raises(MacroFetchError, match="fetch_macro_lpr"):
                 await fetch_macro_lpr()
 
     async def test_5y_cut_in_metadata(self):
-        with patch("oprim.fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
+        with patch("oprim._fetch_macro_lpr._akshare_fetch_lpr", return_value=_lpr_rows()):
             pts = await fetch_macro_lpr()
         feb_5y = [p for p in pts if p.indicator == "lpr_5y" and p.date == date(2024, 2, 20)][0]
         assert feb_5y.value == pytest.approx(3.95)
@@ -279,18 +276,18 @@ class TestFetchMacroLpr:
 
 class TestFetchMacroRrr:
     async def test_returns_large_and_small(self):
-        with patch("oprim.fetch_macro_rrr._akshare_fetch_rrr", return_value=_rrr_rows()):
+        with patch("oprim._fetch_macro_rrr._akshare_fetch_rrr", return_value=_rrr_rows()):
             pts = await fetch_macro_rrr()
         assert {p.indicator for p in pts} == {"rrr_large", "rrr_small"}
 
     async def test_value_correct(self):
-        with patch("oprim.fetch_macro_rrr._akshare_fetch_rrr", return_value=_rrr_rows()):
+        with patch("oprim._fetch_macro_rrr._akshare_fetch_rrr", return_value=_rrr_rows()):
             pts = await fetch_macro_rrr()
         large = [p for p in pts if p.indicator == "rrr_large"][0]
         assert large.value == 10.0
 
     async def test_date_filter(self):
-        with patch("oprim.fetch_macro_rrr._akshare_fetch_rrr", return_value=_rrr_rows()):
+        with patch("oprim._fetch_macro_rrr._akshare_fetch_rrr", return_value=_rrr_rows()):
             pts = await fetch_macro_rrr(start_date=date(2024, 9, 1))
         assert all(p.date >= date(2024, 9, 1) for p in pts)
 
@@ -299,13 +296,13 @@ class TestFetchMacroRrr:
             await fetch_macro_rrr(source="tushare")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch("oprim.fetch_macro_rrr._akshare_fetch_rrr", side_effect=OSError("timeout")):
+        with patch("oprim._fetch_macro_rrr._akshare_fetch_rrr", side_effect=OSError("timeout")):
             with pytest.raises(MacroFetchError, match="fetch_macro_rrr"):
                 await fetch_macro_rrr()
 
     async def test_sorted_ascending(self):
         with patch(
-            "oprim.fetch_macro_rrr._akshare_fetch_rrr", return_value=list(reversed(_rrr_rows()))
+            "oprim._fetch_macro_rrr._akshare_fetch_rrr", return_value=list(reversed(_rrr_rows()))
         ):
             pts = await fetch_macro_rrr()
         dates = [p.date for p in pts]
@@ -318,14 +315,14 @@ class TestFetchMacroRrr:
 class TestFetchMacroYieldSpread:
     async def test_returns_spread_indicator(self):
         with patch(
-            "oprim.fetch_macro_yield_spread._akshare_fetch_yield_spread", return_value=_yield_rows()
+            "oprim._fetch_macro_yield_spread._akshare_fetch_yield_spread", return_value=_yield_rows()
         ):
             pts = await fetch_macro_yield_spread()
         assert all(p.indicator == "cn_us_yield_spread_10y" for p in pts)
 
     async def test_spread_computed_correctly(self):
         with patch(
-            "oprim.fetch_macro_yield_spread._akshare_fetch_yield_spread", return_value=_yield_rows()
+            "oprim._fetch_macro_yield_spread._akshare_fetch_yield_spread", return_value=_yield_rows()
         ):
             pts = await fetch_macro_yield_spread()
         # 2.56 - 3.92 = -1.36
@@ -333,7 +330,7 @@ class TestFetchMacroYieldSpread:
 
     async def test_metadata_contains_cn_us(self):
         with patch(
-            "oprim.fetch_macro_yield_spread._akshare_fetch_yield_spread", return_value=_yield_rows()
+            "oprim._fetch_macro_yield_spread._akshare_fetch_yield_spread", return_value=_yield_rows()
         ):
             pts = await fetch_macro_yield_spread()
         assert "cn_10y" in pts[0].metadata
@@ -341,7 +338,7 @@ class TestFetchMacroYieldSpread:
 
     async def test_date_filter(self):
         with patch(
-            "oprim.fetch_macro_yield_spread._akshare_fetch_yield_spread", return_value=_yield_rows()
+            "oprim._fetch_macro_yield_spread._akshare_fetch_yield_spread", return_value=_yield_rows()
         ):
             pts = await fetch_macro_yield_spread(
                 start_date=date(2024, 1, 3), end_date=date(2024, 1, 3)
@@ -355,11 +352,10 @@ class TestFetchMacroYieldSpread:
 
     async def test_network_error_wraps(self):
         with patch(
-            "oprim.fetch_macro_yield_spread._akshare_fetch_yield_spread",
+            "oprim._fetch_macro_yield_spread._akshare_fetch_yield_spread",
             side_effect=RuntimeError("refused"),
-        ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_yield_spread"):
-                await fetch_macro_yield_spread()
+        ), pytest.raises(MacroFetchError, match="fetch_macro_yield_spread"):
+            await fetch_macro_yield_spread()
 
 
 # ── Calendar ─────────────────────────────────────────────────────────────────
@@ -368,7 +364,7 @@ class TestFetchMacroYieldSpread:
 class TestFetchMacroCalendar:
     async def test_returns_data_points(self):
         with patch(
-            "oprim.fetch_macro_calendar._akshare_fetch_calendar", return_value=_calendar_rows()
+            "oprim._fetch_macro_calendar._akshare_fetch_calendar", return_value=_calendar_rows()
         ):
             pts = await fetch_macro_calendar()
         assert len(pts) == 3
@@ -376,14 +372,14 @@ class TestFetchMacroCalendar:
 
     async def test_indicator_is_event_name(self):
         with patch(
-            "oprim.fetch_macro_calendar._akshare_fetch_calendar", return_value=_calendar_rows()
+            "oprim._fetch_macro_calendar._akshare_fetch_calendar", return_value=_calendar_rows()
         ):
             pts = await fetch_macro_calendar()
         assert pts[0].indicator == "CPI月率"
 
     async def test_forecast_in_metadata(self):
         with patch(
-            "oprim.fetch_macro_calendar._akshare_fetch_calendar", return_value=_calendar_rows()
+            "oprim._fetch_macro_calendar._akshare_fetch_calendar", return_value=_calendar_rows()
         ):
             pts = await fetch_macro_calendar()
         assert pts[0].metadata["forecast"] == pytest.approx(0.2)
@@ -391,7 +387,7 @@ class TestFetchMacroCalendar:
 
     async def test_date_filter(self):
         with patch(
-            "oprim.fetch_macro_calendar._akshare_fetch_calendar", return_value=_calendar_rows()
+            "oprim._fetch_macro_calendar._akshare_fetch_calendar", return_value=_calendar_rows()
         ):
             pts = await fetch_macro_calendar(start_date=date(2024, 1, 15))
         assert all(p.date >= date(2024, 1, 15) for p in pts)
@@ -401,7 +397,7 @@ class TestFetchMacroCalendar:
             await fetch_macro_calendar(source="wind")  # type: ignore[arg-type]
 
     async def test_network_error_wraps(self):
-        with patch("oprim.fetch_macro_calendar._akshare_fetch_calendar", side_effect=OSError("x")):
+        with patch("oprim._fetch_macro_calendar._akshare_fetch_calendar", side_effect=OSError("x")):
             with pytest.raises(MacroFetchError, match="fetch_macro_calendar"):
                 await fetch_macro_calendar()
 
@@ -412,7 +408,7 @@ class TestFetchMacroCalendar:
 class TestFetchMacroPolicyNews:
     async def test_filters_policy_relevant(self):
         with patch(
-            "oprim.fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
+            "oprim._fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
         ):
             pts = await fetch_macro_policy_news()
         titles = [p.metadata["title"] for p in pts]
@@ -420,21 +416,21 @@ class TestFetchMacroPolicyNews:
 
     async def test_indicator_is_policy_news(self):
         with patch(
-            "oprim.fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
+            "oprim._fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
         ):
             pts = await fetch_macro_policy_news()
         assert all(p.indicator == "policy_news" for p in pts)
 
     async def test_value_is_zero_sentinel(self):
         with patch(
-            "oprim.fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
+            "oprim._fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
         ):
             pts = await fetch_macro_policy_news()
         assert all(p.value == 0.0 for p in pts)
 
     async def test_date_filter(self):
         with patch(
-            "oprim.fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
+            "oprim._fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
         ):
             pts = await fetch_macro_policy_news(start_date=date(2024, 2, 1))
         assert all(p.date >= date(2024, 2, 1) for p in pts)
@@ -445,15 +441,14 @@ class TestFetchMacroPolicyNews:
 
     async def test_network_error_wraps(self):
         with patch(
-            "oprim.fetch_macro_policy_news._akshare_fetch_policy_news",
+            "oprim._fetch_macro_policy_news._akshare_fetch_policy_news",
             side_effect=ConnectionError("403"),
-        ):
-            with pytest.raises(MacroFetchError, match="fetch_macro_policy_news"):
-                await fetch_macro_policy_news()
+        ), pytest.raises(MacroFetchError, match="fetch_macro_policy_news"):
+            await fetch_macro_policy_news()
 
     async def test_title_in_metadata(self):
         with patch(
-            "oprim.fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
+            "oprim._fetch_macro_policy_news._akshare_fetch_policy_news", return_value=_news_rows()
         ):
             pts = await fetch_macro_policy_news()
         assert all("title" in p.metadata for p in pts)

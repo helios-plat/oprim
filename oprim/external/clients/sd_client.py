@@ -1,1 +1,2 @@
-class SdClient: pass
+class SdClient:
+    pass

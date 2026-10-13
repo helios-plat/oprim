@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from oprim.meta_db.duckdb import MetaDB, open_meta_db
 from oprim.errors import MetaDBError
+from oprim.meta_db.duckdb import open_meta_db
 
 _MIGRATIONS_DIR = (
     Path(__file__).parent.parent.parent

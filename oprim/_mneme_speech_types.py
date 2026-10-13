@@ -5,7 +5,7 @@ All concrete types are dataclasses so oprim stays pydantic-free.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass

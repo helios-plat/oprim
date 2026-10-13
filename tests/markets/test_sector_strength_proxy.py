@@ -1,8 +1,9 @@
 """Tests for oprim.markets.sector_strength_proxy (A5)."""
 
 import warnings
-import numpy as np
+
 import pytest
+
 from oprim import sector_strength_proxy
 
 

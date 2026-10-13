@@ -1,14 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import json
-import time
-import uuid
+
 from dataclasses import dataclass, field
-from typing import Any
+
 from ._exceptions import OprimError
-from ._protocols import PersistenceHandle
 from .text import count_tokens
+
 
 class PromptOprimError(OprimError):
     """prompt 构建 / 消息处理失败。"""

@@ -1,9 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 from typing import Any
+
 from ._exceptions import OprimError
 from ._protocols import McpClientHandle
+
 
 class McpOprimError(OprimError):
     """MCP 请求失败。"""

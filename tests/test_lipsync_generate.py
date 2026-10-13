@@ -1,4 +1,4 @@
-"""Tests for oprim.lipsync_generate — A4 unified dispatcher."""
+"""Tests for oprim._lipsync_generate — A4 unified dispatcher."""
 
 from __future__ import annotations
 

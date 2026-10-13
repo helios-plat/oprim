@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from ._types import LLMResponse
 from oprim._config import cfg
-from oprim._logging import log as olog
 from oprim.errors import LLMError, LLMRateLimitError
+
+from ._types import LLMResponse
 
 
 def llm_call(
@@ -28,8 +28,9 @@ def llm_call(
 
 def _call_dashscope(prompt, model, temperature, max_tokens, system):
     try:
-        import httpx
         import os
+
+        import httpx
     except ImportError as e:
         raise LLMError(f"httpx not installed: {e}")
 

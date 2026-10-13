@@ -10,7 +10,6 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 
 from oprim.types import SolveResult, SolveStep, StepCheckResult

@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 import math
+
 import pytest
-import numpy as np
 
 from oprim.derivatives.binomial_tree import binomial_tree_price
 from oprim.derivatives.black_scholes import black_scholes_price
-
 
 # ---------------------------------------------------------------------------
 # Helper

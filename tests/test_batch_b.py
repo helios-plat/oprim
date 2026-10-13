@@ -9,10 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock
@@ -22,19 +20,35 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from oprim import (
-    CodeAction, Completion, Diagnostic, Hover,
-    HookResult, ImageBlock, Location, LspOprimError,
-    McpOprimError, ShellOprimError, SkillMeta, Symbol,
-    TextEdit, WorkspaceEdit,
-    lsp_code_action, lsp_completion, lsp_definition,
-    lsp_diagnostics, lsp_document_symbols, lsp_format,
-    lsp_hover, lsp_references, lsp_rename, lsp_workspace_symbols,
-    load_image, mcp_call_tool, mcp_list_tools,
-    read_skill_frontmatter, run_hook,
+    CodeAction,
+    Completion,
+    HookResult,
+    ImageBlock,
+    Location,
+    LspOprimError,
+    McpOprimError,
+    SkillMeta,
+    Symbol,
+    TextEdit,
+    WorkspaceEdit,
+    load_image,
+    lsp_code_action,
+    lsp_completion,
+    lsp_definition,
+    lsp_diagnostics,
+    lsp_document_symbols,
+    lsp_format,
+    lsp_hover,
+    lsp_references,
+    lsp_rename,
+    lsp_workspace_symbols,
+    mcp_call_tool,
+    mcp_list_tools,
+    read_skill_frontmatter,
+    run_hook,
 )
+from oprim._exceptions import FileOprimError, GitOprimError, ParseOprimError
 from oprim.worktree import git_worktree_add, git_worktree_list, git_worktree_remove
-from oprim._exceptions import FileOprimError, ParseOprimError, GitOprimError
-
 
 # ===========================================================================
 # fixtures

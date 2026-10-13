@@ -8,9 +8,7 @@ Version: oprim v3.3.0
 
 from __future__ import annotations
 
-import math
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass
@@ -25,7 +23,7 @@ class RecognitionState:
     p_recognise_given_mastered: float = 0.95
     p_recognise_given_not_mastered: float = 0.30
     n_attempts: int = 0
-    last_correct: Optional[bool] = None
+    last_correct: bool | None = None
 
 
 @dataclass(frozen=True)

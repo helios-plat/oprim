@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import json
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from oprim import appstore_catalog_fetch
-from oprim.appstore_catalog_fetch import AppCatalogEntry
-from oprim._exceptions import OprimNotFoundError, OprimConnectionError, OprimTimeoutError
+from oprim._appstore_catalog_fetch import AppCatalogEntry
+from oprim._exceptions import OprimConnectionError, OprimNotFoundError, OprimTimeoutError
 
 
 def _mock_response(status_code=200, data=None, text=""):

@@ -1,11 +1,14 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+
 from ._exceptions import OprimError
 from ._protocols import LspServerHandle
+from .lsp import _parse_locations, _text_doc_pos
+
 
 class LspOprimError(OprimError):
     """LSP 请求失败。"""

@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 import json
-from io import BytesIO
 from unittest.mock import MagicMock
 
 import pytest
 
 from oprim._exceptions import OprimError
-from oprim.mathlib_lookup import mathlib_lookup
+from oprim._mathlib_lookup import mathlib_lookup
 
 
 def test_mathlib_lookup_unique_hit(mocker):
     # Mock opener
     mock_opener = MagicMock()
-    mocker.patch("oprim.mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
+    mocker.patch("oprim._mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
 
     # Mock response
     mock_resp = MagicMock()
@@ -39,7 +38,7 @@ def test_mathlib_lookup_unique_hit(mocker):
 
 def test_mathlib_lookup_multiple_hits(mocker):
     mock_opener = MagicMock()
-    mocker.patch("oprim.mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
+    mocker.patch("oprim._mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
 
     mock_resp = MagicMock()
     mock_resp.status = 200
@@ -58,7 +57,7 @@ def test_mathlib_lookup_multiple_hits(mocker):
 
 def test_mathlib_lookup_no_hits(mocker):
     mock_opener = MagicMock()
-    mocker.patch("oprim.mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
+    mocker.patch("oprim._mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
 
     mock_resp = MagicMock()
     mock_resp.status = 200
@@ -72,7 +71,7 @@ def test_mathlib_lookup_no_hits(mocker):
 
 def test_mathlib_lookup_api_error(mocker):
     mock_opener = MagicMock()
-    mocker.patch("oprim.mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
+    mocker.patch("oprim._mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
 
     mock_resp = MagicMock()
     mock_resp.status = 500
@@ -84,7 +83,7 @@ def test_mathlib_lookup_api_error(mocker):
 
 def test_mathlib_lookup_timeout(mocker):
     mock_opener = MagicMock()
-    mocker.patch("oprim.mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
+    mocker.patch("oprim._mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
     mock_opener.open.side_effect = Exception("Connect timeout")
 
     with pytest.raises(OprimError, match="API request timed out"):
@@ -93,7 +92,7 @@ def test_mathlib_lookup_timeout(mocker):
 
 def test_mathlib_lookup_invalid_json(mocker):
     mock_opener = MagicMock()
-    mocker.patch("oprim.mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
+    mocker.patch("oprim._mathlib_lookup.make_ssrf_safe_opener", return_value=mock_opener)
 
     mock_resp = MagicMock()
     mock_resp.status = 200

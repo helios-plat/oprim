@@ -1,6 +1,7 @@
 """oprim.epub_toc_split — Split EPUB by top-level TOC into individual books."""
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -34,9 +35,8 @@ def _is_aux_node(title: str, content: str) -> bool:
         return True
     if any(aux in t for aux in _AUX_TITLES):
         return True
-    if len(content.strip()) < 2000:  # 内容极短，辅助页特征
-        return True
-    return False
+    # 内容极短，辅助页特征
+    return len(content.strip()) < 2000
 
 
 def epub_toc_split(*, file_path: Path) -> list[EpubBook]:

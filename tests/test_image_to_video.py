@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim._image_to_video import (
     ImageToVideoError,
     ImageToVideoProviderNotFoundError,

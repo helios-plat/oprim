@@ -1,11 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import asyncio
+
 import subprocess
-from collections.abc import AsyncIterator
 from dataclasses import dataclass
+
 from ._exceptions import ShellOprimError
+
 
 @dataclass
 class ShellResult:

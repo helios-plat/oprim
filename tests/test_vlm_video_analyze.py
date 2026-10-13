@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim._vlm_video_analyze import VLMVideoAnalyzeError, vlm_video_analyze
 
 

@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim.tts_synthesize import TTSError, tts_synthesize
 
 

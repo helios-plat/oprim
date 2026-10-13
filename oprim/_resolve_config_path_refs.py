@@ -25,9 +25,7 @@ def _looks_like_path(value: str) -> bool:
     # Windows absolute: C:\... or C:/...
     if len(value) >= 3 and value[1] == ":" and value[2] in ("/", "\\"):
         return True
-    if "/" in value or "\\" in value:
-        return True
-    return False
+    return bool("/" in value or "\\" in value)
 
 
 def _resolve_path_str(value: str, base: Path) -> str:
@@ -55,7 +53,7 @@ def _resolve_value(value: Any, base: Path, *, in_path_key: bool = False) -> Any:
     return value
 
 
-def resolve_config_path_refs(config: dict[str, Any], *, base: "Path") -> dict[str, Any]:
+def resolve_config_path_refs(config: dict[str, Any], *, base: Path) -> dict[str, Any]:
     """Resolve path strings in *config* relative to *base*.
 
     Rules applied to string values:

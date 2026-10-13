@@ -1,15 +1,11 @@
-"""Tests for oprim.coherence_compute — ≥10 tests."""
+"""Tests for oprim._coherence_compute — ≥10 tests."""
 
 from __future__ import annotations
 
-import pytest
-
-from oprim.coherence_compute import (
-    GRADE_LADDER,
+from oprim._coherence_compute import (
     INDEPENDENT_SOURCES,
-    coherence_compute,
     _grade_index,
-    _status_of,
+    coherence_compute,
 )
 
 

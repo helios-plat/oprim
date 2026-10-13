@@ -152,7 +152,7 @@ class TestHurstExponent:
         """Constant series → all chunk stds=0 → rs_vals empty → fallback 0.5."""
         series = np.full(64, 3.14)
         H = hurst_exponent(series)
-        assert H == pytest.approx(0.5, abs=0.01)
+        assert pytest.approx(0.5, abs=0.01) == H
 
 
 class TestHChangeRateStd:

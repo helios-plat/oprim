@@ -1,4 +1,4 @@
-"""Tests for oprim.vibevoice_synthesize (M3 — ≥6 tests)."""
+"""Tests for oprim._vibevoice_synthesize (M3 — ≥6 tests)."""
 
 from __future__ import annotations
 
@@ -8,11 +8,10 @@ import wave
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from oprim.vibevoice_synthesize import VibeVoiceError, VibeVoiceSetupError, vibevoice_synthesize
+from oprim._vibevoice_synthesize import VibeVoiceError, VibeVoiceSetupError, vibevoice_synthesize
 
 
 def _make_wav_bytes(n_samples: int = 256, framerate: int = 22050) -> bytes:

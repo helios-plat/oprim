@@ -76,6 +76,7 @@ async def submit_and_poll(
         DuixError: job failed or output could not be downloaded.
     """
     import httpx
+
     from oprim._config import cfg
 
     h_dir = (host_data_dir or cfg.get("DUIX_HOST_DATA_DIR", "")).rstrip("/")

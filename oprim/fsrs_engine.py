@@ -11,9 +11,10 @@ FSRS 间隔重复引擎封装
 """
 
 from __future__ import annotations
-from datetime import datetime, timezone
-from typing import Optional
-from fsrs import Scheduler, Card, Rating
+
+from datetime import UTC, datetime
+
+from fsrs import Card, Rating, Scheduler
 
 # 全局调度器（可后续按学生加载个性化参数）
 _scheduler = Scheduler()
@@ -53,7 +54,7 @@ def fsrs_review(
 ) -> dict:
     """对一张卡片做一次复习，返回更新后的 card dict。"""
     card = Card.from_dict(card_dict)
-    now = now or datetime.now(timezone.utc)
+    now = now or datetime.now(UTC)
     card, _log = _scheduler.review_card(card, rating, review_datetime=now)
     return card.to_dict()
 
@@ -65,12 +66,12 @@ def fsrs_retrievability(
 ) -> float:
     """当前可提取性 R (0~1)：此刻能回忆起的概率。"""
     card = Card.from_dict(card_dict)
-    
+
     # 核心修正：对于从未复习过的新卡片，可提取性视为 1.0 (BKT 初始掌握度不衰减)
     if card.last_review is None:
         return 1.0
-        
-    now = now or datetime.now(timezone.utc)
+
+    now = now or datetime.now(UTC)
 
     # 优先用官方方法
     for meth in ("get_card_retrievability", "retrievability"):

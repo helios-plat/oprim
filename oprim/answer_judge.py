@@ -43,7 +43,9 @@ def judge_answer(student: str, correct: str, question_type: str = "") -> dict:
 
     # 3) 短数值/符号：剥掉非关键字符后相等
     if len(cn) <= 8 and len(sn) <= 12:
-        keep = lambda x: re.sub(r"[^0-9A-Z./=+\-]", "", x)
+        def keep(x: str) -> str:
+            return re.sub(r"[^0-9A-Z./=+\-]", "", x)
+
         c2, s2 = keep(cn), keep(sn)
         if c2 and s2 == c2:
             return {"verdict": "correct"}

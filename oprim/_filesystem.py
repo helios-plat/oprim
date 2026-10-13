@@ -282,7 +282,7 @@ def fs_inode_check(
         raise OprimNotFoundError(f"Path not found: {path}")
 
     try:
-        st = shutil.disk_usage(str(p))  # total/used/free bytes
+        shutil.disk_usage(str(p))  # total/used/free bytes
     except Exception as exc:
         raise OprimError(f"Failed to stat path: {exc}") from exc
 

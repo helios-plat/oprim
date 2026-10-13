@@ -12,7 +12,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from oprim.types import Three3DData, SolveResult
+from oprim.types import SolveResult, Three3DData
 
 
 @dataclass(frozen=True)

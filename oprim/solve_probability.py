@@ -10,11 +10,10 @@ Version: oprim v3.4.0
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
 from oprim.types import SolveResult, SolveStep
-
 
 TaskType = Literal[
     "combinations", "permutations", "basic", "conditional",
@@ -202,14 +201,14 @@ def solve_probability(inp: ProbabilitySolveInput) -> SolveResult:
             total_p = sum(inp.probabilities)
             if abs(total_p - 1.0) > 1e-6:
                 raise ValueError(f"probabilities must sum to 1 (got {total_p})")
-            ev = sum(v * p for v, p in zip(inp.values, inp.probabilities))
-            ev2 = sum(v**2 * p for v, p in zip(inp.values, inp.probabilities))
+            ev = sum(v * p for v, p in zip(inp.values, inp.probabilities, strict=False))
+            ev2 = sum(v**2 * p for v, p in zip(inp.values, inp.probabilities, strict=False))
             var = ev2 - ev**2
             steps.append(
                 SolveStep(
                     step_number=1,
                     description="Compute E[X] = Σ xᵢ·pᵢ",
-                    expression=str(list(zip(inp.values, inp.probabilities))),
+                    expression=str(list(zip(inp.values, inp.probabilities, strict=False))),
                     result=f"{ev:.6g}",
                 )
             )

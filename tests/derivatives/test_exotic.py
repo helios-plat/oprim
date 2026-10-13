@@ -1,12 +1,16 @@
 """Tests for barrier_option_price and lookback_option_price."""
 from __future__ import annotations
 
-import pytest
 import numpy as np
+import pytest
 
-from oprim.derivatives.exotic import barrier_option_price, lookback_option_price
 from oprim.derivatives.black_scholes import black_scholes_price
-from oprim.derivatives.exotic import _barrier_cf, _bs_vanilla
+from oprim.derivatives.exotic import (
+    _barrier_cf,
+    _bs_vanilla,
+    barrier_option_price,
+    lookback_option_price,
+)
 
 
 def _bs(S, K, T, r, sigma, option_type="call", q=0.0):

@@ -1,7 +1,10 @@
-import pytest
 from datetime import date
-from oprim.parse_obsidian_tasks import parse_obsidian_tasks, ObsidianTask
+
+import pytest
+
 from oprim._exceptions import OprimError
+from oprim._parse_obsidian_tasks import parse_obsidian_tasks
+
 
 def test_parse_obsidian_tasks_basic():
     content = "- [ ] Buy milk"

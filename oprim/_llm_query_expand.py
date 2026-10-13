@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-
 from oprim._exceptions import OprimError
-from oprim.llm_judge_rerank import LLMCaller
+from oprim._llm_judge_rerank import LLMCaller
 
 
 def llm_query_expand(
@@ -29,7 +27,7 @@ def llm_query_expand(
         ```python
         def dummy_llm(**kwargs):
             return {"content": "var 1\\nvar 2"}
-        
+
         variants = llm_query_expand(query="test", llm=dummy_llm, num_variants=2)
         assert len(variants) == 3
         assert variants[0] == "test"
@@ -37,7 +35,7 @@ def llm_query_expand(
     """
     if not query.strip():
         raise OprimError("Query cannot be empty")
-    
+
     if num_variants <= 0:
         raise OprimError("num_variants must be > 0")
 
@@ -50,7 +48,7 @@ Output ONLY the alternative queries, one per line. Do NOT output numbering, bull
 """
 
     messages = [{"role": "user", "content": prompt}]
-    
+
     try:
         response = llm(messages=messages)
         content = response.get("content", "")
@@ -61,7 +59,7 @@ Output ONLY the alternative queries, one per line. Do NOT output numbering, bull
     # Parse response
     lines = [line.strip() for line in content.split("\n")]
     lines = [line for line in lines if line]
-    
+
     # Remove numbering if LLM ignored instructions (e.g. "1. xxx")
     cleaned_lines = []
     import re

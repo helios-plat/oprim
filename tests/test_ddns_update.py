@@ -1,4 +1,4 @@
-"""Tests for oprim.ddns_update."""
+"""Tests for oprim._ddns_update."""
 
 from __future__ import annotations
 

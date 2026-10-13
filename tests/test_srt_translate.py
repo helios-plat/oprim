@@ -1,4 +1,4 @@
-"""Tests for oprim.srt_translate."""
+"""Tests for oprim._srt_translate."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from oprim.srt_translate import SRTParseError, SRTTranslateError, srt_translate
+from oprim._srt_translate import SRTParseError, SRTTranslateError, srt_translate
 
 VALID_SRT = """\
 1

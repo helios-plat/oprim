@@ -4,9 +4,8 @@ from __future__ import annotations
 import json
 import socket
 import time
-import urllib.request
 import urllib.parse
-
+import urllib.request
 
 _TRUSTED_PDF_HOSTS = (
     "link.springer.com",
@@ -19,7 +18,7 @@ def _force_ipv4():
     """Monkey-patch socket.getaddrinfo to prefer IPv4 (OAPEN IPv6 unreachable from CN)."""
     _orig = socket.getaddrinfo
 
-    def ipv4_first(host, port, family=0, type=0, proto=0, flags=0):
+    def ipv4_first(host, port, family=0, type=0, proto=0, flags=0):  # noqa: A002
         try:
             v4 = [r for r in _orig(host, port, family, type, proto, flags)
                   if r[0] == socket.AF_INET]

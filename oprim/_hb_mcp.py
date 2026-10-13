@@ -4,6 +4,7 @@ mcp_connect / load_custom_tool
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -36,15 +37,11 @@ class McpSession:
     async def close(self) -> None:
         """关闭连接。"""
         if self._session is not None:
-            try:
+            with contextlib.suppress(Exception):
                 await self._session.aclose()
-            except Exception:
-                pass
         if self._transport is not None:
-            try:
+            with contextlib.suppress(Exception):
                 await self._transport.aclose()
-            except Exception:
-                pass
 
 
 @dataclass
@@ -100,8 +97,8 @@ async def mcp_connect(server_url: str, *, timeout: float = 30) -> McpSession:
 
 async def _connect_sse(url: str, *, timeout: float) -> McpSession:
     try:
-        from mcp.client.sse import sse_client
         from mcp import ClientSession
+        from mcp.client.sse import sse_client
     except ImportError as e:
         raise McpOprimError("mcp package not installed or missing sse client", cause=e)
 
@@ -112,7 +109,7 @@ async def _connect_sse(url: str, *, timeout: float) -> McpSession:
             ClientSession(read, write).__aenter__(), timeout=timeout
         )
         await asyncio.wait_for(session.initialize(), timeout=timeout)
-    except asyncio.TimeoutError as e:
+    except TimeoutError as e:
         raise TimeoutError(f"mcp_connect timed out after {timeout}s: {url}") from e
     except McpOprimError:
         raise
@@ -127,8 +124,8 @@ async def _connect_stdio(url: str, *, timeout: float) -> McpSession:
     # Strip prefix and use path as command
     cmd = url[len("stdio://"):]
     try:
-        from mcp.client.stdio import stdio_client
         from mcp import ClientSession, StdioServerParameters
+        from mcp.client.stdio import stdio_client
     except ImportError as e:
         raise McpOprimError("mcp package not installed or missing stdio client", cause=e)
 
@@ -141,7 +138,7 @@ async def _connect_stdio(url: str, *, timeout: float) -> McpSession:
             ClientSession(read, write).__aenter__(), timeout=timeout
         )
         await asyncio.wait_for(session.initialize(), timeout=timeout)
-    except asyncio.TimeoutError as e:
+    except TimeoutError as e:
         raise TimeoutError(f"mcp_connect (stdio) timed out after {timeout}s") from e
     except McpOprimError:
         raise

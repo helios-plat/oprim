@@ -192,7 +192,7 @@ class TestDetectEncoding:
         assert detect_encoding(b"\xfe\xffhello") == "utf-16-be"
 
     def test_valid_utf8_no_bom(self):
-        assert detect_encoding("hello world".encode("utf-8")) == "utf-8"
+        assert detect_encoding(b"hello world") == "utf-8"
 
     def test_invalid_utf8_falls_back_to_latin1(self):
         # \xff\xfe is UTF-16-LE BOM
@@ -244,7 +244,7 @@ class TestIsBinary:
         assert is_binary(b"") is False
 
     def test_utf8_multibyte_not_false_positive(self):
-        text = "中文内容".encode("utf-8")
+        text = "中文内容".encode()
         assert is_binary(text) is False
 
 

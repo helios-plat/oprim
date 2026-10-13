@@ -9,29 +9,25 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
-import ast
-import inspect
 import math
-import textwrap
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
-# ── M-B imports ──────────────────────────────────────────────────────────────
-from oprim.solve_conic import solve_conic, ConicParams, _classify_by_discriminant
-from oprim.solve_function import solve_function, FunctionSolveInput
-from oprim.solve_derivative import solve_derivative, DerivativeSolveInput
-from oprim.solve_geometry3d import solve_geometry3d, Geometry3DInput
-from oprim.solve_sequence import solve_sequence, SequenceSolveInput
-from oprim.solve_trig import solve_trig, TrigSolveInput
-from oprim.solve_probability import solve_probability, ProbabilitySolveInput
-from oprim.verify_step import verify_step, StepVerifyInput, verify_steps
-from oprim.kernel_to_plot2d import kernel_to_plot2d, Plot2DRequest, solve_result_to_plot2d
-from oprim.kernel_to_three import kernel_to_three, Plot3DRequest
-from oprim.generate_svg_diagram import generate_svg_diagram, generate_svg_from_plot2d, SVGConfig
-from oprim.types import SolveResult, SolveStep, Plot2DData, Three3DData, SocraticTurnResult
+from oprim.generate_svg_diagram import SVGConfig, generate_svg_diagram, generate_svg_from_plot2d
+from oprim.kernel_to_plot2d import Plot2DRequest, kernel_to_plot2d, solve_result_to_plot2d
+from oprim.kernel_to_three import Plot3DRequest, kernel_to_three
 
+# ── M-B imports ──────────────────────────────────────────────────────────────
+from oprim.solve_conic import _classify_by_discriminant, solve_conic
+from oprim.solve_derivative import DerivativeSolveInput, solve_derivative
+from oprim.solve_function import FunctionSolveInput, solve_function
+from oprim.solve_geometry3d import Geometry3DInput, solve_geometry3d
+from oprim.solve_probability import ProbabilitySolveInput, solve_probability
+from oprim.solve_sequence import SequenceSolveInput, solve_sequence
+from oprim.solve_trig import TrigSolveInput, solve_trig
+from oprim.types import Plot2DData, SocraticTurnResult, SolveResult, Three3DData
+from oprim.verify_step import StepVerifyInput, verify_step, verify_steps
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MANDATORY: test_verify_no_llm_call
@@ -291,7 +287,7 @@ class TestSolveGeometry3D:
         inp = Geometry3DInput(task="cylinder", radius=2.0, height=5.0)
         r = solve_geometry3d(inp)
         assert r.solvable
-        vol = math.pi * 4 * 5
+        math.pi * 4 * 5
         assert "V" in r.answer
 
     def test_cone_volume(self):
@@ -624,7 +620,7 @@ class TestKernelToThree:
             grid_points=3,
         )
         data = kernel_to_three(req)
-        for xv, yv, zv in zip(data.x_values, data.y_values, data.z_values):
+        for xv, yv, zv in zip(data.x_values, data.y_values, data.z_values, strict=False):
             assert abs(zv - (xv + yv)) < 1e-6
 
     def test_surface_func_stored(self):

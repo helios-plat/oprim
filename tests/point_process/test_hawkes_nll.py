@@ -1,8 +1,7 @@
-"""Tests for oprim.point_process.hawkes_nll."""
+"""Tests for oprim._point_process.hawkes_nll."""
 import numpy as np
-import pytest
 
-from oprim.point_process import hawkes_nll
+from oprim._point_process import hawkes_nll
 
 
 class TestHawkesNll:

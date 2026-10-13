@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
 from pydantic import BaseModel, Field
-
-from oprim._exceptions import OprimError
 
 
 class BeneishInput(BaseModel):
@@ -15,7 +12,7 @@ class BeneishInput(BaseModel):
     total_assets: float = Field(..., description="总资产")
     total_liabilities: float = Field(..., description="总负债")
     operating_cash_flow: float = Field(..., description="经营性现金流")
-    
+
     # 补充 8 因子模型所需字段 (若 SPEC 未列出则设为默认值以保持兼容)
     accounts_receivable: float = Field(0.0, description="应收账款")
     gross_margin: float = Field(0.0, description="毛利")
@@ -44,7 +41,7 @@ def beneish_m_score(
 
     Returns:
         BeneishResult(m_score, factors).
-        
+
     Note:
         M > -2.22 通常被视为存在造假风险。
     """
@@ -91,14 +88,14 @@ def beneish_m_score(
 
     # coefficients from Beneish (1999)
     m_score = (
-        -4.84 
-        + 0.92 * dsri 
-        + 0.528 * gmi 
-        + 0.404 * aqi 
-        + 0.892 * sgi 
-        + 0.115 * depi 
-        - 0.172 * sgai 
-        + 4.679 * tata 
+        -4.84
+        + 0.92 * dsri
+        + 0.528 * gmi
+        + 0.404 * aqi
+        + 0.892 * sgi
+        + 0.115 * depi
+        - 0.172 * sgai
+        + 4.679 * tata
         - 0.327 * lvgi
     )
 

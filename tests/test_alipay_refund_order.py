@@ -1,4 +1,4 @@
-"""Tests for oprim.alipay_refund_order."""
+"""Tests for oprim._alipay_refund_order."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oprim.alipay_create_qr_order import AlipayAPIError, AlipayConfig
-from oprim.alipay_refund_order import alipay_refund_order
+from oprim._alipay_create_qr_order import AlipayAPIError, AlipayConfig
+from oprim._alipay_refund_order import alipay_refund_order
 
 CONFIG = AlipayConfig(
     app_id="2021000000000000",
@@ -26,7 +26,7 @@ SUCCESS_RESPONSE: dict[str, object] = {
 
 @pytest.mark.asyncio
 async def test_full_refund_success() -> None:
-    with patch("oprim.alipay_refund_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_refund_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_refund.return_value = SUCCESS_RESPONSE
         mock_factory.return_value = mock_client
@@ -42,7 +42,7 @@ async def test_full_refund_success() -> None:
 
 @pytest.mark.asyncio
 async def test_partial_refund_success() -> None:
-    with patch("oprim.alipay_refund_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_refund_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_refund.return_value = {
             **SUCCESS_RESPONSE,
@@ -63,7 +63,7 @@ async def test_partial_refund_success() -> None:
 
 @pytest.mark.asyncio
 async def test_duplicate_refund_raises() -> None:
-    with patch("oprim.alipay_refund_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_refund_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_refund.return_value = {
             "sub_code": "ACQ.TRADE_HAS_FINISHED",
@@ -81,7 +81,7 @@ async def test_duplicate_refund_raises() -> None:
 
 @pytest.mark.asyncio
 async def test_api_error_raises() -> None:
-    with patch("oprim.alipay_refund_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_refund_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_refund.return_value = {
             "sub_code": "ACQ.SYSTEM_ERROR",
@@ -99,7 +99,7 @@ async def test_api_error_raises() -> None:
 
 @pytest.mark.asyncio
 async def test_refund_reason_included_in_request() -> None:
-    with patch("oprim.alipay_refund_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_refund_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_refund.return_value = SUCCESS_RESPONSE
         mock_factory.return_value = mock_client
@@ -117,7 +117,7 @@ async def test_refund_reason_included_in_request() -> None:
 
 @pytest.mark.asyncio
 async def test_empty_refund_reason_omitted() -> None:
-    with patch("oprim.alipay_refund_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_refund_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_refund.return_value = SUCCESS_RESPONSE
         mock_factory.return_value = mock_client

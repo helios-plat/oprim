@@ -18,7 +18,6 @@ import pytest
 from oprim._mneme_speech_types import PronunciationResult
 from oprim._rubric_score import rubric_score
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 """oprim.okx_rest_call — Generic OKX REST API helper."""
 from __future__ import annotations
 
+from datetime import UTC
 from typing import Any
 
 _OKX_BASE = "https://www.okx.com"
@@ -44,9 +45,9 @@ async def okx_rest_call(
         import base64  # noqa: PLC0415
         import hashlib  # noqa: PLC0415
         import hmac as _hmac  # noqa: PLC0415
-        from datetime import datetime, timezone  # noqa: PLC0415
+        from datetime import datetime  # noqa: PLC0415
 
-        ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+        ts = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
         body_str = "" if body is None else __import__("json").dumps(body)
         prehash = ts + method.upper() + path + (body_str or "")
         sig = base64.b64encode(

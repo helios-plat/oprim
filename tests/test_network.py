@@ -12,7 +12,6 @@ from oprim import dns_resolve, http_health_probe, http_request_once, tcp_port_ch
 from oprim._exceptions import OprimConnectionError, OprimTimeoutError, OprimValidationError
 from oprim._network import DNSResolveResult, HealthProbeResult, HttpResponse, PortCheckResult
 
-
 # ---------------------------------------------------------------------------
 # tcp_port_check
 # ---------------------------------------------------------------------------
@@ -33,7 +32,7 @@ class TestTcpPortCheck:
         assert "refused" in (result.error or "")
 
     def test_timeout(self):
-        with patch("oprim._network.socket.create_connection", side_effect=socket.timeout()):
+        with patch("oprim._network.socket.create_connection", side_effect=TimeoutError()):
             result = tcp_port_check(host="10.255.255.1", port=80, timeout_sec=1)
         assert result.reachable is False
         assert "timeout" in (result.error or "")

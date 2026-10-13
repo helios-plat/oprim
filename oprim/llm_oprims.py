@@ -5,35 +5,37 @@ oprim/llm_oprims.py
 """
 
 from __future__ import annotations
+
 import json
-from typing import List, Dict, Any, Literal, Optional
-from pydantic import BaseModel
+from typing import Any, Literal
 
 from obase.provider_registry import ProviderRegistry
-from oprim.types import SolveResult, GradeResult
+from pydantic import BaseModel
+
+from oprim.types import GradeResult, SolveResult
 
 # ── §5.1 ocr_paper ───────────────────────────────────────────────────────────
 
 class PaperOCRResult(BaseModel):
-    questions: List[Dict[str, Any]]  # [{no, question_text, student_answer, correct_answer, subject}]
+    questions: list[dict[str, Any]]  # [{no, question_text, student_answer, correct_answer, subject}]
     raw_text: str
 
 async def ocr_paper(*, image_b64: str, subject: str = "math") -> PaperOCRResult:
     """单 Vision 调用：试卷图片 → 结构化题目列表。"""
     vlm = ProviderRegistry.get().vlm()
     prompt = _OCR_PROMPT.format(subject=subject)
-    
+
     response = await vlm(prompt=prompt, image_b64=image_b64, response_format="json")
-    
+
     content = response.get("content", {})
     if not isinstance(content, dict):
         return PaperOCRResult(questions=[], raw_text=response.get("raw_text", ""))
-        
+
     questions = content.get("questions", [])
     for q in questions:
         if not q.get("question_text"):
             q["question_text"] = "[OCR失败]"
-            
+
     return PaperOCRResult(
         questions=questions,
         raw_text=response.get("raw_text", "")
@@ -57,13 +59,13 @@ async def grade_question(
     solve_result: SolveResult | None = None,
 ) -> GradeResult:
     """单题批改（确定性优先）。"""
-    
+
     # 确定性优先：有内核结果且可解，则比对内核答案
     if solve_result and solve_result.solvable:
         # TODO: 更好的 LaTeX 等价性比对
         is_correct = (student_answer.strip() == solve_result.answer.strip())
         return GradeResult(is_correct=is_correct, method="kernel", reason="Kernel verified")
-        
+
     # 否则使用 LLM
     llm = ProviderRegistry.get().llm()
     prompt = f"""
@@ -71,12 +73,12 @@ async def grade_question(
     题目：{question_text}
     标准答案：{correct_answer}
     学生答案：{student_answer}
-    
+
     仅返回 JSON: {{"is_correct": bool, "reason": "简短原因"}}
     """
-    
+
     response = await llm(messages=[{"role": "user", "content": prompt}], response_format="json")
-    
+
     try:
         data = json.loads(response["content"])
         return GradeResult(
@@ -84,7 +86,7 @@ async def grade_question(
             method="llm",
             reason=data.get("reason")
         )
-    except:
+    except Exception:
         return GradeResult(is_correct=False, method="llm", reason="LLM Parse Error")
 
 # ── §5.3 profiler_analyze ─────────────────────────────────────────────────────
@@ -92,9 +94,9 @@ async def grade_question(
 class ProfilerResult(BaseModel):
     error_type: Literal["conceptual", "transfer", "careless", "logic_break", "dontknow"]
     error_reason: str
-    knowledge_points: List[str]
+    knowledge_points: list[str]
     cognitive_break_point: str
-    socratic_questions: List[str]
+    socratic_questions: list[str]
     mastery_estimate: float
     parent_note: str
 
@@ -103,7 +105,7 @@ async def profiler_analyze(
     question_text: str,
     student_answer: str,
     correct_answer: str,
-    kc_candidates: List[str],
+    kc_candidates: list[str],
 ) -> ProfilerResult:
     """单 LLM 调用：错题深度认知分析。"""
     llm = ProviderRegistry.get().llm()
@@ -113,9 +115,9 @@ async def profiler_analyze(
         correct_answer=correct_answer,
         kc_candidates=kc_candidates
     )
-    
+
     response = await llm(messages=[{"role": "user", "content": prompt}], response_format="json")
-    
+
     try:
         # 简单清洗 markdown
         raw = response["content"]

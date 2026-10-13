@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from oprim.vector_db.lancedb import LanceDBVectorDB, VectorRecord, open_vector_db
 from oprim.errors import VectorDBError
+from oprim.vector_db.lancedb import LanceDBVectorDB, VectorRecord, open_vector_db
 
 DIM = 16  # small dimension for fast tests
 
@@ -103,7 +103,7 @@ class TestLanceDBVectorDB:
             open_vector_db(tmp_path / "db", "table", dim=DIM, provider="qdrant")
 
     def test_upsert_error_raises_vectordberror(self, tmp_path: Path):
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
         db = open_vector_db(tmp_path / "db", "test_table", dim=DIM)
         records = [VectorRecord(id="r1", embedding=_rand_vec(), metadata={})]
         # Mock the internal table merge_insert to raise

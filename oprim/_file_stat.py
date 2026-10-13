@@ -1,9 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 import stat
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def file_stat(path: str | Path) -> dict[str, object]:
     """单次原子获取文件元数据。

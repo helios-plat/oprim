@@ -1,12 +1,11 @@
 """Tests for svensson_yield_curve and cubic_spline_yield_curve."""
 from __future__ import annotations
 
-import pytest
 import numpy as np
+import pytest
 from scipy.interpolate import CubicSpline
 
-from oprim.derivatives.rates import svensson_yield_curve, cubic_spline_yield_curve
-
+from oprim.derivatives.rates import cubic_spline_yield_curve, svensson_yield_curve
 
 # ===========================================================================
 # Helpers: synthetic yield curves

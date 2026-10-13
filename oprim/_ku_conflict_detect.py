@@ -28,7 +28,7 @@ _POLARITY_PAIRS: list[tuple[str, str]] = [
 def _cosine_sim(a: list[float], b: list[float]) -> float:
     if len(a) != len(b):
         raise ValueError(f"embedding dimensions differ: {len(a)} vs {len(b)}")
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(x * x for x in b) ** 0.5
     if norm_a == 0.0 or norm_b == 0.0:

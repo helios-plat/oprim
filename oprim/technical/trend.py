@@ -146,7 +146,7 @@ def adx_series(
             abs(l_arr[i] - c_arr[i - 1]),
         )
 
-    m = len(trs)  # n - 1
+    len(trs)  # n - 1
 
     # Wilder smoothing → arrays of length m - period + 1
     def _wilder(values: np.ndarray) -> np.ndarray:
@@ -175,7 +175,6 @@ def adx_series(
 
     # Map smoothed DI back to full array: smoothed index j maps to bar index j + period
     # (+1 for the transition offset)
-    di_start = period  # index in original array where first +DI/-DI is valid
     for j in range(k):
         bar_idx = j + period
         if bar_idx < n:

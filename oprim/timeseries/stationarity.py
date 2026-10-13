@@ -312,7 +312,7 @@ def kpss_test(
     cv = _KPSS_CV[regression]
 
     # p-value interpolation: KPSS rejects stationarity for LARGE values
-    kpss_table = sorted(cv.items(), key=lambda x: x[1])  # sort by cv value ascending
+    sorted(cv.items(), key=lambda x: x[1])  # sort by cv value ascending
     # (p_value, cv_value) pairs: at cv_0.01=0.739 significance level 0.01
     # Map: large stat → small p → reject stationarity
     # Interpolate from critical value table (approximate)

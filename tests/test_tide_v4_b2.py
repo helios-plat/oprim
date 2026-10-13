@@ -1,8 +1,8 @@
-import pytest
-from oprim.financial_metric_extraction import financial_metric_extraction, NewsItem
-from oprim.policy_event_extraction import policy_event_extraction, PolicyNews, PolicyEvent
+from oprim.financial_metric_extraction import NewsItem, financial_metric_extraction
 from oprim.industry_attribution import industry_attribution
-from oprim.pattern_detection import pattern_detection, OHLCVInput
+from oprim.pattern_detection import OHLCVInput, pattern_detection
+from oprim.policy_event_extraction import PolicyEvent, PolicyNews, policy_event_extraction
+
 
 # --- Financial Metric Extraction Tests ---
 def test_financial_extraction_normal():

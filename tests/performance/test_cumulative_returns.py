@@ -1,5 +1,6 @@
 """Tests for oprim.performance.cumulative_returns."""
 import math
+
 import numpy as np
 import pandas as pd
 import pytest

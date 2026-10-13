@@ -1,10 +1,8 @@
-"""Tests for oprim.concept_extractor."""
+"""Tests for oprim._concept_extractor."""
 
 from __future__ import annotations
 
-import pytest
-
-from oprim.concept_extractor import concept_extractor
+from oprim._concept_extractor import concept_extractor
 
 
 def test_returns_dict_with_required_keys():

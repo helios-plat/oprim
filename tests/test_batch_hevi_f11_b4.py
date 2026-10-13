@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import inspect
-import pytest
 
 from oprim._ltx2_cloud_generate import ltx2_cloud_generate
 from oprim._video_generate import video_generate

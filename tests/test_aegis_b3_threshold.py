@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.evaluate_threshold_rule import (
+from oprim._evaluate_threshold_rule import (
     ThresholdResult,
     ThresholdRuleError,
     evaluate_threshold_rule,

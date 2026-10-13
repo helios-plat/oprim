@@ -42,7 +42,6 @@ def _barrier_cf(
 ) -> float:
     """Closed-form barrier option price using Reiner-Rubinstein (1991) formulas."""
     if T <= 0:
-        ST = S  # at expiry, S is known
         if option_type == "call":
             intrinsic = max(S - K, 0.0)
         else:
@@ -148,7 +147,7 @@ def _barrier_cf(
             dividend_yield=q,
             method="closed_form",
         )["price"]
-        rebate_out = _barrier_cf(S, K, H, T, r, sigma, q, "down_and_out", option_type, rebate)
+        _barrier_cf(S, K, H, T, r, sigma, q, "down_and_out", option_type, rebate)
         # in + out = vanilla + rebate (the rebate is paid by the out)
         return float(vanilla - out_price + rebate * np.exp(-r * T))
 
@@ -392,9 +391,9 @@ def _lookback_cf(
         if option_type == "call":
             # Floating call = S*e^{-qT}*N(a1) - S*e^{-rT}*N(a2) + sigma^2/(2b) terms
             if abs(b) > 1e-8:
-                term1 = S * disc_q * _phi(a1_c)
-                term2 = S * disc_r * _phi(a2_c)
-                term3 = (sigma**2 / (2.0 * b)) * S * (
+                S * disc_q * _phi(a1_c)
+                S * disc_r * _phi(a2_c)
+                (sigma**2 / (2.0 * b)) * S * (
                     disc_r * _phi(a2_c) - disc_q * (b * T + 1.0) * _phi(-a1_c)
                     # Actually use correct GSG formula:
                 )

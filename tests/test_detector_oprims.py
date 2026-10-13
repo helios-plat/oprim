@@ -7,20 +7,18 @@ from unittest.mock import patch
 
 import pytest
 
-from oprim._detector_types import DetectorSignal
-from oprim._exceptions import OprimError
-from oprim.detect_sector_collapse import SectorCollapseConfig, detect_sector_collapse
-from oprim.detect_dragon_switch import DragonSwitchConfig, detect_dragon_switch
-from oprim.detect_hot_money_converge import HotMoneyConvergeConfig, detect_hot_money_converge
-from oprim.detect_limit_board_explosion import (
-    LimitBoardExplosionConfig,
+from oprim._detect_dragon_switch import DragonSwitchConfig, detect_dragon_switch
+from oprim._detect_hot_money_converge import HotMoneyConvergeConfig, detect_hot_money_converge
+from oprim._detect_limit_board_explosion import (
     detect_limit_board_explosion,
 )
-from oprim.detect_volume_spike import VolumeSpikeConfig, detect_volume_spike
-from oprim.detect_northbound_reversal import NorthboundReversalConfig, detect_northbound_reversal
-from oprim.detect_news_shock import NewsShockConfig, detect_news_shock
+from oprim._detect_news_shock import NewsShockConfig, detect_news_shock
+from oprim._detect_northbound_reversal import NorthboundReversalConfig, detect_northbound_reversal
+from oprim._detect_sector_collapse import SectorCollapseConfig, detect_sector_collapse
+from oprim._detect_volume_spike import detect_volume_spike
+from oprim._detector_types import DetectorSignal
+from oprim._exceptions import OprimError
 from oprim.financial_metric_extraction import FinancialMetric, NewsItem
-
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -378,7 +376,7 @@ class TestDetectNewsShock:
         prices = [10.0, 10.3, 10.6, 10.2, 10.8]
         news = [NewsItem(content="盈利暴增")]
         with patch(
-            "oprim.detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.8)
+            "oprim._detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.8)
         ):
             sig = detect_news_shock(news=news, five_min_prices=prices)
         assert _is_signal(sig)
@@ -388,7 +386,7 @@ class TestDetectNewsShock:
         prices = [10.0, 10.3, 10.6, 10.2, 10.8]
         news = [NewsItem(content="普通新闻")]
         with patch(
-            "oprim.detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.2)
+            "oprim._detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.2)
         ):
             result = detect_news_shock(news=news, five_min_prices=prices)
         assert result is None
@@ -397,7 +395,7 @@ class TestDetectNewsShock:
         prices = [10.0, 10.001, 10.002, 10.001, 10.002]  # near-zero vol
         news = [NewsItem(content="高情感新闻")]
         with patch(
-            "oprim.detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.9)
+            "oprim._detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.9)
         ):
             cfg = NewsShockConfig(volatility_threshold=0.05)
             result = detect_news_shock(news=news, five_min_prices=prices, config=cfg)
@@ -415,7 +413,7 @@ class TestDetectNewsShock:
         prices = [10.0, 10.4, 10.7, 10.2, 10.9]
         news = [NewsItem(content="test")]
         with patch(
-            "oprim.detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.75)
+            "oprim._detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.75)
         ):
             sig = detect_news_shock(news=news, five_min_prices=prices)
         assert sig is not None
@@ -428,7 +426,7 @@ class TestDetectNewsShock:
         import pathlib
 
         # Use path-based read to avoid name clash with exported function in oprim.__init__
-        src = (pathlib.Path(__file__).parent.parent / "oprim" / "detect_news_shock.py").read_text()
+        src = (pathlib.Path(__file__).parent.parent / "oprim" / "_detect_news_shock.py").read_text()
         assert "from oprim.financial_metric_extraction import" in src
         assert "from oprim.volume_ratio import" not in src
         assert "_five_min_volatility" in src  # inline impl confirmed

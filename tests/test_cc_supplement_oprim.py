@@ -8,13 +8,13 @@ import pytest
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
-def _skill(name: str, description: str = "") -> "object":
+def _skill(name: str, description: str = "") -> object:
     from oprim._hicode_types import SkillSpec
 
     return SkillSpec(name=name, description=description, body="")
 
 
-def _tool_call(name: str) -> "object":
+def _tool_call(name: str) -> object:
     from oprim._hicode_types import ToolCall
 
     return ToolCall(id="t1", name=name, args={})
@@ -341,7 +341,7 @@ class TestCheckPlanModeAllowed:
 # ── P-NEW7 make_checkpoint ────────────────────────────────────────────────────
 
 class TestMakeCheckpoint:
-    def _state(self, **kw: object) -> "object":
+    def _state(self, **kw: object) -> object:
         from oprim._cc_types import RunState
 
         defaults: dict = {"step": 0, "data": {}, "completed_steps": []}
@@ -402,7 +402,7 @@ class TestMakeCheckpoint:
 # ── P-NEW8 restore_from_checkpoint ───────────────────────────────────────────
 
 class TestRestoreFromCheckpoint:
-    def _checkpoint(self, **kw: object) -> "object":
+    def _checkpoint(self, **kw: object) -> object:
         from oprim._cc_types import CheckpointData
 
         base = {

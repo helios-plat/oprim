@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Literal
+
 import pandas as pd
 from pydantic import BaseModel, Field
 
@@ -25,8 +26,8 @@ class ScreenResult(BaseModel):
 
 
 def apply_screen_filter(
-    *, 
-    candidates: pd.DataFrame, 
+    *,
+    candidates: pd.DataFrame,
     rules: list[ScreenRule]
 ) -> ScreenResult:
     """配置驱动选股过滤. 纯 DataFrame 过滤 + 规则匹配.
@@ -43,18 +44,18 @@ def apply_screen_filter(
 
     df = candidates.copy()
     rejected_list: list[dict] = []
-    
+
     # 初始状态
     passed_mask = pd.Series(True, index=df.index)
-    
+
     for rule in rules:
         if rule.field not in df.columns:
             # 如果字段不存在，视情况报错或跳过
             continue
-            
+
         field_series = df[rule.field]
         rule_mask = pd.Series(True, index=df.index)
-        
+
         if rule.op == "gt":
             rule_mask = field_series > rule.threshold
         elif rule.op == "lt":
@@ -80,11 +81,11 @@ def apply_screen_filter(
                 "failed_rule": rule.field,
                 "reason": rule.reason
             })
-            
+
         passed_mask &= rule_mask
 
     passed_df = df[passed_mask]
-    
+
     return ScreenResult(
         passed=passed_df["symbol"].tolist(),
         rejected=rejected_list,

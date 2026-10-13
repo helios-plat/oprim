@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import fitz
 import pytest
 
-from oprim.parser.parse_pdf import ParsedContent, parse_pdf
 from oprim.errors import PDFParseError
+from oprim.parser.parse_pdf import ParsedContent, parse_pdf
 
 
 class TestParsePDF:
@@ -137,9 +137,8 @@ class TestParsePDF:
             "marker": MagicMock(),
             "marker.convert": mock_marker_pkg.convert,
             "marker.models": mock_marker_pkg.models,
-        }):
-            with pytest.raises(PDFParseError, match="marker failed"):
-                parse_pdf(simple_pdf, provider="marker")
+        }), pytest.raises(PDFParseError, match="marker failed"):
+            parse_pdf(simple_pdf, provider="marker")
 
     def test_marker_installed_and_succeeds(self, simple_pdf: Path):
         import sys
@@ -166,5 +165,5 @@ class TestParsePDF:
         f = tmp_path / "bad.epub"
         f.write_bytes(b"not real epub data at all")
         from oprim.parser.parse_epub import parse_epub
-        with pytest.raises(Exception):
+        with pytest.raises(Exception, match=r"(?i)zip|epub"):
             parse_epub(f)

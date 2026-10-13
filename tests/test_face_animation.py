@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim._face_animation import (
     FaceAnimationError,
     FaceAnimationProviderNotFoundError,

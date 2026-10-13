@@ -1,7 +1,9 @@
-"""Tests for oprim.llm_distill_strategy — uses stub path (no actual LLM)."""
+"""Tests for oprim._llm_distill_strategy — uses stub path (no actual LLM)."""
 
 import uuid
+
 import pytest
+
 from oprim._llm_distill_strategy import llm_distill_strategy
 
 
@@ -117,6 +119,7 @@ class TestProviderRegistryPath:
     def test_provider_not_registered_falls_back_to_stub_with_warning(self):
         """ProviderNotFoundError → stub + log.warning, no raise."""
         from unittest.mock import patch
+
         from obase.exceptions import ProviderNotFoundError
 
         ep = {"event": "deploy failed", "outcome": "rollback", "context": {}}
@@ -129,8 +132,8 @@ class TestProviderRegistryPath:
 
     def test_provider_registered_calls_llm_messages_passthrough(self):
         """Registered provider called; episode fields appear in prompt."""
-        from unittest.mock import patch, MagicMock
         import json
+        from unittest.mock import MagicMock, patch
 
         fake_response = json.dumps({
             "title": "Rollback strategy",
@@ -151,7 +154,6 @@ class TestProviderRegistryPath:
 
     def test_code_error_reraises(self):
         """Non-ProviderNotFoundError must propagate."""
-        import pytest
         from unittest.mock import patch
 
         with patch("obase.ProviderRegistry.get", side_effect=ValueError("bad")):

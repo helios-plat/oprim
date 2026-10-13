@@ -1,10 +1,8 @@
-"""Tests for oprim.parse_atom_feed."""
+"""Tests for oprim._parse_atom_feed."""
 
 from __future__ import annotations
 
-import pytest
-
-from oprim.parse_atom_feed import parse_atom_feed
+from oprim._parse_atom_feed import parse_atom_feed
 
 VALID_ATOM = """\
 <?xml version="1.0" encoding="UTF-8"?>

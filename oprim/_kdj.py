@@ -43,7 +43,7 @@ def kdj(
     T = len(close)
     if len(high) != T or len(low) != T:
         raise OprimError(f"Length mismatch: high({len(high)}), low({len(low)}), close({T})")
-    if T < n:
+    if n > T:
         raise OprimError(f"Sequence length {T} is less than period n={n}")
     if n < 1:
         raise OprimError(f"n must be >= 1, got {n}")
@@ -59,7 +59,7 @@ def kdj(
 
     k_arr = np.empty(T, dtype=np.float64)
     d_arr = np.empty(T, dtype=np.float64)
-    
+
     k_prev = 50.0
     d_prev = 50.0
 
@@ -70,20 +70,20 @@ def kdj(
         lo_n = l[start : t + 1].min()
         hi_n = h[start : t + 1].max()
         rng = hi_n - lo_n
-        
+
         # RSV (Raw Stochastic Value)
         rsv = 50.0 if rng < 1e-12 else (c[t] - lo_n) / rng * 100.0
-        
+
         k_t = (1 - alpha_k) * k_prev + alpha_k * rsv
         d_t = (1 - alpha_d) * d_prev + alpha_d * k_t
-        
+
         k_arr[t] = k_t
         d_arr[t] = d_t
         k_prev = k_t
         d_prev = d_t
 
     j_arr = 3.0 * k_arr - 2.0 * d_arr
-    
+
     return KDJResult(
         k=k_arr.tolist(),
         d=d_arr.tolist(),

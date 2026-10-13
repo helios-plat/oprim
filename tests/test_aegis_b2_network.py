@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import pytest
-
 from oprim import (
-    network_port_check,
-    network_http_health,
-    network_dns_resolve,
-    tcp_port_check,
-    http_health_probe,
     dns_resolve,
+    http_health_probe,
+    network_dns_resolve,
+    network_http_health,
+    network_port_check,
+    tcp_port_check,
 )
 
 
@@ -60,10 +58,16 @@ def test_network_port_check_unreachable_host():
 
 
 def test_network_http_health_bad_url():
-    """Invalid URL returns healthy=False."""
-    result = network_http_health(url="http://localhost:19998/health", timeout_sec=1)
+    """Unreachable URL returns healthy=False."""
+    import socket
+
+    with socket.socket() as s:  # grab a port nothing is listening on
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    url = f"http://127.0.0.1:{port}/health"
+    result = network_http_health(url=url, timeout_sec=1)
     assert result.healthy is False
-    assert result.url == "http://localhost:19998/health"
+    assert result.url == url
 
 
 def test_network_dns_resolve_localhost():

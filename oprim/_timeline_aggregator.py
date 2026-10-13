@@ -6,7 +6,7 @@ Groups items by day/week/month bucket from ISO timestamp field.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def timeline_aggregator(
@@ -94,7 +94,7 @@ def _parse_iso(value: str) -> datetime:
         s = s[:-1] + "+00:00"
     dt = datetime.fromisoformat(s)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     return dt
 
 

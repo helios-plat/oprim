@@ -1,4 +1,4 @@
-"""Tests for oprim.usb_device_list."""
+"""Tests for oprim._usb_device_list."""
 
 from __future__ import annotations
 

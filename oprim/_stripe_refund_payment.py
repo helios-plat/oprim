@@ -5,7 +5,7 @@ from typing import Literal
 
 import stripe as stripe_sdk
 
-from oprim.stripe_create_payment_intent import StripeAPIError, StripeConfig
+from oprim._stripe_create_payment_intent import StripeAPIError, StripeConfig
 
 
 async def stripe_refund_payment(

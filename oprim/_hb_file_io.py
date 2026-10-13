@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import os
 import shutil
 import tempfile
@@ -155,10 +156,8 @@ async def atomic_write(path: Path, *, content: str, encoding: str = "utf-8") -> 
                 shutil.copy2(tmp_path, str(p))
                 os.unlink(tmp_path)
         except Exception:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp_path)
-            except OSError:
-                pass
             raise
 
     loop = asyncio.get_event_loop()

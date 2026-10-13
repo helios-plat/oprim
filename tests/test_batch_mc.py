@@ -12,24 +12,18 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any
-from unittest.mock import AsyncMock, patch
 
-import pytest
-
-from oprim.ocr_paper import ocr_paper, OCRPaperInput, OCRPaperResult
-from oprim.grade_question import grade_question, GradeQuestionInput, _compare_answer
-from oprim.profiler_analyze import profiler_analyze, ProfilerInput, ProfilerResult
-from oprim.socratic_turn import socratic_turn, SocraticTurnInput
+from oprim.evaluate_diagram import DiagramEvalInput, evaluate_diagram
 from oprim.find_common_breakpoint import (
-    find_common_breakpoint,
     WrongQuestion,
-    BreakpointResult,
+    find_common_breakpoint,
 )
-from oprim.generate_variant import generate_variant, VariantInput, VariantItem
-from oprim.evaluate_diagram import evaluate_diagram, DiagramEvalInput, DiagramEvalResult
-from oprim.types import SolveResult, SocraticTurnResult
-
+from oprim.generate_variant import VariantInput, generate_variant
+from oprim.grade_question import GradeQuestionInput, _compare_answer, grade_question
+from oprim.ocr_paper import OCRPaperInput, ocr_paper
+from oprim.profiler_analyze import ProfilerInput, profiler_analyze
+from oprim.socratic_turn import SocraticTurnInput, socratic_turn
+from oprim.types import SocraticTurnResult, SolveResult
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Mock LLM helpers
@@ -37,7 +31,6 @@ from oprim.types import SolveResult, SocraticTurnResult
 
 def _make_caller(text: str):
     """Make a caller that returns text as LLM response."""
-    from oprim.llm_complete import LLMResponse
 
     async def caller(**kwargs):
         return {
@@ -327,7 +320,7 @@ class TestSocraticTurn:
                 {"role": "assistant", "content": "你觉得该怎么移项？"},
             ],
         )
-        result = asyncio.run(socratic_turn(inp, caller=history_capturing_caller))
+        asyncio.run(socratic_turn(inp, caller=history_capturing_caller))
         assert len(history_seen) >= 2  # history + new message
 
 

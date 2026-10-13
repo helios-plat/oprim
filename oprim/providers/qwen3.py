@@ -3,11 +3,11 @@ from __future__ import annotations
 
 
 def _make_llm_caller() -> object:
+    import time
+
     from oprim._config import cfg
     from oprim._logging import log as olog
     from oprim.errors import LLMError, LLMRateLimitError
-
-    import time
 
     def caller(
         messages: list[dict],

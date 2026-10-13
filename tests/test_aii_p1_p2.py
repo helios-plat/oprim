@@ -11,7 +11,6 @@ from oprim._aii_types import FailureLessonResult
 from oprim._failure_lesson_extract import failure_lesson_extract
 from oprim._keyword_merge import keyword_merge
 
-
 # ===========================================================================
 # P-AII-1: failure_lesson_extract
 # ===========================================================================

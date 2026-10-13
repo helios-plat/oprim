@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Literal, Optional, Dict
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # annotations only; runtime access goes through __getattr__ below
+    from obase.cognitive_types import KCState
 
 # fsrs imported lazily inside FSRS functions (KCState/BKT don't need it)
 
@@ -16,6 +18,8 @@ def __getattr__(name):
     if name in ("KCState", "bkt_new_state"):
         from obase.cognitive_types import (
             KCState,
+        )
+        from obase.cognitive_types import (
             new_state_from_prior as bkt_new_state,
         )
         return {"KCState": KCState, "bkt_new_state": bkt_new_state}[name]
@@ -76,7 +80,7 @@ def bkt_update(
         r = retrievability
     elif days_since is not None:
         r = exp_forgetting(days_since=days_since)
-    
+
     p_eff = p_l * r
 
     # 2. Bayesian update (Observation)
@@ -91,7 +95,7 @@ def bkt_update(
 
     # 4. Update state (in-place)
     state.p_mastery = p_new
-    
+
     if state.long_term_mastery is None:
         state.long_term_mastery = p_new
     else:
@@ -156,6 +160,7 @@ def fsrs_new_card() -> dict:
 def fsrs_review(*, card_dict: dict, rating: str, now: datetime | None = None) -> dict:
     """对卡片做一次复习（rating 为字符串，委托 fsrs_engine）。"""
     from fsrs import Rating
+
     from oprim.fsrs_engine import fsrs_review as _impl
     r = {"Again": Rating.Again, "Hard": Rating.Hard,
          "Good": Rating.Good, "Easy": Rating.Easy}.get(rating, Rating.Good)

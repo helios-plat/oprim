@@ -54,7 +54,7 @@ class Qwen3DashscopeEmbedder:
                         item["embedding"] for item in resp.output["embeddings"]
                     ]
                     total_tokens = sum(len(t) for t in texts)
-                    cost = total_tokens / 1000 * _COST_PER_1K_TOKENS
+                    total_tokens / 1000 * _COST_PER_1K_TOKENS
                     return embeddings
                 elif resp.status_code == 429:
                     raise QuotaExceededError(

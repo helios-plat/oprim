@@ -10,7 +10,7 @@ Version: oprim v3.4.0
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
 from oprim.types import SolveResult, SolveStep
@@ -101,7 +101,7 @@ def solve_geometry3d(inp: Geometry3DInput) -> SolveResult:
                 SolveStep(
                     step_number=1,
                     description="Compute midpoint coordinates",
-                    expression=f"((p1+p2)/2 for each axis)",
+                    expression="((p1+p2)/2 for each axis)",
                     result=f"({mx:.4g}, {my:.4g}, {mz:.4g})",
                 )
             )
@@ -205,7 +205,7 @@ def solve_geometry3d(inp: Geometry3DInput) -> SolveResult:
                 SolveStep(
                     step_number=1,
                     description="Compute cosine of dihedral angle",
-                    expression=f"|n1·n2| / (|n1|·|n2|)",
+                    expression="|n1·n2| / (|n1|·|n2|)",
                     result=f"{cos_theta:.6g}",
                 )
             )

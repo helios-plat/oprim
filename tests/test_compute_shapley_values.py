@@ -1,8 +1,9 @@
 """Tests for compute_shapley_values (true non-linear Shapley)."""
 import math
+
 import pytest
-from oprim._quant_analysis import compute_shapley_values
-from oprim._quant_analysis import QuantAnalysisError
+
+from oprim._quant_analysis import QuantAnalysisError, compute_shapley_values
 
 
 def test_additivity_exact():

@@ -1,11 +1,14 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 import asyncio
-import subprocess
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+
 from ._exceptions import ShellOprimError
+from .shell import _SENTINEL
+
 
 @dataclass
 class ShellResult:
@@ -73,7 +76,7 @@ async def bash_exec_stream(
             while True:
                 try:
                     line = await asyncio.wait_for(stream.readline(), timeout=timeout)
-                except asyncio.TimeoutError:  # pragma: no cover
+                except TimeoutError:  # pragma: no cover
                     # 超时：放 ShellOprimError 到 queue，让主循环抛出
                     await queue.put(
                         ShellOprimError(f"stream timeout after {timeout}s on {label}")

@@ -9,9 +9,8 @@ Version: oprim v3.5.0
 from __future__ import annotations
 
 import json
-import math
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from oprim.types import GradeResult, SolveResult

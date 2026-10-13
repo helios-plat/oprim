@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -205,8 +206,8 @@ class TestCaddyCertificatesStatus:
         assert result.issued is False
 
     def test_expiry_days_computed(self):
-        from datetime import datetime, timezone, timedelta
-        future_date = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+        from datetime import datetime, timedelta
+        future_date = (datetime.now(UTC) + timedelta(days=30)).isoformat()
         data = [{"names": ["example.com"], "issuer": "LE", "not_after": future_date}]
         with patch("oprim._caddy.httpx.get", return_value=_mock_resp(200, data)):
             result = caddy_certificates_status(

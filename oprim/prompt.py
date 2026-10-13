@@ -15,19 +15,22 @@ oprim: 批次 C — prompt 构建 / 消息处理 / 快照原子操作
 """
 
 from __future__ import annotations
-from ._exceptions import OprimError, LLMOprimError, BudgetExceededError, PromptOprimError, SearchOprimError, HttpOprimError, SnapshotOprimError
-from .llm._types import LLMResponse, StreamDelta, EmbedResult, ConversationSnapshot, ThinkingResult, SearchResult, HttpResponse
 
 import json
 import time
 import uuid
 from typing import Any
 
+from ._exceptions import (
+    PromptOprimError,
+    SnapshotOprimError,
+)
 from ._protocols import PersistenceHandle
+from .llm._types import (
+    ConversationSnapshot,
+    ThinkingResult,
+)
 from .text import count_tokens
-
-
-
 
 # ---------------------------------------------------------------------------
 # build_system_prompt
@@ -306,7 +309,7 @@ async def snapshot_conversation(
 
     try:
         revision = await store.save(key=store_key, value=payload)
-    except (SnapshotOprimError,):
+    except SnapshotOprimError:
         raise  # pragma: no cover
     except Exception as e:
         raise SnapshotOprimError("failed to save snapshot to store", cause=e)

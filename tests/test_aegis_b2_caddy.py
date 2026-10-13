@@ -3,9 +3,9 @@ caddy_route_add_atomic / caddy_route_remove_atomic."""
 
 from __future__ import annotations
 
-import json
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from oprim import (
     caddy_admin_config,
@@ -44,9 +44,8 @@ def test_caddy_admin_config_connection_error():
     with patch(
         "oprim._caddy._admin_request",
         return_value=_mock_response(500, text="internal error"),
-    ):
-        with pytest.raises(OprimConnectionError):
-            caddy_admin_config(admin_url="http://localhost:2019")
+    ), pytest.raises(OprimConnectionError):
+        caddy_admin_config(admin_url="http://localhost:2019")
 
 
 def test_caddy_admin_config_passes_timeout():
@@ -111,7 +110,7 @@ def test_caddy_route_add_atomic_insert_position():
         return _mock_response(200, {})
 
     with patch("oprim._caddy._admin_request", side_effect=fake_req):
-        result = caddy_route_add_atomic(
+        caddy_route_add_atomic(
             admin_url="http://localhost:2019",
             route=_NEW_ROUTE,
             position=0,

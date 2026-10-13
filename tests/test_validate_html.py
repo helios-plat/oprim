@@ -1,8 +1,6 @@
 """Tests for validate_html."""
 from __future__ import annotations
 
-import pytest
-
 from oprim._validate_html import validate_html
 
 

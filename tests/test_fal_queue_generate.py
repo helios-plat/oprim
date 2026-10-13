@@ -1,4 +1,4 @@
-"""Tests for oprim.fal_queue_generate (fal 队列通用工具 — ≥6 tests)."""
+"""Tests for oprim._fal_queue_generate (fal 队列通用工具 — ≥6 tests)."""
 
 from __future__ import annotations
 

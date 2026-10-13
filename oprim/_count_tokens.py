@@ -1,11 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import difflib
-import re
+
 from dataclasses import dataclass
-from pathlib import Path
+
 from ._exceptions import ParseOprimError
+
 
 @dataclass
 class Hunk:

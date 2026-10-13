@@ -49,6 +49,4 @@ def check_plan_mode_allowed(tool_call: ToolCall, *, mode: str) -> bool:
         return False
 
     # Unknown mode: conservative
-    if name in _PLAN_ALLOWED or any(name.startswith(p) for p in _PLAN_ALLOWED_PREFIXES):
-        return True
-    return False
+    return bool(name in _PLAN_ALLOWED or any(name.startswith(p) for p in _PLAN_ALLOWED_PREFIXES))
