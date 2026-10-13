@@ -20,15 +20,29 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from oprim import (
-    BudgetExceededError, ConversationSnapshot, EmbedResult,
-    HttpOprimError, HttpResponse, LLMOprimError, LLMResponse,
-    PromptOprimError, SearchOprimError, SearchResult,
-    SnapshotOprimError, StreamDelta, ThinkingResult,
-    build_system_prompt, embed_text, extract_thinking,
-    http_fetch, llm_complete, llm_stream, snapshot_conversation,
-    truncate_messages, web_search,
+    BudgetExceededError,
+    ConversationSnapshot,
+    EmbedResult,
+    HttpOprimError,
+    HttpResponse,
+    LLMOprimError,
+    LLMResponse,
+    PromptOprimError,
+    SearchOprimError,
+    SearchResult,
+    SnapshotOprimError,
+    StreamDelta,
+    ThinkingResult,
+    build_system_prompt,
+    embed_text,
+    extract_thinking,
+    http_fetch,
+    llm_complete,
+    llm_stream,
+    snapshot_conversation,
+    truncate_messages,
+    web_search,
 )
-
 
 # ===========================================================================
 # helpers
@@ -339,9 +353,8 @@ class TestHttpFetch:
         import httpx
         def handler(request):
             return httpx.Response(200, text="hello")
-        transport = httpx.MockTransport(handler)
+        httpx.MockTransport(handler)
         async def run():
-            import httpx as hx
             with patch("httpx.AsyncClient") as mock_cls:
                 client_inst = AsyncMock()
                 mock_cls.return_value.__aenter__ = AsyncMock(return_value=client_inst)
@@ -651,7 +664,7 @@ class TestExtractThinking:
         assert not result.has_thinking
 
     def test_invalid_content_raises(self):
-        with pytest.raises(Exception):
+        with pytest.raises(PromptOprimError):
             extract_thinking({"content": 42})
 
     def test_tool_use_blocks_ignored(self):
@@ -706,7 +719,7 @@ class TestSnapshotConversation:
         store = make_persistence()
         asyncio.run(snapshot_conversation(BASIC_MESSAGES, store=store))
         store.save.assert_called_once()
-        _, kwargs = store.save.call_args[0], store.save.call_args[1]
+        _, _kwargs = store.save.call_args[0], store.save.call_args[1]
         value = store.save.call_args[1]["value"]
         parsed = json.loads(value)
         assert parsed["messages"] == BASIC_MESSAGES

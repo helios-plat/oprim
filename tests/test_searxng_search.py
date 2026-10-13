@@ -1,13 +1,11 @@
-"""Tests for oprim.searxng_search."""
+"""Tests for oprim._searxng_search."""
 
 from __future__ import annotations
 
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from oprim.searxng_search import searxng_search
+from oprim._searxng_search import searxng_search
 
 MOCK_RESPONSE = {
     "results": [
@@ -126,9 +124,8 @@ def test_http_error_sets_error_field():
     with patch(
         "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
         side_effect=Exception("ssrf unavailable"),
-    ):
-        with patch("urllib.request.urlopen", side_effect=OSError("connection refused")):
-            result = searxng_search(query="test", searxng_url="http://172.17.0.2:8080")
+    ), patch("urllib.request.urlopen", side_effect=OSError("connection refused")):
+        result = searxng_search(query="test", searxng_url="http://172.17.0.2:8080")
     assert result["error"] is not None
     assert "connection refused" in result["error"]
     assert result["results"] == []
@@ -151,13 +148,12 @@ def test_categories_in_url():
     with patch(
         "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
         side_effect=ImportError("not available"),
-    ):
-        with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-            searxng_search(
-                query="test",
-                searxng_url="http://172.17.0.2:8080",
-                categories=["general", "news"],
-            )
+    ), patch("urllib.request.urlopen", side_effect=fake_urlopen):
+        searxng_search(
+            query="test",
+            searxng_url="http://172.17.0.2:8080",
+            categories=["general", "news"],
+        )
 
     assert captured_urls, "urlopen should have been called"
     assert "categories=general%2Cnews" in captured_urls[0] or "categories=" in captured_urls[0]
@@ -180,13 +176,12 @@ def test_time_range_in_url():
     with patch(
         "obase.http.dns_pinned_transport.make_ssrf_safe_opener",
         side_effect=ImportError("not available"),
-    ):
-        with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-            searxng_search(
-                query="test",
-                searxng_url="http://172.17.0.2:8080",
-                time_range="week",
-            )
+    ), patch("urllib.request.urlopen", side_effect=fake_urlopen):
+        searxng_search(
+            query="test",
+            searxng_url="http://172.17.0.2:8080",
+            time_range="week",
+        )
 
     assert captured_urls, "urlopen should have been called"
     assert "time_range=week" in captured_urls[0]

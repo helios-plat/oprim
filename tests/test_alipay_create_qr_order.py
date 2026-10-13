@@ -1,4 +1,4 @@
-"""Tests for oprim.alipay_create_qr_order."""
+"""Tests for oprim._alipay_create_qr_order."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oprim.alipay_create_qr_order import (
+from oprim._alipay_create_qr_order import (
     AlipayAPIError,
     AlipayConfig,
     AlipayQRCode,
@@ -43,7 +43,7 @@ API_ERROR_RESPONSE = {
 
 @pytest.mark.asyncio
 async def test_create_qr_order_success() -> None:
-    with patch("oprim.alipay_create_qr_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_create_qr_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_precreate.return_value = SUCCESS_RESPONSE
         mock_factory.return_value = mock_client
@@ -62,7 +62,7 @@ async def test_create_qr_order_success() -> None:
 
 @pytest.mark.asyncio
 async def test_create_qr_order_api_error_raises() -> None:
-    with patch("oprim.alipay_create_qr_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_create_qr_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_precreate.return_value = API_ERROR_RESPONSE
         mock_factory.return_value = mock_client
@@ -79,7 +79,7 @@ async def test_create_qr_order_api_error_raises() -> None:
 @pytest.mark.asyncio
 async def test_sandbox_uses_sandbox_url() -> None:
     """sandbox=True passes debug=True to AliPay constructor."""
-    with patch("oprim.alipay_create_qr_order.AliPay") as mock_alipay_cls:
+    with patch("oprim._alipay_create_qr_order.AliPay") as mock_alipay_cls:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_precreate.return_value = SUCCESS_RESPONSE
         mock_alipay_cls.return_value = mock_client
@@ -97,7 +97,7 @@ async def test_sandbox_uses_sandbox_url() -> None:
 
 @pytest.mark.asyncio
 async def test_minimum_amount_001() -> None:
-    with patch("oprim.alipay_create_qr_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_create_qr_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_precreate.return_value = {
             "qr_code": "https://qr.alipay.com/min",
@@ -120,7 +120,7 @@ async def test_minimum_amount_001() -> None:
 
 @pytest.mark.asyncio
 async def test_large_amount() -> None:
-    with patch("oprim.alipay_create_qr_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_create_qr_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_precreate.return_value = {
             "qr_code": "https://qr.alipay.com/large",
@@ -142,7 +142,7 @@ async def test_large_amount() -> None:
 
 @pytest.mark.asyncio
 async def test_body_none_omitted() -> None:
-    with patch("oprim.alipay_create_qr_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_create_qr_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_precreate.return_value = SUCCESS_RESPONSE
         mock_factory.return_value = mock_client
@@ -161,7 +161,7 @@ async def test_body_none_omitted() -> None:
 
 @pytest.mark.asyncio
 async def test_body_included_when_provided() -> None:
-    with patch("oprim.alipay_create_qr_order._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_create_qr_order._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.api_alipay_trade_precreate.return_value = SUCCESS_RESPONSE
         mock_factory.return_value = mock_client

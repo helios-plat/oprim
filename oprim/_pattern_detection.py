@@ -5,8 +5,6 @@ from __future__ import annotations
 import numpy as np
 from pydantic import BaseModel, Field
 
-from oprim._exceptions import OprimError
-
 
 class OHLCVInput(BaseModel):
     """OHLCV 数据输入."""
@@ -27,7 +25,7 @@ class PatternMatch(BaseModel):
 
 
 def pattern_detection(
-    *, 
+    *,
     ohlcv: OHLCVInput
 ) -> list[PatternMatch]:
     """K线技术形态识别(纯数值算法).
@@ -46,16 +44,16 @@ def pattern_detection(
     h = np.asarray(ohlcv.high)
     l = np.asarray(ohlcv.low)
     c = np.asarray(ohlcv.close)
-    
+
     results: list[PatternMatch] = []
-    
+
     # 示例: 锤子线 (Hammer)
     # 下影线是实体的 2 倍以上, 上影线很短
     for i in range(T):
         body = abs(c[i] - o[i])
         lower_shadow = min(o[i], c[i]) - l[i]
         upper_shadow = h[i] - max(o[i], c[i])
-        
+
         if body > 0 and lower_shadow > 2 * body and upper_shadow < 0.2 * body:
             results.append(PatternMatch(
                 name="hammer",
@@ -64,7 +62,7 @@ def pattern_detection(
                 start_idx=i,
                 end_idx=i
             ))
-            
+
     # 示例: 吞没形态 (Engulfing)
     if T >= 2:
         for i in range(1, T):
@@ -79,14 +77,13 @@ def pattern_detection(
                         end_idx=i
                     ))
             # 看空吞没
-            elif c[i-1] > o[i-1] and c[i] < o[i]:
-                if o[i] >= c[i-1] and c[i] <= o[i-1]:
-                    results.append(PatternMatch(
-                        name="bearish_engulfing",
-                        bullish_score=0.0,
-                        bearish_score=0.9,
-                        start_idx=i-1,
-                        end_idx=i
-                    ))
-                
+            elif c[i-1] > o[i-1] and c[i] < o[i] and o[i] >= c[i-1] and c[i] <= o[i-1]:
+                results.append(PatternMatch(
+                    name="bearish_engulfing",
+                    bullish_score=0.0,
+                    bearish_score=0.9,
+                    start_idx=i-1,
+                    end_idx=i
+                ))
+
     return results

@@ -6,7 +6,7 @@ import json
 from ._hicode_types import Hit
 
 
-def parse_ripgrep_output(raw: str, *, format: str = "json") -> list[Hit]:
+def parse_ripgrep_output(raw: str, *, format: str = "json") -> list[Hit]:  # noqa: A002
     """Parse ``rg --json`` output into a list of :class:`~._hicode_types.Hit` objects.
 
     Only lines with ``"type": "match"`` are processed. Lines that are not

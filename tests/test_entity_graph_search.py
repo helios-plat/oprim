@@ -1,4 +1,4 @@
-"""Tests for oprim.entity_graph_search — ≥10 tests."""
+"""Tests for oprim._entity_graph_search — ≥10 tests."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import types
 
 import pytest
 
-from oprim.entity_graph_search import entity_graph_search
+from oprim._entity_graph_search import entity_graph_search
 
 
 def make_edges(dst_ids: list[str]):

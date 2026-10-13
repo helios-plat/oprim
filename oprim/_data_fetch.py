@@ -5,8 +5,6 @@ Covers: order book, news, on-chain, derivatives, social, DeFi, microstructure.
 """
 from __future__ import annotations
 
-from typing import Any
-
 from oprim._protocols import HttpClient
 
 

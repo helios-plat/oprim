@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 
 from oprim.derivatives.american import lsm_american_price
-from oprim.derivatives.binomial_tree import binomial_tree_price
 from oprim.derivatives.exotic import barrier_option_price, lookback_option_price
 from oprim.derivatives.monte_carlo import mc_asian_price, mc_european_price
 from oprim.derivatives.rates import cubic_spline_yield_curve, svensson_yield_curve

@@ -51,7 +51,7 @@ async def okx_ws_msg(
                 remaining = deadline - asyncio.get_event_loop().time()
                 try:
                     raw = await asyncio.wait_for(ws.recv(), timeout=max(0.1, remaining))
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     break
                 try:
                     msg = json.loads(raw)

@@ -9,7 +9,6 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 
 from oprim.types import Plot2DData, Three3DData
@@ -117,7 +116,7 @@ def generate_svg_from_plot2d(data: Plot2DData, cfg: SVGConfig | None = None) -> 
     # Plot polyline
     if data.x_values and data.y_values:
         points: list[str] = []
-        for xv, yv in zip(data.x_values, data.y_values):
+        for xv, yv in zip(data.x_values, data.y_values, strict=False):
             svgx = _map_x(xv, x_min, x_max, px, w)
             svgy = _map_y(yv, y_min, y_max, py, h)
             points.append(f"{svgx:.1f},{svgy:.1f}")
@@ -194,7 +193,7 @@ def generate_svg_from_three(data: Three3DData, cfg: SVGConfig | None = None) -> 
         )
 
     # Draw surface points
-    for xv, yv, zv in zip(data.x_values, data.y_values, data.z_values):
+    for xv, yv, zv in zip(data.x_values, data.y_values, data.z_values, strict=False):
         px_svg, py_svg = iso_project(xv, yv, zv)
         parts.append(
             f'<circle cx="{px_svg:.1f}" cy="{py_svg:.1f}" r="1.5" '

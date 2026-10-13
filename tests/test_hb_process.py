@@ -2,22 +2,21 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import sys
 from pathlib import Path
 
 import pytest
 
 from oprim._hb_process import (
-    ProcHandle,
-    PtyHandle,
     _JOBS,
+    ProcHandle,
     kill_process,
     run_background,
     spawn_pty,
     stream_stdout,
     wait_with_timeout,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helper: create a ProcHandle wrapping a real subprocess
@@ -224,13 +223,11 @@ async def test_spawn_pty_basic(tmp_path: Path) -> None:
                 chunks.append(chunk)
                 if "pty_test_ok" in "".join(chunks):
                     break
-    except (asyncio.TimeoutError, TimeoutError):
+    except TimeoutError:
         pass
     import os
-    try:
+    with contextlib.suppress(OSError):
         os.close(handle.master_fd)
-    except OSError:
-        pass
     await handle._proc.wait()
 
 

@@ -6,7 +6,7 @@
 """
 from __future__ import annotations
 
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 
 def brier_calibration(*, predicted: Sequence[float], actual: Sequence[float]) -> dict:
@@ -20,7 +20,7 @@ def brier_calibration(*, predicted: Sequence[float], actual: Sequence[float]) ->
         return {"n": 0, "brier": None, "mean_predicted": None, "accuracy": None, "overconfidence": None}
     preds = [float(p) for p in predicted]
     actuals = [float(a) for a in actual]
-    brier = sum((p - a) ** 2 for p, a in zip(preds, actuals)) / n
+    brier = sum((p - a) ** 2 for p, a in zip(preds, actuals, strict=False)) / n
     mean_pred = sum(preds) / n
     acc = sum(actuals) / n
     return {

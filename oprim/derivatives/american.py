@@ -184,7 +184,6 @@ def lsm_american_price(
     # exercise_time[i] = time step at which path i exercises (n_time_steps = hold to expiry)
     exercise_time = np.full(n_simulations, n_time_steps, dtype=int)
     exercise_boundary: list[float] = []
-    n_early_exercises = 0
 
     # Backward induction from T-1 down to step 1
     for t in range(n_time_steps - 1, 0, -1):

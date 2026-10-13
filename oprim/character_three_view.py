@@ -1,7 +1,6 @@
 """oprim.character_three_view — Generate front/side/back character reference views via LLM."""
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel

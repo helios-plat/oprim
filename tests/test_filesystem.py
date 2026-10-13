@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import tarfile
 from pathlib import Path
 
 import pytest
 
 from oprim import dir_archive_to_targz, disk_usage, file_checksum
-from oprim._exceptions import OprimError, OprimNotFoundError
+from oprim._exceptions import OprimNotFoundError
 from oprim._filesystem import ArchiveResult, DiskUsage
-
 
 # ---------------------------------------------------------------------------
 # disk_usage

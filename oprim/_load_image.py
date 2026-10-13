@@ -1,14 +1,14 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import asyncio
+
 import base64
-import json
-import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
-from ._exceptions import FileOprimError, ParseOprimError, ShellOprimError
+
+from ._exceptions import FileOprimError, ParseOprimError
+from .hooks_image_skill import _IMAGE_MIME
+
 
 @dataclass
 class HookResult:

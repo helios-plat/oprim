@@ -24,9 +24,7 @@ def to_anthropic_format(messages: list[Message]) -> dict[str, Any]:
 
         blocks: list[dict[str, Any]] = []
         for part in msg.parts:
-            if part.type == "text":
-                blocks.append({"type": "text", "text": part.text or ""})
-            elif part.type == "reasoning":
+            if part.type == "text" or part.type == "reasoning":
                 blocks.append({"type": "text", "text": part.text or ""})
             elif part.type == "tool_call" and part.tool_call is not None:
                 tc = part.tool_call

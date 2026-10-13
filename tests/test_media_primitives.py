@@ -1,4 +1,4 @@
-"""Tests for oprim.media_probe and oprim.video_thumbnail."""
+"""Tests for oprim._media_probe and oprim._video_thumbnail."""
 
 from __future__ import annotations
 

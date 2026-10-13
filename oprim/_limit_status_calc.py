@@ -45,7 +45,7 @@ def limit_status_calc(
     # Status for day t is based on c[t] / c[t-1] - 1
     # We use a small epsilon for float comparison
     eps = 1e-6
-    
+
     statuses = []
     # We only need to compute for the last 'lookback' transitions
     start_idx = T - lookback
@@ -53,12 +53,12 @@ def limit_status_calc(
         prev_c = c[t-1]
         curr_c = c[t]
         ret = curr_c / prev_c - 1.0
-        
+
         if ret >= limit_pct - eps:
             statuses.append("limit_up")
         elif ret <= -limit_pct + eps:
             statuses.append("limit_down")
         else:
             statuses.append("normal")
-            
+
     return LimitStatusResult(recent=statuses)

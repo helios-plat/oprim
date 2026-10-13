@@ -1,5 +1,6 @@
 """Tests for oprim.mean_reversion.ornstein_uhlenbeck."""
 import math
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -23,7 +24,7 @@ def simulate_ou(theta, mu, sigma, dt, n, seed=42):
 class TestOUFit:
     def test_ou_fit_returns_four_keys(self):
         """ornstein_uhlenbeck_fit returns dict with 4 keys."""
-        rng = np.random.default_rng(0)
+        np.random.default_rng(0)
         X = simulate_ou(2.0, 0.0, 0.5, 1 / 252, 500)
         result = ornstein_uhlenbeck_fit(X, dt=1 / 252)
         assert set(result.keys()) == {"theta", "mu", "sigma", "half_life"}
@@ -82,7 +83,7 @@ class TestOUFit:
         For a short OU simulation, verify that the returned theta satisfies
         theta = -log(rho)/dt where rho = corr(X_t, X_{t-1}), rtol=0.05.
         """
-        rng = np.random.default_rng(123)
+        np.random.default_rng(123)
         X = simulate_ou(1.5, 0.5, 0.3, 1.0, 200, seed=123)
         result = ornstein_uhlenbeck_fit(X, dt=1.0)
         # Manually compute rho
@@ -121,7 +122,6 @@ class TestOUHalfLife:
 
     def test_ou_half_life_does_not_import_fit(self):
         """Ensure ornstein_uhlenbeck_half_life doesn't call ornstein_uhlenbeck_fit at runtime."""
-        import oprim.mean_reversion.ornstein_uhlenbeck as module
         # Check that the function body code doesn't reference fit as a callable
         # by verifying it doesn't call `ornstein_uhlenbeck_fit(` (with open paren)
         import inspect
@@ -166,7 +166,7 @@ class TestOUFitExtraGaps:
         # Linear trend: rho > 0 but after computing theta = -log(rho)/dt
         # We need rho to produce theta <= 0.
         # Use series where successive correlation is exactly 1 (pure random walk)
-        rng = np.random.default_rng(0)
+        np.random.default_rng(0)
         # Random walk: X_t = X_{t-1} + eps -> rho close to 1 but theta very small
         # For theta <= 0, we force a strictly increasing monotone series
         X = np.linspace(0, 100, 100)  # perfect trend, rho = 1.0, theta = -log(1)/dt = 0
@@ -196,7 +196,7 @@ class TestOUHalfLifeExtraGaps:
 
     def test_ou_half_life_mle_negative_rho_returns_inf(self):
         """Strongly anti-correlated series -> rho <= 0 -> mle returns inf."""
-        rng = np.random.default_rng(0)
+        np.random.default_rng(0)
         # Anti-correlated: alternating -1, +1
         X = np.tile([-1.0, 1.0], 50)
         result = ornstein_uhlenbeck_half_life(X, method="mle")

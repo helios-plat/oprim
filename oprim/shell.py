@@ -154,7 +154,7 @@ async def bash_exec_stream(
             while True:
                 try:
                     line = await asyncio.wait_for(stream.readline(), timeout=timeout)
-                except asyncio.TimeoutError:  # pragma: no cover
+                except TimeoutError:  # pragma: no cover
                     # 超时：放 ShellOprimError 到 queue，让主循环抛出
                     await queue.put(
                         ShellOprimError(f"stream timeout after {timeout}s on {label}")

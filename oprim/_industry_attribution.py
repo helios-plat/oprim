@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
 from pydantic import BaseModel, Field
 
-from oprim._exceptions import OprimError
 from oprim.policy_event_extraction import PolicyEvent
 
 
@@ -18,8 +16,8 @@ class IndustryImpact(BaseModel):
 
 
 def industry_attribution(
-    *, 
-    events: list[PolicyEvent], 
+    *,
+    events: list[PolicyEvent],
     industry: dict[str, str]
 ) -> list[IndustryImpact]:
     """政策事件 → 受影响行业归因(纯映射, 无 LLM).
@@ -32,11 +30,11 @@ def industry_attribution(
         受影响行业列表.
     """
     results: list[IndustryImpact] = []
-    
+
     # 行业受政策类型影响的倾向性 (简化版)
     # monetary/fiscal stimulus -> positive for most
     # regulation/crackdown -> negative for most
-    
+
     for event in events:
         impact_dir = event.direction
         if impact_dir == "neutral":
@@ -57,5 +55,5 @@ def industry_attribution(
                         severity=event.severity,
                         days_ago=event.days_ago
                     ))
-                    
+
     return results

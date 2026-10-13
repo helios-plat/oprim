@@ -10,10 +10,7 @@ import pytest
 from oprim.lsp import (
     CallItem,
     Diagnostic,
-    Hover,
     Location,
-    Pos,
-    Symbol,
     diagnostics_to_summary,
     location_to_snippet,
     lsp_diagnostics,
@@ -27,7 +24,6 @@ from oprim.lsp import (
     lsp_prepare_call_hierarchy,
     lsp_workspace_symbol,
 )
-
 
 # ---------------------------------------------------------------------------
 # Mock LSP server handle

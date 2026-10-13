@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-import re
-from typing import Any
 from pydantic import BaseModel, Field
-
-from oprim._exceptions import OprimError
 
 
 class PolicyNews(BaseModel):
@@ -25,7 +21,7 @@ class PolicyEvent(BaseModel):
 
 
 def policy_event_extraction(
-    *, 
+    *,
     policies: list[PolicyNews]
 ) -> list[PolicyEvent]:
     """政策新闻抽取结构化事件(severity/direction). V1 规则实现.
@@ -37,14 +33,14 @@ def policy_event_extraction(
         抽取出的事件列表.
     """
     results: list[PolicyEvent] = []
-    
+
     # 事件类型映射
     type_map = {
         "monetary": ["货币政策", "降准", "加息", "降息"],
         "fiscal": ["财政政策", "税收", "减税"],
         "industry": ["产业政策", "扶持", "补贴"],
     }
-    
+
     # 严重程度关键词
     severity_map = {
         "critical": ["特大", "紧急", "历史性"],
@@ -63,7 +59,7 @@ def policy_event_extraction(
             if any(kw in text for kw in kws):
                 found_type = etype
                 break
-        
+
         if found_type == "unknown" and item.title:
             for etype, kws in type_map.items():
                 if any(kw in item.title for kw in kws):
@@ -76,7 +72,7 @@ def policy_event_extraction(
                 if any(skw in text for skw in skws):
                     severity = slevel
                     break
-            
+
             direction = "neutral"
             pos_hits = sum(1 for w in pos_words if w in text)
             neg_hits = sum(1 for w in neg_words if w in text)
@@ -92,5 +88,5 @@ def policy_event_extraction(
                 days_ago=0, # V1 Stub: assume today
                 source_excerpt=text[:100]
             ))
-            
+
     return results

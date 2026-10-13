@@ -8,7 +8,7 @@ GraphRAG advantage: finds related nodes via explicit relations (not just vectors
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Callable
+from collections.abc import Callable
 
 
 def entity_graph_search(

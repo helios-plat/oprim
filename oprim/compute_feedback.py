@@ -10,8 +10,7 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from dataclasses import dataclass
 
 from oprim.types import GradeResult, SolveResult
 
@@ -232,9 +231,7 @@ def _has_invalid_format(s: str) -> bool:
     if not stripped:
         return False  # empty is handled separately
     # If it's purely non-alphanumeric garbage
-    if re.match(r'^[^a-zA-Z0-9]+$', stripped):
-        return True
-    return False
+    return bool(re.match(r'^[^a-zA-Z0-9]+$', stripped))
 
 
 def _try_parse_number(s: str) -> float | None:

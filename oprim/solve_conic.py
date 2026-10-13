@@ -10,13 +10,10 @@ Version: oprim v3.4.0
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
-from obase.sympy_runtime import SymPyRuntime, SymPyRuntimeError
-
 from oprim.types import SolveResult, SolveStep
-
 
 ConicType = Literal["circle", "ellipse", "parabola", "hyperbola", "degenerate", "unknown"]
 
@@ -260,7 +257,6 @@ def solve_conic(expression: str, *, timeout: float = 5.0) -> SolveResult:
             )
         )
 
-        import sympy as sp
         x_sym, y_sym = sp.symbols("x y")
         expr_sym = sp.sympify(expr_str)
         latex_str = sp.latex(expr_sym) + " = 0"

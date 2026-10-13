@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim.image_generate import ImageGenError, ImageGenRateLimitError, image_generate
 
 

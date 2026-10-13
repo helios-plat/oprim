@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from decimal import Decimal
 
-from oprim.alipay_create_qr_order import AlipayAPIError, AlipayConfig, _make_alipay_client
+from oprim._alipay_create_qr_order import AlipayAPIError, AlipayConfig, _make_alipay_client
 
 
 async def alipay_refund_order(

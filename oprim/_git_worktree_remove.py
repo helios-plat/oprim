@@ -1,8 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 from pathlib import Path
+
 from .git import _git
+
 
 def git_worktree_remove(
     path: str | Path,

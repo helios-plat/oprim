@@ -4,8 +4,10 @@
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, List, Optional
+from typing import Any
+
 
 @dataclass(frozen=True)
 class SpeechToMathInput:
@@ -14,7 +16,7 @@ class SpeechToMathInput:
     audio_url: str | None = None
     language: str = "zh-CN"
     # 可选：上下文提示，如“正在做二次函数题目”
-    context_hint: Optional[str] = None
+    context_hint: str | None = None
 
 @dataclass(frozen=True)
 class SpeechToMathResult:
@@ -23,7 +25,7 @@ class SpeechToMathResult:
     latex_text: str = ""
     confidence: float = 0.0
     # 低置信度标记需二次确认的 token 区间
-    uncertain_tokens: List[str] = field(default_factory=list)
+    uncertain_tokens: list[str] = field(default_factory=list)
     success: bool = True
     error: str = ""
 
@@ -48,6 +50,7 @@ async def speech_to_math(
 ) -> SpeechToMathResult:
     """处理语音转数学。"""
     import json
+
     from oprim.llm._llm_complete import llm_complete
 
     # 构造音频消息（具体格式取决于 llm_complete 的实现，这里假设支持直接传递音频块）
@@ -72,13 +75,13 @@ async def speech_to_math(
             system=_STT_SYSTEM,
             model=model
         )
-        
+
         raw = response.text.strip()
         if "```" in raw:
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
-        
+
         data = json.loads(raw)
         return SpeechToMathResult(
             text=data.get("text", ""),

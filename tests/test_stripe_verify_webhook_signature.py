@@ -1,14 +1,14 @@
-"""Tests for oprim.stripe_verify_webhook_signature."""
+"""Tests for oprim._stripe_verify_webhook_signature."""
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import stripe as stripe_sdk
 
-from oprim.stripe_create_payment_intent import StripeConfig
-from oprim.stripe_verify_webhook_signature import (
+from oprim._stripe_create_payment_intent import StripeConfig
+from oprim._stripe_verify_webhook_signature import (
     StripeInvalidSignatureError,
     stripe_verify_webhook_signature,
 )
@@ -60,13 +60,12 @@ def test_invalid_signature_raises() -> None:
             "No signatures found matching the expected signature for payload",
             sig_header=SIG_HEADER,
         ),
-    ):
-        with pytest.raises(StripeInvalidSignatureError):
-            stripe_verify_webhook_signature(
-                config=CONFIG,
-                payload=PAYLOAD,
-                signature=SIG_HEADER,
-            )
+    ), pytest.raises(StripeInvalidSignatureError):
+        stripe_verify_webhook_signature(
+            config=CONFIG,
+            payload=PAYLOAD,
+            signature=SIG_HEADER,
+        )
 
 
 def test_webhook_secret_none_raises_value_error() -> None:
@@ -86,10 +85,9 @@ def test_tampered_payload_raises_invalid_signature_error() -> None:
             "Signature mismatch",
             sig_header=SIG_HEADER,
         ),
-    ):
-        with pytest.raises(StripeInvalidSignatureError):
-            stripe_verify_webhook_signature(
-                config=CONFIG,
-                payload=tampered,
-                signature=SIG_HEADER,
-            )
+    ), pytest.raises(StripeInvalidSignatureError):
+        stripe_verify_webhook_signature(
+            config=CONFIG,
+            payload=tampered,
+            signature=SIG_HEADER,
+        )

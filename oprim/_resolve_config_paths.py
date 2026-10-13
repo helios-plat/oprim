@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 
-def resolve_config_paths(*, cwd: "Path", home: "Path") -> list[Path]:
+def resolve_config_paths(*, cwd: Path, home: Path) -> list[Path]:
     """Return candidate config Path objects in priority order (low → high).
 
     Priority (index 0 = lowest, last = highest):

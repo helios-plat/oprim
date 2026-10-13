@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 # ─────────────────────────── okx_rest_call ────────────────────────────
 
 
@@ -262,9 +261,8 @@ class TestOkxWsMsg:
         mock_ws.send = AsyncMock()
         mock_ws.recv = AsyncMock(side_effect=[err_msg])
 
-        with patch("websockets.connect", return_value=mock_ws):
-            with pytest.raises(OkxWsError):
-                await okx_ws_msg("bad", inst_id="X", callback=lambda _: None, timeout=0.1)
+        with patch("websockets.connect", return_value=mock_ws), pytest.raises(OkxWsError):
+            await okx_ws_msg("bad", inst_id="X", callback=lambda _: None, timeout=0.1)
 
     @pytest.mark.asyncio
     async def test_async_callback_awaited(self):
@@ -307,8 +305,6 @@ class TestEd25519Sign:
         assert len(sig) == 64
 
     def test_signature_verifies(self):
-        from cryptography.exceptions import InvalidSignature
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
         from oprim.ed25519_sign import ed25519_sign
 
         priv, pub = self._keygen()
@@ -318,6 +314,7 @@ class TestEd25519Sign:
 
     def test_wrong_message_fails_verification(self):
         from cryptography.exceptions import InvalidSignature
+
         from oprim.ed25519_sign import ed25519_sign
 
         priv, pub = self._keygen()

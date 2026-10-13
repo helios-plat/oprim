@@ -1,6 +1,8 @@
 """oprim.subject_create — Create and persist a Subject record."""
 from __future__ import annotations
+
 from typing import Any
+
 from oprim._hevi_types import Subject
 
 

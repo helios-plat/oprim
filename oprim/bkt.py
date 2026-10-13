@@ -20,15 +20,30 @@ BKT 知识追踪引擎 — 公开别名层（无前缀命名）
 
 from __future__ import annotations
 
-from oprim._cognitive import (  # noqa: F401  (re-export 别名层)
-    bkt_update as bkt_update,
-    bkt_classify_error as classify_error,
-    bkt_predict_correct as predict_correct,
-    bkt_new_state as new_state_from_prior,
-    exp_forgetting as exp_forgetting,
-    _item_adjust as _item_adjust,
-    _GAMMA_SLIP as _GAMMA_SLIP,
+# Re-export alias layer: every name below is public API of ``oprim.bkt``.
+from oprim._cognitive import (  # noqa: F401
     _GAMMA_GUESS as _GAMMA_GUESS,
+)
+from oprim._cognitive import (  # noqa: F401
+    _GAMMA_SLIP as _GAMMA_SLIP,
+)
+from oprim._cognitive import (  # noqa: F401
+    _item_adjust as _item_adjust,
+)
+from oprim._cognitive import (
+    bkt_classify_error as classify_error,  # noqa: F401
+)
+from oprim._cognitive import (
+    bkt_new_state as new_state_from_prior,  # noqa: F401
+)
+from oprim._cognitive import (
+    bkt_predict_correct as predict_correct,  # noqa: F401
+)
+from oprim._cognitive import (  # noqa: F401
+    bkt_update as bkt_update,
+)
+from oprim._cognitive import (  # noqa: F401
+    exp_forgetting as exp_forgetting,
 )
 from oprim.types import KCState as KCState  # 历史可达性（部分调用方从此处取 KCState）
 

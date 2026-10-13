@@ -34,7 +34,7 @@ def zscore_signal(
 
     if lookback < 2:
         raise ValueError(f"lookback must be ≥ 2, got {lookback}")
-    if T < lookback:
+    if lookback > T:
         raise ValueError(f"series too short (len={T}) for lookback={lookback}")
 
     zscores: list[float] = []

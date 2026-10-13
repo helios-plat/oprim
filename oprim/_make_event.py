@@ -7,7 +7,7 @@ from typing import Any
 from ._hicode_types import Event
 
 
-def make_event(*, type: str, payload: dict[str, Any]) -> Event:
+def make_event(*, type: str, payload: dict[str, Any]) -> Event:  # noqa: A002
     """Return a new :class:`Event` with a generated uuid7 id and current timestamp.
 
     Raises :class:`ValueError` if *type* is empty.

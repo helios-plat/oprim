@@ -1,9 +1,7 @@
 """Tests — H-B A组: file IO extensions (ensure_parent_dir / file_read_bytes / image_to_base64 / atomic_write / backup_before_overwrite)."""
 from __future__ import annotations
 
-import asyncio
 import base64
-import os
 from pathlib import Path
 
 import pytest
@@ -15,7 +13,6 @@ from oprim._hb_file_io import (
     file_read_bytes,
     image_to_base64,
 )
-
 
 # ---------------------------------------------------------------------------
 # ensure_parent_dir

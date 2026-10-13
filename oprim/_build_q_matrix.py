@@ -6,6 +6,7 @@ Used by cognitive_diagnosis for DINA model.
 """
 
 from __future__ import annotations
+
 import numpy as np
 
 

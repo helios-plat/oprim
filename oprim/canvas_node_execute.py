@@ -1,7 +1,8 @@
 """oprim.canvas_node_execute — Execute a single canvas node via injected executor."""
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -19,7 +20,7 @@ class CanvasNodeResult(BaseModel):
 async def canvas_node_execute(
     *,
     node: CanvasNode,
-    upstream_outputs: dict = {},
+    upstream_outputs: dict | None = None,
     executor: Callable | None = None,
 ) -> CanvasNodeResult:
     """Execute a canvas node using an injected executor callable.
@@ -42,6 +43,8 @@ async def canvas_node_execute(
             error="no executor",
         )
 
+    if upstream_outputs is None:
+        upstream_outputs = {}
     try:
         output = await executor(node, upstream_outputs) if _is_async(executor) else executor(node, upstream_outputs)
         return CanvasNodeResult(

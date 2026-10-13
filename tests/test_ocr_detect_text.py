@@ -1,12 +1,10 @@
-"""Tests for oprim.ocr_detect_text."""
+"""Tests for oprim._ocr_detect_text."""
 
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-from oprim.ocr_detect_text import ocr_detect_text
+from oprim._ocr_detect_text import ocr_detect_text
 
 FAKE_PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100  # minimal fake image bytes
 

@@ -1,10 +1,10 @@
 """Project Gutenberg book search via Gutendex public API."""
 from __future__ import annotations
 
-import time
-import urllib.request
-import urllib.parse
 import json
+import time
+import urllib.parse
+import urllib.request
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

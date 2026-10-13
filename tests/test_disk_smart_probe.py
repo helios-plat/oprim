@@ -1,4 +1,4 @@
-"""Tests for oprim.disk_smart_probe."""
+"""Tests for oprim._disk_smart_probe."""
 
 from __future__ import annotations
 

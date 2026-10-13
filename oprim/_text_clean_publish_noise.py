@@ -1,7 +1,7 @@
 """oprim.text_clean_publish_noise — Remove publishing noise from markdown text."""
 from __future__ import annotations
-import re
 
+import re
 
 # Patterns that indicate publish noise lines
 _NOISE_PATTERNS = [

@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import stat
+
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def file_delete(path: str | Path, *, missing_ok: bool = False) -> bool:
     """单次原子删除文件（不删目录）。

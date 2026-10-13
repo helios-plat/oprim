@@ -1,9 +1,9 @@
 """Unit tests for Qwen3LocalEmbedder (mocked Ollama HTTP)."""
 from __future__ import annotations
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from oprim.embedding.qwen3_local import Qwen3LocalEmbedder
 from oprim.errors import EmbeddingError

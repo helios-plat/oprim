@@ -2,20 +2,18 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from oprim._adamic_adar_score import adamic_adar_score
+from oprim._aii_graph_types import SourceTraceResult
+from oprim._direct_link_score import direct_link_score
 from oprim._ku_conflict_detect import ku_conflict_detect
 from oprim._purpose_alignment_score import purpose_alignment_score
-from oprim._source_trace import source_trace
-from oprim._direct_link_score import direct_link_score
 from oprim._source_overlap_score import source_overlap_score
-from oprim._adamic_adar_score import adamic_adar_score
+from oprim._source_trace import source_trace
 from oprim._type_affinity_score import type_affinity_score
-from oprim._aii_graph_types import ConflictSignal, SourceTraceResult
-
 
 # ---------------------------------------------------------------------------
 # Helpers

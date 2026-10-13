@@ -3,4 +3,5 @@ from oprim._video_generate import (
     VideoGenProviderNotFoundError,
     video_generate,
 )
+
 __all__ = ["video_generate", "VideoGenError", "VideoGenProviderNotFoundError"]

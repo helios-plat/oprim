@@ -1,11 +1,11 @@
-"""Tests for oprim.url_safety_check."""
+"""Tests for oprim._url_safety_check."""
 
 import socket
 from unittest.mock import patch
 
 import pytest
 
-from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
+from oprim._url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
 
 
 class TestUrlSafetyCheckLoopback:
@@ -115,7 +115,7 @@ class TestUrlSafetyCheckErrorPaths:
 
     def test_urlparse_exception_raises_url_safety_error(self) -> None:
         with (
-            patch("oprim.url_safety_check.urlparse", side_effect=ValueError("bad")),
+            patch("oprim._url_safety_check.urlparse", side_effect=ValueError("bad")),
             pytest.raises(URLSafetyError, match="url parse failed"),
         ):
             url_safety_check(url="http://example.com")
@@ -123,7 +123,7 @@ class TestUrlSafetyCheckErrorPaths:
     def test_getaddrinfo_unexpected_error_raises_url_safety_error(self) -> None:
         with (
             patch(
-                "oprim.url_safety_check.socket.getaddrinfo",
+                "oprim._url_safety_check.socket.getaddrinfo",
                 side_effect=OSError("unexpected"),
             ),
             pytest.raises(URLSafetyError, match="getaddrinfo unexpected error"),
@@ -133,7 +133,7 @@ class TestUrlSafetyCheckErrorPaths:
     def test_all_sockaddr_malformed_returns_dns_failed(self) -> None:
         # addrinfo returns entries but all sockaddr are empty tuples (IndexError)
         bad_addrinfo = [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ())]
-        with patch("oprim.url_safety_check.socket.getaddrinfo", return_value=bad_addrinfo):
+        with patch("oprim._url_safety_check.socket.getaddrinfo", return_value=bad_addrinfo):
             result = url_safety_check(url="http://example.com")
         assert result.is_safe is False
         assert result.reason == "dns_resolution_failed"
@@ -141,7 +141,7 @@ class TestUrlSafetyCheckErrorPaths:
     def test_invalid_ip_string_in_resolved_ips_is_skipped(self) -> None:
         # getaddrinfo returns a valid-looking entry but with an unparseable IP
         bad_addrinfo = [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("not-an-ip", 0))]
-        with patch("oprim.url_safety_check.socket.getaddrinfo", return_value=bad_addrinfo):
+        with patch("oprim._url_safety_check.socket.getaddrinfo", return_value=bad_addrinfo):
             result = url_safety_check(url="http://example.com")
         # "not-an-ip" fails ip_address() → skipped → all IPs pass → is_safe=True
         assert result.is_safe is True

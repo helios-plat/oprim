@@ -8,7 +8,6 @@ import pytest
 
 from oprim.technical.trend import adx_series, atr_series, supertrend
 
-
 # ──────────────────── Fixtures ────────────────────
 
 @pytest.fixture
@@ -69,7 +68,7 @@ class TestAtrSeries:
         assert np.all(valid > 0)
 
     def test_series_input_preserves_type(self, synthetic_ohlcv):
-        idx = pd.date_range("2020-01-01", periods=len(synthetic_ohlcv["close"]), freq="1H")
+        idx = pd.date_range("2020-01-01", periods=len(synthetic_ohlcv["close"]), freq="1h")
         h = pd.Series(synthetic_ohlcv["high"], index=idx)
         l = pd.Series(synthetic_ohlcv["low"], index=idx)
         c = pd.Series(synthetic_ohlcv["close"], index=idx)
@@ -168,7 +167,7 @@ class TestAdxSeries:
             assert float(np.mean(mdi)) > float(np.mean(pdi))
 
     def test_series_input(self, synthetic_ohlcv):
-        idx = pd.date_range("2020-01-01", periods=len(synthetic_ohlcv["close"]), freq="1H")
+        idx = pd.date_range("2020-01-01", periods=len(synthetic_ohlcv["close"]), freq="1h")
         h = pd.Series(synthetic_ohlcv["high"], index=idx)
         l = pd.Series(synthetic_ohlcv["low"], index=idx)
         c = pd.Series(synthetic_ohlcv["close"], index=idx)
@@ -232,7 +231,7 @@ class TestSupertrend:
                 assert np.isclose(line[i], ub[i], rtol=1e-9), f"line≠upper_band at {i}"
 
     def test_series_input_type_preserved(self, synthetic_ohlcv):
-        idx = pd.date_range("2020-01-01", periods=len(synthetic_ohlcv["close"]), freq="1H")
+        idx = pd.date_range("2020-01-01", periods=len(synthetic_ohlcv["close"]), freq="1h")
         h = pd.Series(synthetic_ohlcv["high"], index=idx)
         l = pd.Series(synthetic_ohlcv["low"], index=idx)
         c = pd.Series(synthetic_ohlcv["close"], index=idx)

@@ -7,7 +7,7 @@ from oprim._cc_types import SkillRef
 
 
 def resolve_slash_command(
-    input: str,
+    input: str,  # noqa: A002
     *,
     registry: dict[str, Any],
 ) -> SkillRef | None:

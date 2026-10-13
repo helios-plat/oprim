@@ -136,7 +136,7 @@ def hurst_exponent(
             rs_means.append(np.nan)
 
     # Log-log regression
-    valid = [(s, r) for s, r in zip(sizes, rs_means) if np.isfinite(r) and r > 0]
+    valid = [(s, r) for s, r in zip(sizes, rs_means, strict=False) if np.isfinite(r) and r > 0]
     if len(valid) < 2:
         return 0.5  # fallback
     log_sizes = np.log([v[0] for v in valid])

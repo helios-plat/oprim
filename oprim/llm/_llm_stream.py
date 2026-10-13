@@ -1,13 +1,20 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-from .._exceptions import OprimError, LLMOprimError, BudgetExceededError, PromptOprimError, SearchOprimError, HttpOprimError, SnapshotOprimError
-from ._types import LLMResponse, StreamDelta, EmbedResult, ConversationSnapshot, ThinkingResult, SearchResult, HttpResponse
-import json
+
 from collections.abc import AsyncIterator
 from typing import Any
-from .._protocols import EmbedCaller, StreamingLLMCaller
+
+from .._exceptions import (
+    LLMOprimError,
+)
+from .._protocols import StreamingLLMCaller
+from ._types import (
+    StreamDelta,
+)
 from ._utils import _validate_messages
+
+
 async def llm_stream(
     messages: list[dict],
     *,
@@ -94,7 +101,7 @@ async def llm_stream(
                     stop_reason=raw_delta.get("stop_reason", raw_delta.get("finish_reason", "")),
                 )
 
-    except (LLMOprimError,):
+    except LLMOprimError:
         raise  # pragma: no cover
     except Exception as e:
         raise LLMOprimError("llm_stream failed", cause=e)

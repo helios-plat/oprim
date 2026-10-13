@@ -195,7 +195,7 @@ def test_inject_visual_style_camera_only():
 # 4. video_element_edit
 # ---------------------------------------------------------------------------
 
-from oprim.video_element_edit import VideoEditOperation, video_element_edit
+from oprim.video_element_edit import video_element_edit
 
 _ELEMENTS = [
     {"id": "e0", "text": "Hello"},

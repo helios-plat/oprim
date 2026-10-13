@@ -6,8 +6,8 @@
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import date, timedelta
-from typing import Optional, Sequence
 
 
 def consecutive_active_days(active_dates: set, today: date) -> int:

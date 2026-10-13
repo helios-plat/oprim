@@ -4,9 +4,11 @@
 """
 
 from __future__ import annotations
-from enum import Enum
+
 from dataclasses import dataclass
-from typing import Optional, Any
+from enum import Enum
+from typing import Any
+
 
 class ErrorTag(str, Enum):
     CONCEPT_MISUNDERSTANDING = "概念不清"
@@ -63,6 +65,7 @@ async def error_classify(
 ) -> ErrorClassifyResult:
     """使用 LLM 对错误进行分类。"""
     import json
+
     from oprim.llm._llm_complete import llm_complete
 
     user_prompt = (
@@ -74,7 +77,7 @@ async def error_classify(
     )
 
     messages = [{"role": "user", "content": user_prompt}]
-    
+
     try:
         response = await llm_complete(
             messages,
@@ -82,7 +85,7 @@ async def error_classify(
             system=_CLASSIFY_SYSTEM,
             model=model
         )
-        
+
         raw = response.text.strip()
         if "```" in raw:
             # 简单处理 markdown code block
@@ -93,18 +96,18 @@ async def error_classify(
                     if raw.startswith("json"):
                         raw = raw[4:]
                     break
-        
+
         data = json.loads(raw)
-        
+
         tag_map = {
             "概念不清": ErrorTag.CONCEPT_MISUNDERSTANDING,
             "计算失误": ErrorTag.CALCULATION_ERROR,
             "审题错": ErrorTag.MISREADING,
             "步骤跳跃": ErrorTag.LOGIC_JUMP,
         }
-        
+
         primary = tag_map.get(data.get("primary_tag"), ErrorTag.UNCLASSIFIED)
-        
+
         return ErrorClassifyResult(
             primary_tag=primary,
             secondary_tags=data.get("secondary_tags", []),

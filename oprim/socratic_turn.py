@@ -8,7 +8,6 @@ Version: oprim v3.5.0
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -121,7 +120,7 @@ async def socratic_turn(
             step_check_triggered=step_check_triggered,
         )
 
-    except Exception as exc:
+    except Exception:
         return SocraticTurnResult(
             text="这道题你再想想，思路是什么？",
             step_check_triggered=False,

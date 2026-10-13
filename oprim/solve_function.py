@@ -9,13 +9,12 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
 from obase.sympy_runtime import SymPyRuntime
 
 from oprim.types import SolveResult, SolveStep
-
 
 TaskType = Literal[
     "zeros", "evaluate", "domain", "monotonicity", "parity",
@@ -63,9 +62,9 @@ def _check_parity(expr_str: str, var: str, rt: SymPyRuntime, timeout: float) -> 
         diff_even = sp.simplify(f_neg - f)
         diff_odd = sp.simplify(f_neg + f)
         if diff_even == 0:
-            return "even", f"f(-x) - f(x) = 0"
+            return "even", "f(-x) - f(x) = 0"
         elif diff_odd == 0:
-            return "odd", f"f(-x) + f(x) = 0"
+            return "odd", "f(-x) + f(x) = 0"
         else:
             return "neither", f"f(-x)={f_neg}"
     except Exception as e:

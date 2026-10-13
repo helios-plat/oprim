@@ -13,8 +13,9 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from oprim._validate_html import validate_html
 from obase.ffmpeg import run as ffmpeg_run
+
+from oprim._validate_html import validate_html
 
 
 class RenderHtmlError(Exception):

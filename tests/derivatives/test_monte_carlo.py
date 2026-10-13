@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 import pytest
-import numpy as np
 
-from oprim.derivatives.monte_carlo import mc_european_price, mc_asian_price
 from oprim.derivatives.black_scholes import black_scholes_price
-
+from oprim.derivatives.monte_carlo import mc_asian_price, mc_european_price
 
 # ---------------------------------------------------------------------------
 # Helpers

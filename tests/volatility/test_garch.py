@@ -1,6 +1,7 @@
 """Tests for oprim.volatility.garch_fit and garch_forecast."""
 import math
 import warnings
+
 import numpy as np
 import pandas as pd
 import pytest

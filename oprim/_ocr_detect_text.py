@@ -39,9 +39,10 @@ def ocr_detect_text(
     # Try pytesseract
     if provider in ("default", "tesseract"):
         try:
+            import io
+
             import pytesseract  # type: ignore
             from PIL import Image  # type: ignore
-            import io
 
             img = Image.open(io.BytesIO(image_bytes))
             data = pytesseract.image_to_data(
@@ -64,10 +65,11 @@ def ocr_detect_text(
     # Try PaddleOCR
     if provider in ("default", "paddleocr"):
         try:
-            from paddleocr import PaddleOCR  # type: ignore
-            import numpy as np  # type: ignore
-            from PIL import Image  # type: ignore
             import io
+
+            import numpy as np  # type: ignore
+            from paddleocr import PaddleOCR  # type: ignore
+            from PIL import Image  # type: ignore
 
             img = Image.open(io.BytesIO(image_bytes))
             img_array = np.array(img)

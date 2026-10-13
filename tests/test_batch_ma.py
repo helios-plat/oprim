@@ -10,7 +10,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -19,22 +18,21 @@ from oprim import (
     compute_effortful_gain,
     compute_effortful_gain_from_arrays,
     compute_feedback,
-    compute_percentile_batch,
     compute_peer_percentile,
+    compute_percentile_batch,
     grade_answer,
     recognition_update,
     recognition_update_sequence,
 )
+from oprim.compute_effortful_gain import EffortfulGainResult
+from oprim.compute_feedback import FeedbackItem
+from oprim.recognition_update import RecognitionUpdateResult
 from oprim.types import (
     GradeResult,
     PeerPercentileResult,
     SolveResult,
     SolveStep,
 )
-from oprim.compute_effortful_gain import EffortfulGainResult
-from oprim.compute_feedback import FeedbackItem
-from oprim.recognition_update import RecognitionUpdateResult
-
 
 # ===========================================================================
 # compute_peer_percentile

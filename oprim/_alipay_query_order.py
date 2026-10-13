@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from oprim.alipay_create_qr_order import AlipayAPIError, AlipayConfig, _make_alipay_client
+from oprim._alipay_create_qr_order import AlipayAPIError, AlipayConfig, _make_alipay_client
 
 
 class AlipayOrderStatus(BaseModel):

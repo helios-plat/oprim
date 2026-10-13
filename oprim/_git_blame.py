@@ -1,10 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import subprocess
+
 from dataclasses import dataclass
 from pathlib import Path
-from ._exceptions import GitOprimError
+
+from .git import _git
+
 
 @dataclass
 class FileStatus:

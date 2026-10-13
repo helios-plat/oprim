@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from oprim.style_marker_prompt import style_marker_prompt
 
 

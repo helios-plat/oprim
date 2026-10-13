@@ -1,12 +1,14 @@
 """Auto-split from hicode whl. Verify before use."""
 
 from __future__ import annotations
+
 import json
-from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from typing import Any
+
 from ._exceptions import OprimError
-from ._protocols import EmbedCaller, StreamingLLMCaller
+from .llm._utils import _extract_text, _extract_tool_calls, _extract_usage, _validate_messages
+
 
 class LLMOprimError(OprimError):
     """LLM 调用失败（含 provider 错误、预算超出、格式错误）."""

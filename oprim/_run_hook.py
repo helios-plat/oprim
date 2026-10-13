@@ -1,14 +1,14 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 import asyncio
-import base64
 import json
-import re
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
-from ._exceptions import FileOprimError, ParseOprimError, ShellOprimError
+
+from ._exceptions import ShellOprimError
+
 
 @dataclass
 class HookResult:
@@ -87,7 +87,7 @@ async def run_hook(
             timeout=timeout,
         )
         exit_code = proc.returncode or 0
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         await proc.wait()
         # 超时 → allow（不因 hook 阻塞主流程）

@@ -1,6 +1,7 @@
 """LanceDB vector database implementation."""
 from __future__ import annotations
 
+import contextlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -31,7 +32,7 @@ class VectorDB(Protocol):
         self,
         query_vec: list[float],
         top_k: int = 20,
-        filter: dict | None = None,
+        filter: dict | None = None,  # noqa: A002
     ) -> list[VectorRecord]: ...
     def delete(self, ids: list[str]) -> None: ...
     def count(self) -> int: ...
@@ -133,7 +134,7 @@ class LanceDBVectorDB:
         self,
         query_vec: list[float],
         top_k: int = 20,
-        filter: dict | None = None,
+        filter: dict | None = None,  # noqa: A002
     ) -> list[VectorRecord]:
         try:
             q = (
@@ -146,10 +147,8 @@ class LanceDBVectorDB:
             results = []
             for row in rows:
                 meta: dict = {}
-                try:
+                with contextlib.suppress(Exception):
                     meta = json.loads(row["metadata"])
-                except Exception:
-                    pass
                 results.append(
                     VectorRecord(
                         id=row["id"],

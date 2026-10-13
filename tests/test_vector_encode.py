@@ -1,11 +1,11 @@
-"""Tests for oprim.vector_encode — ≥10 tests."""
+"""Tests for oprim._vector_encode — ≥10 tests."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from oprim.vector_encode import vector_encode
+from oprim._vector_encode import vector_encode
 
 
 # 1. Returns np.ndarray
@@ -79,7 +79,7 @@ def test_multiple_texts_all_rows():
 # 11. normalize=False returns unnormalized (norm != 1.0 in general)
 def test_unnormalized_not_unit():
     result = vector_encode(texts=["hello"], normalize=False)
-    norm = np.linalg.norm(result[0])
+    np.linalg.norm(result[0])
     # stub uses standard_normal without norm — norm will not be exactly 1.0
     # (could be close in rare cases, but the vector is not forced to unit length)
     # We just verify the function runs and returns correct shape/dtype
@@ -111,6 +111,7 @@ class TestProviderRegistryPath:
     def test_provider_not_registered_falls_back_to_stub(self):
         """ProviderNotFoundError → deterministic stub + log.warning (no raise)."""
         from unittest.mock import patch
+
         from obase.exceptions import ProviderNotFoundError
 
         with patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("embedding", "missing")):
@@ -120,13 +121,15 @@ class TestProviderRegistryPath:
 
     def test_provider_registered_calls_provider(self):
         """Registered provider is called; its return value used (not stub)."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
 
         fake_vecs = [[1.0] * 128]
         mock_embed = MagicMock(return_value=fake_vecs)
-        with patch("obase.ProviderRegistry.get", return_value=mock_embed) as mock_get:
+        fake_reg = MagicMock()
+        fake_reg._generic = {"embedding": {"bge-m3": mock_embed}}
+        with patch("obase.ProviderRegistry.get", return_value=fake_reg) as mock_get:
             result = vector_encode(texts=["test"], provider="bge-m3", normalize=False)
-        mock_get.assert_called_once_with("embedding", "bge-m3")
+        mock_get.assert_called_once_with()
         mock_embed.assert_called_once_with(["test"])
         np.testing.assert_allclose(result[0, 0], 1.0)
 

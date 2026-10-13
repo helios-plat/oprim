@@ -1,13 +1,13 @@
-"""Tests for oprim.audio_mix."""
+"""Tests for oprim._audio_mix."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from oprim.audio_mix import AudioMixError, audio_mix
+from oprim._audio_mix import AudioMixError, audio_mix
 
 
 @pytest.fixture()
@@ -35,19 +35,19 @@ def _mock_ffmpeg_run(output_path_arg_index: int = -1):
 class TestAudioMix:
     async def test_two_tracks(self, audio_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "mixed.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_mix(inputs=audio_files[:2], output_path=out)
         assert result == out
 
     async def test_three_tracks(self, audio_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "mixed3.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_mix(inputs=audio_files, output_path=out)
         assert result == out
 
     async def test_unequal_weights(self, audio_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "weighted.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_mix(
                 inputs=audio_files[:2], weights=[1.0, 0.3], output_path=out
             )
@@ -55,7 +55,7 @@ class TestAudioMix:
 
     async def test_single_track_allowed(self, audio_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "single.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_mix(inputs=audio_files[:1], output_path=out)
         assert result == out
 
@@ -75,7 +75,7 @@ class TestAudioMix:
             raise FFmpegError("codec error", code=1, stderr="codec error")
 
         out = tmp_path / "fail.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_fail):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_fail):
             with pytest.raises(AudioMixError, match="FFmpeg mixing failed"):
                 await audio_mix(inputs=audio_files[:2], output_path=out)
 

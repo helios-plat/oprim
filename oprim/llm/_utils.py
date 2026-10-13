@@ -27,7 +27,8 @@ def _extract_usage(response: dict) -> dict[str, int]:
 
 def _extract_text(response: dict) -> str:
     content = response.get("content", [])
-    if isinstance(content, str): return content
+    if isinstance(content, str):
+        return content
     if isinstance(content, list):
         parts = []
         for block in content:
@@ -40,5 +41,6 @@ def _extract_text(response: dict) -> str:
 
 def _extract_tool_calls(response: dict) -> list[dict]:
     content = response.get("content", [])
-    if not isinstance(content, list): return []
+    if not isinstance(content, list):
+        return []
     return [b for b in content if isinstance(b, dict) and b.get("type") == "tool_use"]

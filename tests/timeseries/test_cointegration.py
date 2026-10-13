@@ -205,7 +205,7 @@ def test_johansen_matches_statsmodels_rank():
         pytest.skip("statsmodels not installed")
     data = _make_cointegrated_multivar(500, 2)
     r = johansen_cointegration(data)
-    sm_r = coint_johansen(data, det_order=0, k_ar_diff=1)
+    coint_johansen(data, det_order=0, k_ar_diff=1)
     # Both should identify at least 1 cointegrating vector
     assert r["cointegration_rank"] >= 1
 

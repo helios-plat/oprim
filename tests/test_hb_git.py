@@ -1,20 +1,12 @@
 """Tests — H-B H组: Git 原子 + 纯计算 (7 functions)."""
 from __future__ import annotations
 
-import asyncio
-import subprocess
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from oprim._hb_git import (
-    FileChange,
-    GitIgnorePattern,
-    GitStatus,
-    ProjectType,
-    SnapshotId,
-    StatusEntry,
     detect_project_type,
     git_current_branch,
     git_restore_snapshot,
@@ -23,7 +15,6 @@ from oprim._hb_git import (
     parse_git_status,
     parse_gitignore,
 )
-
 
 # ---------------------------------------------------------------------------
 # parse_git_status  [s] pure
@@ -270,9 +261,8 @@ async def test_git_current_branch_not_repo(tmp_path: Path) -> None:
     fail_result.stderr = "not a git repository"
     fail_result.returncode = 128
 
-    with patch("obase.git.run_git", return_value=fail_result):
-        with pytest.raises(GitOprimError):
-            await git_current_branch(cwd=tmp_path)
+    with patch("obase.git.run_git", return_value=fail_result), pytest.raises(GitOprimError):
+        await git_current_branch(cwd=tmp_path)
 
 
 # ---------------------------------------------------------------------------
@@ -313,9 +303,8 @@ async def test_git_snapshot_fail(tmp_path: Path) -> None:
     fail_result.stderr = "fatal: unexpected error"
     fail_result.returncode = 1
 
-    with patch("obase.git.run_git", return_value=fail_result):
-        with pytest.raises(GitOprimError):
-            await git_snapshot(cwd=tmp_path)
+    with patch("obase.git.run_git", return_value=fail_result), pytest.raises(GitOprimError):
+        await git_snapshot(cwd=tmp_path)
 
 
 @pytest.mark.asyncio

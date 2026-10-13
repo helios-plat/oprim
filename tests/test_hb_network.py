@@ -3,19 +3,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from oprim._hb_network import (
-    ModelSpec,
     fetch_models_dev,
     load_skill_raw,
     revoke_share,
     upload_share,
     validate_api_key,
 )
-
 
 # ---------------------------------------------------------------------------
 # validate_api_key

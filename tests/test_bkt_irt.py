@@ -7,17 +7,24 @@
 - 固定难度连续答对单调不降且封顶（R6）
 覆盖生产实现 oprim.bkt 与孪生 oprim.cognitive。
 """
-import copy
 
 import numpy as np
 import pytest
 from sklearn.metrics import roc_auc_score
 
 from oprim import KCState
-from oprim.bkt import bkt_update, predict_correct, classify_error, _item_adjust, new_state_from_prior
+from oprim.bkt import (
+    _item_adjust,
+    bkt_update,
+    classify_error,
+    new_state_from_prior,
+    predict_correct,
+)
+from oprim.cognitive import (
+    bkt_predict_correct,
+)
 from oprim.cognitive import (
     bkt_update as bkt_update_c,
-    bkt_predict_correct,
 )
 
 _MASTERY_CAP = 0.97
@@ -126,7 +133,8 @@ def test_r4_difficulty_aware_auc_not_worse():
             g_b, s_b = _item_adjust(prior["p_guess"], prior["p_slip"], b)
             p_correct = (1 - s_b) if mastered else g_b
             outcome = int(rng.rand() < p_correct)
-            items.append(b); outcomes.append(outcome)
+            items.append(b)
+            outcomes.append(outcome)
             if not mastered and rng.rand() < prior["p_transit"]:
                 mastered = True
 
@@ -135,7 +143,7 @@ def test_r4_difficulty_aware_auc_not_worse():
     aware_state = new_state_from_prior(kc_id="sim", prior=prior)
     blind_pred, aware_pred = [], []
     # 注意：状态在学生间不重置，模拟同一长序列；仅为 AUC 对比，足够
-    for b, outcome in zip(items, outcomes):
+    for b, outcome in zip(items, outcomes, strict=False):
         blind_pred.append(predict_correct(state=blind_state, difficulty=None))
         aware_pred.append(predict_correct(state=aware_state, difficulty=b))
         bkt_update(state=blind_state, is_correct=bool(outcome), difficulty=None)

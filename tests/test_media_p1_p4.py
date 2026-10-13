@@ -1,16 +1,14 @@
 """Tests for P-1 to P-4 of the video/audio ingestion batch."""
 from __future__ import annotations
 
+import contextlib
 import json
-import tempfile
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from oprim._media_types import VideoMeta, TranscriptResult
+from oprim._media_types import VideoMeta
 from oprim._video_filter_rules import video_filter_rules
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -169,7 +167,8 @@ class TestMediaExtract:
         ]
         call_count = [0]
         async def fake_exec(*args, **kwargs):
-            i = call_count[0]; call_count[0] += 1
+            i = call_count[0]
+            call_count[0] += 1
             return procs[min(i, len(procs)-1)]
 
         with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
@@ -220,10 +219,8 @@ class TestMediaExtract:
 
         with patch("shutil.which", return_value="/usr/bin/yt-dlp"):
             with patch("asyncio.create_subprocess_exec", side_effect=fake_exec):
-                try:
+                with contextlib.suppress(Exception):
                     await media_extract(video_url="https://yt.be/vid1", work_dir=new_dir)
-                except Exception:
-                    pass
         assert new_dir.exists()
 
     async def test_empty_url_raises_value_error(self, tmp_path):

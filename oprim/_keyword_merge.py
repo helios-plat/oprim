@@ -9,7 +9,6 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 
-
 _DEFAULT_STOPWORDS: frozenset[str] = frozenset({
     # Chinese single-character function words
     "的", "了", "在", "是", "我", "有", "和", "就", "不", "人", "都", "一",
@@ -28,7 +27,7 @@ _DEFAULT_STOPWORDS: frozenset[str] = frozenset({
     "if", "so", "than", "then", "when", "where", "which", "who", "what",
     "how", "all", "any", "both", "each", "few", "more", "most", "other",
     "some", "such", "into", "about", "up", "out", "can", "get", "just",
-    "also", "been", "use", "used",
+    "also", "use", "used",
 })
 
 # Minimum token length to be considered a keyword

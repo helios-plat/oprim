@@ -7,7 +7,6 @@ import pytest
 
 from oprim.behavioral.salience import salience_function, salience_ranking_weights
 
-
 # ---------------------------------------------------------------------------
 # salience_function tests
 # ---------------------------------------------------------------------------

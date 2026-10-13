@@ -23,7 +23,6 @@ from typing import Any
 
 from ._exceptions import FileOprimError, ParseOprimError, ShellOprimError
 
-
 # ---------------------------------------------------------------------------
 # run_hook
 # ---------------------------------------------------------------------------
@@ -84,7 +83,7 @@ async def run_hook(
             timeout=timeout,
         )
         exit_code = proc.returncode or 0
-    except asyncio.TimeoutError:
+    except TimeoutError:
         proc.kill()
         await proc.wait()
         # 超时 → allow（不因 hook 阻塞主流程）

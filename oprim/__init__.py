@@ -1,10 +1,12 @@
 """Oprim — atomic operations library (Layer 1 meta-primitives). Lazy-loaded."""
 
 from __future__ import annotations
+
 import ast
 import importlib
 from pathlib import Path
 from typing import Any
+
 from oprim._version import __version__
 
 _ELEMENT_MAP: dict[str, str] = {}
@@ -15,10 +17,13 @@ def _build_element_map() -> None:
     pkg_name = __package__ or "oprim"
     for py in sorted(pkg_dir.rglob("*.py")):
         rel_path = py.relative_to(pkg_dir)
-        if rel_path.parts == ("__init__.py",): continue
+        if rel_path.parts == ("__init__.py",):
+            continue
         mod_parts = list(rel_path.with_suffix("").parts)
-        if mod_parts[-1] == "__init__": mod_parts.pop()
-        if not mod_parts: continue
+        if mod_parts[-1] == "__init__":
+            mod_parts.pop()
+        if not mod_parts:
+            continue
         mod_path = pkg_name + "." + ".".join(mod_parts)
         stem = mod_parts[-1]
         _SUBMODULE_SET.add(stem)
@@ -28,16 +33,28 @@ def _build_element_map() -> None:
                 names = []
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                     names.append(node.name)
+                elif (
+                    isinstance(node, ast.Assign)
+                    and isinstance(node.value, ast.Name)
+                    and not stem.startswith("__")
+                ):
+                    # module-level public alias, e.g. ``caddy_admin_routes = caddy_routes_list``
+                    names.extend(t.id for t in node.targets if isinstance(t, ast.Name))
                 elif isinstance(node, ast.ImportFrom) and rel_path.name == "__init__.py":
                     for alias in node.names:
-                        if alias.name != "*": names.append(alias.asname or alias.name)
+                        if alias.name != "*":
+                            names.append(alias.asname or alias.name)
                 for name in names:
-                    if not name.startswith("_"):
-                        if name not in _ELEMENT_MAP or (
-                            not mod_path.split(".")[-1].startswith("_") and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
-                        ):
-                            _ELEMENT_MAP[name] = mod_path
-        except Exception: continue
+                    if not name.startswith("_") and (
+                        name not in _ELEMENT_MAP
+                        or (
+                            not mod_path.split(".")[-1].startswith("_")
+                            and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
+                        )
+                    ):
+                        _ELEMENT_MAP[name] = mod_path
+        except Exception:
+            continue
 
 _build_element_map()
 
@@ -45,6 +62,9 @@ _build_element_map()
 # `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
 # __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
 _ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
+# `oprim.storage` (storage adapter contracts) also defines an UploadResult; keep the
+# historical top-level binding pointing at the file-upload handler type.
+_ELEMENT_MAP["UploadResult"] = "oprim._file_upload_handler"
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
 def llm_summarize(*args, **kwargs):
     """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
@@ -52,7 +72,8 @@ def llm_summarize(*args, **kwargs):
     return _fn(*args, **kwargs)
 
 def __getattr__(name: str) -> Any:
-    if name == "__version__": return __version__
+    if name == "__version__":
+        return __version__
     if name in _ELEMENT_MAP:
         mod = importlib.import_module(_ELEMENT_MAP[name])
         return getattr(mod, name)
@@ -68,14 +89,30 @@ __all__ = sorted(_ELEMENT_MAP.keys())
 
 # --- Explicit re-exports (Pinning) ---
 from oprim._exceptions import (
-    OprimError, FileOprimError, GitOprimError, ShellOprimError,
-    ParseOprimError, PathSecurityError, LLMOprimError, BudgetExceededError,
-    PromptOprimError, SearchOprimError, HttpOprimError, SnapshotOprimError
+    BudgetExceededError,
+    FileOprimError,
+    GitOprimError,
+    HttpOprimError,
+    LLMOprimError,
+    OprimError,
+    ParseOprimError,
+    PathSecurityError,
+    PromptOprimError,
+    SearchOprimError,
+    ShellOprimError,
+    SnapshotOprimError,
 )
 from oprim.llm._types import (
-    LLMResponse, StreamDelta, EmbedResult, ConversationSnapshot,
-    ThinkingResult, SearchResult, HttpResponse
+    ConversationSnapshot,
+    EmbedResult,
+    HttpResponse,
+    LLMResponse,
+    SearchResult,
+    StreamDelta,
+    ThinkingResult,
 )
+
+
 # llm_complete: 惰性加载（依赖 obase）
 def llm_complete(*args, **kwargs):
     from oprim.llm._llm_complete import llm_complete as _fn
@@ -87,8 +124,13 @@ def embed_text(*args, **kwargs):
     from oprim.llm._embed_text import embed_text as _fn
     return _fn(*args, **kwargs)
 from oprim.prompt import (
-    build_system_prompt, truncate_messages, extract_thinking, snapshot_conversation
+    build_system_prompt,
+    extract_thinking,
+    snapshot_conversation,
+    truncate_messages,
 )
+
+
 def image_generate(*args, **kwargs):
     from oprim.image_generate import image_generate as _fn
     return _fn(*args, **kwargs)
@@ -100,18 +142,24 @@ def tts_synthesize(*args, **kwargs):
     return _fn(*args, **kwargs)
 
 # --- Mneme elements (M-A batch) ---
-from oprim.types import (
-    SolveResult, SolveStep, StepCheckResult, Plot2DData, Three3DData,
-    GradeResult, PeerPercentileResult
-)
-from oprim.compute_peer_percentile import compute_peer_percentile, compute_percentile_batch
-from oprim.recognition_update import recognition_update, recognition_update_sequence
 from oprim.compute_effortful_gain import compute_effortful_gain, compute_effortful_gain_from_arrays
 from oprim.compute_feedback import compute_feedback, grade_answer
-from oprim.file_type_detector import file_type_detector as file_type_detector
+from oprim.compute_peer_percentile import compute_peer_percentile, compute_percentile_batch
 from oprim.due_compute import due_compute
-from oprim.speech_to_math import speech_to_math
 from oprim.error_classify import error_classify
+from oprim.file_type_detector import file_type_detector as file_type_detector
+from oprim.recognition_update import recognition_update, recognition_update_sequence
+from oprim.speech_to_math import speech_to_math
+from oprim.types import (
+    GradeResult,
+    PeerPercentileResult,
+    Plot2DData,
+    SolveResult,
+    SolveStep,
+    StepCheckResult,
+    Three3DData,
+)
+
 
 # File parsers + structure extractor (restored exports)
 def file_parser_pdf(*args, **kwargs):
@@ -124,8 +172,11 @@ def file_parser_html(*args, **kwargs):
     from oprim._file_parser_html import file_parser_html as _fn
     return _fn(*args, **kwargs)
 # from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
+from oprim._document_structure_extractor import (
+    document_structure_extractor as document_structure_extractor,
+)
 from oprim._file_parser_plaintext import file_parser_plaintext as file_parser_plaintext
-from oprim._document_structure_extractor import document_structure_extractor as document_structure_extractor
+
 
 def epub_toc_split(*args, **kwargs):
     from oprim._epub_toc_split import epub_toc_split as _fn
@@ -133,37 +184,48 @@ def epub_toc_split(*args, **kwargs):
 def _get_EpubBook():
     from oprim._epub_toc_split import EpubBook
     return EpubBook
-from oprim._markdown_frontmatter_build import markdown_frontmatter_build
-from oprim._text_clean_publish_noise import text_clean_publish_noise
-from oprim._arxiv_search import arxiv_search, ArxivPaper
-from oprim._http_download_file import http_download_file
-from oprim._media_types import SourceResult
-from oprim._gutenberg_search import gutenberg_search
-from oprim._oapen_search import oapen_search
+# P-G6: adamic-adar similarity score
+from oprim._adamic_adar_score import adamic_adar_score
+
 # ── AII Graph Capability (P-G1 … P-G7) ──────────────────────────────────────
 # Types (shared across AII graph elements)
 from oprim._aii_graph_types import (
-    ConflictSignal,
-    ConflictPair,
-    SourceTraceResult,
-    GraphRetrievalResult,
     CascadeDeleteResult,
-    TwoStepIngestResult,
     ConflictDetectionInput,
+    ConflictPair,
+    ConflictSignal,
+    GraphRetrievalResult,
+    SourceTraceResult,
+    TwoStepIngestResult,
 )
-# P-G1: conflict candidate detection (pure computation, no LLM)
-from oprim._ku_conflict_detect import ku_conflict_detect
-# P-G2: purpose alignment scoring (cosine + keyword, no LLM)
-from oprim._purpose_alignment_score import purpose_alignment_score
-# P-G3: source provenance query (single async DB call)
-from oprim._source_trace import source_trace
+from oprim._arxiv_search import ArxivPaper, arxiv_search
+
 # P-G4: direct graph link score
 from oprim._direct_link_score import direct_link_score
+from oprim._gutenberg_search import gutenberg_search
+from oprim._http_download_file import http_download_file
+
+# P-G1: conflict candidate detection (pure computation, no LLM)
+from oprim._ku_conflict_detect import ku_conflict_detect
+
+# LLM 智能路由原语 (RouteLLM 内化): 路由决策 + 并行分派 + 质量闸门
+from oprim._llm_router import DEFAULT_MATRIX, load_matrix, route_decision
+from oprim._markdown_frontmatter_build import markdown_frontmatter_build
+from oprim._media_types import SourceResult
+from oprim._oapen_search import oapen_search
+from oprim._parallel_llm import aggregate_results, dispatch_parallel, split_prompt
+
+# P-G2: purpose alignment scoring (cosine + keyword, no LLM)
+from oprim._purpose_alignment_score import purpose_alignment_score
+from oprim._quality_gate import quality_check
+from oprim._quant_analysis import compute_shapley_decomposition, compute_shapley_values
+
 # P-G5: shared source overlap score
 from oprim._source_overlap_score import source_overlap_score
-# P-G6: adamic-adar similarity score
-from oprim._adamic_adar_score import adamic_adar_score
+
+# P-G3: source provenance query (single async DB call)
+from oprim._source_trace import source_trace
+from oprim._text_clean_publish_noise import text_clean_publish_noise
+
 # P-G7: knowledge-type affinity score
 from oprim._type_affinity_score import type_affinity_score
-
-from oprim._quant_analysis import compute_shapley_decomposition, compute_shapley_values

@@ -2,7 +2,10 @@
 """release 前置检查：验证 __init__.py 引用的所有模块文件真实存在。
 支持：单文件模块（xxx.py）和包模块（xxx/__init__.py）。
 """
-import ast, pathlib, sys
+import ast
+import pathlib
+import sys
+
 
 def check(init_path: str) -> int:
     path = pathlib.Path(init_path)

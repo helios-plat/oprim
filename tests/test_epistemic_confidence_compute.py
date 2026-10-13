@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from oprim.epistemic_confidence_compute import epistemic_confidence_compute
+from oprim._epistemic_confidence_compute import epistemic_confidence_compute
 
 
 def test_confidence_normal():

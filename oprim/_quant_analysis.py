@@ -216,7 +216,7 @@ def compute_mcmc_sample(*, log_posterior_fn: Any, initial: list[float], n_sample
         True
     """
     current = list(initial)
-    dim = len(current)
+    len(current)
     samples = []
     current_lp = log_posterior_fn(current)
     for _ in range(n_samples):

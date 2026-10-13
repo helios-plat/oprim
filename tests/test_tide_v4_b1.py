@@ -1,10 +1,12 @@
 import pytest
+
 from oprim._exceptions import OprimError
+from oprim.beneish_m_score import BeneishInput, beneish_m_score
+from oprim.dcf_valuation import dcf_valuation
+from oprim.dupont_decomposition import dupont_decomposition
 from oprim.kdj import kdj
 from oprim.limit_status_calc import limit_status_calc
-from oprim.beneish_m_score import beneish_m_score, BeneishInput
-from oprim.dupont_decomposition import dupont_decomposition
-from oprim.dcf_valuation import dcf_valuation
+
 
 # --- KDJ Tests ---
 def test_kdj_normal():

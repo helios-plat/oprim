@@ -9,7 +9,6 @@ from pathlib import Path
 
 from ._exceptions import HttpOprimError
 
-
 # ---------------------------------------------------------------------------
 # Types
 # ---------------------------------------------------------------------------
@@ -94,9 +93,7 @@ async def validate_api_key(key: str, *, provider: str, timeout: float = 15) -> b
     except httpx.RequestError as e:
         raise HttpOprimError(f"network error validating key: {e}", cause=e)
 
-    if resp.status_code in (401, 403):
-        return False
-    return True
+    return resp.status_code not in (401, 403)
 
 
 # ---------------------------------------------------------------------------

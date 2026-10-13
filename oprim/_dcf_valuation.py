@@ -39,7 +39,7 @@ def dcf_valuation(
     """
     if discount_rate <= terminal_growth_rate:
         raise OprimError(f"Discount rate ({discount_rate}) must be greater than terminal growth rate ({terminal_growth_rate})")
-    
+
     if shares_outstanding <= 0:
         raise OprimError(f"Shares outstanding must be positive, got {shares_outstanding}")
 
@@ -58,15 +58,15 @@ def dcf_valuation(
     # 2. Terminal Value (Gordon Growth Model at the end of year T)
     last_fcf = fcf[-1]
     tv = last_fcf * (1 + terminal_growth_rate) / (discount_rate - terminal_growth_rate)
-    
+
     # 3. PV of Terminal Value
     pv_tv = tv / (1 + discount_rate) ** T
 
     ev = pv_explicit + pv_tv
-    
+
     # Simple model: Equity Value = EV (assuming net debt = 0 as simplified in SPEC)
     # The SPEC says "intrinsic_value_per_share", "enterprise_value", "terminal_value"
-    
+
     return DCFResult(
         intrinsic_value_per_share=float(ev / shares_outstanding),
         enterprise_value=float(ev),

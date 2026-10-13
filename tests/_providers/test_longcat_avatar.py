@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -105,7 +104,7 @@ class TestInvokeLocal:
         mock_proc.kill = MagicMock()
 
         with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
-            with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
+            with patch("asyncio.wait_for", side_effect=TimeoutError()):
                 with pytest.raises(LongCatAvatarError, match="timed out"):
                     await invoke_local(
                         portrait_image=portrait,

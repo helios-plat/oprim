@@ -1,4 +1,4 @@
-"""Tests for oprim.heartbeat_emit — external dead-man heartbeat (aegis DESIGN §6 L1)."""
+"""Tests for oprim._heartbeat_emit — external dead-man heartbeat (aegis DESIGN §6 L1)."""
 
 from __future__ import annotations
 

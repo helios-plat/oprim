@@ -1,10 +1,8 @@
-"""Tests for oprim.backlink_resolver."""
+"""Tests for oprim._backlink_resolver."""
 
 from __future__ import annotations
 
-import pytest
-
-from oprim.backlink_resolver import backlink_resolver
+from oprim._backlink_resolver import backlink_resolver
 
 
 def test_single_link_extracted():

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from oprim._aii_types import FailureLessonResult
 
-
 _SUPPORTED_TYPES: frozenset[str] = frozenset(
     {"verify_failed", "retrieval_miss", "defeater_struck"}
 )

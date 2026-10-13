@@ -120,7 +120,7 @@ def svensson_yield_curve(
     x0 = np.array([defaults[k] for k in param_keys])
 
     def objective(x: np.ndarray) -> float:
-        params = dict(zip(param_keys, x))
+        params = dict(zip(param_keys, x, strict=False))
         # tau must be positive
         if params["tau_1"] <= 0 or params["tau_2"] <= 0:
             return 1e10
@@ -145,7 +145,7 @@ def svensson_yield_curve(
         options={"maxiter": max_iter, "ftol": 1e-12, "gtol": 1e-8},
     )
 
-    fitted_params = dict(zip(param_keys, result.x))
+    fitted_params = dict(zip(param_keys, result.x, strict=False))
     fitted_yields = _svensson_yield(t_arr, fitted_params)
     residuals = y_arr - fitted_yields
     rmse = float(np.sqrt(np.mean(residuals**2)))

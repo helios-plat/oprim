@@ -18,19 +18,47 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from oprim import (
-    BlameLine, Commit, FileDiff, FileOprimError, FileStatus,
-    GitOprimError, Hunk, OprimError, ParseOprimError, PathSecurityError,
-    ShellOprimError, ShellResult, StreamChunk,
-    bash_exec, bash_exec_stream,
-    compute_diff, count_tokens, detect_language,
-    dir_list, estimate_cost, file_append, file_delete,
-    file_read, file_stat, file_write, glob_match,
-    git_add, git_blame, git_branch, git_checkout, git_commit,
-    git_diff, git_log, git_show, git_stash, git_status,
-    html_to_markdown, parse_unified_diff, path_resolve,
-    read_gitignore, redact_secrets,
+    BlameLine,
+    Commit,
+    FileDiff,
+    FileOprimError,
+    FileStatus,
+    GitOprimError,
+    Hunk,
+    ParseOprimError,
+    PathSecurityError,
+    ShellOprimError,
+    ShellResult,
+    StreamChunk,
+    bash_exec,
+    bash_exec_stream,
+    compute_diff,
+    count_tokens,
+    detect_language,
+    dir_list,
+    estimate_cost,
+    file_append,
+    file_delete,
+    file_read,
+    file_stat,
+    file_write,
+    git_add,
+    git_blame,
+    git_branch,
+    git_checkout,
+    git_commit,
+    git_diff,
+    git_log,
+    git_show,
+    git_stash,
+    git_status,
+    glob_match,
+    html_to_markdown,
+    parse_unified_diff,
+    path_resolve,
+    read_gitignore,
+    redact_secrets,
 )
-
 
 # ===========================================================================
 # fixtures
@@ -513,7 +541,7 @@ class TestGitBranch:
 
     def test_create_branch(self, git_repo):
         git_branch(repo=git_repo, name="feat/new", create=True)
-        branches = git_branch(repo=git_repo)
+        git_branch(repo=git_repo)
         # 可能自动 checkout 了新分支，检查是否存在于 log 或文件系统
         result = subprocess.run(
             ["git", "-C", str(git_repo), "branch", "--list", "feat/new"],
@@ -726,7 +754,6 @@ class TestBashExecStream:
         assert any("err" in c.text for c in stderr_chunks)
 
     def test_returns_async_iterator(self):
-        import collections.abc
         gen = bash_exec_stream("echo x")
         assert hasattr(gen, "__aiter__")
 
@@ -1006,7 +1033,6 @@ class TestCoverageGaps:
         assert result[0].new_path == "src/main.py"
 
     def test_bash_exec_env(self):
-        import os
         r = bash_exec("echo $MY_VAR", env={**os.environ, "MY_VAR": "hello123"})
         assert "hello123" in r.stdout
 
@@ -1035,7 +1061,6 @@ class TestShellCoverage:
         assert r.code == 0
 
     def test_bash_exec_env_empty_dict(self):
-        import os
         r = bash_exec("echo ok", env=os.environ.copy())
         assert r.ok
 
@@ -1133,7 +1158,7 @@ class TestLastMissLines:
         import subprocess as sp
         sp.run(["git", "-C", str(git_repo), "mv", "orig.py", "renamed.py"], capture_output=True)
         statuses = git_status(repo=git_repo)
-        renamed = [s for s in statuses if "renamed" in s.path.lower() or s.index == "R"]
+        [s for s in statuses if "renamed" in s.path.lower() or s.index == "R"]
         # 只要能正常解析（不崩溃）即可；renamed_from 可能是 None 或有值
         assert isinstance(statuses, list)
 

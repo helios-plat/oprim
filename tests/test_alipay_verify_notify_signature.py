@@ -1,4 +1,4 @@
-"""Tests for oprim.alipay_verify_notify_signature."""
+"""Tests for oprim._alipay_verify_notify_signature."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oprim.alipay_create_qr_order import AlipayConfig
-from oprim.alipay_verify_notify_signature import (
+from oprim._alipay_create_qr_order import AlipayConfig
+from oprim._alipay_verify_notify_signature import (
     AlipayInvalidSignatureError,
     alipay_verify_notify_signature,
 )
@@ -31,7 +31,7 @@ VALID_NOTIFY = {
 
 
 def test_valid_signature_returns_true() -> None:
-    with patch("oprim.alipay_verify_notify_signature._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_verify_notify_signature._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.verify.return_value = True
         mock_factory.return_value = mock_client
@@ -42,7 +42,7 @@ def test_valid_signature_returns_true() -> None:
 
 
 def test_invalid_signature_raises() -> None:
-    with patch("oprim.alipay_verify_notify_signature._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_verify_notify_signature._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.verify.return_value = False
         mock_factory.return_value = mock_client
@@ -63,7 +63,7 @@ def test_missing_sign_field_raises() -> None:
 
 def test_sign_and_sign_type_excluded_from_verify() -> None:
     """sign and sign_type are stripped before calling verify."""
-    with patch("oprim.alipay_verify_notify_signature._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_verify_notify_signature._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.verify.return_value = True
         mock_factory.return_value = mock_client
@@ -84,7 +84,7 @@ def test_chinese_values_handled() -> None:
         "sign_type": "RSA2",
         "sign": "SOME_VALID_SIG",
     }
-    with patch("oprim.alipay_verify_notify_signature._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_verify_notify_signature._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.verify.return_value = True
         mock_factory.return_value = mock_client
@@ -95,7 +95,7 @@ def test_chinese_values_handled() -> None:
 
 
 def test_verify_exception_wrapped_as_invalid_signature_error() -> None:
-    with patch("oprim.alipay_verify_notify_signature._make_alipay_client") as mock_factory:
+    with patch("oprim._alipay_verify_notify_signature._make_alipay_client") as mock_factory:
         mock_client = MagicMock()
         mock_client.verify.side_effect = RuntimeError("Crypto error")
         mock_factory.return_value = mock_client

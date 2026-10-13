@@ -1,4 +1,4 @@
-"""Tests for oprim.ltx2_cloud_generate (M1 — ≥6 tests)."""
+"""Tests for oprim._ltx2_cloud_generate (M1 — ≥6 tests)."""
 
 from __future__ import annotations
 

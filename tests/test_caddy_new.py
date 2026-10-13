@@ -1,7 +1,10 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from oprim import caddy_admin_post
-from oprim._exceptions import OprimValidationError, OprimConnectionError
+from oprim._exceptions import OprimConnectionError, OprimValidationError
+
 
 @patch("httpx.post")
 def test_caddy_admin_post_success(mock_post):

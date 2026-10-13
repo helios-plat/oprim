@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from oprim.should_throttle import should_throttle
+from oprim._should_throttle import should_throttle
 
 
 # helper

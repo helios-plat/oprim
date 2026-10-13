@@ -11,12 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        # obase (runtime provider registry) requires Python >= 3.12.
+        python-version: ["3.12"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev]"
+      - name: Install obase (sibling repo, not on PyPI) + oprim with test extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install "obase @ git+https://github.com/helios-plat/obase@main"
+          pip install -e ".[dev,pdf,epub,storage,llm,image]"
       - run: ruff check .
       - run: pytest --cov --cov-report=term-missing

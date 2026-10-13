@@ -1,8 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 from pathlib import Path
+
 from .git import _git
+
 
 def git_worktree_list(*, repo: str | Path) -> list[dict[str, str]]:
     """单次列出所有 worktree（含主 worktree）。
