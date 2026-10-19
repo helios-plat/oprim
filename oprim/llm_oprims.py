@@ -16,9 +16,13 @@ from oprim.types import GradeResult, SolveResult
 
 # ── §5.1 ocr_paper ───────────────────────────────────────────────────────────
 
+
 class PaperOCRResult(BaseModel):
-    questions: list[dict[str, Any]]  # [{no, question_text, student_answer, correct_answer, subject}]
+    questions: list[
+        dict[str, Any]
+    ]  # [{no, question_text, student_answer, correct_answer, subject}]
     raw_text: str
+
 
 async def ocr_paper(*, image_b64: str, subject: str = "math") -> PaperOCRResult:
     """单 Vision 调用：试卷图片 → 结构化题目列表。"""
@@ -36,10 +40,8 @@ async def ocr_paper(*, image_b64: str, subject: str = "math") -> PaperOCRResult:
         if not q.get("question_text"):
             q["question_text"] = "[OCR失败]"
 
-    return PaperOCRResult(
-        questions=questions,
-        raw_text=response.get("raw_text", "")
-    )
+    return PaperOCRResult(questions=questions, raw_text=response.get("raw_text", ""))
+
 
 _OCR_PROMPT = """
 你是一个专业的试卷 OCR 系统。分析图片中的{subject}试卷，提取每道题目。
@@ -49,6 +51,7 @@ _OCR_PROMPT = """
 """
 
 # ── §5.2 grade_question ───────────────────────────────────────────────────────
+
 
 async def grade_question(
     *,
@@ -63,7 +66,7 @@ async def grade_question(
     # 确定性优先：有内核结果且可解，则比对内核答案
     if solve_result and solve_result.solvable:
         # TODO: 更好的 LaTeX 等价性比对
-        is_correct = (student_answer.strip() == solve_result.answer.strip())
+        is_correct = student_answer.strip() == solve_result.answer.strip()
         return GradeResult(is_correct=is_correct, method="kernel", reason="Kernel verified")
 
     # 否则使用 LLM
@@ -82,14 +85,14 @@ async def grade_question(
     try:
         data = json.loads(response["content"])
         return GradeResult(
-            is_correct=data.get("is_correct", False),
-            method="llm",
-            reason=data.get("reason")
+            is_correct=data.get("is_correct", False), method="llm", reason=data.get("reason")
         )
     except Exception:
         return GradeResult(is_correct=False, method="llm", reason="LLM Parse Error")
 
+
 # ── §5.3 profiler_analyze ─────────────────────────────────────────────────────
+
 
 class ProfilerResult(BaseModel):
     error_type: Literal["conceptual", "transfer", "careless", "logic_break", "dontknow"]
@@ -99,6 +102,7 @@ class ProfilerResult(BaseModel):
     socratic_questions: list[str]
     mastery_estimate: float
     parent_note: str
+
 
 async def profiler_analyze(
     *,
@@ -113,7 +117,7 @@ async def profiler_analyze(
         question_text=question_text,
         student_answer=student_answer,
         correct_answer=correct_answer,
-        kc_candidates=kc_candidates
+        kc_candidates=kc_candidates,
     )
 
     response = await llm(messages=[{"role": "user", "content": prompt}], response_format="json")
@@ -134,8 +138,9 @@ async def profiler_analyze(
             cognitive_break_point="Unknown",
             socratic_questions=["你能再读一遍题吗？"],
             mastery_estimate=0.1,
-            parent_note="分析遇到一点小问题。"
+            parent_note="分析遇到一点小问题。",
         )
+
 
 _PROFILER_PROMPT = """
 你是高中教育心理学专家，精通高考考纲。
@@ -160,5 +165,5 @@ __manifest__ = {
         {"name": "ocr_paper", "layer": "oprim", "summary": "Claude Vision 结构化 OCR"},
         {"name": "grade_question", "layer": "oprim", "summary": "题目批改（确定性优先）"},
         {"name": "profiler_analyze", "layer": "oprim", "summary": "错题深度认知分析"},
-    ]
+    ],
 }

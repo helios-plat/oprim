@@ -1,4 +1,5 @@
 """Tests for oprim.classifier.detect_mime."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -53,6 +54,7 @@ class TestDetectMime:
 
     def test_magic_exception_propagated(self, tmp_path: Path):
         import magic
+
         f = tmp_path / "test.bin"
         f.write_bytes(b"\x00\x01\x02\x03")
 
@@ -66,6 +68,7 @@ class TestDetectMime:
 
     def test_permission_error_propagated(self, tmp_path: Path):
         import os
+
         f = tmp_path / "noaccess.bin"
         f.write_bytes(b"data")
         os.chmod(str(f), 0o000)
@@ -74,6 +77,6 @@ class TestDetectMime:
             with pytest.raises(PermissionError):
                 detect_mime(f)
         except Exception:
-            pass  # running as root; skip
+            pass  # running as root
         finally:
             os.chmod(str(f), 0o644)

@@ -68,6 +68,7 @@ class TestOrdinalPattern:
         d = 3
         patterns = ordinal_pattern(x, d=d)
         from math import factorial
+
         assert patterns.min() >= 0
         assert patterns.max() <= factorial(d) - 1
 
@@ -129,6 +130,4 @@ class TestPhaseRandomize:
         x = np.random.default_rng(0).normal(size=33)
         out = phase_randomize(x, rng=np.random.default_rng(5))
         assert len(out) == 33
-        np.testing.assert_allclose(
-            np.abs(np.fft.rfft(x)), np.abs(np.fft.rfft(out)), rtol=1e-9
-        )
+        np.testing.assert_allclose(np.abs(np.fft.rfft(x)), np.abs(np.fft.rfft(out)), rtol=1e-9)

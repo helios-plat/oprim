@@ -9,6 +9,10 @@ from ._exceptions import ParseOprimError
 from .text import _EXT_MAP, _FILENAME_MAP
 
 
+_FILENAME_MAP: dict[str, str] = {}
+_EXT_MAP: dict[str, str] = {}
+
+
 @dataclass
 class Hunk:
     old_start: int
@@ -18,11 +22,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def detect_language(
     path: str | Path,
@@ -50,7 +56,7 @@ def detect_language(
     try:
         p = Path(path)
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError(f"invalid path: {path}", cause=e)
+        raise ParseOprimError(f"invalid path: {path}", cause=e) from e
 
     # 精确文件名匹配
     if p.name in _FILENAME_MAP:

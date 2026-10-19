@@ -1,4 +1,5 @@
 """OAPEN open-access book search via OAPEN REST + Unpaywall PDF resolution."""
+
 from __future__ import annotations
 
 import json
@@ -7,9 +8,7 @@ import time
 import urllib.parse
 import urllib.request
 
-_TRUSTED_PDF_HOSTS = (
-    "link.springer.com",
-)
+_TRUSTED_PDF_HOSTS = ("link.springer.com",)
 
 _UNPAYWALL_EMAIL = "soffy88@gmail.com"
 
@@ -18,13 +17,16 @@ def _force_ipv4():
     """Monkey-patch socket.getaddrinfo to prefer IPv4 (OAPEN IPv6 unreachable from CN)."""
     _orig = socket.getaddrinfo
 
-    def ipv4_first(host, port, family=0, type=0, proto=0, flags=0):  # noqa: A002
+    def ipv4_first(host, port, family=0, sock_type=0, proto=0, flags=0):
         try:
-            v4 = [r for r in _orig(host, port, family, type, proto, flags)
-                  if r[0] == socket.AF_INET]
-            return v4 if v4 else _orig(host, port, family, type, proto, flags)
+            v4 = [
+                r
+                for r in _orig(host, port, family, sock_type, proto, flags)
+                if r[0] == socket.AF_INET
+            ]
+            return v4 if v4 else _orig(host, port, family, sock_type, proto, flags)
         except Exception:
-            return _orig(host, port, family, type, proto, flags)
+            return _orig(host, port, family, sock_type, proto, flags)
 
     socket.getaddrinfo = ipv4_first
     return _orig
@@ -55,13 +57,13 @@ def oapen_search(
             language=language,
             max_results=max_results,
             rate_limit_sleep=rate_limit_sleep,
-            SourceResult=SourceResult,
+            source_result=SourceResult,
         )
     finally:
         _restore_getaddrinfo(orig_getaddrinfo)
 
 
-def _oapen_search_inner(*, query, language, max_results, rate_limit_sleep, SourceResult):
+def _oapen_search_inner(*, query, language, max_results, rate_limit_sleep, source_result):
     if rate_limit_sleep > 0:
         time.sleep(rate_limit_sleep)
 
@@ -100,7 +102,7 @@ def _oapen_search_inner(*, query, language, max_results, rate_limit_sleep, Sourc
             continue
 
         mds: dict[str, str] = {}
-        for m in (it.get("metadata") or []):
+        for m in it.get("metadata") or []:
             k = m.get("key") or ""
             if k and k not in mds:
                 mds[k] = m.get("value") or ""
@@ -113,7 +115,10 @@ def _oapen_search_inner(*, query, language, max_results, rate_limit_sleep, Sourc
             continue
 
         # Step 3: Resolve PDF via Unpaywall
-        up_url = f"https://api.unpaywall.org/v2/{urllib.parse.quote(doi, safe='')}?email={_UNPAYWALL_EMAIL}"
+        up_url = (
+            f"https://api.unpaywall.org/v2/{urllib.parse.quote(doi, safe='')}"
+            f"?email={_UNPAYWALL_EMAIL}"
+        )
         try:
             time.sleep(0.5)
             up = json.loads(urllib.request.urlopen(up_url, timeout=10).read())
@@ -126,19 +131,17 @@ def _oapen_search_inner(*, query, language, max_results, rate_limit_sleep, Sourc
         best = up.get("best_oa_location") or {}
         pdf_url = best.get("url_for_pdf") or ""
         if not pdf_url:
-            for loc in (up.get("oa_locations") or []):
+            for loc in up.get("oa_locations") or []:
                 u = loc.get("url_for_pdf") or ""
                 if u and any(u.startswith(f"https://{h}") for h in _TRUSTED_PDF_HOSTS):
                     pdf_url = u
                     break
 
-        if not pdf_url or not any(
-            pdf_url.startswith(f"https://{h}") for h in _TRUSTED_PDF_HOSTS
-        ):
+        if not pdf_url or not any(pdf_url.startswith(f"https://{h}") for h in _TRUSTED_PDF_HOSTS):
             continue
 
         results.append(
-            SourceResult(
+            source_result(
                 external_id=handle,
                 title=title,
                 download_url=pdf_url,

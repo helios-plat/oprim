@@ -68,10 +68,13 @@ def test_rabbitmq_consumer_count_zero():
 
 
 def test_rabbitmq_queue_depth_propagates_not_found():
-    with patch(
-        "oprim._rabbitmq.rabbitmq_queue_status",
-        side_effect=OprimNotFoundError("Queue not found"),
-    ), pytest.raises(OprimNotFoundError):
+    with (
+        patch(
+            "oprim._rabbitmq.rabbitmq_queue_status",
+            side_effect=OprimNotFoundError("Queue not found"),
+        ),
+        pytest.raises(OprimNotFoundError),
+    ):
         rabbitmq_queue_depth(
             mgmt_url="http://guest:guest@localhost:15672/api/",
             queue_name="missing",
@@ -79,10 +82,13 @@ def test_rabbitmq_queue_depth_propagates_not_found():
 
 
 def test_rabbitmq_consumer_count_propagates_connection_error():
-    with patch(
-        "oprim._rabbitmq.rabbitmq_queue_status",
-        side_effect=OprimConnectionError("Cannot connect"),
-    ), pytest.raises(OprimConnectionError):
+    with (
+        patch(
+            "oprim._rabbitmq.rabbitmq_queue_status",
+            side_effect=OprimConnectionError("Cannot connect"),
+        ),
+        pytest.raises(OprimConnectionError),
+    ):
         rabbitmq_consumer_count(
             mgmt_url="http://guest:guest@localhost:15672/api/",
             queue_name="test",

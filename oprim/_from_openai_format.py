@@ -1,4 +1,5 @@
 """Parse an OpenAI chat completion message object into an internal Message."""
+
 from __future__ import annotations
 
 import json

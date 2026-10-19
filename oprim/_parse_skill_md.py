@@ -1,4 +1,5 @@
 """Parse a skill markdown file into a SkillSpec."""
+
 from __future__ import annotations
 
 import yaml

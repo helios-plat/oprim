@@ -1,4 +1,5 @@
 """Parse a process exit code into a SignalInfo descriptor."""
+
 from __future__ import annotations
 
 import signal

@@ -11,7 +11,7 @@ from scipy.stats import rankdata
 
 
 def log_returns(
-    prices: pd.Series,
+    prices: pd.Series, *,
     periods: list[int] | None = None,
     handle_gaps: Literal["skip", "interpolate", "raise"] = "skip",
 ) -> pd.DataFrame:
@@ -65,7 +65,7 @@ def log_returns(
 
 
 def cumulative_returns(
-    returns: pd.Series,
+    returns: pd.Series, *,
     return_type: Literal["log", "simple"] = "log",
     initial_capital: float = 1.0,
     compound: bool = True,
@@ -108,7 +108,7 @@ def cumulative_returns(
 
 
 def rolling_window_split(
-    n_samples: int,
+    n_samples: int, *,
     window_size: int,
     step: int = 1,
     include_partial: bool = False,
@@ -153,7 +153,7 @@ def rolling_window_split(
 
 
 def lag_forward_fill(
-    data: pd.Series | pd.DataFrame,
+    data: pd.Series | pd.DataFrame, *,
     max_gap: int | pd.Timedelta = 5,
     lag: int = 0,
     strict: bool = False,
@@ -242,7 +242,7 @@ def _check_gap(series: pd.Series, max_gap: int | pd.Timedelta) -> None:
 
 
 def percentile_rank(
-    data: pd.Series | pd.DataFrame,
+    data: pd.Series | pd.DataFrame, *,
     window: int | None = None,
     method: Literal["rolling", "cross_sectional", "expanding"] = "rolling",
     ties: Literal["average", "min", "max"] = "average",
@@ -335,7 +335,7 @@ def _expanding_rank(series: pd.Series, ties: str) -> pd.Series:
 
 
 def ewma_smooth(
-    data: pd.Series,
+    data: pd.Series, *,
     half_life: float | None = None,
     span: int | None = None,
     alpha: float | None = None,
@@ -367,9 +367,11 @@ def ewma_smooth(
 
 
 def realized_vol(
-    returns: pd.Series,
+    returns: pd.Series, *,
     window: int = 20,
-    estimator: Literal["close_to_close", "garman_klass", "parkinson", "yang_zhang"] = "close_to_close",
+    estimator: Literal[
+        "close_to_close", "garman_klass", "parkinson", "yang_zhang"
+    ] = "close_to_close",
     annualization_factor: int = 252,
     ohlc: pd.DataFrame | None = None,
 ) -> pd.Series:
@@ -408,16 +410,16 @@ def realized_vol(
                 raise ValueError(f"ohlc must contain '{col}' column")
 
         h = np.log(ohlc["high"])
-        l = np.log(ohlc["low"])
+        low = np.log(ohlc["low"])
         o = np.log(ohlc["open"])
         c = np.log(ohlc["close"])
 
         if estimator == "garman_klass":
             # σ² = 0.5*(ln(H/L))² - (2ln2-1)*(ln(C/O))²
-            var = 0.5 * (h - l) ** 2 - (2 * np.log(2) - 1) * (c - o) ** 2
+            var = 0.5 * (h - low) ** 2 - (2 * np.log(2) - 1) * (c - o) ** 2
         elif estimator == "parkinson":
             # σ² = (1/(4*ln2))*(ln(H/L))²
-            var = (1 / (4 * np.log(2))) * (h - l) ** 2
+            var = (1 / (4 * np.log(2))) * (h - low) ** 2
         else:  # yang_zhang
             # Yang & Zhang 2000: σ²_yz = σ²_o + k·σ²_c + (1-k)·σ²_rs
             # σ²_o = overnight variance, σ²_c = close-to-close, σ²_rs = Rogers-Satchell
@@ -429,7 +431,7 @@ def realized_vol(
 
             # Rogers-Satchell intraday variance
             log_ho = h - o
-            log_lo = l - o
+            log_lo = low - o
             log_co = c - o
             rs_var = log_ho * (log_ho - log_co) + log_lo * (log_lo - log_co)
             rs_var = rs_var.rolling(window).mean()
@@ -452,7 +454,7 @@ def realized_vol(
 
 
 def zscore_normalize(
-    data: pd.Series | pd.DataFrame,
+    data: pd.Series | pd.DataFrame, *,
     window: int | None = None,
     min_periods: int = 20,
     clip_extreme: float | None = 5.0,
@@ -497,7 +499,7 @@ def zscore_normalize(
 
 
 def gap_detect(
-    times: pd.DatetimeIndex,
+    times: pd.DatetimeIndex, *,
     expected_interval: pd.Timedelta | None = None,
     asset_class: Literal["equity", "crypto", "fx", "commodity"] = "equity",
     severity_thresholds: dict | None = None,
@@ -543,12 +545,14 @@ def gap_detect(
     for i, d in enumerate(diffs):
         if d > threshold:
             severity = _classify_severity(d, severity_thresholds)
-            gaps.append({
-                "start_time": times[i],
-                "end_time": times[i + 1],
-                "gap_duration": d,
-                "severity": severity,
-            })
+            gaps.append(
+                {
+                    "start_time": times[i],
+                    "end_time": times[i + 1],
+                    "gap_duration": d,
+                    "severity": severity,
+                }
+            )
 
     return pd.DataFrame(gaps, columns=["start_time", "end_time", "gap_duration", "severity"])
 
@@ -569,7 +573,7 @@ def _classify_severity(gap: pd.Timedelta, thresholds: dict) -> str:
 
 
 def resample_align(
-    data_dict: dict[str, pd.DataFrame],
+    data_dict: dict[str, pd.DataFrame], *,
     target_freq: str = "D",
     method: Literal["last", "mean", "ohlc"] = "last",
     timezone: str = "UTC",
@@ -616,7 +620,9 @@ def resample_align(
             resampled = resampler.mean()
         else:  # ohlc
             resampled = resampler.ohlc()
-            resampled.columns = ["_".join(c) if isinstance(c, tuple) else c for c in resampled.columns]
+            resampled.columns = [
+                "_".join(c) if isinstance(c, tuple) else c for c in resampled.columns
+            ]
 
         if forward_fill_limit is not None and forward_fill_limit > 0:
             resampled = resampled.ffill(limit=forward_fill_limit)
@@ -629,7 +635,7 @@ def resample_align(
 
 
 def purge_embargo_split(
-    times: pd.DatetimeIndex,
+    times: pd.DatetimeIndex, *,
     n_splits: int,
     embargo_pct: float = 0.01,
     label_horizon: int | pd.Timedelta = 0,
@@ -705,11 +711,13 @@ def purge_embargo_split(
             current = test_end
             continue
 
-        splits.append({
-            "train": train_idx,
-            "test": test_idx,
-            "embargo": embargo_idx,
-        })
+        splits.append(
+            {
+                "train": train_idx,
+                "test": test_idx,
+                "embargo": embargo_idx,
+            }
+        )
         current = test_end
 
     return splits

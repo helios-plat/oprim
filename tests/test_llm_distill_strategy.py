@@ -123,9 +123,11 @@ class TestProviderRegistryPath:
         from obase.exceptions import ProviderNotFoundError
 
         ep = {"event": "deploy failed", "outcome": "rollback", "context": {}}
-        with patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("llm", "x")):
-            with patch("oprim._llm_distill_strategy._log") as mock_log:
-                result = llm_distill_strategy(episode=ep)
+        with (
+            patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("llm", "x")),
+            patch("oprim._llm_distill_strategy._log") as mock_log,
+        ):
+            result = llm_distill_strategy(episode=ep)
         assert result["knowledge_type"] == "solution_strategy"
         assert result["epistemic_status"]["verified"] is False
         mock_log.warning.assert_called_once()
@@ -135,11 +137,13 @@ class TestProviderRegistryPath:
         import json
         from unittest.mock import MagicMock, patch
 
-        fake_response = json.dumps({
-            "title": "Rollback strategy",
-            "description": "Use rollback on failure.",
-            "content": "Steps: 1. detect 2. rollback",
-        })
+        fake_response = json.dumps(
+            {
+                "title": "Rollback strategy",
+                "description": "Use rollback on failure.",
+                "content": "Steps: 1. detect 2. rollback",
+            }
+        )
         mock_llm = MagicMock(return_value=fake_response)
         mock_registry = MagicMock()
         mock_registry.llm.return_value = mock_llm
@@ -156,6 +160,8 @@ class TestProviderRegistryPath:
         """Non-ProviderNotFoundError must propagate."""
         from unittest.mock import patch
 
-        with patch("obase.ProviderRegistry.get", side_effect=ValueError("bad")):
-            with pytest.raises(ValueError):
-                llm_distill_strategy(episode={})
+        with (
+            patch("obase.ProviderRegistry.get", side_effect=ValueError("bad")),
+            pytest.raises(ValueError),
+        ):
+            llm_distill_strategy(episode={})

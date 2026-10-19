@@ -12,24 +12,24 @@ from oprim._exceptions import OprimError
 
 class ScreenRule(BaseModel):
     """选股规则."""
+
     field: str = Field(..., description="列名")
-    op: Literal["gt", "lt", "gte", "lte", "eq", "between", "flag"] = Field(..., description="操作符")
+    op: Literal["gt", "lt", "gte", "lte", "eq", "between", "flag"] = Field(
+        ..., description="操作符"
+    )
     threshold: float | tuple[float, float] | bool = Field(..., description="阈值")
     reason: str = Field(..., description="过滤理由")
 
 
 class ScreenResult(BaseModel):
     """过滤结果."""
+
     passed: list[str] = Field(..., description="通过的代码列表")
     rejected: list[dict] = Field(..., description="被剔除的详情 [{symbol, failed_rule, reason}]")
     stats: dict = Field(..., description="统计信息")
 
 
-def apply_screen_filter(
-    *,
-    candidates: pd.DataFrame,
-    rules: list[ScreenRule]
-) -> ScreenResult:
+def apply_screen_filter(*, candidates: pd.DataFrame, rules: list[ScreenRule]) -> ScreenResult:
     """配置驱动选股过滤. 纯 DataFrame 过滤 + 规则匹配.
 
     Args:
@@ -68,7 +68,9 @@ def apply_screen_filter(
             rule_mask = field_series == rule.threshold
         elif rule.op == "between":
             if not isinstance(rule.threshold, (list, tuple)) or len(rule.threshold) != 2:
-                raise OprimError(f"Threshold for 'between' must be a tuple of 2 floats, got {rule.threshold}")
+                raise OprimError(
+                    f"Threshold for 'between' must be a tuple of 2 floats, got {rule.threshold}"
+                )
             rule_mask = field_series.between(rule.threshold[0], rule.threshold[1])
         elif rule.op == "flag":
             rule_mask = field_series == bool(rule.threshold)
@@ -76,11 +78,9 @@ def apply_screen_filter(
         # 记录被此规则剔除的对象 (当前仍存活但将被剔除的)
         newly_rejected = passed_mask & (~rule_mask)
         for _, row in df[newly_rejected].iterrows():
-            rejected_list.append({
-                "symbol": row["symbol"],
-                "failed_rule": rule.field,
-                "reason": rule.reason
-            })
+            rejected_list.append(
+                {"symbol": row["symbol"], "failed_rule": rule.field, "reason": rule.reason}
+            )
 
         passed_mask &= rule_mask
 
@@ -92,6 +92,6 @@ def apply_screen_filter(
         stats={
             "total_input": len(df),
             "total_passed": len(passed_df),
-            "total_rejected": len(rejected_list)
-        }
+            "total_rejected": len(rejected_list),
+        },
     )

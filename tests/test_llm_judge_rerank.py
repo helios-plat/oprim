@@ -18,13 +18,16 @@ def test_llm_judge_rerank_basic():
     assert res[1].original_index == 1
     assert res[1].score == 0.0
 
+
 def test_llm_judge_rerank_empty_query():
     with pytest.raises(OprimError, match="Query cannot be empty"):
         llm_judge_rerank(query="   ", documents=["doc1"], llm=MagicMock())
 
+
 def test_llm_judge_rerank_empty_docs():
     res = llm_judge_rerank(query="test", documents=[], llm=MagicMock())
     assert res == []
+
 
 def test_llm_judge_rerank_llm_error():
     def mock_llm(**kwargs):
@@ -35,6 +38,7 @@ def test_llm_judge_rerank_llm_error():
     assert len(res) == 2
     assert res[0].score == 0.0
     assert res[1].score == 0.0
+
 
 def test_llm_judge_rerank_partial_missing():
     def mock_llm(**kwargs):
@@ -49,6 +53,7 @@ def test_llm_judge_rerank_partial_missing():
     # doc0 missing -> 0.0
     assert res[1].original_index == 0
     assert res[1].score == 0.0
+
 
 def test_llm_judge_rerank_top_k():
     def mock_llm(**kwargs):

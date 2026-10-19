@@ -89,12 +89,14 @@ def usb_device_list(
 
     只读(R0). 用于存储/外设面板识别插入的 U 盘、移动硬盘、外设等.
 
-    执行位置由调用方决定:不传 lsusb_output 时本地跑 lsusb;传入则只解析,
+    执行位置由调用方决定:不传 lsusb_output 时本地跑 lsusb
+    传入则只解析,
     调用方可在别处(特权 host-shell / 远端节点)取到原始输出再交本原语解析.
 
     Args:
         include_root_hubs: 是否保留根 hub(Linux Foundation root hub). 默认剔除以减噪.
-        lsusb_output: 可选. 预先取到的 `lsusb` 原始 stdout;给定则解析它而非本地执行.
+        lsusb_output: 可选. 预先取到的 `lsusb` 原始 stdout
+        给定则解析它而非本地执行.
 
     Returns:
         UsbDeviceList: devices 为解析出的 USB 设备, count 为其数量.

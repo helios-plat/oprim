@@ -1,4 +1,5 @@
 """Resolve the tool list for a subagent given a Persona."""
+
 from __future__ import annotations
 
 import fnmatch
@@ -32,15 +33,9 @@ def resolve_subagent_tools(persona: Persona, *, all_tools: list[Any]) -> list[An
     tools: list[Tool] = [t for t in all_tools if t.name != "task"]
 
     if persona.allow:
-        tools = [
-            t for t in tools
-            if any(fnmatch.fnmatch(t.name, pat) for pat in persona.allow)
-        ]
+        tools = [t for t in tools if any(fnmatch.fnmatch(t.name, pat) for pat in persona.allow)]
 
     if persona.deny:
-        tools = [
-            t for t in tools
-            if not any(fnmatch.fnmatch(t.name, pat) for pat in persona.deny)
-        ]
+        tools = [t for t in tools if not any(fnmatch.fnmatch(t.name, pat) for pat in persona.deny)]
 
     return tools

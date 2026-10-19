@@ -38,6 +38,7 @@ from oprim.types import (
 # compute_peer_percentile
 # ===========================================================================
 
+
 class TestComputePeerPercentile:
     def test_basic_percentile(self):
         result = compute_peer_percentile(85, [60, 70, 80, 90, 100])
@@ -85,9 +86,11 @@ class TestComputePeerPercentile:
 # recognition_update
 # ===========================================================================
 
+
 class TestRecognitionUpdate:
     def test_basic_update_correct(self):
         from oprim.recognition_update import RecognitionState
+
         state = RecognitionState(kc_id="kc1", p_mastery=0.3)
         result = recognition_update(state, correct=True, recognised=True)
         assert isinstance(result, RecognitionUpdateResult)
@@ -97,12 +100,14 @@ class TestRecognitionUpdate:
 
     def test_basic_update_incorrect(self):
         from oprim.recognition_update import RecognitionState
+
         state = RecognitionState(kc_id="kc1", p_mastery=0.8)
         result = recognition_update(state, correct=False, recognised=False)
         assert result.p_mastery_after < result.p_mastery_before
 
     def test_recognition_boost(self):
         from oprim.recognition_update import RecognitionState
+
         state1 = RecognitionState(kc_id="kc1", p_mastery=0.5)
         state2 = RecognitionState(kc_id="kc2", p_mastery=0.5)
         r1 = recognition_update(state1, correct=True, recognised=True)
@@ -112,6 +117,7 @@ class TestRecognitionUpdate:
 
     def test_sequence(self):
         from oprim.recognition_update import RecognitionState
+
         state = RecognitionState(kc_id="kc1", p_mastery=0.2)
         interactions = [(True, True), (True, False), (False, False), (True, True)]
         results = recognition_update_sequence(state, interactions)
@@ -121,12 +127,14 @@ class TestRecognitionUpdate:
 
     def test_custom_parameters(self):
         from oprim.recognition_update import RecognitionState
+
         state = RecognitionState(kc_id="kc1", p_mastery=0.5)
         r = recognition_update(state, correct=True, recognised=True, p_transit=0.5)
         assert r.p_mastery_after > r.p_mastery_before
 
     def test_mastery_clamped(self):
         from oprim.recognition_update import RecognitionState
+
         state = RecognitionState(kc_id="kc1", p_mastery=0.99)
         r = recognition_update(state, correct=True, recognised=True)
         assert 0.001 <= r.p_mastery_after <= 0.999
@@ -135,6 +143,7 @@ class TestRecognitionUpdate:
 # ===========================================================================
 # compute_effortful_gain
 # ===========================================================================
+
 
 class TestComputeEffortfulGain:
     def test_basic_gain(self):
@@ -200,6 +209,7 @@ class TestComputeEffortfulGain:
 # ===========================================================================
 # compute_feedback
 # ===========================================================================
+
 
 class TestComputeFeedback:
     def test_correct_answer(self):

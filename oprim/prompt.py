@@ -36,6 +36,7 @@ from .text import count_tokens
 # build_system_prompt
 # ---------------------------------------------------------------------------
 
+
 def build_system_prompt(
     *,
     mode: str = "build",
@@ -83,9 +84,7 @@ def build_system_prompt(
 
     # 1. 角色声明
     mode_upper = mode.upper()
-    role = (
-        f"You are hicode, an expert AI coding agent operating in {mode_upper} mode.\n"
-    )
+    role = f"You are hicode, an expert AI coding agent operating in {mode_upper} mode.\n"
     if mode == "plan":
         role += (
             "In PLAN mode: analyze the codebase and propose changes only. "
@@ -127,6 +126,7 @@ def build_system_prompt(
 # ---------------------------------------------------------------------------
 # truncate_messages
 # ---------------------------------------------------------------------------
+
 
 def truncate_messages(
     messages: list[dict],
@@ -175,8 +175,8 @@ def truncate_messages(
     keep_last = min(keep_last, n - keep_first)
 
     front = list(messages[:keep_first])
-    back = list(messages[n - keep_last:]) if keep_last > 0 else []
-    middle = list(messages[keep_first: n - keep_last if keep_last > 0 else n])
+    back = list(messages[n - keep_last :]) if keep_last > 0 else []
+    middle = list(messages[keep_first : n - keep_last if keep_last > 0 else n])
 
     # 逐条从 middle 头部删除，直到满足预算
     while middle:
@@ -220,8 +220,10 @@ def extract_thinking(response: dict) -> ThinkingResult:
     if not isinstance(content, list):
         if isinstance(content, str):
             return ThinkingResult(
-                thinking="", text=content,
-                has_thinking=False, text_blocks=[content],
+                thinking="",
+                text=content,
+                has_thinking=False,
+                text_blocks=[content],
             )
         raise PromptOprimError(
             f"extract_thinking: content must be list or str, got {type(content).__name__}"
@@ -294,16 +296,19 @@ async def snapshot_conversation(
     ts = time.time()
 
     try:
-        payload = json.dumps({
-            "snapshot_id": snapshot_id,
-            "session_id": sid,
-            "messages": messages,
-            "message_count": len(messages),
-            "created_at": ts,
-            "metadata": metadata or {},
-        }, ensure_ascii=False)
+        payload = json.dumps(
+            {
+                "snapshot_id": snapshot_id,
+                "session_id": sid,
+                "messages": messages,
+                "message_count": len(messages),
+                "created_at": ts,
+                "metadata": metadata or {},
+            },
+            ensure_ascii=False,
+        )
     except (TypeError, ValueError) as e:
-        raise SnapshotOprimError("failed to serialize messages", cause=e)
+        raise SnapshotOprimError("failed to serialize messages", cause=e) from e
 
     store_key = f"session:{sid}:snapshot:{snapshot_id}"
 
@@ -312,7 +317,7 @@ async def snapshot_conversation(
     except SnapshotOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise SnapshotOprimError("failed to save snapshot to store", cause=e)
+        raise SnapshotOprimError("failed to save snapshot to store", cause=e) from e
 
     return ConversationSnapshot(
         snapshot_id=snapshot_id,

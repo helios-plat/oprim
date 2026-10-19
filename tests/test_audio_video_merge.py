@@ -1,4 +1,4 @@
-"""Tests for oprim._audio_video_merge."""
+"""Tests for oprim.audio_video_merge."""
 
 from __future__ import annotations
 
@@ -26,10 +26,8 @@ class TestAudioVideoMerge:
         video.write_bytes(b"\x00" * 64)
         audio.write_bytes(b"\x00" * 64)
         out = tmp_path / "merged.mp4"
-        with patch("oprim._audio_video_merge.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
-            result = await audio_video_merge(
-                video_path=video, audio_path=audio, output_path=out
-            )
+        with patch("oprim.audio_video_merge.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+            result = await audio_video_merge(video_path=video, audio_path=audio, output_path=out)
         assert result == out
 
     async def test_video_not_found_raises(self, tmp_path: Path) -> None:
@@ -66,7 +64,7 @@ class TestAudioVideoMerge:
             out.write_bytes(b"\x00" * 8)
             return "ok"
 
-        with patch("oprim._audio_video_merge.ffmpeg_run", side_effect=_capture):
+        with patch("oprim.audio_video_merge.ffmpeg_run", side_effect=_capture):
             await audio_video_merge(
                 video_path=video, audio_path=audio, output_path=out, audio_codec="opus"
             )
@@ -83,11 +81,13 @@ class TestAudioVideoMerge:
         async def _fail(**kw: object) -> str:
             raise FFmpegError("merge error", code=1, stderr="merge error")
 
-        with patch("oprim._audio_video_merge.ffmpeg_run", side_effect=_fail):
-            with pytest.raises(AudioVideoMergeError, match="FFmpeg merge failed"):
-                await audio_video_merge(
-                    video_path=video, audio_path=audio, output_path=tmp_path / "out.mp4"
-                )
+        with (
+            patch("oprim.audio_video_merge.ffmpeg_run", side_effect=_fail),
+            pytest.raises(AudioVideoMergeError, match="FFmpeg merge failed"),
+        ):
+            await audio_video_merge(
+                video_path=video, audio_path=audio, output_path=tmp_path / "out.mp4"
+            )
 
     async def test_output_created(self, tmp_path: Path) -> None:
         video = tmp_path / "video.mp4"
@@ -95,6 +95,6 @@ class TestAudioVideoMerge:
         video.write_bytes(b"\x00" * 64)
         audio.write_bytes(b"\x00" * 64)
         out = tmp_path / "result.mp4"
-        with patch("oprim._audio_video_merge.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim.audio_video_merge.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             await audio_video_merge(video_path=video, audio_path=audio, output_path=out)
         assert out.exists()

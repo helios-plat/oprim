@@ -9,10 +9,15 @@ import types as _types
 from pathlib import Path
 from typing import Any
 
+from oprim._layering import LAYER_ELEMENT, LAYER_INFRA, declared_exports, layer_from_tree
 from oprim._version import __version__
 
 _ELEMENT_MAP: dict[str, str] = {}
 _SUBMODULE_SET: set[str] = set()
+#: module path → declared layer (from `__oprim_layer__`). Authoritative for
+#: dependency-direction checks; see `oprim._layering`.
+_MODULE_LAYERS: dict[str, str] = {}
+
 
 def _build_element_map() -> None:
     pkg_dir = Path(__file__).parent
@@ -31,6 +36,20 @@ def _build_element_map() -> None:
         _SUBMODULE_SET.add(stem)
         try:
             tree = ast.parse(py.read_text(encoding="utf-8"))
+            layer = layer_from_tree(tree)
+            _MODULE_LAYERS[mod_path] = layer
+            # Infra modules are shared bases, not capabilities. Their unlisted
+            # helpers stay reachable by direct module path
+            # (`from oprim._ffprobe import probe_json`) but never enter the
+            # element namespace. `__oprim_exports__` re-publishes the names that
+            # are genuinely public API (e.g. the dataclasses in `_media_types`).
+            #
+            # Provider modules always export: their layer governs dependency
+            # direction only, while the export surface is backward-compatibility
+            # governed and known consumers do `from oprim import veo3_generate`.
+            allowed: set[str] | None = None
+            if layer == LAYER_INFRA:
+                allowed = set(declared_exports(tree))
             for node in tree.body:
                 names = []
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
@@ -40,38 +59,141 @@ def _build_element_map() -> None:
                     and isinstance(node.value, ast.Name)
                     and not stem.startswith("__")
                 ):
-                    # module-level public alias, e.g. ``caddy_admin_routes = caddy_routes_list``
+                    # module-level public alias, e.g.
+                    # ``caddy_admin_routes = caddy_routes_list``; the element
+                    # namespace must expose the alias as well as the original.
                     names.extend(t.id for t in node.targets if isinstance(t, ast.Name))
                 elif isinstance(node, ast.ImportFrom) and rel_path.name == "__init__.py":
                     for alias in node.names:
                         if alias.name != "*":
                             names.append(alias.asname or alias.name)
                 for name in names:
-                    if not name.startswith("_") and (
-                        name not in _ELEMENT_MAP
-                        or (
-                            not mod_path.split(".")[-1].startswith("_")
-                            and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
-                        )
-                    ):
+                    if name.startswith("_"):
+                        continue
+                    if allowed is not None and name not in allowed:
+                        continue
+                    cond = name not in _ELEMENT_MAP or (
+                        not mod_path.split(".")[-1].startswith("_")
+                        and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
+                    )
+                    if cond:
                         _ELEMENT_MAP[name] = mod_path
         except Exception:
             continue
 
+
 _build_element_map()
+
+# Authoritative export bindings inherited from origin/main's explicit import
+# surface.  The AST walk above is permissive (it discovers new atoms without a
+# registry edit), but several public names are defined in more than one module
+# (e.g. ``LLMResponse`` exists in ``llm/_types`` and in the legacy
+# ``llm_complete`` / ``embed_text`` / ``llm_stream`` shims).  Where both lines
+# shipped a binding, origin/main's explicit ``from ... import`` is the contract;
+# apply it as an override so the exported name and the value returned by the
+# owning function are the same object.
+_AUTHORITATIVE_EXPORTS: dict[str, str] = {
+    "ArxivPaper": "oprim._arxiv_search",
+    "BudgetExceededError": "oprim._exceptions",
+    "CascadeDeleteResult": "oprim._aii_graph_types",
+    "ConflictDetectionInput": "oprim._aii_graph_types",
+    "ConflictPair": "oprim._aii_graph_types",
+    "ConflictSignal": "oprim._aii_graph_types",
+    "ConversationSnapshot": "oprim.llm._types",
+    "DEFAULT_MATRIX": "oprim._llm_router",
+    "EmbedResult": "oprim.llm._types",
+    "FileOprimError": "oprim._exceptions",
+    "GitOprimError": "oprim._exceptions",
+    "GradeResult": "oprim.types",
+    "GraphRetrievalResult": "oprim._aii_graph_types",
+    "HttpOprimError": "oprim._exceptions",
+    "HttpResponse": "oprim.llm._types",
+    "LLMOprimError": "oprim._exceptions",
+    "LLMResponse": "oprim.llm._types",
+    "OprimError": "oprim._exceptions",
+    "ParseOprimError": "oprim._exceptions",
+    "PathSecurityError": "oprim._exceptions",
+    "PeerPercentileResult": "oprim.types",
+    "Plot2DData": "oprim.types",
+    "PromptOprimError": "oprim._exceptions",
+    "SearchOprimError": "oprim._exceptions",
+    "SearchResult": "oprim.llm._types",
+    "ShellOprimError": "oprim._exceptions",
+    "SnapshotOprimError": "oprim._exceptions",
+    "SolveResult": "oprim.types",
+    "SolveStep": "oprim.types",
+    "SourceResult": "oprim._media_types",
+    "SourceTraceResult": "oprim._aii_graph_types",
+    "StepCheckResult": "oprim.types",
+    "StreamDelta": "oprim.llm._types",
+    "ThinkingResult": "oprim.llm._types",
+    "Three3DData": "oprim.types",
+    "TwoStepIngestResult": "oprim._aii_graph_types",
+    "__version__": "oprim._version",
+    "adamic_adar_score": "oprim._adamic_adar_score",
+    "aggregate_results": "oprim._parallel_llm",
+    "arxiv_search": "oprim._arxiv_search",
+    "build_system_prompt": "oprim.prompt",
+    "compute_effortful_gain": "oprim.compute_effortful_gain",
+    "compute_effortful_gain_from_arrays": "oprim.compute_effortful_gain",
+    "compute_feedback": "oprim.compute_feedback",
+    "compute_peer_percentile": "oprim.compute_peer_percentile",
+    "compute_percentile_batch": "oprim.compute_peer_percentile",
+    "compute_shapley_decomposition": "oprim._quant_analysis",
+    "compute_shapley_values": "oprim._quant_analysis",
+    "direct_link_score": "oprim._direct_link_score",
+    "dispatch_parallel": "oprim._parallel_llm",
+    "document_structure_extractor": "oprim._document_structure_extractor",
+    "due_compute": "oprim.due_compute",
+    "error_classify": "oprim.error_classify",
+    "extract_thinking": "oprim.prompt",
+    "file_parser_plaintext": "oprim._file_parser_plaintext",
+    "file_type_detector": "oprim.file_type_detector",
+    "grade_answer": "oprim.compute_feedback",
+    "gutenberg_search": "oprim._gutenberg_search",
+    "http_download_file": "oprim._http_download_file",
+    "ku_conflict_detect": "oprim._ku_conflict_detect",
+    "load_matrix": "oprim._llm_router",
+    "markdown_frontmatter_build": "oprim._markdown_frontmatter_build",
+    "oapen_search": "oprim._oapen_search",
+    "purpose_alignment_score": "oprim._purpose_alignment_score",
+    "quality_check": "oprim._quality_gate",
+    "recognition_update": "oprim.recognition_update",
+    "recognition_update_sequence": "oprim.recognition_update",
+    "route_decision": "oprim._llm_router",
+    "snapshot_conversation": "oprim.prompt",
+    "source_overlap_score": "oprim._source_overlap_score",
+    "source_trace": "oprim._source_trace",
+    "speech_to_math": "oprim.speech_to_math",
+    "split_prompt": "oprim._parallel_llm",
+    "text_clean_publish_noise": "oprim._text_clean_publish_noise",
+    "truncate_messages": "oprim.prompt",
+    "type_affinity_score": "oprim._type_affinity_score",
+}
+_ELEMENT_MAP.update(_AUTHORITATIVE_EXPORTS)
 
 # KCState 归 obase（经 oprim._cognitive 单源、惰性暴露）。登记到元素表以保持
 # `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
 # __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
 _ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
+
+# 无前缀 BKT 别名（单源 oprim._cognitive，经 oprim.bkt 别名层暴露）。
+# bkt.py 不是 __init__ 包文件，AST 元素扫描不收录其 ImportFrom 别名，故在此显式登记，
+# 以保持 `from oprim import classify_error` 可达（M2 collection 契约）。
+_ELEMENT_MAP["classify_error"] = "oprim.bkt"
+
 # `oprim.storage` (storage adapter contracts) also defines an UploadResult; keep the
 # historical top-level binding pointing at the file-upload handler type.
 _ELEMENT_MAP["UploadResult"] = "oprim._file_upload_handler"
+
+
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
 def llm_summarize(*args, **kwargs):
     """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
     from oprim._llm_summarize import llm_summarize as _fn
+
     return _fn(*args, **kwargs)
+
 
 def __getattr__(name: str) -> Any:
     if name == "__version__":
@@ -84,6 +206,7 @@ def __getattr__(name: str) -> Any:
         return importlib.import_module(f"{pkg_name}.{name}")
     raise AttributeError(f"module '{__name__}' has no attribute {name!r}")
 
+
 def __dir__() -> list[str]:
     return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
 
@@ -95,9 +218,9 @@ class _OprimPackage(_types.ModuleType):
     ``oprim.<name>`` must be that callable (``__getattr__`` resolves it via
     ``_ELEMENT_MAP``), but once anything imports the submodule ``oprim.<name>`` the
     import system does ``setattr(oprim, "<name>", <module>)``, shadowing ``__getattr__``
-    — so ``oprim.<name>(...)`` raised "'module' object is not callable" depending on
+    -- so ``oprim.<name>(...)`` raised "'module' object is not callable" depending on
     import order. Intercept that binding and store the exported callable instead; the
-    submodule stays reachable via ``sys.modules`` / ``importlib.import_module`` / ``mock.patch``.
+    submodule stays reachable via ``sys.modules`` / ``importlib.import_module``.
     """
 
     def __setattr__(self, name: str, value: Any) -> None:
@@ -120,145 +243,238 @@ _sys.modules[__name__].__class__ = _OprimPackage
 
 __all__ = sorted(_ELEMENT_MAP.keys())
 
-# --- Explicit re-exports (Pinning) ---
-from oprim._exceptions import (
-    BudgetExceededError,
-    FileOprimError,
-    GitOprimError,
-    HttpOprimError,
-    LLMOprimError,
-    OprimError,
-    ParseOprimError,
-    PathSecurityError,
-    PromptOprimError,
-    SearchOprimError,
-    ShellOprimError,
-    SnapshotOprimError,
-)
-from oprim.llm._types import (
-    ConversationSnapshot,
-    EmbedResult,
-    HttpResponse,
-    LLMResponse,
-    SearchResult,
-    StreamDelta,
-    ThinkingResult,
-)
 
-
-# llm_complete: 惰性加载（依赖 obase）
+# --- Lazy-load wrappers for obase-dependent functions ---
 def llm_complete(*args, **kwargs):
     from oprim.llm._llm_complete import llm_complete as _fn
+
     return _fn(*args, **kwargs)
+
+
 def llm_stream(*args, **kwargs):
     from oprim.llm._llm_stream import llm_stream as _fn
+
     return _fn(*args, **kwargs)
+
+
 def embed_text(*args, **kwargs):
     from oprim.llm._embed_text import embed_text as _fn
+
     return _fn(*args, **kwargs)
-from oprim.prompt import (
-    build_system_prompt,
-    extract_thinking,
-    snapshot_conversation,
-    truncate_messages,
-)
 
 
 def image_generate(*args, **kwargs):
     from oprim.image_generate import image_generate as _fn
+
     return _fn(*args, **kwargs)
+
+
 def image_understand(*args, **kwargs):
     from oprim.image_understand import image_understand as _fn
+
     return _fn(*args, **kwargs)
+
+
 def tts_synthesize(*args, **kwargs):
     from oprim.tts_synthesize import tts_synthesize as _fn
+
     return _fn(*args, **kwargs)
 
-# --- Mneme elements (M-A batch) ---
-from oprim.compute_effortful_gain import compute_effortful_gain, compute_effortful_gain_from_arrays
-from oprim.compute_feedback import compute_feedback, grade_answer
-from oprim.compute_peer_percentile import compute_peer_percentile, compute_percentile_batch
-from oprim.due_compute import due_compute
-from oprim.error_classify import error_classify
-from oprim.file_type_detector import file_type_detector as file_type_detector
-from oprim.recognition_update import recognition_update, recognition_update_sequence
-from oprim.speech_to_math import speech_to_math
-from oprim.types import (
-    GradeResult,
-    PeerPercentileResult,
-    Plot2DData,
-    SolveResult,
-    SolveStep,
-    StepCheckResult,
-    Three3DData,
-)
 
-
-# File parsers + structure extractor (restored exports)
+# --- File parsers + structure extractor (lazy-loaded) ---
 def file_parser_pdf(*args, **kwargs):
     from oprim._file_parser_pdf import file_parser_pdf as _fn
+
     return _fn(*args, **kwargs)
+
+
 def file_parser_epub(*args, **kwargs):
     from oprim._file_parser_epub import file_parser_epub as _fn
+
     return _fn(*args, **kwargs)
+
+
 def file_parser_html(*args, **kwargs):
     from oprim._file_parser_html import file_parser_html as _fn
+
     return _fn(*args, **kwargs)
+
+
 # from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
-from oprim._document_structure_extractor import (
+from oprim._file_parser_plaintext import (  # noqa: E402,I001
+    file_parser_plaintext as file_parser_plaintext,
+)
+from oprim._document_structure_extractor import (  # noqa: E402,I001
     document_structure_extractor as document_structure_extractor,
 )
-from oprim._file_parser_plaintext import file_parser_plaintext as file_parser_plaintext
 
 
 def epub_toc_split(*args, **kwargs):
     from oprim._epub_toc_split import epub_toc_split as _fn
+
     return _fn(*args, **kwargs)
-def _get_EpubBook():
+
+
+def _get_epub_book():
     from oprim._epub_toc_split import EpubBook
+
     return EpubBook
-# P-G6: adamic-adar similarity score
-from oprim._adamic_adar_score import adamic_adar_score
 
-# ── AII Graph Capability (P-G1 … P-G7) ──────────────────────────────────────
-# Types (shared across AII graph elements)
-from oprim._aii_graph_types import (
-    CascadeDeleteResult,
-    ConflictDetectionInput,
-    ConflictPair,
-    ConflictSignal,
-    GraphRetrievalResult,
-    SourceTraceResult,
-    TwoStepIngestResult,
+
+# ---------------------------------------------------------------------------
+# Release manifest (consumed by HEVI's `test_three_o_contracts` and
+# `scripts/ci/run_3o_v3_manifest_audit.py`).
+#
+# Derived from `_ELEMENT_MAP`, never hand-written. The previous hardcoded
+# manifest listed 5 entries with signatures that did not match the real
+# functions (`(request, /, *, provider, output_path)` — there is no `request`
+# parameter), so it was a second, wrong source of truth of exactly the kind
+# `_manifest.py` was. `_build_element_map` is the only authority now.
+#
+# `signature` is computed lazily by `element_signature()` rather than eagerly:
+# introspecting every element would import the whole package at import time.
+# The audit script treats `signature` as optional (`entry.get("signature")`).
+# ---------------------------------------------------------------------------
+
+#: Elements the manifest publishes. Keep this list to the canonical surface a
+#: release is contracted on — not every one of the 1400+ discovered names.
+_MANIFEST_ELEMENTS: tuple[str, ...] = (
+    # media inspection
+    "media_probe",
+    "probe_duration",
+    # transcription
+    "transcribe_audio",
+    # frames / waveform / segmentation
+    "extract_video_frames",
+    "extract_audio_waveform",
+    "segment_media",
+    "extract_media_segment",
+    # transcript-aware timing
+    "word_boundary_snap",
+    # render / mix / burn
+    "render_html_to_mp4",
+    "render_media",
+    "audio_mix",
+    "audio_normalize",
+    "audio_video_merge",
+    "subtitle_burn",
+    # generation
+    "video_generate",
+    "tts_synthesize",
+    "avatar_generate",
+    "encode_voice_reference",
+    # origin's 5d992f2 manifest also lists edge_tts_synthesize
+    "edge_tts_synthesize",
+    # safety / prompt
+    "validate_html",
+    "style_marker_prompt",
+    # consumer-facing types (HEVI imports these from `oprim.hevi_types`;
+    # the module itself is a namespace, not a resolvable entity, so the
+    # manifest names the types rather than the module)
+    "CanvasEdge",
+    "CanvasNode",
+    "ProviderCapability",
+    "Subject",
+    "VideoQuality",
+    # repo3o intake
+    "crop_video_to_portrait",
+    "multimodal_embed",
+    "synthesize_speech_chunk",
+    "vector_cosine_search",
+    "whisper_transcribe",
 )
-from oprim._arxiv_search import ArxivPaper, arxiv_search
 
-# P-G4: direct graph link score
-from oprim._direct_link_score import direct_link_score
-from oprim._gutenberg_search import gutenberg_search
-from oprim._http_download_file import http_download_file
 
-# P-G1: conflict candidate detection (pure computation, no LLM)
-from oprim._ku_conflict_detect import ku_conflict_detect
+def element_signature(name: str) -> str | None:
+    """Real signature of a manifest element, or None if it cannot be resolved.
 
-# LLM 智能路由原语 (RouteLLM 内化): 路由决策 + 并行分派 + 质量闸门
-from oprim._llm_router import DEFAULT_MATRIX, load_matrix, route_decision
-from oprim._markdown_frontmatter_build import markdown_frontmatter_build
-from oprim._media_types import SourceResult
-from oprim._oapen_search import oapen_search
-from oprim._parallel_llm import aggregate_results, dispatch_parallel, split_prompt
+    Imports the owning module on demand. Kept out of the eager manifest build
+    so `import oprim` stays cheap.
+    """
+    import importlib
+    import inspect
 
-# P-G2: purpose alignment scoring (cosine + keyword, no LLM)
-from oprim._purpose_alignment_score import purpose_alignment_score
-from oprim._quality_gate import quality_check
-from oprim._quant_analysis import compute_shapley_decomposition, compute_shapley_values
+    module_path = _ELEMENT_MAP.get(name)
+    if module_path is None:
+        return None
+    try:
+        obj = getattr(importlib.import_module(module_path), name)
+    except Exception:  # pragma: no cover - defensive: manifest must never break import
+        return None
+    try:
+        return f"{name}{inspect.signature(obj)}"
+    except (TypeError, ValueError):  # pragma: no cover - builtins have no signature
+        return None
 
-# P-G5: shared source overlap score
-from oprim._source_overlap_score import source_overlap_score
 
-# P-G3: source provenance query (single async DB call)
-from oprim._source_trace import source_trace
-from oprim._text_clean_publish_noise import text_clean_publish_noise
+def _source_path_for(module_path: str) -> Path | None:
+    """File that defines `module_path`, whether it is a module or a subpackage."""
+    rel = Path(*module_path.split(".")[1:])
+    direct = Path(__file__).parent / rel.with_suffix(".py")
+    if direct.exists():
+        return direct
+    pkg_init = Path(__file__).parent / rel / "__init__.py"
+    return pkg_init if pkg_init.exists() else None
 
-# P-G7: knowledge-type affinity score
-from oprim._type_affinity_score import type_affinity_score
+
+def _element_depends_on(name: str) -> list[str]:
+    """Intra-package modules the element's implementation imports."""
+    module_path = _ELEMENT_MAP.get(name)
+    if module_path is None:
+        return []
+    source = _source_path_for(module_path)
+    if source is None:
+        return []
+    try:
+        tree = ast.parse(source.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):  # pragma: no cover - defensive
+        return []
+    deps: set[str] = set()
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and node.level == 0
+            and node.module.split(".")[0] == "oprim"
+        ):
+            deps.add(node.module)
+    return sorted(deps)
+
+
+def _module_path_for(name: str) -> str | None:
+    """Resolve a manifest name to the module that defines it.
+
+    Two shapes are legitimate. Most elements resolve through `_ELEMENT_MAP`.
+    A few are pure module re-exports (`hevi_types`) that consumers import as a
+    namespace rather than a callable; those resolve to the module itself.
+    """
+    via_element = _ELEMENT_MAP.get(name)
+    if via_element is not None:
+        return via_element
+    if _source_path_for(f"{__name__}.{name}") is not None:
+        return f"{__name__}.{name}"
+    return None
+
+
+def _build_manifest() -> dict[str, object]:
+    elements: list[dict[str, object]] = []
+    for name in _MANIFEST_ELEMENTS:
+        module_path = _module_path_for(name)
+        if module_path is None:
+            # Never publish a name discovery cannot resolve: the audit script
+            # flags such entries as dangling.
+            continue
+        elements.append(
+            {
+                "name": name,
+                "kind": "oprim",
+                "module": module_path,
+                "layer": _MODULE_LAYERS.get(module_path, LAYER_ELEMENT),
+                "depends_on": _element_depends_on(name),
+                "pillars": [],
+            }
+        )
+    return {"package": __name__, "version": __version__, "elements": elements}
+
+
+__manifest__: dict[str, object] = _build_manifest()

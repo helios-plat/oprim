@@ -1,4 +1,5 @@
 """oprim.canvas_node_execute — Execute a single canvas node via injected executor."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -20,7 +21,7 @@ class CanvasNodeResult(BaseModel):
 async def canvas_node_execute(
     *,
     node: CanvasNode,
-    upstream_outputs: dict | None = None,
+    upstream_outputs: dict = None,
     executor: Callable | None = None,
 ) -> CanvasNodeResult:
     """Execute a canvas node using an injected executor callable.
@@ -34,6 +35,8 @@ async def canvas_node_execute(
     Returns:
         CanvasNodeResult with success/failure status and any output.
     """
+    if upstream_outputs is None:
+        upstream_outputs = {}
     if executor is None:
         return CanvasNodeResult(
             node_id=node.node_id,
@@ -43,10 +46,12 @@ async def canvas_node_execute(
             error="no executor",
         )
 
-    if upstream_outputs is None:
-        upstream_outputs = {}
     try:
-        output = await executor(node, upstream_outputs) if _is_async(executor) else executor(node, upstream_outputs)
+        output = (
+            await executor(node, upstream_outputs)
+            if _is_async(executor)
+            else executor(node, upstream_outputs)
+        )
         return CanvasNodeResult(
             node_id=node.node_id,
             output=output,
@@ -65,4 +70,5 @@ async def canvas_node_execute(
 
 def _is_async(fn: Callable) -> bool:
     import inspect
+
     return inspect.iscoroutinefunction(fn)

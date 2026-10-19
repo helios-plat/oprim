@@ -14,7 +14,7 @@ class TestRollingWindowAggregate:
             result = rolling_window_aggregate(series=s, window=3, agg=agg)
             assert len(result) == 5
 
-    def test_time_window_7D(self) -> None:
+    def test_time_window_7d(self) -> None:
         idx = pd.date_range("2024-01-01", periods=30)
         s = pd.Series(range(30), index=idx)
         result = rolling_window_aggregate(series=s, window="7D", agg="mean")

@@ -1,4 +1,5 @@
 """Summarize a SubagentResult into a plain string."""
+
 from __future__ import annotations
 
 from ._hicode_types import SubagentResult

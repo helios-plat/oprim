@@ -1,4 +1,5 @@
 """oprim.hmm_viterbi — Decode HMM hidden-state sequence via Viterbi algorithm."""
+
 from __future__ import annotations
 
 from typing import Any

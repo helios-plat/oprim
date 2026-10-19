@@ -3,6 +3,7 @@
 These oprims map regime state, monthly seasonality, and sector rotation
 metrics to fusion-ready scores via predefined lookup tables and thresholds.
 """
+
 from __future__ import annotations
 
 
@@ -55,18 +56,48 @@ def regime_score(*, regime: str, confidence: float = 0.5) -> dict:
 # ─── Seasonality score ───────────────────────────────────────────────────────
 
 BTC_MONTHLY_TENDENCY: dict[int, int] = {
-    1: 10, 2: 5, 3: -5, 4: 5, 5: -10, 6: -5,
-    7: 10, 8: 5, 9: -10, 10: 15, 11: 10, 12: 5,
+    1: 10,
+    2: 5,
+    3: -5,
+    4: 5,
+    5: -10,
+    6: -5,
+    7: 10,
+    8: 5,
+    9: -10,
+    10: 15,
+    11: 10,
+    12: 5,
 }
 
 ETH_MONTHLY_TENDENCY: dict[int, int] = {
-    1: 15, 2: 10, 3: 0, 4: 10, 5: -15, 6: -5,
-    7: 5, 8: 0, 9: -10, 10: 10, 11: 15, 12: 0,
+    1: 15,
+    2: 10,
+    3: 0,
+    4: 10,
+    5: -15,
+    6: -5,
+    7: 5,
+    8: 0,
+    9: -10,
+    10: 10,
+    11: 15,
+    12: 0,
 }
 
 SOL_MONTHLY_TENDENCY: dict[int, int] = {
-    1: 5, 2: 0, 3: -10, 4: 5, 5: -10, 6: -10,
-    7: 10, 8: 5, 9: -10, 10: 10, 11: 10, 12: -5,
+    1: 5,
+    2: 0,
+    3: -10,
+    4: 5,
+    5: -10,
+    6: -10,
+    7: 10,
+    8: 5,
+    9: -10,
+    10: 10,
+    11: 10,
+    12: -5,
 }
 
 SYMBOL_TENDENCY: dict[str, dict[int, int]] = {

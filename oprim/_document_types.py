@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "DocumentStructure",
+    "ImageRef",
+    "Page",
+    "ParsedDocument",
+    "ParsedMarkdown",
+    "ParsedPlaintext",
+    "Section",
+    "Table",
+]
+
 from pydantic import BaseModel
 
 
@@ -8,18 +20,15 @@ class Page(BaseModel):
     text: str
     tables: list[dict[str, object]] = []
 
-
 class Table(BaseModel):
     caption: str | None = None
     headers: list[str] = []
     rows: list[list[str]] = []
 
-
 class ImageRef(BaseModel):
     index: int
     caption: str | None = None
     alt_text: str | None = None
-
 
 class ParsedDocument(BaseModel):
     source_path: str | None = None
@@ -29,12 +38,10 @@ class ParsedDocument(BaseModel):
     metadata: dict[str, str] = {}
     status: str = "ok"  # "ok" | "drm_protected" | "parse_failed"
 
-
 class Section(BaseModel):
     title: str
     level: int  # 1=H1, 2=H2, etc.
     content: str
-
 
 class ParsedMarkdown(BaseModel):
     source_path: str
@@ -43,14 +50,12 @@ class ParsedMarkdown(BaseModel):
     body: str = ""
     title: str | None = None
 
-
 class ParsedPlaintext(BaseModel):
     source_path: str
     encoding: str
     paragraphs: list[str] = []
     line_count: int = 0
     language_hint: str | None = None
-
 
 class DocumentStructure(BaseModel):
     headings: list[dict[str, object]] = []  # [{"level": 1, "text": "Title"}, ...]

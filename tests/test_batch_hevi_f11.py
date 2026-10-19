@@ -1,4 +1,5 @@
 """tests/test_batch_hevi_f11.py — hevi Phase 10/11 oprim batch tests."""
+
 from __future__ import annotations
 
 import asyncio
@@ -7,25 +8,44 @@ import json
 
 import pytest
 
+from oprim._hevi_types import CanvasNode, Subject
+from oprim.adapt_prompt_for_provider import adapt_prompt_for_provider
+from oprim.canvas_edge_validate import COMPATIBLE, canvas_edge_validate
+from oprim.canvas_node_execute import CanvasNodeResult, canvas_node_execute
+from oprim.character_three_view import ThreeViewError, ThreeViewResult, character_three_view
+from oprim.inject_visual_style import inject_visual_style
+from oprim.multi_angle import MultiAngleResult, multi_angle
+from oprim.provider_health_check import provider_health_check
+from oprim.storyboard_grid import StoryboardGridResult, storyboard_grid
+from oprim.subject_create import subject_create
+from oprim.subject_retrieve import subject_retrieve
+from oprim.subject_update import subject_update
+from oprim.video_element_edit import video_element_edit
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def make_caller(json_text: str):
     """Return an async caller that always replies with json_text."""
+
     async def caller(**kwargs):
         return {
             "content": [{"type": "text", "text": json_text}],
             "stop_reason": "end_turn",
             "usage": {"input_tokens": 10, "output_tokens": 20},
         }
+
     return caller
 
 
 def make_error_caller(exc: Exception):
     """Return an async caller that always raises exc."""
+
     async def caller(**kwargs):
         raise exc
+
     return caller
 
 
@@ -33,15 +53,26 @@ def make_error_caller(exc: Exception):
 # 1. storyboard_grid
 # ---------------------------------------------------------------------------
 
-from oprim.storyboard_grid import StoryboardGridResult, storyboard_grid
 
-_GRID_JSON = json.dumps({
-    "shots": [
-        {"index": 0, "description": "Wide shot of city", "duration_s": 3.0, "camera_angle": "wide"},
-        {"index": 1, "description": "Close up on hero", "duration_s": 2.5, "camera_angle": "close-up"},
-    ],
-    "total_duration_s": 5.5,
-})
+_GRID_JSON = json.dumps(
+    {
+        "shots": [
+            {
+                "index": 0,
+                "description": "Wide shot of city",
+                "duration_s": 3.0,
+                "camera_angle": "wide",
+            },
+            {
+                "index": 1,
+                "description": "Close up on hero",
+                "duration_s": 2.5,
+                "camera_angle": "close-up",
+            },
+        ],
+        "total_duration_s": 5.5,
+    }
+)
 
 
 def test_storyboard_grid_returns_result():
@@ -87,16 +118,17 @@ def test_storyboard_grid_empty_shots():
 # 2. multi_angle
 # ---------------------------------------------------------------------------
 
-from oprim.multi_angle import MultiAngleResult, multi_angle
 
-_ANGLE_JSON = json.dumps({
-    "angle_prompts": {
-        "front": "front view of a warrior",
-        "side": "side view of a warrior",
-        "back": "back view of a warrior",
-        "three-quarter": "three-quarter view of a warrior",
+_ANGLE_JSON = json.dumps(
+    {
+        "angle_prompts": {
+            "front": "front view of a warrior",
+            "side": "side view of a warrior",
+            "back": "back view of a warrior",
+            "three-quarter": "three-quarter view of a warrior",
+        }
     }
-})
+)
 
 
 def test_multi_angle_returns_result():
@@ -116,9 +148,7 @@ def test_multi_angle_subject_description_preserved():
 
 def test_multi_angle_custom_angles():
     payload = json.dumps({"angle_prompts": {"top": "top view"}})
-    result = asyncio.run(
-        multi_angle("a car", caller=make_caller(payload), angles=["top"])
-    )
+    result = asyncio.run(multi_angle("a car", caller=make_caller(payload), angles=["top"]))
     assert "top" in result.angle_prompts
 
 
@@ -142,8 +172,6 @@ def test_multi_angle_nonempty_prompts():
 # ---------------------------------------------------------------------------
 # 3. inject_visual_style  (SYNC)
 # ---------------------------------------------------------------------------
-
-from oprim.inject_visual_style import inject_visual_style
 
 
 def test_inject_visual_style_is_sync():
@@ -195,13 +223,13 @@ def test_inject_visual_style_camera_only():
 # 4. video_element_edit
 # ---------------------------------------------------------------------------
 
-from oprim.video_element_edit import video_element_edit
 
 _ELEMENTS = [
     {"id": "e0", "text": "Hello"},
     {"id": "e1", "text": "World"},
     {"id": "e2", "text": "Bye"},
 ]
+
 
 async def _noop_caller(**kwargs):
     return {}
@@ -346,11 +374,6 @@ def test_video_element_edit_original_not_mutated():
 # 5. subject_create / retrieve / update
 # ---------------------------------------------------------------------------
 
-from oprim._hevi_types import Subject
-from oprim.subject_create import subject_create
-from oprim.subject_retrieve import subject_retrieve
-from oprim.subject_update import subject_update
-
 
 def _make_subject(**overrides) -> Subject:
     defaults = dict(subject_id="s-001", name="Hero", description="A brave hero")
@@ -463,9 +486,6 @@ def test_subject_update_double_increment():
 # 6. canvas_node_execute
 # ---------------------------------------------------------------------------
 
-from oprim._hevi_types import CanvasNode
-from oprim.canvas_node_execute import CanvasNodeResult, canvas_node_execute
-
 
 def _make_node(**overrides) -> CanvasNode:
     defaults = dict(node_id="n-1", node_type="text", label="Test Node")
@@ -549,8 +569,6 @@ def test_canvas_node_execute_result_model():
 # 7. canvas_edge_validate  (SYNC)
 # ---------------------------------------------------------------------------
 
-from oprim.canvas_edge_validate import COMPATIBLE, canvas_edge_validate
-
 
 def test_canvas_edge_validate_is_sync():
     assert not inspect.iscoroutinefunction(canvas_edge_validate)
@@ -565,8 +583,9 @@ def test_canvas_edge_validate_true_cases():
         ("script", "video"),
     ]
     for from_type, to_type in true_pairs:
-        assert canvas_edge_validate(from_type=from_type, to_type=to_type) is True, \
+        assert canvas_edge_validate(from_type=from_type, to_type=to_type) is True, (
             f"Expected True for ({from_type}, {to_type})"
+        )
 
 
 def test_canvas_edge_validate_additional_true_cases():
@@ -585,8 +604,9 @@ def test_canvas_edge_validate_false_cases():
         ("video", "audio"),
     ]
     for from_type, to_type in false_pairs:
-        assert canvas_edge_validate(from_type=from_type, to_type=to_type) is False, \
+        assert canvas_edge_validate(from_type=from_type, to_type=to_type) is False, (
             f"Expected False for ({from_type}, {to_type})"
+        )
 
 
 def test_canvas_edge_validate_unknown_types_false():
@@ -611,8 +631,6 @@ def test_canvas_edge_validate_symmetric_not_assumed():
 # ---------------------------------------------------------------------------
 # 8. adapt_prompt_for_provider
 # ---------------------------------------------------------------------------
-
-from oprim.adapt_prompt_for_provider import adapt_prompt_for_provider
 
 
 def test_adapt_prompt_known_provider_wan22():
@@ -654,8 +672,6 @@ def test_adapt_prompt_returns_dict_keys():
 # 9. provider_health_check
 # ---------------------------------------------------------------------------
 
-from oprim.provider_health_check import provider_health_check
-
 
 def test_provider_health_check_returns_bool():
     result = asyncio.run(provider_health_check("nonexistent_provider"))
@@ -694,14 +710,15 @@ def test_provider_health_check_false_for_numeric_name():
 # 10. character_three_view
 # ---------------------------------------------------------------------------
 
-from oprim.character_three_view import ThreeViewError, ThreeViewResult, character_three_view
 
-_THREE_VIEW_JSON = json.dumps({
-    "front": "front view of an elf warrior",
-    "side": "side view of an elf warrior",
-    "back": "back view of an elf warrior",
-    "style_tags": ["fantasy", "detailed"],
-})
+_THREE_VIEW_JSON = json.dumps(
+    {
+        "front": "front view of an elf warrior",
+        "side": "side view of an elf warrior",
+        "back": "back view of an elf warrior",
+        "style_tags": ["fantasy", "detailed"],
+    }
+)
 
 
 def test_character_three_view_returns_result():
@@ -741,9 +758,7 @@ def test_character_three_view_style_tags():
 
 def test_character_three_view_raises_on_bad_json():
     with pytest.raises(ThreeViewError):
-        asyncio.run(
-            character_three_view("a robot", caller=make_caller("not valid json"))
-        )
+        asyncio.run(character_three_view("a robot", caller=make_caller("not valid json")))
 
 
 def test_character_three_view_raises_on_caller_error():

@@ -78,8 +78,8 @@ _VARIANT_SYSTEM = (
     "You are a math question generator. Create a variant of the given math question "
     "that tests the same knowledge components but uses different numbers, contexts, "
     "or slightly different structures. "
-    "Return JSON: {\"question\": str, \"answer\": str, \"difficulty\": \"easy|medium|hard\", "
-    "\"kc_ids\": [str]}. "
+    'Return JSON: {"question": str, "answer": str, "difficulty": "easy|medium|hard", '
+    '"kc_ids": [str]}. '
     "The answer field will be discarded for verification purposes."
 )
 
@@ -141,7 +141,7 @@ async def generate_variant(
         data = json.loads(raw)
         item = VariantItem(
             question=data.get("question", ""),
-            answer="",              # 强制清空，不论 LLM 返回什么
+            answer="",  # 强制清空，不论 LLM 返回什么
             kernel_verified=False,  # 强制
             kc_ids=data.get("kc_ids", inp.kc_ids),
             difficulty=data.get("difficulty", "medium"),
@@ -152,8 +152,8 @@ async def generate_variant(
 
     except Exception as exc:
         return VariantItem(
-            answer="",             # 强制清空
-            kernel_verified=False, # 强制
+            answer="",  # 强制清空
+            kernel_verified=False,  # 强制
             success=False,
             error=str(exc),
         )

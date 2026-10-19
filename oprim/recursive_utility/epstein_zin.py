@@ -8,9 +8,8 @@ _LOG_SPACE_RHO_THRESHOLD = -50.0  # use log-space for numerical stability below 
 
 
 def epstein_zin_aggregator(
-    consumption: np.ndarray,
+    consumption: np.ndarray, *,
     continuation_value: np.ndarray,
-    *,
     discount: float,
     risk_aversion: float,
     ies: float,

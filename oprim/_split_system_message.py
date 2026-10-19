@@ -1,4 +1,5 @@
 """Split system Message objects out of a message list."""
+
 from __future__ import annotations
 
 from ._hicode_types import Message

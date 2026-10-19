@@ -3,6 +3,7 @@
 暴露 _quant_analysis.py 的全部公开原子函数。消费方通过
 oprim.quant_analysis.<fn> 路径调用。
 """
+
 from oprim._quant_analysis import (
     QuantAnalysisError,
     compute_benchmark_metrics,

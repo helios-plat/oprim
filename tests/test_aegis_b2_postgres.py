@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-from oprim import (
+from oprim._postgres import (
     postgres_locks,
     postgres_locks_status,
     postgres_long_running_queries,

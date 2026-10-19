@@ -1,4 +1,5 @@
 """Tests for oprim.volatility.ewma_volatility."""
+
 import math
 
 import numpy as np

@@ -1,4 +1,4 @@
-"""Tests for oprim._stripe_create_payment_intent."""
+"""Tests for oprim.stripe_create_payment_intent."""
 
 from __future__ import annotations
 
@@ -89,10 +89,13 @@ async def test_metadata_injected() -> None:
 
 @pytest.mark.asyncio
 async def test_api_error_raises_stripe_api_error() -> None:
-    with patch(
-        "stripe.PaymentIntent.create",
-        side_effect=stripe_sdk.StripeError("Invalid API key"),
-    ), pytest.raises(StripeAPIError, match="Invalid API key"):
+    with (
+        patch(
+            "stripe.PaymentIntent.create",
+            side_effect=stripe_sdk.StripeError("Invalid API key"),
+        ),
+        pytest.raises(StripeAPIError, match="Invalid API key"),
+    ):
         await stripe_create_payment_intent(
             config=CONFIG,
             amount=1000,

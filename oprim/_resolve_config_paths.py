@@ -1,4 +1,5 @@
 """Pure path computation for opencode config file resolution."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -29,7 +30,8 @@ def resolve_config_paths(*, cwd: Path, home: Path) -> list[Path]:
         # while preserving order (last occurrence wins = highest priority).
         seen: dict[Path, None] = {}
         for p in (global_config, cwd_flat, cwd_dot):
-            seen[p] = None  # insertion-ordered dict; later keys overwrite
+            seen[p] = None  # insertion-ordered dict
+            # later keys overwrite
         return list(seen.keys())
 
     return [global_config, cwd_flat, cwd_dot]

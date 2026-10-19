@@ -38,5 +38,5 @@ def file_append(
         with p.open("a", encoding=encoding) as f:
             f.write(content)
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot append to '{path}'", cause=e)
+        raise FileOprimError(f"cannot append to '{path}'", cause=e) from e
     return p

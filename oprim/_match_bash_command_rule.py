@@ -1,4 +1,5 @@
 """Match a bash command string against an ordered list of BashRules."""
+
 from __future__ import annotations
 
 import fnmatch

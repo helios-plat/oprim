@@ -1,4 +1,5 @@
 """Pure-compute: apply_string_replace."""
+
 from __future__ import annotations
 
 

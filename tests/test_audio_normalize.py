@@ -1,4 +1,4 @@
-"""Tests for oprim._audio_normalize."""
+"""Tests for oprim.audio_normalize."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class TestAudioNormalize:
         inp = tmp_path / "raw.wav"
         inp.write_bytes(b"\x00" * 64)
         out = tmp_path / "norm.wav"
-        with patch("oprim._audio_normalize.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim.audio_normalize.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_normalize(input_path=inp, output_path=out)
         assert result == out
 
@@ -32,7 +32,7 @@ class TestAudioNormalize:
         inp = tmp_path / "raw.wav"
         inp.write_bytes(b"\x00" * 64)
         out = tmp_path / "norm14.wav"
-        with patch("oprim._audio_normalize.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim.audio_normalize.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_normalize(input_path=inp, output_path=out, target_lufs=-14.0)
         assert result == out
 
@@ -51,14 +51,16 @@ class TestAudioNormalize:
         async def _fail(**kw: object) -> str:
             raise FFmpegError("filter error", code=1, stderr="filter error")
 
-        with patch("oprim._audio_normalize.ffmpeg_run", side_effect=_fail):
-            with pytest.raises(AudioNormalizeError, match="FFmpeg normalization failed"):
-                await audio_normalize(input_path=inp, output_path=tmp_path / "out.wav")
+        with (
+            patch("oprim.audio_normalize.ffmpeg_run", side_effect=_fail),
+            pytest.raises(AudioNormalizeError, match="FFmpeg normalization failed"),
+        ):
+            await audio_normalize(input_path=inp, output_path=tmp_path / "out.wav")
 
     async def test_output_file_created(self, tmp_path: Path) -> None:
         inp = tmp_path / "raw.wav"
         inp.write_bytes(b"\x00" * 64)
         out = tmp_path / "verified.wav"
-        with patch("oprim._audio_normalize.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim.audio_normalize.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             await audio_normalize(input_path=inp, output_path=out)
         assert out.exists()

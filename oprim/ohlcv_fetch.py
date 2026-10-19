@@ -1,4 +1,5 @@
 """oprim.ohlcv_fetch — Fetch OHLCV bars from a market venue."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -17,7 +18,8 @@ async def ohlcv_fetch(
 
     Args:
         symbol: Instrument ID, e.g. ``"BTC-USDT-SWAP"``.
-        venue: Data source; currently ``"okx"`` (default).
+        venue: Data source
+        currently ``"okx"`` (default).
         interval: Bar interval, e.g. ``"1m"``, ``"1H"``, ``"1D"``.
         limit: Maximum number of bars to return (≤ 300 for OKX).
         after: Pagination cursor — return bars *before* this timestamp (ms).
@@ -52,15 +54,17 @@ async def ohlcv_fetch(
 
     bars = []
     for row in resp.get("data", []):
-        bars.append({
-            "ts": int(row[0]),
-            "open": float(row[1]),
-            "high": float(row[2]),
-            "low": float(row[3]),
-            "close": float(row[4]),
-            "vol": float(row[5]),
-            "vol_ccy": float(row[6]) if len(row) > 6 else None,
-        })
+        bars.append(
+            {
+                "ts": int(row[0]),
+                "open": float(row[1]),
+                "high": float(row[2]),
+                "low": float(row[3]),
+                "close": float(row[4]),
+                "vol": float(row[5]),
+                "vol_ccy": float(row[6]) if len(row) > 6 else None,
+            }
+        )
     return bars
 
 

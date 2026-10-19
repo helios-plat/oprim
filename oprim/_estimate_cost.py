@@ -8,6 +8,10 @@ from ._exceptions import ParseOprimError
 from .text import _DEFAULT_PRICING, _FALLBACK_PRICING
 
 
+_DEFAULT_PRICING: dict[str, dict[str, float]] = {}
+_FALLBACK_PRICING: dict[str, float] = {}
+
+
 @dataclass
 class Hunk:
     old_start: int
@@ -17,11 +21,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def estimate_cost(
     in_tokens: int,
@@ -50,10 +56,7 @@ def estimate_cost(
         0.0105
     """
     try:
-        if pricing is not None:
-            p = pricing
-        else:
-            p = _DEFAULT_PRICING.get(model, _FALLBACK_PRICING)
+        p = pricing if pricing is not None else _DEFAULT_PRICING.get(model, _FALLBACK_PRICING)
         return in_tokens * p["in"] + out_tokens * p["out"]
     except (KeyError, TypeError) as e:  # pragma: no cover
-        raise ParseOprimError("invalid pricing format", cause=e)
+        raise ParseOprimError("invalid pricing format", cause=e) from e

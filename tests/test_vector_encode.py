@@ -114,7 +114,9 @@ class TestProviderRegistryPath:
 
         from obase.exceptions import ProviderNotFoundError
 
-        with patch("obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("embedding", "missing")):
+        with patch(
+            "obase.ProviderRegistry.get", side_effect=ProviderNotFoundError("embedding", "missing")
+        ):
             result = vector_encode(texts=["hello"])
         assert isinstance(result, np.ndarray)
         assert result.shape[0] == 1
@@ -137,6 +139,8 @@ class TestProviderRegistryPath:
         """Non-ProviderNotFoundError (e.g. AttributeError) must propagate, not fall to stub."""
         from unittest.mock import patch
 
-        with patch("obase.ProviderRegistry.get", side_effect=AttributeError("bad attr")):
-            with pytest.raises(AttributeError):
-                vector_encode(texts=["hello"])
+        with (
+            patch("obase.ProviderRegistry.get", side_effect=AttributeError("bad attr")),
+            pytest.raises(AttributeError),
+        ):
+            vector_encode(texts=["hello"])

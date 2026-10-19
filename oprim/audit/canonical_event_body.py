@@ -4,17 +4,20 @@ The signed payload excludes fields that are computed after signing or that
 describe the signing operation itself. This matches the body that hash_current
 is computed over in vcp_silver_record, minus conformance_tier.
 """
+
 from __future__ import annotations
 
 from oprim.serialization import canonical_json
 
-SIGNATURE_EXCLUDED_FIELDS: frozenset[str] = frozenset({
-    "signature",
-    "signing_key_id",
-    "conformance_tier",
-    "hash_prev",
-    "hash_current",
-})
+SIGNATURE_EXCLUDED_FIELDS: frozenset[str] = frozenset(
+    {
+        "signature",
+        "signing_key_id",
+        "conformance_tier",
+        "hash_prev",
+        "hash_current",
+    }
+)
 
 
 def canonical_event_body(event: dict) -> bytes:

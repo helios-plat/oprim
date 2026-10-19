@@ -19,7 +19,8 @@ async def text_to_speech(
     """Synthesise text to speech; return base-64 encoded audio.
 
     Uses the "tts" provider in ProviderRegistry. Distinct from vibevoice_synthesize
-    (local multi-speaker); this function is for cloud, single-channel synthesis used
+    (local multi-speaker)
+    this function is for cloud, single-channel synthesis used
     in language practice prompts.
 
     Args:

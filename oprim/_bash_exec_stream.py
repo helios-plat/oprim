@@ -10,6 +10,9 @@ from ._exceptions import ShellOprimError
 from .shell import _SENTINEL
 
 
+_SENTINEL = object()
+
+
 @dataclass
 class ShellResult:
     stdout: str
@@ -20,10 +23,12 @@ class ShellResult:
     def ok(self) -> bool:
         return self.code == 0
 
+
 @dataclass
 class StreamChunk:
     text: str
     stream: str
+
 
 async def bash_exec_stream(
     command: str,
@@ -66,7 +71,7 @@ async def bash_exec_stream(
             env=env,
         )
     except OSError as e:  # pragma: no cover
-        raise ShellOprimError("cannot start process", cause=e)
+        raise ShellOprimError("cannot start process", cause=e) from e
 
     queue: asyncio.Queue[StreamChunk | object] = asyncio.Queue()
 
@@ -78,9 +83,7 @@ async def bash_exec_stream(
                     line = await asyncio.wait_for(stream.readline(), timeout=timeout)
                 except TimeoutError:  # pragma: no cover
                     # 超时：放 ShellOprimError 到 queue，让主循环抛出
-                    await queue.put(
-                        ShellOprimError(f"stream timeout after {timeout}s on {label}")
-                    )
+                    await queue.put(ShellOprimError(f"stream timeout after {timeout}s on {label}"))
                     return
                 if not line:
                     break

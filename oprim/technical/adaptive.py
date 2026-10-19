@@ -23,7 +23,8 @@ def kama(
 
     Mathematical definition:
         ER_t = |P_t - P_{t-er_period}| / sum(|P_i - P_{i-1}|, last er_period bars)
-        fast_SC = 2/(fast_period+1); slow_SC = 2/(slow_period+1)
+        fast_SC = 2/(fast_period+1)
+        slow_SC = 2/(slow_period+1)
         SC_t = (ER_t * (fast_SC - slow_SC) + slow_SC)^2
         KAMA_t = KAMA_{t-1} + SC_t * (P_t - KAMA_{t-1})
 

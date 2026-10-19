@@ -1,4 +1,5 @@
 """oprim.finance — public re-export of finance atomic operations."""
+
 from oprim._finance import (  # noqa: F401
     beta_alpha_ols,
     drawdown_curve,

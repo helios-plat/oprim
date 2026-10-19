@@ -72,8 +72,12 @@ class TestTTSSynthesize:
         ProviderRegistry.register(category="tts", name="cap", fn=_cap)
         out = tmp_path / "out.mp3"
         await tts_synthesize(
-            provider="cap", text="Hi", voice="v", output_path=out,
-            rate="+20%", pitch="+5Hz",
+            provider="cap",
+            text="Hi",
+            voice="v",
+            output_path=out,
+            rate="+20%",
+            pitch="+5Hz",
         )
         assert captured["rate"] == "+20%"
         assert captured["pitch"] == "+5Hz"

@@ -1,4 +1,5 @@
 """make_tool_call_part — construct a tool_call Part."""
+
 from __future__ import annotations
 
 from ._hicode_types import Part, ToolCall

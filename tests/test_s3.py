@@ -26,6 +26,7 @@ def _make_s3_client(head_response=None, upload_side_effect=None, head_side_effec
 # s3_upload_file
 # ---------------------------------------------------------------------------
 
+
 class TestS3UploadFile:
     def test_successful_upload(self, tmp_path):
         f = tmp_path / "test.txt"
@@ -81,19 +82,20 @@ class TestS3UploadFile:
         f = tmp_path / "test.txt"
         f.write_bytes(b"data")
 
-        NoCredentials = type("NoCredentialsError", (Exception,), {})
+        no_credentials = type("NoCredentialsError", (Exception,), {})
 
         with patch("oprim._s3.boto3") as mock_boto3:
             mock_boto3.client.return_value = MagicMock()
             with patch("oprim._s3.boto3.client") as mock_client:
                 s3 = MagicMock()
                 mock_client.return_value = s3
-                s3.upload_file.side_effect = NoCredentials("no creds")
+                s3.upload_file.side_effect = no_credentials("no creds")
 
                 with patch("oprim._s3.boto3") as mock_b3:
                     mock_b3.client.return_value = s3
                     with patch("oprim._s3._make_s3_client", return_value=s3):
                         import botocore.exceptions
+
                         s3.upload_file.side_effect = botocore.exceptions.NoCredentialsError()
                         with pytest.raises((OprimAuthError, OprimConnectionError, Exception)):
                             s3_upload_file(
@@ -148,6 +150,7 @@ class TestS3UploadFile:
 
     def test_upload_client_error_auth(self, tmp_path):
         import botocore.exceptions
+
         f = tmp_path / "test.txt"
         f.write_bytes(b"data")
         err = botocore.exceptions.ClientError(
@@ -162,6 +165,7 @@ class TestS3UploadFile:
 
     def test_upload_client_error_generic(self, tmp_path):
         import botocore.exceptions
+
         f = tmp_path / "test.txt"
         f.write_bytes(b"data")
         err = botocore.exceptions.ClientError(
@@ -189,6 +193,7 @@ class TestS3UploadFile:
 # s3_object_metadata
 # ---------------------------------------------------------------------------
 
+
 class TestS3ObjectMetadata:
     def test_existing_object(self):
         head_resp = {
@@ -215,6 +220,7 @@ class TestS3ObjectMetadata:
 
     def test_nonexistent_object(self):
         import botocore.exceptions
+
         error = botocore.exceptions.ClientError(
             {"Error": {"Code": "404", "Message": "Not Found"}},
             "HeadObject",
@@ -235,6 +241,7 @@ class TestS3ObjectMetadata:
 
     def test_no_credentials(self):
         import botocore.exceptions
+
         error = botocore.exceptions.NoCredentialsError()
         s3_client = _make_s3_client(head_side_effect=error)
 
@@ -245,6 +252,7 @@ class TestS3ObjectMetadata:
 
     def test_metadata_access_denied(self):
         import botocore.exceptions
+
         err = botocore.exceptions.ClientError(
             {"Error": {"Code": "403", "Message": "Forbidden"}}, "HeadObject"
         )
@@ -257,6 +265,7 @@ class TestS3ObjectMetadata:
 
     def test_metadata_generic_client_error(self):
         import botocore.exceptions
+
         err = botocore.exceptions.ClientError(
             {"Error": {"Code": "InternalError", "Message": "server error"}}, "HeadObject"
         )

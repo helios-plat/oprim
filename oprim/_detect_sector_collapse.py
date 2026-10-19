@@ -43,7 +43,8 @@ def detect_sector_collapse(
         config:               Threshold overrides.
 
     Returns:
-        :class:`~oprim._detector_types.DetectorSignal` on trigger; ``None`` otherwise.
+        :class:`~oprim._detector_types.DetectorSignal` on trigger
+        ``None`` otherwise.
 
     Raises:
         OprimError: If ``price_1h_ago`` ≤ 0 or fewer than 2 constituents supplied.

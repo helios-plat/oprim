@@ -39,13 +39,16 @@ def llm_query_expand(
     if num_variants <= 0:
         raise OprimError("num_variants must be > 0")
 
-    prompt = f"""Please generate {num_variants} alternative search queries for the following query.
-The alternatives should use different vocabulary, synonyms, or related concepts to help find relevant documents.
-
-Original query: {query}
-
-Output ONLY the alternative queries, one per line. Do NOT output numbering, bullets, or any other text.
-"""
+    prompt = (
+        f"Please generate {num_variants} alternative search queries for the following query.\n"
+        "The alternatives should use different vocabulary, synonyms, or related concepts "
+        "to help find relevant documents.\n"
+        "\n"
+        f"Original query: {query}\n"
+        "\n"
+        "Output ONLY the alternative queries, one per line. Do NOT output numbering, "
+        "bullets, or any other text.\n"
+    )
 
     messages = [{"role": "user", "content": prompt}]
 
@@ -63,6 +66,7 @@ Output ONLY the alternative queries, one per line. Do NOT output numbering, bull
     # Remove numbering if LLM ignored instructions (e.g. "1. xxx")
     cleaned_lines = []
     import re
+
     for line in lines:
         cleaned_line = re.sub(r"^\d+[\.\)\]]\s*", "", line).strip()
         cleaned_line = re.sub(r"^-\s*", "", cleaned_line).strip()

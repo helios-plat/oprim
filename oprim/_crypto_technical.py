@@ -2,6 +2,7 @@
 
 Pure computation oprims for crypto technical analysis. No IO dependencies.
 """
+
 from __future__ import annotations
 
 
@@ -139,9 +140,12 @@ def compute_cross_asset_divergence_revert(
         {'available': True, 'value': 1.0, 'signal': 'revert_bullish', ...}
     """
     prices = [
-        btc_close_30d_ago, btc_close_now,
-        eth_close_30d_ago, eth_close_now,
-        sol_close_30d_ago, sol_close_now,
+        btc_close_30d_ago,
+        btc_close_now,
+        eth_close_30d_ago,
+        eth_close_now,
+        sol_close_30d_ago,
+        sol_close_now,
     ]
     if any(p <= 0 for p in prices):
         return {"available": False, "value": None, "signal": "invalid_prices", "spread": 0.0}

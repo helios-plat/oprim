@@ -11,12 +11,15 @@ from ._protocols import EmbedCaller
 class LLMOprimError(OprimError):
     """LLM 调用失败（含 provider 错误、预算超出、格式错误）."""
 
+
 class BudgetExceededError(LLMOprimError):
     """Token 预算超出."""
+
 
 @dataclass
 class LLMResponse:
     """规范化的 LLM 响应结构。"""
+
     text: str
     tool_calls: list[dict]
     stop_reason: str
@@ -33,24 +36,29 @@ class LLMResponse:
     def total_tokens(self) -> int:
         return self.input_tokens + self.output_tokens
 
+
 @dataclass
 class StreamDelta:
     """流式响应的单个 delta。"""
+
     type: str
-    text: str = ''
-    tool_name: str = ''
-    tool_id: str = ''
+    text: str = ""
+    tool_name: str = ""
+    tool_id: str = ""
     tool_input: dict = field(default_factory=dict)
     input_tokens: int = 0
     output_tokens: int = 0
-    stop_reason: str = ''
+    stop_reason: str = ""
+
 
 @dataclass
 class EmbedResult:
     """嵌入结果。"""
+
     vector: list[float]
     model: str
     token_count: int
+
 
 async def embed_text(
     text: str,
@@ -86,7 +94,7 @@ async def embed_text(
     except LLMOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise LLMOprimError("embed_text call failed", cause=e)
+        raise LLMOprimError("embed_text call failed", cause=e) from e
 
     if not isinstance(vector, list) or not vector:
         raise LLMOprimError(

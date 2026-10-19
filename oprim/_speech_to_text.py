@@ -1,6 +1,7 @@
 """P-1: speech_to_text — single-call ASR via ProviderRegistry.
 
-No LLM involved; purely delegates to the registered ASR provider.
+No LLM involved
+purely delegates to the registered ASR provider.
 """
 
 from __future__ import annotations
@@ -16,7 +17,8 @@ async def speech_to_text(
 
     Args:
         audio_b64: Base-64 encoded audio data.
-        language: BCP-47 language tag; "zh" or "en".
+        language: BCP-47 language tag
+        "zh" or "en".
         provider: Name of the ASR provider registered in ProviderRegistry.
                   Defaults to "default".
 

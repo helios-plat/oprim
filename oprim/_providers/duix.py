@@ -6,6 +6,8 @@ Endpoint: POST 127.0.0.1:8383/easy/submit → poll GET /easy/query?code=<uuid>
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 import asyncio
 import uuid
 from pathlib import Path
@@ -14,14 +16,11 @@ from pathlib import Path
 class DuixError(Exception):
     """Duix avatar generation failed."""
 
-
 class DuixSubmitError(DuixError):
     """Submit request to Duix service failed."""
 
-
 class DuixPollTimeoutError(DuixError):
     """Polling timed out before completion."""
-
 
 def _map_path(
     p: Path,
@@ -38,9 +37,8 @@ def _map_path(
     src, dst = (host_dir, container_dir) if not reverse else (container_dir, host_dir)
     s = str(p)
     if src and s.startswith(src):
-        return dst.rstrip("/") + "/" + s[len(src):].lstrip("/")
+        return dst.rstrip("/") + "/" + s[len(src) :].lstrip("/")
     return s
-
 
 async def submit_and_poll(
     *,
@@ -80,9 +78,7 @@ async def submit_and_poll(
     from oprim._config import cfg
 
     h_dir = (host_data_dir or cfg.get("DUIX_HOST_DATA_DIR", "")).rstrip("/")
-    c_dir = (
-        cfg.get("DUIX_CONTAINER_DATA_DIR", "") or container_data_dir
-    ).rstrip("/")
+    c_dir = (cfg.get("DUIX_CONTAINER_DATA_DIR", "") or container_data_dir).rstrip("/")
 
     job_code = str(uuid.uuid4())
 
@@ -105,9 +101,7 @@ async def submit_and_poll(
             )
         submit_data = submit_resp.json()
         if submit_data.get("code") != 10000:
-            raise DuixSubmitError(
-                f"Duix submit rejected: {submit_data}"
-            )
+            raise DuixSubmitError(f"Duix submit rejected: {submit_data}")
 
         # Poll — status lives in response["data"]["status"] (integer)
         elapsed = 0.0
@@ -130,9 +124,7 @@ async def submit_and_poll(
             if status in (2, "2", "completed", "success", "done"):
                 # Duix returns container-local path in data["result"]
                 result_container_str: str | None = (
-                    data.get("result")
-                    or data.get("video_url")
-                    or data.get("url")
+                    data.get("result") or data.get("video_url") or data.get("url")
                 )
                 if not result_container_str:
                     raise DuixError(f"No result path in Duix response: {qdata}")
@@ -140,15 +132,14 @@ async def submit_and_poll(
                 # Translate container result path → host path for file copy.
                 # Duix returns /{uuid}-r.mp4 (no /code/data/temp prefix),
                 # so first try direct map, then fall back to {h_dir}/temp/{filename}.
-                result_host_str = _map_path(
-                    Path(result_container_str), h_dir, c_dir, reverse=True
-                )
+                result_host_str = _map_path(Path(result_container_str), h_dir, c_dir, reverse=True)
                 result_path = Path(result_host_str)
                 if not result_path.exists() and h_dir:
                     result_path = Path(h_dir) / "temp" / result_container_str.lstrip("/")
                 output_path.parent.mkdir(parents=True, exist_ok=True)
                 if result_path.exists():
                     import shutil
+
                     shutil.copy2(result_path, output_path)
                 elif result_container_str.startswith("http"):
                     dl = await client.get(result_container_str)
@@ -157,15 +148,12 @@ async def submit_and_poll(
                     output_path.write_bytes(dl.content)
                 else:
                     raise DuixError(
-                        f"Duix result not found: container={result_container_str} host={result_path}"
+                        f"Duix result not found: container={result_container_str} "
+                        f"host={result_path}"
                     )
                 return output_path
 
             if status in (3, "-1", "failed", "error"):
-                raise DuixError(
-                    f"Duix job failed: {data.get('msg', data)}"
-                )
+                raise DuixError(f"Duix job failed: {data.get('msg', data)}")
 
-        raise DuixPollTimeoutError(
-            f"Duix job {job_code} did not complete within {timeout_s}s"
-        )
+        raise DuixPollTimeoutError(f"Duix job {job_code} did not complete within {timeout_s}s")

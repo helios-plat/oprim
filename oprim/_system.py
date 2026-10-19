@@ -55,7 +55,8 @@ def cpu_memory_snapshot(
     MVP: 仅支持本机. host != None 时 raise NotImplementedError.
 
     Args:
-        host: None 表示本机; 传入值时 raise NotImplementedError (SSH 模式未实现)
+        host: None 表示本机
+        传入值时 raise NotImplementedError (SSH 模式未实现)
 
     Returns:
         SystemSnapshot

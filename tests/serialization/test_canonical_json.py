@@ -57,6 +57,7 @@ def test_canonical_json_list():
 
 def test_canonical_json_nan_raises():
     import math
+
     with pytest.raises(ValueError):
         canonical_json(math.nan)
 
@@ -89,6 +90,7 @@ def test_canonical_json_non_integer_float():
 
 def test_canonical_json_inf_raises():
     import math
+
     with pytest.raises(ValueError):
         canonical_json(math.inf)
     with pytest.raises(ValueError):

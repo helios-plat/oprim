@@ -31,7 +31,7 @@ def due_compute(*, card_dict: dict, now: datetime | None = None) -> bool:
             due_dt = due_iso
         else:
             # 兼容 python 3.11 以前如果 Z 不带冒号可能出错，但这里假定标准 ISO
-            due_dt = datetime.fromisoformat(due_iso.replace('Z', '+00:00'))
+            due_dt = datetime.fromisoformat(due_iso.replace("Z", "+00:00"))
     except ValueError:
         return True
 

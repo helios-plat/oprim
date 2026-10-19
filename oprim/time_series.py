@@ -3,6 +3,7 @@
 暴露 _time_series.py 的公开原子函数。消费方通过
 oprim.time_series.percentile_rank 等路径调用。
 """
+
 from oprim._time_series import (
     cumulative_returns,
     ewma_smooth,

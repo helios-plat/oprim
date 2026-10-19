@@ -1,4 +1,5 @@
 """Project Gutenberg book search via Gutendex public API."""
+
 from __future__ import annotations
 
 import json
@@ -60,10 +61,7 @@ def gutenberg_search(
             continue
 
         formats: dict = book.get("formats") or {}
-        txt_url = (
-            formats.get("text/plain; charset=utf-8")
-            or formats.get("text/plain")
-        )
+        txt_url = formats.get("text/plain; charset=utf-8") or formats.get("text/plain")
         epub_url = formats.get("application/epub+zip") or formats.get("application/epub")
         # Prefer txt: epub bundle ingestion requires oskill v2+ content_override support
         if txt_url:
@@ -73,9 +71,7 @@ def gutenberg_search(
         else:
             continue  # no downloadable format
 
-        authors = [
-            a.get("name", "") for a in (book.get("authors") or []) if a.get("name")
-        ]
+        authors = [a.get("name", "") for a in (book.get("authors") or []) if a.get("name")]
         subjects = (book.get("subjects") or [])[:10]
         results.append(
             SourceResult(

@@ -44,7 +44,10 @@ async def bilibili_comments_fetch(
     try:
         while len(all_comments) < max_count:
             result = await video_comments(
-                bvid=bvid, cookies=cookies, max_count=max_count, page=page,
+                bvid=bvid,
+                cookies=cookies,
+                max_count=max_count,
+                page=page,
             )
             all_comments.extend(result.comments)
             if not result.has_next:

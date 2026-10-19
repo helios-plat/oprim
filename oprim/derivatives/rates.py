@@ -7,6 +7,7 @@ Svensson, L.E.O. (1994). Estimating and Interpreting Forward Interest Rates:
 Nelson, C.R. & Siegel, A.F. (1987). Parsimonious Modeling of Yield Curves.
     Journal of Business, 60(4), 473-489.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -50,9 +51,8 @@ def _svensson_yield(t: np.ndarray, params: dict) -> np.ndarray:
 
 
 def svensson_yield_curve(
-    maturities: np.ndarray | pd.Series,
+    maturities: np.ndarray | pd.Series, *,
     yields: np.ndarray | pd.Series,
-    *,
     initial_params: dict | None = None,
     max_iter: int = 1000,
 ) -> dict[str, Any]:
@@ -160,9 +160,8 @@ def svensson_yield_curve(
 
 
 def cubic_spline_yield_curve(
-    maturities: np.ndarray | pd.Series,
+    maturities: np.ndarray | pd.Series, *,
     yields: np.ndarray | pd.Series,
-    *,
     boundary_type: Literal["natural", "clamped", "not_a_knot"] = "natural",
     smoothing: float = 0.0,
 ) -> dict[str, Any]:
@@ -177,7 +176,8 @@ def cubic_spline_yield_curve(
     boundary_type : {"natural", "clamped", "not_a_knot"}
         Boundary condition for the spline. Default "natural".
     smoothing : float
-        Smoothing parameter (currently unused; reserved for future use).
+        Smoothing parameter (currently unused
+        reserved for future use).
         Default 0.0.
 
     Returns

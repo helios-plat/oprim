@@ -1,4 +1,5 @@
 """Pure-compute: format_tree."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,7 +10,8 @@ from ._hicode_types import Entry
 def format_tree(entries: list[Entry], *, root: Path) -> str:
     """Render a list of :class:`~._hicode_types.Entry` objects as a tree string.
 
-    Directories appear before files; within each group items are sorted
+    Directories appear before files
+    within each group items are sorted
     alphabetically. Nested children are rendered recursively with
     ``├──`` / ``└──`` connectors.
 

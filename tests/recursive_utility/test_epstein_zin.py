@@ -17,7 +17,9 @@ _BASE_KWARGS = dict(discount=0.96, risk_aversion=5.0, ies=0.5)
 def _ez(c, ce, **kw):
     """Thin wrapper with default kwargs."""
     params = {**_BASE_KWARGS, **kw}
-    return epstein_zin_aggregator(np.asarray(c, dtype=float), np.asarray(ce, dtype=float), **params)
+    return epstein_zin_aggregator(
+        np.asarray(c, dtype=float), continuation_value=np.asarray(ce, dtype=float), **params
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -155,7 +157,9 @@ class TestDiscountEdgeCases:
 class TestInputShapes:
     def test_scalar_float_input(self):
         """Pure Python floats as inputs return a scalar-like array."""
-        v = epstein_zin_aggregator(1.5, 2.0, discount=0.96, risk_aversion=5.0, ies=0.5)
+        v = epstein_zin_aggregator(
+            1.5, continuation_value=2.0, discount=0.96, risk_aversion=5.0, ies=0.5
+        )
         assert np.ndim(v) == 0 or np.isscalar(v) or v.shape == ()
 
     def test_1d_array_input(self):

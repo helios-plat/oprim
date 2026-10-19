@@ -12,7 +12,7 @@ from scipy import stats
 
 
 def drawdown_curve(
-    equity_or_returns: pd.Series,
+    equity_or_returns: pd.Series, *,
     input_type: Literal["equity", "returns"] = "equity",
     compound: bool = True,
 ) -> dict[str, Any]:
@@ -31,7 +31,8 @@ def drawdown_curve(
 
     Returns
     -------
-    dict with drawdown_series, max_drawdown, max_drawdown_start/end/recovery, underwater_duration_days.
+    dict with drawdown_series, max_drawdown, max_drawdown_start/end/recovery,
+    underwater_duration_days.
     """
     # Handle NaN
     equity_or_returns = equity_or_returns.dropna()
@@ -39,10 +40,7 @@ def drawdown_curve(
         raise ValueError("No valid (non-NaN) data points")
 
     if input_type == "returns":
-        if compound:
-            equity = (1 + equity_or_returns).cumprod()
-        else:
-            equity = 1 + equity_or_returns.cumsum()
+        equity = (1 + equity_or_returns).cumprod() if compound else 1 + equity_or_returns.cumsum()
     else:
         equity = equity_or_returns
 
@@ -102,7 +100,7 @@ def drawdown_curve(
 
 
 def sharpe_ratio(
-    returns: pd.Series,
+    returns: pd.Series, *,
     risk_free_rate: float | pd.Series = 0.0,
     annualization_factor: int = 252,
     ddof: int = 1,
@@ -136,7 +134,7 @@ def sharpe_ratio(
         if len(common_idx) < len(returns):
             warnings.warn(
                 f"risk_free_rate index mismatch: {len(common_idx)}/{len(returns)} aligned",
-                stacklevel=2
+                stacklevel=2,
             )
         returns = returns.loc[common_idx]
         rf = risk_free_rate.loc[common_idx]
@@ -154,7 +152,7 @@ def sharpe_ratio(
 
 
 def beta_alpha_ols(
-    asset_returns: pd.Series,
+    asset_returns: pd.Series, *,
     market_returns: pd.Series | pd.DataFrame,
     use_hac: bool = False,
     hac_lags: int | None = None,
@@ -195,16 +193,16 @@ def beta_alpha_ols(
         raise ValueError(f"Only {n} samples, need >= {min_samples}")
 
     y = combined["y"]
-    X = sm.add_constant(combined.drop(columns=["y"]))
+    x = sm.add_constant(combined.drop(columns=["y"]))
 
     if use_hac:
         # Auto-compute lags if not specified: Newey-West formula
         maxlags = hac_lags
         if maxlags is None:
             maxlags = int(4 * (n / 100) ** (2 / 9))
-        model = sm.OLS(y, X).fit(cov_type="HAC", cov_kwds={"maxlags": maxlags})
+        model = sm.OLS(y, x).fit(cov_type="HAC", cov_kwds={"maxlags": maxlags})
     else:
-        model = sm.OLS(y, X).fit()
+        model = sm.OLS(y, x).fit()
 
     alpha = float(model.params.iloc[0])
     alpha_se = float(model.bse.iloc[0])
@@ -233,7 +231,7 @@ def beta_alpha_ols(
 
 
 def value_at_risk(
-    returns: pd.Series,
+    returns: pd.Series, *,
     confidence_level: float = 0.95,
     method: Literal["historical", "parametric", "cornish_fisher"] = "historical",
     include_es: bool = True,
@@ -282,9 +280,7 @@ def value_at_risk(
         k = float(stats.kurtosis(returns_clean, fisher=True, bias=False))
         z = stats.norm.ppf(alpha)
         # Cornish-Fisher expansion
-        cf_z = (z + (z**2 - 1) * s / 6
-                + (z**3 - 3 * z) * k / 24
-                - (2 * z**3 - 5 * z) * s**2 / 36)
+        cf_z = z + (z**2 - 1) * s / 6 + (z**3 - 3 * z) * k / 24 - (2 * z**3 - 5 * z) * s**2 / 36
         var = float(-(mu + sigma * cf_z))
     else:
         raise ValueError(f"Unknown method: {method}")
@@ -306,7 +302,7 @@ def value_at_risk(
 
 
 def nelson_siegel_yield_curve(
-    tenors: np.ndarray,
+    tenors: np.ndarray, *,
     yields: np.ndarray,
     initial_lambda: float = 1.0,
 ) -> dict[str, Any]:
@@ -350,10 +346,10 @@ def nelson_siegel_yield_curve(
         fitted = _ns_model(tenors, *popt)
         residuals = yields - fitted
         ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((yields - yields.mean())**2)
+        ss_tot = np.sum((yields - yields.mean()) ** 2)
         r_squared = 1 - ss_res / ss_tot if ss_tot > 0 else 0.0
     except Exception as e:
-        raise ValueError(f"Nelson-Siegel fit failed: {e}")
+        raise ValueError(f"Nelson-Siegel fit failed: {e}") from e
 
     return {
         "beta_0": float(beta0),
@@ -367,7 +363,7 @@ def nelson_siegel_yield_curve(
 
 
 def futures_curve_shape(
-    prices_by_tenor: dict[int, float],
+    prices_by_tenor: dict[int, float], *,
     spot_price: float,
 ) -> dict[str, Any]:
     """Analyze futures curve shape (contango/backwardation).

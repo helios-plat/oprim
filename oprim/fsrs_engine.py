@@ -25,6 +25,7 @@ _scheduler = Scheduler()
 def __getattr__(name):
     if name == "fsrs_new_card":
         from obase.cognitive_types import fsrs_new_card
+
         return fsrs_new_card
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
@@ -32,9 +33,9 @@ def __getattr__(name):
 def fsrs_map_rating(
     *,
     is_correct: bool,
-    used_answer: bool = False,      # 是否看了答案/直接放弃
-    struggled: bool = False,        # 是否很吃力/超时
-    effortless: bool = False,       # 是否一眼秒杀
+    used_answer: bool = False,  # 是否看了答案/直接放弃
+    struggled: bool = False,  # 是否很吃力/超时
+    effortless: bool = False,  # 是否一眼秒杀
 ) -> Rating:
     """学生表现 → FSRS Rating（Again/Hard/Good/Easy）。"""
     if used_answer or not is_correct:
@@ -46,12 +47,7 @@ def fsrs_map_rating(
     return Rating.Good
 
 
-def fsrs_review(
-    *,
-    card_dict: dict,
-    rating: Rating,
-    now: datetime | None = None
-) -> dict:
+def fsrs_review(*, card_dict: dict, rating: Rating, now: datetime | None = None) -> dict:
     """对一张卡片做一次复习，返回更新后的 card dict。"""
     card = Card.from_dict(card_dict)
     now = now or datetime.now(UTC)
@@ -59,11 +55,7 @@ def fsrs_review(
     return card.to_dict()
 
 
-def fsrs_retrievability(
-    *,
-    card_dict: dict,
-    now: datetime | None = None
-) -> float:
+def fsrs_retrievability(*, card_dict: dict, now: datetime | None = None) -> float:
     """当前可提取性 R (0~1)：此刻能回忆起的概率。"""
     card = Card.from_dict(card_dict)
 
@@ -87,21 +79,22 @@ def fsrs_retrievability(
                 pass
 
     # 兜底：用 FSRS 公式自行计算
-    S = getattr(card, "stability", None)
+    stability = getattr(card, "stability", None)
     last = getattr(card, "last_review", None)
-    if not S or last is None:
+    if not stability or last is None:
         return 1.0
     t_days = max(0.0, (now - last).total_seconds() / 86400.0)
     # FSRS v4 formula constant
-    DECAY = -0.5
-    FACTOR = 0.9 ** (1 / DECAY) - 1
-    return (1 + FACTOR * t_days / S) ** DECAY
+    decay = -0.5
+    factor = 0.9 ** (1 / decay) - 1
+    return (1 + factor * t_days / stability) ** decay
 
 
 def fsrs_due_date(*, card_dict: dict) -> str | None:
     """返回下次复习日期 ISO 字符串，新卡片返回 None。"""
     card = Card.from_dict(card_dict)
     return card.due.isoformat() if card.due else None
+
 
 __version__ = "0.1.0"
 __manifest__ = {
@@ -113,5 +106,5 @@ __manifest__ = {
         {"name": "fsrs_retrievability", "layer": "oprim", "summary": "计算当前可提取性 R"},
         {"name": "fsrs_map_rating", "layer": "oprim", "summary": "表现映射为 Rating"},
         {"name": "fsrs_due_date", "layer": "oprim", "summary": "返回下次复习日期"},
-    ]
+    ],
 }

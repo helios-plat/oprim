@@ -33,9 +33,7 @@ class TestSRTTranslate:
         src.write_text(VALID_SRT)
         out = tmp_path / "en.srt"
         llm = MockLLM("Hello world\nGoodbye")
-        result = await srt_translate(
-            src_srt_path=src, target_lang="en", llm=llm, output_path=out
-        )
+        result = await srt_translate(src_srt_path=src, target_lang="en", llm=llm, output_path=out)
         assert result == out
         content = out.read_text()
         assert "Hello world" in content
@@ -46,7 +44,9 @@ class TestSRTTranslate:
         with pytest.raises(SRTParseError, match="not found"):
             await srt_translate(
                 src_srt_path=tmp_path / "missing.srt",
-                target_lang="en", llm=llm, output_path=tmp_path / "out.srt",
+                target_lang="en",
+                llm=llm,
+                output_path=tmp_path / "out.srt",
             )
 
     async def test_invalid_srt_format(self, tmp_path: Path) -> None:
@@ -80,7 +80,7 @@ class TestSRTTranslate:
         # 3 entries with batch_size=2 → 2 LLM calls
         srt_content = ""
         for i in range(3):
-            srt_content += f"{i+1}\n00:00:{i:02d},000 --> 00:00:{i+1:02d},000\nLine {i}\n\n"
+            srt_content += f"{i + 1}\n00:00:{i:02d},000 --> 00:00:{i + 1:02d},000\nLine {i}\n\n"
         src = tmp_path / "multi.srt"
         src.write_text(srt_content)
         out = tmp_path / "out.srt"

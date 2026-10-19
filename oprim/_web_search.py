@@ -39,16 +39,18 @@ async def web_search(
     except SearchOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise SearchOprimError("web_search call failed", cause=e)
+        raise SearchOprimError("web_search call failed", cause=e) from e
 
     results = []
     for i, item in enumerate(raw[:top_k]):
         if not isinstance(item, dict):
             continue
-        results.append(SearchResult(
-            title=str(item.get("title", "")),
-            url=str(item.get("url", "")),
-            snippet=str(item.get("snippet", item.get("description", ""))),
-            rank=i,
-        ))
+        results.append(
+            SearchResult(
+                title=str(item.get("title", "")),
+                url=str(item.get("url", "")),
+                snippet=str(item.get("snippet", item.get("description", ""))),
+                rank=i,
+            )
+        )
     return results

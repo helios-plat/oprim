@@ -1,4 +1,5 @@
 """merge_streaming_parts — collapse a list of PartDeltas into a single Part."""
+
 from __future__ import annotations
 
 import json
@@ -28,9 +29,7 @@ def merge_streaming_parts(deltas: list[PartDelta]) -> Part:
         try:
             parsed_args = json.loads(args_json)
         except json.JSONDecodeError as exc:
-            raise ValueError(
-                f"Incomplete or invalid JSON in tool_call args: {exc}"
-            ) from exc
+            raise ValueError(f"Incomplete or invalid JSON in tool_call args: {exc}") from exc
         tool_call = ToolCall(
             id=first.tool_call_id or "",
             name=first.tool_name or "",

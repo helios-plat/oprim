@@ -69,9 +69,7 @@ def _encode(obj) -> str:
         pairs = sorted(obj.items(), key=lambda kv: kv[0].encode("utf-16-be"))
         return (
             "{"
-            + ",".join(
-                json.dumps(k, ensure_ascii=False) + ":" + _encode(v) for k, v in pairs
-            )
+            + ",".join(json.dumps(k, ensure_ascii=False) + ":" + _encode(v) for k, v in pairs)
             + "}"
         )
     if isinstance(obj, list):

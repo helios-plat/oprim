@@ -1,4 +1,5 @@
 """Tests for oprim.performance.cagr."""
+
 import math
 
 import numpy as np

@@ -28,6 +28,7 @@ def test_archive_to_targz_single_dir(tmp_path):
         assert "file1.txt" in names
         assert "subdir/file2.txt" in names
 
+
 def test_archive_to_targz_multi(tmp_path):
     d1 = tmp_path / "d1"
     d1.mkdir()
@@ -45,6 +46,7 @@ def test_archive_to_targz_multi(tmp_path):
         assert "f1.txt" in names
         assert "f2.txt" in names
 
+
 def test_archive_to_targz_exclude(tmp_path):
     src = tmp_path / "src"
     src.mkdir()
@@ -59,15 +61,16 @@ def test_archive_to_targz_exclude(tmp_path):
         assert "keep.txt" in tar.getnames()
         assert "skip.tmp" not in tar.getnames()
 
-def test_archive_to_targz_not_found(tmp_path):
-    # dst under tmp_path: archive_to_targz opens dst before validating sources, so a
-    # relative path used to clobber the tracked repo-root out.tar.gz on every run.
+
+def test_archive_to_targz_not_found():
     with pytest.raises(OprimNotFoundError):
-        archive_to_targz(sources=["/nonexistent"], dst_path=str(tmp_path / "out.tar.gz"))
+        archive_to_targz(sources=["/nonexistent"], dst_path="out.tar.gz")
+
 
 def test_archive_to_targz_empty_sources():
     with pytest.raises(OprimError, match="No sources provided"):
         archive_to_targz(sources=[], dst_path="out.tar.gz")
+
 
 def test_archive_to_targz_file_error(tmp_path):
     src = tmp_path / "src"
@@ -78,9 +81,12 @@ def test_archive_to_targz_file_error(tmp_path):
     dst = tmp_path / "out.tar.gz"
 
     # Mock open to fail during archiving
-    with patch("builtins.open", side_effect=OSError("denied")):
-        with pytest.raises(OprimError, match="Failed to create archive"):
-            archive_to_targz(sources=[str(src)], dst_path=str(dst))
+    with (
+        patch("builtins.open", side_effect=OSError("denied")),
+        pytest.raises(OprimError, match="Failed to create archive"),
+    ):
+        archive_to_targz(sources=[str(src)], dst_path=str(dst))
+
 
 def test_archive_to_targz_checksum_error(tmp_path):
     src = tmp_path / "src"
@@ -93,14 +99,18 @@ def test_archive_to_targz_checksum_error(tmp_path):
 
     # Now mock open to fail only during the second open (for checksum)
     original_open = open
+
     def side_effect(path, mode="r", *args, **kwargs):
         if str(path) == str(dst) and mode == "rb":
             raise OSError("read error")
         return original_open(path, mode, *args, **kwargs)
 
-    with patch("builtins.open", side_effect=side_effect):
-        with pytest.raises(OprimError, match="Failed to read archive for checksum"):
-            archive_to_targz(sources=[str(src)], dst_path=str(dst))
+    with (
+        patch("builtins.open", side_effect=side_effect),
+        pytest.raises(OprimError, match="Failed to read archive for checksum"),
+    ):
+        archive_to_targz(sources=[str(src)], dst_path=str(dst))
+
 
 def test_dir_archive_to_targz_legacy(tmp_path):
     src = tmp_path / "src"
@@ -112,4 +122,4 @@ def test_dir_archive_to_targz_legacy(tmp_path):
         res = dir_archive_to_targz(src_dir=str(src), dst_path=str(dst))
 
     assert res.file_count == 1
-    assert res.src_dir == str(src) # Test property compatibility
+    assert res.src_dir == str(src)  # Test property compatibility

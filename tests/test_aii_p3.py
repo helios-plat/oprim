@@ -1,4 +1,5 @@
 """Tests for P-AII-3: relation_extract_rule."""
+
 from __future__ import annotations
 
 from oprim._relation_extract_rule import relation_extract_rule

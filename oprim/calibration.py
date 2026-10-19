@@ -4,6 +4,7 @@
 算 Brier、平均把握、实际正确率、过度自信。此前内联在服务层 main.py，
 违反"服务层不算确定性指标"，上移至 oprim。
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -17,7 +18,13 @@ def brier_calibration(*, predicted: Sequence[float], actual: Sequence[float]) ->
     """
     n = len(predicted)
     if n == 0:
-        return {"n": 0, "brier": None, "mean_predicted": None, "accuracy": None, "overconfidence": None}
+        return {
+            "n": 0,
+            "brier": None,
+            "mean_predicted": None,
+            "accuracy": None,
+            "overconfidence": None,
+        }
     preds = [float(p) for p in predicted]
     actuals = [float(a) for a in actual]
     brier = sum((p - a) ** 2 for p, a in zip(preds, actuals, strict=False)) / n

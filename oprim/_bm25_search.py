@@ -36,8 +36,8 @@ def bm25_search(
         return []
 
     doc_tokens: dict[str, list[str]] = {d: _tokenize(t) for d, t in docs.items()}
-    N = len(docs)
-    avgdl = sum(len(t) for t in doc_tokens.values()) / N
+    n = len(docs)
+    avgdl = sum(len(t) for t in doc_tokens.values()) / n
 
     # document frequency per term
     df: dict[str, int] = defaultdict(int)
@@ -55,7 +55,7 @@ def bm25_search(
         for term in q_terms:
             if term not in df:
                 continue
-            idf = math.log(1 + (N - df[term] + 0.5) / (df[term] + 0.5))
+            idf = math.log(1 + (n - df[term] + 0.5) / (df[term] + 0.5))
             s += idf * (tf[term] * (k1 + 1)) / (tf[term] + k1 * (1 - b + b * dl / avgdl))
         if s > 0:
             scores[d] = s

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 class BeneishInput(BaseModel):
     """Beneish M-Score 输入数据 (单期)."""
+
     net_profit: float = Field(..., description="净利润")
     revenue: float = Field(..., description="营业收入")
     total_assets: float = Field(..., description="总资产")
@@ -24,6 +25,7 @@ class BeneishInput(BaseModel):
 
 class BeneishResult(BaseModel):
     """Beneish M-Score 结果."""
+
     m_score: float = Field(..., description="M-Score 分数")
     factors: dict[str, float] = Field(..., description="8 因子明细")
 
@@ -45,6 +47,7 @@ def beneish_m_score(
     Note:
         M > -2.22 通常被视为存在造假风险。
     """
+
     def safe_ratio(num: float, den: float, default: float = 1.0) -> float:
         if abs(den) < 1e-12:
             return default
@@ -58,11 +61,12 @@ def beneish_m_score(
     # 2. GMI (Gross Margin Index)
     gmi_curr = safe_ratio(current.gross_margin, current.revenue)
     gmi_prior = safe_ratio(prior.gross_margin, prior.revenue)
-    gmi = safe_ratio(gmi_prior, gmi_curr) # Inverse
+    gmi = safe_ratio(gmi_prior, gmi_curr)  # Inverse
 
     # 3. AQI (Asset Quality Index)
     def get_aq(d: BeneishInput) -> float:
         return 1.0 - safe_ratio(d.current_assets + d.ppe, d.total_assets)
+
     aqi = safe_ratio(get_aq(current), get_aq(prior))
 
     # 4. SGI (Sales Growth Index)
@@ -84,7 +88,9 @@ def beneish_m_score(
     lvgi = safe_ratio(lvgi_curr, lvgi_prior)
 
     # 8. TATA (Total Accruals to Total Assets)
-    tata = safe_ratio(current.net_profit - current.operating_cash_flow, current.total_assets, default=0.0)
+    tata = safe_ratio(
+        current.net_profit - current.operating_cash_flow, current.total_assets, default=0.0
+    )
 
     # coefficients from Beneish (1999)
     m_score = (
@@ -110,5 +116,5 @@ def beneish_m_score(
             "SGAI": float(sgai),
             "LVGI": float(lvgi),
             "TATA": float(tata),
-        }
+        },
     )

@@ -139,13 +139,15 @@ def block_device_list(
     只读(R0). 用于存储面板列出物理盘与分区、识别 HDD/SSD、USB、挂载点等.
 
     执行位置由调用方决定:不传 lsblk_json 时本地 `subprocess` 跑 lsblk(适合
-    直接跑在目标主机的场景,如节点 agent);传 lsblk_json 时只解析、不执行,
+    直接跑在目标主机的场景,如节点 agent)
+    传 lsblk_json 时只解析、不执行,
     调用方可在别处(如特权 host-shell / 远端节点)取到原始输出再交给本原语解析.
 
     Args:
         disks_only: 只保留顶层 type=="disk" 的设备(去掉 loop/rom/lvm 等).
         include_loop: 是否保留 loop 设备(snap/镜像回环). 默认剔除以减噪.
-        lsblk_json: 可选. 预先取到的 `lsblk -J` 原始 JSON 字符串;给定则解析它而非本地执行.
+        lsblk_json: 可选. 预先取到的 `lsblk -J` 原始 JSON 字符串
+        给定则解析它而非本地执行.
 
     Returns:
         BlockDeviceList: devices 为顶层设备(分区在各自 children), count 为顶层数.

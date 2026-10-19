@@ -82,12 +82,9 @@ def compute_effortful_gain(
     net = effortful_gain - easy_gain
 
     effort_ratio = effortful_total / (effortful_total + easy_total)
-    overall_gain = (
-        (effortful_correct_after + easy_correct_after)
-        / (effortful_total + easy_total)
-        - (effortful_correct_before + easy_correct_before)
-        / (effortful_total + easy_total)
-    )
+    overall_gain = (effortful_correct_after + easy_correct_after) / (
+        effortful_total + easy_total
+    ) - (effortful_correct_before + easy_correct_before) / (effortful_total + easy_total)
 
     # Confidence: based on sample size
     total = effortful_total + easy_total

@@ -1,4 +1,5 @@
 """Unit tests for Qwen3LocalEmbedder (mocked Ollama HTTP)."""
+
 from __future__ import annotations
 
 import httpx
@@ -12,6 +13,7 @@ from oprim.errors import EmbeddingError
 @pytest.fixture()
 def embedder(monkeypatch):
     import oprim._config as _cfg
+
     _cfg._store["OLLAMA_BASE_URL"] = "http://test-ollama:11434"
     yield Qwen3LocalEmbedder()
     _cfg._store.pop("OLLAMA_BASE_URL", None)

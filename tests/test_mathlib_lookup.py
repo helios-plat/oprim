@@ -17,15 +17,17 @@ def test_mathlib_lookup_unique_hit(mocker):
     # Mock response
     mock_resp = MagicMock()
     mock_resp.status = 200
-    mock_resp.read.return_value = json.dumps({
-        "hits": [
-            {
-                "name": "Nat.add_comm",
-                "module": "Mathlib.Algebra.Group.Nat",
-                "type": "∀ (n m : ℕ), n + m = m + n"
-            }
-        ]
-    }).encode("utf-8")
+    mock_resp.read.return_value = json.dumps(
+        {
+            "hits": [
+                {
+                    "name": "Nat.add_comm",
+                    "module": "Mathlib.Algebra.Group.Nat",
+                    "type": "∀ (n m : ℕ), n + m = m + n",
+                }
+            ]
+        }
+    ).encode("utf-8")
     mock_opener.open.return_value.__enter__.return_value = mock_resp
 
     result = mathlib_lookup(identifier="Nat.add_comm")
@@ -42,12 +44,14 @@ def test_mathlib_lookup_multiple_hits(mocker):
 
     mock_resp = MagicMock()
     mock_resp.status = 200
-    mock_resp.read.return_value = json.dumps({
-        "hits": [
-            {"name": "hit1", "module": "mod1", "type": "sig1"},
-            {"name": "hit2", "module": "mod2", "type": "sig2"}
-        ]
-    }).encode("utf-8")
+    mock_resp.read.return_value = json.dumps(
+        {
+            "hits": [
+                {"name": "hit1", "module": "mod1", "type": "sig1"},
+                {"name": "hit2", "module": "mod2", "type": "sig2"},
+            ]
+        }
+    ).encode("utf-8")
     mock_opener.open.return_value.__enter__.return_value = mock_resp
 
     result = mathlib_lookup(identifier="some_id")

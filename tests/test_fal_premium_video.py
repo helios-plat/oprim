@@ -1,7 +1,8 @@
 """Tests for oprim veo3 / kling_v2 / hailuo 高写实视频原语 (payload 构造 — ≥6 tests).
 
 均 patch 掉底层 fal_queue_generate,只验证各原语构造的 endpoint + payload 正确
-(不触网;端点连通性/产物由 fal_queue_generate 自身测试与 e2e 覆盖)。
+(不触网
+端点连通性/产物由 fal_queue_generate 自身测试与 e2e 覆盖)。
 """
 
 from __future__ import annotations

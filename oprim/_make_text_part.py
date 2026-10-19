@@ -1,4 +1,5 @@
 """make_text_part — construct a text Part."""
+
 from __future__ import annotations
 
 from ._hicode_types import Part

@@ -34,6 +34,7 @@ from oprim.verify_step import StepVerifyInput, verify_step, verify_steps
 # CI checks that verify_step.py has NO import of ProviderRegistry/anthropic.
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestVerifyStepNoLLM:
     def test_verify_no_llm_call(self):
         """verify_step.py must not import ProviderRegistry, anthropic, or provider_registry."""
@@ -81,16 +82,16 @@ class TestVerifyStepNoLLM:
 
 CONIC_CASES = [
     # (expression, expected_type_substring)
-    ("x**2 + y**2 - 9",                   "circle"),
-    ("x**2 + y**2 - 2*x - 4*y - 4",       "circle"),
-    ("x**2/4 + y**2/9 - 1",               "ellipse"),
-    ("x**2/9 + y**2/4 - 1",               "ellipse"),
-    ("x**2 - y**2/4 - 1",                 "hyperbola"),
-    ("4*x**2 - y**2 - 16",                "hyperbola"),
-    ("y**2 - 4*x",                        "parabola"),
-    ("x**2 - 4*y",                        "parabola"),
-    ("(x-1)**2 + (y+2)**2 - 25",          "circle"),
-    ("x**2/16 + y**2/25 - 1",             "ellipse"),
+    ("x**2 + y**2 - 9", "circle"),
+    ("x**2 + y**2 - 2*x - 4*y - 4", "circle"),
+    ("x**2/4 + y**2/9 - 1", "ellipse"),
+    ("x**2/9 + y**2/4 - 1", "ellipse"),
+    ("x**2 - y**2/4 - 1", "hyperbola"),
+    ("4*x**2 - y**2 - 16", "hyperbola"),
+    ("y**2 - 4*x", "parabola"),
+    ("x**2 - 4*y", "parabola"),
+    ("(x-1)**2 + (y+2)**2 - 25", "circle"),
+    ("x**2/16 + y**2/25 - 1", "ellipse"),
 ]
 
 
@@ -148,6 +149,7 @@ class TestConicCases:
 # ─────────────────────────────────────────────────────────────────────────────
 # solve_function
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSolveFunction:
     def test_zeros_quadratic(self):
@@ -210,6 +212,7 @@ class TestSolveFunction:
 # solve_derivative
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestSolveDerivative:
     def test_first_derivative(self):
         inp = DerivativeSolveInput(expression="x**3 + 2*x", task="derivative")
@@ -263,6 +266,7 @@ class TestSolveDerivative:
 # solve_geometry3d
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestSolveGeometry3D:
     def test_distance(self):
         inp = Geometry3DInput(task="distance", p1=(0, 0, 0), p2=(3, 4, 0))
@@ -280,7 +284,7 @@ class TestSolveGeometry3D:
         inp = Geometry3DInput(task="sphere", radius=3.0)
         r = solve_geometry3d(inp)
         assert r.solvable
-        vol = (4/3) * math.pi * 27
+        vol = (4 / 3) * math.pi * 27
         assert str(round(vol, 0))[:2] in r.answer  # check rough value
 
     def test_cylinder_volume(self):
@@ -322,6 +326,7 @@ class TestSolveGeometry3D:
 # ─────────────────────────────────────────────────────────────────────────────
 # solve_sequence
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSolveSequence:
     def test_arithmetic_nth_term(self):
@@ -375,6 +380,7 @@ class TestSolveSequence:
 # solve_trig
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestSolveTrig:
     def test_solve_sin_zero(self):
         inp = TrigSolveInput(expression="sin(x)", task="solve", rhs="0")
@@ -424,6 +430,7 @@ class TestSolveTrig:
 # solve_probability
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestSolveProbability:
     def test_combinations(self):
         inp = ProbabilitySolveInput(task="combinations", n=5, k=2)
@@ -446,9 +453,9 @@ class TestSolveProbability:
     def test_bayes(self):
         inp = ProbabilitySolveInput(
             task="bayes",
-            p_a=0.01,          # P(disease)
+            p_a=0.01,  # P(disease)
             p_b_given_a=0.95,  # P(+|disease)
-            p_b=0.05,          # P(+)
+            p_b=0.05,  # P(+)
         )
         r = solve_probability(inp)
         assert r.solvable
@@ -490,6 +497,7 @@ class TestSolveProbability:
 # ─────────────────────────────────────────────────────────────────────────────
 # verify_step (additional)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestVerifyStep:
     def test_valid_factoring(self):
@@ -566,6 +574,7 @@ class TestVerifyStep:
 # kernel_to_plot2d
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestKernelToPlot2D:
     def test_basic_parabola(self):
         req = Plot2DRequest(expression="x**2", x_range=(-5.0, 5.0), num_points=50)
@@ -575,7 +584,9 @@ class TestKernelToPlot2D:
         assert len(data.y_values) == len(data.x_values)
 
     def test_zero_annotation(self):
-        req = Plot2DRequest(expression="x**2 - 4", x_range=(-5.0, 5.0), num_points=200, mark_zeros=True)
+        req = Plot2DRequest(
+            expression="x**2 - 4", x_range=(-5.0, 5.0), num_points=200, mark_zeros=True
+        )
         data = kernel_to_plot2d(req)
         # Should detect zero crossings near ±2
         assert len(data.annotations) >= 1
@@ -599,6 +610,7 @@ class TestKernelToPlot2D:
 # ─────────────────────────────────────────────────────────────────────────────
 # kernel_to_three
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestKernelToThree:
     def test_basic_surface(self):
@@ -644,6 +656,7 @@ class TestKernelToThree:
 # generate_svg_diagram
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestGenerateSVGDiagram:
     def test_svg_from_plot2d(self):
         xs = [float(i) for i in range(-5, 6)]
@@ -679,7 +692,9 @@ class TestGenerateSVGDiagram:
             generate_svg_diagram("not a data object")  # type: ignore
 
     def test_custom_config(self):
-        data = Plot2DData(x_values=[0.0, 1.0], y_values=[0.0, 1.0], x_range=(0.0, 1.0), y_range=(0.0, 1.0))
+        data = Plot2DData(
+            x_values=[0.0, 1.0], y_values=[0.0, 1.0], x_range=(0.0, 1.0), y_range=(0.0, 1.0)
+        )
         cfg = SVGConfig(width=800, height=600, stroke_color="#FF0000")
         svg = generate_svg_from_plot2d(data, cfg)
         assert 'width="800"' in svg
@@ -701,6 +716,7 @@ class TestGenerateSVGDiagram:
 # ─────────────────────────────────────────────────────────────────────────────
 # SocraticTurnResult (from types)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSocraticTurnResult:
     def test_basic_construction(self):

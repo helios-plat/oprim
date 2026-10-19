@@ -7,12 +7,14 @@ from pydantic import BaseModel, Field
 
 class PolicyNews(BaseModel):
     """政策新闻."""
+
     content: str = Field(..., description="新闻正文")
     title: str | None = Field(None, description="标题")
 
 
 class PolicyEvent(BaseModel):
     """抽取的政策事件."""
+
     event_type: str = Field(..., description="事件类型")
     severity: str = Field("moderate", description="严重程度 [minor|moderate|major|critical]")
     direction: str = Field("neutral", description="方向 [positive|negative|neutral]")
@@ -20,10 +22,7 @@ class PolicyEvent(BaseModel):
     source_excerpt: str | None = Field(None, description="来源片段")
 
 
-def policy_event_extraction(
-    *,
-    policies: list[PolicyNews]
-) -> list[PolicyEvent]:
+def policy_event_extraction(*, policies: list[PolicyNews]) -> list[PolicyEvent]:
     """政策新闻抽取结构化事件(severity/direction). V1 规则实现.
 
     Args:
@@ -81,12 +80,14 @@ def policy_event_extraction(
             elif neg_hits > pos_hits:
                 direction = "negative"
 
-            results.append(PolicyEvent(
-                event_type=found_type,
-                severity=severity,
-                direction=direction,
-                days_ago=0, # V1 Stub: assume today
-                source_excerpt=text[:100]
-            ))
+            results.append(
+                PolicyEvent(
+                    event_type=found_type,
+                    severity=severity,
+                    direction=direction,
+                    days_ago=0,  # V1 Stub: assume today
+                    source_excerpt=text[:100],
+                )
+            )
 
     return results

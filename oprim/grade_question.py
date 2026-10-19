@@ -74,6 +74,7 @@ def _compare_answer(student: str, expected: str) -> bool:
     # Try sympy equivalence
     try:
         import sympy as sp
+
         s_sym = sp.sympify(norm_s)
         e_sym = sp.sympify(norm_e)
         return sp.simplify(s_sym - e_sym) == 0
@@ -85,7 +86,7 @@ def _compare_answer(student: str, expected: str) -> bool:
 
 _GRADE_SYSTEM = (
     "You are a math teacher grading a student's answer. "
-    "Respond with JSON: {\"is_correct\": bool, \"score\": float 0-1, \"feedback\": str}. "
+    'Respond with JSON: {"is_correct": bool, "score": float 0-1, "feedback": str}. '
     "Be concise and educational. Score 1.0 = fully correct, 0.5 = partially correct, 0 = wrong."
 )
 

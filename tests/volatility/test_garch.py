@@ -1,4 +1,5 @@
 """Tests for oprim.volatility.garch_fit and garch_forecast."""
+
 import math
 import warnings
 
@@ -9,15 +10,15 @@ import pytest
 from oprim.volatility.garch import garch_fit, garch_forecast
 
 
-def _simulate_garch11(omega, alpha, beta, T, seed=42):
+def _simulate_garch11(omega, alpha, beta, n_bars, seed=42):
     """Simulate GARCH(1,1) returns."""
     rng = np.random.default_rng(seed)
-    sigma2 = np.zeros(T)
-    eps = np.zeros(T)
+    sigma2 = np.zeros(n_bars)
+    eps = np.zeros(n_bars)
     sigma2[0] = omega / (1 - alpha - beta)
-    for t in range(T):
+    for t in range(n_bars):
         eps[t] = math.sqrt(sigma2[t]) * rng.standard_normal()
-        if t < T - 1:
+        if t < n_bars - 1:
             sigma2[t + 1] = omega + alpha * eps[t] ** 2 + beta * sigma2[t]
     return eps, sigma2
 
@@ -29,9 +30,15 @@ class TestGARCHFit:
         r = rng.standard_normal(200) * 0.01
         result = garch_fit(r)
         expected_keys = {
-            "params", "log_likelihood", "aic", "bic",
-            "persistence", "unconditional_variance", "converged",
-            "residuals", "conditional_variance",
+            "params",
+            "log_likelihood",
+            "aic",
+            "bic",
+            "persistence",
+            "unconditional_variance",
+            "converged",
+            "residuals",
+            "conditional_variance",
         }
         assert set(result.keys()) == expected_keys
         assert set(result["params"].keys()) >= {"omega", "alpha", "beta", "mu"}
@@ -62,9 +69,9 @@ class TestGARCHFit:
         result = garch_fit(r)
         ll = result["log_likelihood"]
         k = 4
-        T = 200
+        t_val = 200
         assert result["aic"] == pytest.approx(-2 * ll + 2 * k, rel=1e-8)
-        assert result["bic"] == pytest.approx(-2 * ll + k * math.log(T), rel=1e-8)
+        assert result["bic"] == pytest.approx(-2 * ll + k * math.log(t_val), rel=1e-8)
 
     def test_garch_fit_converged_flag(self):
         """converged key is bool."""
@@ -122,20 +129,20 @@ class TestGARCHForecast:
         params = {"omega": 0.0001, "alpha": 0.05, "beta": 0.90, "mu": 0.0}
         last_eps = 0.02
         last_var = 0.0004
-        result = garch_forecast(params, last_eps, last_var, horizon=1)
+        result = garch_forecast(params, last_residual=last_eps, last_variance=last_var, horizon=1)
         expected = params["omega"] + params["alpha"] * last_eps**2 + params["beta"] * last_var
         assert result[0] == pytest.approx(expected, rel=1e-12)
 
     def test_garch_forecast_horizon_10_returns_10_values(self):
         """horizon=10 → array of length 10."""
         params = {"omega": 0.0001, "alpha": 0.05, "beta": 0.90}
-        result = garch_forecast(params, 0.01, 0.0004, horizon=10)
+        result = garch_forecast(params, last_residual=0.01, last_variance=0.0004, horizon=10)
         assert len(result) == 10
 
     def test_garch_forecast_converges_to_unconditional(self):
         """Many steps → omega/(1-alpha-beta)."""
         params = {"omega": 0.0001, "alpha": 0.05, "beta": 0.90}
-        result = garch_forecast(params, 0.0, 0.0001, horizon=5000)
+        result = garch_forecast(params, last_residual=0.0, last_variance=0.0001, horizon=5000)
         uv = params["omega"] / (1.0 - params["alpha"] - params["beta"])
         assert result[-1] == pytest.approx(uv, rel=0.001)
 
@@ -144,13 +151,14 @@ class TestGARCHForecast:
         params = {"omega": 0.0001, "alpha": 0.05, "beta": 0.96}
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            garch_forecast(params, 0.01, 0.0004, horizon=5)
+            garch_forecast(params, last_residual=0.01, last_variance=0.0004, horizon=5)
             assert len(w) >= 1
             assert issubclass(w[0].category, RuntimeWarning)
 
     def test_garch_forecast_does_not_import_fit(self):
         """garch_forecast does not call garch_fit at runtime."""
         import inspect
+
         source = inspect.getsource(garch_forecast)
         # Must not call garch_fit (with open paren)
         assert "garch_fit(" not in source
@@ -166,7 +174,7 @@ class TestGARCHForecast:
         params = {"omega": omega, "alpha": alpha, "beta": beta}
         last_eps = 0.015
         last_var = 0.0003
-        result = garch_forecast(params, last_eps, last_var, horizon=3)
+        result = garch_forecast(params, last_residual=last_eps, last_variance=last_var, horizon=3)
 
         # Manual computation
         v1 = omega + alpha * last_eps**2 + beta * last_var

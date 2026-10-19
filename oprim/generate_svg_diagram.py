@@ -21,9 +21,9 @@ class SVGConfig:
     width: int = 600
     height: int = 400
     padding: int = 50
-    stroke_color: str = "#2563EB"     # Tailwind blue-600
-    axis_color: str = "#374151"       # Tailwind gray-700
-    annotation_color: str = "#DC2626" # Tailwind red-600
+    stroke_color: str = "#2563EB"  # Tailwind blue-600
+    axis_color: str = "#374151"  # Tailwind gray-700
+    annotation_color: str = "#DC2626"  # Tailwind red-600
     font_family: str = "monospace"
     font_size: int = 11
     stroke_width: float = 1.5
@@ -92,23 +92,23 @@ def generate_svg_from_plot2d(data: Plot2DData, cfg: SVGConfig | None = None) -> 
 
     # X axis
     parts.append(
-        f'<line x1="{px}" y1="{ay0:.1f}" x2="{px+w}" y2="{ay0:.1f}" '
+        f'<line x1="{px}" y1="{ay0:.1f}" x2="{px + w}" y2="{ay0:.1f}" '
         f'stroke="{c.axis_color}" stroke-width="1"/>'
     )
     # Y axis
     parts.append(
-        f'<line x1="{ax0:.1f}" y1="{py}" x2="{ax0:.1f}" y2="{py+h}" '
+        f'<line x1="{ax0:.1f}" y1="{py}" x2="{ax0:.1f}" y2="{py + h}" '
         f'stroke="{c.axis_color}" stroke-width="1"/>'
     )
 
     # Axis labels
     parts.append(
-        f'<text x="{px+w+5}" y="{ay0+4:.1f}" '
+        f'<text x="{px + w + 5}" y="{ay0 + 4:.1f}" '
         f'font-family="{c.font_family}" font-size="{c.font_size}" '
         f'fill="{c.axis_color}">{_esc(data.x_label)}</text>'
     )
     parts.append(
-        f'<text x="{ax0+5:.1f}" y="{py-5}" '
+        f'<text x="{ax0 + 5:.1f}" y="{py - 5}" '
         f'font-family="{c.font_family}" font-size="{c.font_size}" '
         f'fill="{c.axis_color}">{_esc(data.y_label)}</text>'
     )
@@ -132,12 +132,9 @@ def generate_svg_from_plot2d(data: Plot2DData, cfg: SVGConfig | None = None) -> 
     for ax, ay, alabel in data.annotations:
         svgx = _map_x(ax, x_min, x_max, px, w)
         svgy = _map_y(ay, y_min, y_max, py, h)
+        parts.append(f'<circle cx="{svgx:.1f}" cy="{svgy:.1f}" r="3" fill="{c.annotation_color}"/>')
         parts.append(
-            f'<circle cx="{svgx:.1f}" cy="{svgy:.1f}" r="3" '
-            f'fill="{c.annotation_color}"/>'
-        )
-        parts.append(
-            f'<text x="{svgx+5:.1f}" y="{svgy-5:.1f}" '
+            f'<text x="{svgx + 5:.1f}" y="{svgy - 5:.1f}" '
             f'font-family="{c.font_family}" font-size="{c.font_size - 1}" '
             f'fill="{c.annotation_color}">{_esc(alabel)}</text>'
         )
@@ -164,17 +161,17 @@ def generate_svg_from_three(data: Three3DData, cfg: SVGConfig | None = None) -> 
     c = cfg or SVGConfig()
 
     # Isometric projection constants
-    ISO_X_SCALE = 0.5
-    ISO_Y_SCALE = 0.3
-    Z_SCALE = 0.6
+    iso_x_scale = 0.5
+    iso_y_scale = 0.3
+    z_scale = 0.6
 
     cx = c.width / 2
     cy = c.height * 0.6
 
     def iso_project(x: float, y: float, z: float) -> tuple[float, float]:
         scale = 20.0
-        sx = (x - y) * ISO_X_SCALE * scale + cx
-        sy = (x + y) * ISO_Y_SCALE * scale - z * Z_SCALE * scale + cy
+        sx = (x - y) * iso_x_scale * scale + cx
+        sy = (x + y) * iso_y_scale * scale - z * z_scale * scale + cy
         return sx, sy
 
     parts: list[str] = []
@@ -187,7 +184,7 @@ def generate_svg_from_three(data: Three3DData, cfg: SVGConfig | None = None) -> 
 
     if data.title:
         parts.append(
-            f'<text x="{c.width//2}" y="20" text-anchor="middle" '
+            f'<text x="{c.width // 2}" y="20" text-anchor="middle" '
             f'font-family="{c.font_family}" font-size="{c.font_size + 2}" '
             f'fill="{c.axis_color}">{_esc(data.title)}</text>'
         )

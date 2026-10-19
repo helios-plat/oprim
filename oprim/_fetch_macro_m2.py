@@ -39,7 +39,8 @@ async def fetch_macro_m2(
     Args:
         start_date: Inclusive lower bound.  ``None`` = no lower bound.
         end_date:   Inclusive upper bound.  ``None`` = no upper bound.
-        source:     Data source.  Only ``"akshare"`` is freely available;
+        source:     Data source.  Only ``"akshare"`` is freely available
+
                     ``"wind"`` and ``"tushare"`` require licensed access and
                     raise :exc:`MacroFetchError` immediately.
 

@@ -1,4 +1,5 @@
 """oprim.canvas_edge_validate — Validate a canvas edge type compatibility. SYNC."""
+
 from __future__ import annotations
 
 COMPATIBLE: dict[tuple[str, str], bool] = {

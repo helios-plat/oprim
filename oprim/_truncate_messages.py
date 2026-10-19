@@ -11,27 +11,33 @@ from .text import count_tokens
 class PromptOprimError(OprimError):
     """prompt 构建 / 消息处理失败。"""
 
+
 class SnapshotOprimError(OprimError):
     """会话快照失败。"""
+
 
 @dataclass
 class ThinkingResult:
     """扩展思考提取结果。"""
+
     thinking: str
     text: str
     has_thinking: bool
     thinking_blocks: list[str] = field(default_factory=list)
     text_blocks: list[str] = field(default_factory=list)
 
+
 @dataclass
 class ConversationSnapshot:
     """会话快照结构。"""
+
     snapshot_id: str
     session_id: str
     message_count: int
     created_at: float
     store_key: str
     revision: str
+
 
 def truncate_messages(
     messages: list[dict],
@@ -80,8 +86,8 @@ def truncate_messages(
     keep_last = min(keep_last, n - keep_first)
 
     front = list(messages[:keep_first])
-    back = list(messages[n - keep_last:]) if keep_last > 0 else []
-    middle = list(messages[keep_first: n - keep_last if keep_last > 0 else n])
+    back = list(messages[n - keep_last :]) if keep_last > 0 else []
+    middle = list(messages[keep_first : n - keep_last if keep_last > 0 else n])
 
     # 逐条从 middle 头部删除，直到满足预算
     while middle:

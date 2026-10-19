@@ -1,6 +1,7 @@
 """Tests for P-AII-1 (failure_lesson_extract) and P-AII-2 (keyword_merge).
 
-All tests are pure-compute; no LLM, no network, no mocks needed.
+All tests are pure-compute
+no LLM, no network, no mocks needed.
 """
 
 from __future__ import annotations

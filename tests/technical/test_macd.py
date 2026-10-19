@@ -91,8 +91,30 @@ def test_macd_matches_talib():
 
 def test_macd_nan_first_value():
     """_ema_recursive: NaN in first price propagates through MACD."""
-    prices = np.array([np.nan, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
-                       11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0])
+    prices = np.array(
+        [
+            np.nan,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            6.0,
+            7.0,
+            8.0,
+            9.0,
+            10.0,
+            11.0,
+            12.0,
+            13.0,
+            14.0,
+            15.0,
+            16.0,
+            17.0,
+            18.0,
+            19.0,
+            20.0,
+        ]
+    )
     result = macd(prices, fast_period=3, slow_period=5, signal_period=2)
     # First value NaN propagates
     assert np.isnan(result["macd"][0])

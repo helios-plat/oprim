@@ -1,4 +1,5 @@
 """Recursively interpolate {env:VARNAME} placeholders in config dicts."""
+
 from __future__ import annotations
 
 import re
@@ -30,7 +31,8 @@ def _interpolate_value(value: Any, env: dict[str, Any]) -> Any:
 def interpolate_env_vars(config: dict[str, Any], *, env: dict[str, Any]) -> dict[str, Any]:
     """Recursively replace ``{env:VARNAME}`` in all string values of *config*.
 
-    Traverses nested dicts and lists.  Returns a new dict; the original is
+    Traverses nested dicts and lists.  Returns a new dict
+    the original is
     not mutated.
 
     Raises:

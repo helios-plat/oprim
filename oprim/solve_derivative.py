@@ -14,10 +14,7 @@ from typing import Literal
 
 from oprim.types import SolveResult, SolveStep
 
-TaskType = Literal[
-    "derivative", "critical_points", "extrema", "inflection",
-    "tangent_line", "auto"
-]
+TaskType = Literal["derivative", "critical_points", "extrema", "inflection", "tangent_line", "auto"]
 
 
 @dataclass(frozen=True)
@@ -28,7 +25,7 @@ class DerivativeSolveInput:
     variable: str = "x"
     order: int = 1
     task: TaskType = "auto"
-    point: float | None = None   # for "tangent_line"
+    point: float | None = None  # for "tangent_line"
     timeout: float = 5.0
 
 
@@ -55,13 +52,11 @@ def solve_derivative(inp: DerivativeSolveInput) -> SolveResult:
 
     task = inp.task
     if task == "auto":
-        if inp.point is not None:
-            task = "tangent_line"
-        else:
-            task = "derivative"
+        task = "tangent_line" if inp.point is not None else "derivative"
 
     try:
         import sympy as sp
+
         x = sp.Symbol(inp.variable)
         f = sp.sympify(inp.expression)
 

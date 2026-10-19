@@ -7,12 +7,17 @@ from pathlib import Path
 from typing import Any
 
 from ._exceptions import OprimError
+from ._lsp_helpers import (
+    _text_doc_pos,
+)
 from ._protocols import LspServerHandle
 from .lsp import _text_doc_pos
 
 
+
 class LspOprimError(OprimError):
     """LSP 请求失败。"""
+
 
 @dataclass
 class Diagnostic:
@@ -28,13 +33,15 @@ class Diagnostic:
 
     @property
     def severity_name(self) -> str:
-        return {1: 'error', 2: 'warning', 3: 'info', 4: 'hint'}.get(self.severity, 'unknown')
+        return {1: "error", 2: "warning", 3: "info", 4: "hint"}.get(self.severity, "unknown")
+
 
 @dataclass
 class Hover:
     contents: str
     range_start_line: int | None = None
     range_start_char: int | None = None
+
 
 @dataclass
 class Location:
@@ -43,6 +50,7 @@ class Location:
     start_character: int
     end_line: int
     end_character: int
+
 
 @dataclass
 class Symbol:
@@ -53,20 +61,39 @@ class Symbol:
     start_character: int
     end_line: int
     end_character: int
-    container: str = ''
+    container: str = ""
 
     @property
     def kind_name(self) -> str:
-        _kinds = {1: 'File', 2: 'Module', 3: 'Namespace', 4: 'Package', 5: 'Class', 6: 'Method', 7: 'Property', 8: 'Field', 9: 'Constructor', 10: 'Enum', 11: 'Interface', 12: 'Function', 13: 'Variable', 14: 'Constant', 15: 'String', 16: 'Number'}
-        return _kinds.get(self.kind, f'Kind({self.kind})')
+        _kinds = {
+            1: "File",
+            2: "Module",
+            3: "Namespace",
+            4: "Package",
+            5: "Class",
+            6: "Method",
+            7: "Property",
+            8: "Field",
+            9: "Constructor",
+            10: "Enum",
+            11: "Interface",
+            12: "Function",
+            13: "Variable",
+            14: "Constant",
+            15: "String",
+            16: "Number",
+        }
+        return _kinds.get(self.kind, f"Kind({self.kind})")
+
 
 @dataclass
 class Completion:
     label: str
     kind: int | None = None
-    detail: str = ''
-    documentation: str = ''
-    insert_text: str = ''
+    detail: str = ""
+    documentation: str = ""
+    insert_text: str = ""
+
 
 @dataclass
 class TextEdit:
@@ -76,9 +103,11 @@ class TextEdit:
     end_character: int
     new_text: str
 
+
 @dataclass
 class WorkspaceEdit:
     changes: dict[str, list[TextEdit]] = field(default_factory=dict)
+
 
 @dataclass
 class CodeAction:
@@ -87,6 +116,7 @@ class CodeAction:
     diagnostics: list[Diagnostic] = field(default_factory=list)
     edit: WorkspaceEdit | None = None
     command: dict | None = None
+
 
 async def lsp_completion(
     path: str | Path,
@@ -127,7 +157,7 @@ async def lsp_completion(
             {**_text_doc_pos(path, line, character), "context": context},
         )
     except Exception as e:
-        raise LspOprimError("lsp_completion failed", cause=e)
+        raise LspOprimError("lsp_completion failed", cause=e) from e
 
     items = []
     if isinstance(result, dict):
@@ -140,11 +170,13 @@ async def lsp_completion(
         doc = item.get("documentation", "")
         if isinstance(doc, dict):
             doc = doc.get("value", "")
-        completions.append(Completion(
-            label=item.get("label", ""),
-            kind=item.get("kind"),
-            detail=item.get("detail", ""),
-            documentation=str(doc),
-            insert_text=item.get("insertText", item.get("label", "")),
-        ))
+        completions.append(
+            Completion(
+                label=item.get("label", ""),
+                kind=item.get("kind"),
+                detail=item.get("detail", ""),
+                documentation=str(doc),
+                insert_text=item.get("insertText", item.get("label", "")),
+            )
+        )
     return completions

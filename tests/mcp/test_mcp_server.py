@@ -1,4 +1,5 @@
 """Tests for oprim.mcp.mcp_server."""
+
 from __future__ import annotations
 
 from oprim.mcp.mcp_server import create_mcp_server, register_tool

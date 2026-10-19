@@ -31,7 +31,8 @@ async def ext_notify_send(
         provider: Provider name registered in ProviderRegistry (category="notification").
         channel: "email" or "sms".
         template: Jinja2 template string for the message body.
-        data: Template context; must include "to" (recipient), and "subject"
+        data: Template context
+        must include "to" (recipient), and "subject"
             when channel="email".
 
     Returns:

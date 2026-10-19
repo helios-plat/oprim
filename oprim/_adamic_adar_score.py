@@ -2,6 +2,7 @@
 
 Skips common neighbors with degree ≤ 1 (log(1) = 0). Pure computation.
 """
+
 from __future__ import annotations
 
 import math

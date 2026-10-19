@@ -30,11 +30,10 @@ def _prom_resp(status_code=200, result_type="vector", results=None):
 # prometheus_instant_query
 # ---------------------------------------------------------------------------
 
+
 class TestPrometheusInstantQuery:
     def test_vector_result(self):
-        results = [
-            {"metric": {"instance": "localhost:9090"}, "value": [1716000000.0, "1.5"]}
-        ]
+        results = [{"metric": {"instance": "localhost:9090"}, "value": [1716000000.0, "1.5"]}]
         with patch("oprim._metrics_logs.httpx.get", return_value=_prom_resp(results=results)):
             result = prometheus_instant_query(
                 endpoint="http://localhost:9090",
@@ -59,20 +58,24 @@ class TestPrometheusInstantQuery:
         resp.is_success = False
         resp.json.return_value = {"error": "invalid expression"}
         resp.text = "invalid expression"
-        with patch("oprim._metrics_logs.httpx.get", return_value=resp):
-            with pytest.raises(OprimValidationError):
-                prometheus_instant_query(
-                    endpoint="http://localhost:9090",
-                    query="invalid[[[",
-                )
+        with (
+            patch("oprim._metrics_logs.httpx.get", return_value=resp),
+            pytest.raises(OprimValidationError),
+        ):
+            prometheus_instant_query(
+                endpoint="http://localhost:9090",
+                query="invalid[[[",
+            )
 
     def test_connection_error(self):
-        with patch("oprim._metrics_logs.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                prometheus_instant_query(
-                    endpoint="http://nonexistent:9090",
-                    query="up",
-                )
+        with (
+            patch("oprim._metrics_logs.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            prometheus_instant_query(
+                endpoint="http://nonexistent:9090",
+                query="up",
+            )
 
     def test_multiple_samples(self):
         results = [
@@ -87,21 +90,27 @@ class TestPrometheusInstantQuery:
         assert len(result.samples) == 2
 
     def test_timeout_error(self):
-        with patch("oprim._metrics_logs.httpx.get", side_effect=httpx.TimeoutException("timeout")):
-            with pytest.raises(OprimConnectionError):
-                prometheus_instant_query(endpoint="http://localhost:9090", query="up")
+        with (
+            patch("oprim._metrics_logs.httpx.get", side_effect=httpx.TimeoutException("timeout")),
+            pytest.raises(OprimConnectionError),
+        ):
+            prometheus_instant_query(endpoint="http://localhost:9090", query="up")
 
     def test_server_error(self):
         resp = MagicMock(spec=httpx.Response)
         resp.status_code = 503
         resp.is_success = False
         resp.text = "Service Unavailable"
-        with patch("oprim._metrics_logs.httpx.get", return_value=resp):
-            with pytest.raises(OprimConnectionError):
-                prometheus_instant_query(endpoint="http://localhost:9090", query="up")
+        with (
+            patch("oprim._metrics_logs.httpx.get", return_value=resp),
+            pytest.raises(OprimConnectionError),
+        ):
+            prometheus_instant_query(endpoint="http://localhost:9090", query="up")
 
     def test_with_time_parameter(self):
-        with patch("oprim._metrics_logs.httpx.get", return_value=_prom_resp(results=[])) as mock_get:
+        with patch(
+            "oprim._metrics_logs.httpx.get", return_value=_prom_resp(results=[])
+        ) as mock_get:
             prometheus_instant_query(
                 endpoint="http://localhost:9090",
                 query="up",
@@ -114,7 +123,9 @@ class TestPrometheusInstantQuery:
         resp = MagicMock(spec=httpx.Response)
         resp.status_code = 200
         resp.is_success = True
-        resp.json.return_value = {"data": {"resultType": "scalar", "result": [1716000000.0, "42.0"]}}
+        resp.json.return_value = {
+            "data": {"resultType": "scalar", "result": [1716000000.0, "42.0"]}
+        }
         with patch("oprim._metrics_logs.httpx.get", return_value=resp):
             result = prometheus_instant_query(endpoint="http://localhost:9090", query="scalar(1)")
         assert result.result_type == "scalar"
@@ -131,6 +142,7 @@ class TestPrometheusInstantQuery:
 # ---------------------------------------------------------------------------
 # prometheus_range_query
 # ---------------------------------------------------------------------------
+
 
 class TestPrometheusRangeQuery:
     def test_normal_range(self):
@@ -180,57 +192,60 @@ class TestPrometheusRangeQuery:
         resp.is_success = False
         resp.json.return_value = {"error": "bad syntax"}
         resp.text = "bad syntax"
-        with patch("oprim._metrics_logs.httpx.get", return_value=resp):
-            with pytest.raises(OprimValidationError):
-                prometheus_range_query(
-                    endpoint="http://localhost:9090",
-                    query="bad[[[",
-                    start="2026-05-20T10:00:00Z",
-                    end="2026-05-20T11:00:00Z",
-                    step="1m",
-                )
+        with (
+            patch("oprim._metrics_logs.httpx.get", return_value=resp),
+            pytest.raises(OprimValidationError),
+        ):
+            prometheus_range_query(
+                endpoint="http://localhost:9090",
+                query="bad[[[",
+                start="2026-05-20T10:00:00Z",
+                end="2026-05-20T11:00:00Z",
+                step="1m",
+            )
 
     def test_connection_error(self):
-        with patch("oprim._metrics_logs.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                prometheus_range_query(
-                    endpoint="http://nonexistent:9090",
-                    query="up",
-                    start="2026-05-20T10:00:00Z",
-                    end="2026-05-20T11:00:00Z",
-                    step="1m",
-                )
+        with (
+            patch("oprim._metrics_logs.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            prometheus_range_query(
+                endpoint="http://nonexistent:9090",
+                query="up",
+                start="2026-05-20T10:00:00Z",
+                end="2026-05-20T11:00:00Z",
+                step="1m",
+            )
 
     def test_range_server_error(self):
         resp = MagicMock(spec=httpx.Response)
         resp.status_code = 503
         resp.is_success = False
         resp.text = "unavailable"
-        with patch("oprim._metrics_logs.httpx.get", return_value=resp):
-            with pytest.raises(OprimConnectionError):
-                prometheus_range_query(
-                    endpoint="http://localhost:9090",
-                    query="up",
-                    start="2026-05-20T10:00:00Z",
-                    end="2026-05-20T11:00:00Z",
-                    step="1m",
-                )
+        with (
+            patch("oprim._metrics_logs.httpx.get", return_value=resp),
+            pytest.raises(OprimConnectionError),
+        ):
+            prometheus_range_query(
+                endpoint="http://localhost:9090",
+                query="up",
+                start="2026-05-20T10:00:00Z",
+                end="2026-05-20T11:00:00Z",
+                step="1m",
+            )
 
 
 # ---------------------------------------------------------------------------
 # loki_log_query
 # ---------------------------------------------------------------------------
 
+
 class TestLokiLogQuery:
     def _loki_resp(self, status_code=200, streams=None):
         resp = MagicMock(spec=httpx.Response)
         resp.status_code = status_code
         resp.is_success = 200 <= status_code < 300
-        resp.json.return_value = {
-            "data": {
-                "result": streams or []
-            }
-        }
+        resp.json.return_value = {"data": {"result": streams or []}}
         resp.text = ""
         return resp
 
@@ -272,33 +287,42 @@ class TestLokiLogQuery:
         resp.is_success = False
         resp.json.return_value = {"error": "parse error"}
         resp.text = "parse error"
-        with patch("oprim._metrics_logs.httpx.get", return_value=resp):
-            with pytest.raises(OprimValidationError):
-                loki_log_query(endpoint="http://localhost:3100", logql="invalid{{{")
+        with (
+            patch("oprim._metrics_logs.httpx.get", return_value=resp),
+            pytest.raises(OprimValidationError),
+        ):
+            loki_log_query(endpoint="http://localhost:3100", logql="invalid{{{")
 
     def test_connection_error(self):
-        with patch("oprim._metrics_logs.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                loki_log_query(endpoint="http://nonexistent:3100", logql='{app="x"}')
+        with (
+            patch("oprim._metrics_logs.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            loki_log_query(endpoint="http://nonexistent:3100", logql='{app="x"}')
 
     def test_loki_timeout_error(self):
-        with patch("oprim._metrics_logs.httpx.get", side_effect=httpx.TimeoutException("timeout")):
-            with pytest.raises(OprimConnectionError):
-                loki_log_query(endpoint="http://localhost:3100", logql='{app="x"}')
+        with (
+            patch("oprim._metrics_logs.httpx.get", side_effect=httpx.TimeoutException("timeout")),
+            pytest.raises(OprimConnectionError),
+        ):
+            loki_log_query(endpoint="http://localhost:3100", logql='{app="x"}')
 
     def test_loki_server_error(self):
         resp = MagicMock(spec=httpx.Response)
         resp.status_code = 503
         resp.is_success = False
         resp.text = "unavailable"
-        with patch("oprim._metrics_logs.httpx.get", return_value=resp):
-            with pytest.raises(OprimConnectionError):
-                loki_log_query(endpoint="http://localhost:3100", logql='{app="x"}')
+        with (
+            patch("oprim._metrics_logs.httpx.get", return_value=resp),
+            pytest.raises(OprimConnectionError),
+        ):
+            loki_log_query(endpoint="http://localhost:3100", logql='{app="x"}')
 
 
 # ---------------------------------------------------------------------------
 # structlog_parse
 # ---------------------------------------------------------------------------
+
 
 class TestStructlogParse:
     def test_json_lines(self):

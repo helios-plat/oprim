@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from .git import _git
+from oprim.git import _git
 
 
 @dataclass
@@ -15,6 +15,7 @@ class FileStatus:
     worktree: str
     renamed_from: str | None = None
 
+
 @dataclass
 class Commit:
     hash: str
@@ -22,12 +23,14 @@ class Commit:
     date: str
     message: str
 
+
 @dataclass
 class BlameLine:
     lineno: int
     commit: str
     author: str
     content: str
+
 
 def git_checkout(ref: str, *, repo: str | Path) -> None:
     """単次切换分支或还原文件到某 ref。

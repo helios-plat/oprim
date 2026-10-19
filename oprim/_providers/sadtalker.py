@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 import asyncio
 import shutil
 from pathlib import Path
@@ -10,10 +12,8 @@ from pathlib import Path
 class SadTalkerError(Exception):
     """SadTalker invocation failed."""
 
-
 class SadTalkerSetupError(SadTalkerError):
     """Vendor not found."""
-
 
 async def invoke(
     *,
@@ -40,15 +40,23 @@ async def invoke(
         python = Path(shutil.which("python3") or "python3")
 
     cmd = [
-        str(python), str(script),
-        "--source_image", str(portrait_image),
-        "--driven_audio", str(audio_path),
-        "--result_dir", str(output_path.parent),
-        "--fps", str(fps),
-        "--expression_scale", str(expression_scale),
+        str(python),
+        str(script),
+        "--source_image",
+        str(portrait_image),
+        "--driven_audio",
+        str(audio_path),
+        "--result_dir",
+        str(output_path.parent),
+        "--fps",
+        str(fps),
+        "--expression_scale",
+        str(expression_scale),
     ]
     proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
     try:
         _, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout_s)

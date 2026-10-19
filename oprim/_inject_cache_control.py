@@ -1,4 +1,5 @@
 """Inject Anthropic prompt-caching cache_control markers into a payload."""
+
 from __future__ import annotations
 
 import copy
@@ -14,7 +15,8 @@ def _has_cache_control(block: dict[str, Any]) -> bool:
 def inject_cache_control(payload: dict[str, Any], *, provider: str) -> dict[str, Any]:
     """Return a copy of payload with cache_control injected for Anthropic.
 
-    Only "anthropic" is supported; other providers receive an unchanged copy.
+    Only "anthropic" is supported
+    other providers receive an unchanged copy.
 
     For anthropic:
     - Inject cache_control on the last system block (if system is a list).

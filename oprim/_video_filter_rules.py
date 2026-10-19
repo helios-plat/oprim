@@ -1,4 +1,5 @@
 """P-4: video_filter_rules — pure-rule deterministic video filter."""
+
 from __future__ import annotations
 
 import re

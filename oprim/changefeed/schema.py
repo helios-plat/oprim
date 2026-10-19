@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "ChangefeedEvent",
+    "EventType",
+    "StrEnum",
+    "annotations",
+    "dataclass",
+    "datetime",
+]
+
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum

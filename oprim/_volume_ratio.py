@@ -5,11 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 
-def volume_ratio(
-    *,
-    volumes: list[float],
-    window: int = 5
-) -> float:
+def volume_ratio(*, volumes: list[float], window: int = 5) -> float:
     """量比 = 最新量 / 前 window 日均量. 数据不足返回 1.0.
 
     Args:
@@ -24,7 +20,7 @@ def volume_ratio(
 
     v = np.asarray(volumes, dtype=np.float64)
     latest_v = v[-1]
-    avg_v = np.mean(v[-(window+1):-1])
+    avg_v = np.mean(v[-(window + 1) : -1])
 
     if abs(avg_v) < 1e-12:
         return 1.0

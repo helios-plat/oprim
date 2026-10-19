@@ -1,0 +1,1345 @@
+fix_manual.py:54:13: B007 Loop control variable `i` not used within loop body
+fix_ruff_v2.py:3:1: I001 [*] Import block is un-sorted or un-formatted
+fix_ruff_v2.py:75:11: B007 Loop control variable `func_name` not used within loop body
+fix_ruff_v2.py:93:9: F821 Undefined name `fix_function`
+fix_ruff_v2.py:112:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:121:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:129:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:136:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:143:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:150:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:157:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:164:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:171:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:178:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:185:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:192:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:199:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:206:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:213:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:220:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:227:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:234:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:241:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:248:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:255:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:262:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:269:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:276:9: F841 Local variable `content` is assigned to but never used
+fix_ruff_v2.py:283:9: F841 Local variable `content` is assigned to but never used
+oprim/__init__.py:38:45: E701 Multiple statements on one line (colon)
+oprim/__init__.py:40:21: SIM102 Use a single `if` statement instead of nested `if` statements
+oprim/__init__.py:42:101: E501 Line too long (125 > 100)
+oprim/__init__.py:45:25: E701 Multiple statements on one line (colon)
+oprim/__init__.py:56:101: E501 Line too long (102 > 100)
+oprim/__init__.py:64:29: E701 Multiple statements on one line (colon)
+oprim/__init__.py:79:1: E402 Module level import not at top of file
+oprim/__init__.py:80:5: F401 `oprim._exceptions.BudgetExceededError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:81:5: F401 `oprim._exceptions.FileOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:82:5: F401 `oprim._exceptions.GitOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:83:5: F401 `oprim._exceptions.HttpOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:84:5: F401 `oprim._exceptions.LLMOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:85:5: F401 `oprim._exceptions.OprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:86:5: F401 `oprim._exceptions.ParseOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:87:5: F401 `oprim._exceptions.PathSecurityError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:88:5: F401 `oprim._exceptions.PromptOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:89:5: F401 `oprim._exceptions.SearchOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:90:5: F401 `oprim._exceptions.ShellOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:91:5: F401 `oprim._exceptions.SnapshotOprimError` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:93:1: E402 Module level import not at top of file
+oprim/__init__.py:94:5: F401 `oprim.llm._types.ConversationSnapshot` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:95:5: F401 `oprim.llm._types.EmbedResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:96:5: F401 `oprim.llm._types.HttpResponse` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:97:5: F401 `oprim.llm._types.LLMResponse` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:98:5: F401 `oprim.llm._types.SearchResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:99:5: F401 `oprim.llm._types.StreamDelta` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:100:5: F401 `oprim.llm._types.ThinkingResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:114:1: E402 Module level import not at top of file
+oprim/__init__.py:115:5: F401 `oprim.prompt.build_system_prompt` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:116:5: F401 `oprim.prompt.extract_thinking` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:117:5: F401 `oprim.prompt.snapshot_conversation` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:118:5: F401 `oprim.prompt.truncate_messages` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:133:1: E402 Module level import not at top of file
+oprim/__init__.py:133:42: F401 `oprim.compute_effortful_gain.compute_effortful_gain` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:133:66: F401 `oprim.compute_effortful_gain.compute_effortful_gain_from_arrays` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:134:1: E402 Module level import not at top of file
+oprim/__init__.py:134:36: F401 `oprim.compute_feedback.compute_feedback` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:134:54: F401 `oprim.compute_feedback.grade_answer` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:135:1: E402 Module level import not at top of file
+oprim/__init__.py:135:43: F401 `oprim.compute_peer_percentile.compute_peer_percentile` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:135:68: F401 `oprim.compute_peer_percentile.compute_percentile_batch` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:136:1: E402 Module level import not at top of file
+oprim/__init__.py:136:31: F401 `oprim.due_compute.due_compute` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:137:1: E402 Module level import not at top of file
+oprim/__init__.py:137:34: F401 `oprim.error_classify.error_classify` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:138:1: E402 Module level import not at top of file
+oprim/__init__.py:139:1: E402 Module level import not at top of file
+oprim/__init__.py:139:38: F401 `oprim.recognition_update.recognition_update` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:139:58: F401 `oprim.recognition_update.recognition_update_sequence` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:140:1: E402 Module level import not at top of file
+oprim/__init__.py:140:34: F401 `oprim.speech_to_math.speech_to_math` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:141:1: E402 Module level import not at top of file
+oprim/__init__.py:142:5: F401 `oprim.types.GradeResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:143:5: F401 `oprim.types.PeerPercentileResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:144:5: F401 `oprim.types.Plot2DData` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:145:5: F401 `oprim.types.SolveResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:146:5: F401 `oprim.types.SolveStep` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:147:5: F401 `oprim.types.StepCheckResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:148:5: F401 `oprim.types.Three3DData` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:163:1: E402 Module level import not at top of file
+oprim/__init__.py:166:1: E402 Module level import not at top of file
+oprim/__init__.py:172:5: N802 Function name `_get_EpubBook` should be lowercase
+oprim/__init__.py:176:1: E402 Module level import not at top of file
+oprim/__init__.py:176:38: F401 `oprim._adamic_adar_score.adamic_adar_score` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:180:1: E402 Module level import not at top of file
+oprim/__init__.py:181:5: F401 `oprim._aii_graph_types.CascadeDeleteResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:182:5: F401 `oprim._aii_graph_types.ConflictDetectionInput` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:183:5: F401 `oprim._aii_graph_types.ConflictPair` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:184:5: F401 `oprim._aii_graph_types.ConflictSignal` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:185:5: F401 `oprim._aii_graph_types.GraphRetrievalResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:186:5: F401 `oprim._aii_graph_types.SourceTraceResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:187:5: F401 `oprim._aii_graph_types.TwoStepIngestResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:189:1: E402 Module level import not at top of file
+oprim/__init__.py:189:33: F401 `oprim._arxiv_search.ArxivPaper` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:189:45: F401 `oprim._arxiv_search.arxiv_search` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:192:1: E402 Module level import not at top of file
+oprim/__init__.py:192:38: F401 `oprim._direct_link_score.direct_link_score` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:193:1: E402 Module level import not at top of file
+oprim/__init__.py:193:37: F401 `oprim._gutenberg_search.gutenberg_search` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:194:1: E402 Module level import not at top of file
+oprim/__init__.py:194:39: F401 `oprim._http_download_file.http_download_file` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:197:1: E402 Module level import not at top of file
+oprim/__init__.py:197:39: F401 `oprim._ku_conflict_detect.ku_conflict_detect` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:198:1: E402 Module level import not at top of file
+oprim/__init__.py:198:47: F401 `oprim._markdown_frontmatter_build.markdown_frontmatter_build` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:199:1: E402 Module level import not at top of file
+oprim/__init__.py:199:32: F401 `oprim._media_types.SourceResult` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:200:1: E402 Module level import not at top of file
+oprim/__init__.py:200:33: F401 `oprim._oapen_search.oapen_search` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:203:1: E402 Module level import not at top of file
+oprim/__init__.py:203:44: F401 `oprim._purpose_alignment_score.purpose_alignment_score` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:204:1: E402 Module level import not at top of file
+oprim/__init__.py:204:35: F401 `oprim._quant_analysis.compute_shapley_decomposition` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:204:66: F401 `oprim._quant_analysis.compute_shapley_values` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:207:1: E402 Module level import not at top of file
+oprim/__init__.py:207:41: F401 `oprim._source_overlap_score.source_overlap_score` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:210:1: E402 Module level import not at top of file
+oprim/__init__.py:210:33: F401 `oprim._source_trace.source_trace` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:211:1: E402 Module level import not at top of file
+oprim/__init__.py:211:45: F401 `oprim._text_clean_publish_noise.text_clean_publish_noise` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/__init__.py:214:1: E402 Module level import not at top of file
+oprim/__init__.py:214:40: F401 `oprim._type_affinity_score.type_affinity_score` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+oprim/_apply_screen_filter.py:16:98: E501 Line too long (101 > 100)
+oprim/_apply_screen_filter.py:71:101: E501 Line too long (110 > 100)
+oprim/_bash_exec.py:75:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_bash_exec.py:77:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_bash_exec.py:79:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_bash_exec_stream.py:68:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_bash_exec_stream.py:88:29: F821 Undefined name `_SENTINEL`
+oprim/_bash_exec_stream.py:98:24: F821 Undefined name `_SENTINEL`
+oprim/_beneish_m_score.py:87:101: E501 Line too long (106 > 100)
+oprim/_bm25_search.py:39:5: N806 Variable `N` in function should be lowercase
+oprim/_build_q_matrix.py:46:5: N806 Variable `Q` in function should be lowercase
+oprim/_calculate_fitness_score.py:100:101: E501 Line too long (119 > 100)
+oprim/_causal_graph_build.py:42:101: E501 Line too long (101 > 100)
+oprim/_channel_list_videos.py:16:25: F821 Undefined name `Path`
+oprim/_cognitive.py:53:12: F821 Undefined name `KCState`
+oprim/_cognitive.py:58:6: F821 Undefined name `KCState`
+oprim/_cognitive.py:104:34: F821 Undefined name `KCState`
+oprim/_cognitive.py:119:15: F821 Undefined name `KCState`
+oprim/_cognitive.py:136:91: E501 Line too long (103 > 100)
+oprim/_coherence_compute.py:41:101: E501 Line too long (103 > 100)
+oprim/_compute_diff.py:63:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_content_fetcher.py:102:20: E741 Ambiguous variable name: `l`
+oprim/_content_fetcher.py:146:28: E741 Ambiguous variable name: `l`
+oprim/_content_fetcher.py:147:28: E741 Ambiguous variable name: `l`
+oprim/_content_fetcher.py:307:101: E501 Line too long (102 > 100)
+oprim/_content_fetcher.py:323:101: E501 Line too long (101 > 100)
+oprim/_correlation_options.py:42:5: N806 Variable `T` in function should be lowercase
+oprim/_correlation_options.py:42:8: N806 Variable `N` in function should be lowercase
+oprim/_correlation_options.py:55:101: E501 Line too long (102 > 100)
+oprim/_correlation_options.py:115:101: E501 Line too long (110 > 100)
+oprim/_count_tokens.py:60:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_crypto_scoring.py:156:5: N806 Variable `B` in function should be lowercase
+oprim/_crypto_scoring.py:358:5: N806 Variable `OI_THRESH` in function should be lowercase
+oprim/_crypto_scoring.py:359:5: N806 Variable `PRICE_THRESH` in function should be lowercase
+oprim/_crypto_scoring.py:360:5: N806 Variable `OI_MAX` in function should be lowercase
+oprim/_data_fetch.py:15:101: E501 Line too long (109 > 100)
+oprim/_data_fetch.py:22:101: E501 Line too long (110 > 100)
+oprim/_data_fetch.py:41:101: E501 Line too long (136 > 100)
+oprim/_data_fetch.py:45:101: E501 Line too long (109 > 100)
+oprim/_data_fetch.py:64:101: E501 Line too long (108 > 100)
+oprim/_data_fetch.py:112:101: E501 Line too long (121 > 100)
+oprim/_data_fetch.py:119:101: E501 Line too long (107 > 100)
+oprim/_data_fetch.py:184:101: E501 Line too long (113 > 100)
+oprim/_data_fetch.py:196:101: E501 Line too long (131 > 100)
+oprim/_data_fetch.py:251:101: E501 Line too long (111 > 100)
+oprim/_data_fetch.py:279:101: E501 Line too long (110 > 100)
+oprim/_data_fetch.py:286:101: E501 Line too long (107 > 100)
+oprim/_data_fetch.py:414:101: E501 Line too long (110 > 100)
+oprim/_data_fetch.py:421:101: E501 Line too long (106 > 100)
+oprim/_data_fetch.py:436:101: E501 Line too long (111 > 100)
+oprim/_dcf_valuation.py:41:101: E501 Line too long (127 > 100)
+oprim/_dcf_valuation.py:51:5: N806 Variable `T` in function should be lowercase
+oprim/_detect_dragon_switch.py:29:34: B008 Do not perform function call `DragonSwitchConfig` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+oprim/_detect_hot_money_converge.py:28:38: B008 Do not perform function call `HotMoneyConvergeConfig` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+oprim/_detect_language.py:52:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_detect_language.py:55:18: F821 Undefined name `_FILENAME_MAP`
+oprim/_detect_language.py:56:16: F821 Undefined name `_FILENAME_MAP`
+oprim/_detect_language.py:60:15: F821 Undefined name `_EXT_MAP`
+oprim/_detect_language.py:61:16: F821 Undefined name `_EXT_MAP`
+oprim/_detect_limit_board_explosion.py:34:41: B008 Do not perform function call `LimitBoardExplosionConfig` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+oprim/_detect_news_shock.py:51:31: B008 Do not perform function call `NewsShockConfig` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+oprim/_detect_northbound_reversal.py:26:40: B008 Do not perform function call `NorthboundReversalConfig` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+oprim/_detect_sector_collapse.py:30:36: B008 Do not perform function call `SectorCollapseConfig` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+oprim/_detect_volume_spike.py:35:33: B008 Do not perform function call `VolumeSpikeConfig` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+oprim/_dir_list.py:55:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_distance.py:140:13: SIM108 Use ternary operator `d = (x[i - 1] - y[j - 1]) ** 2 if metric == "euclidean" else abs(x[i - 1] - y[j - 1])` instead of `if`-`else`-block
+oprim/_distance.py:236:101: E501 Line too long (126 > 100)
+oprim/_distance.py:242:5: N803 Argument name `X` should be lowercase
+oprim/_distance.py:243:5: N803 Argument name `Y` should be lowercase
+oprim/_distance.py:262:5: N806 Variable `X` in function should be lowercase
+oprim/_distance.py:264:9: N806 Variable `X` in function should be lowercase
+oprim/_distance.py:267:9: N806 Variable `Y` in function should be lowercase
+oprim/_distance.py:269:9: N806 Variable `Y` in function should be lowercase
+oprim/_distance.py:271:13: N806 Variable `Y` in function should be lowercase
+oprim/_distance.py:276:9: N806 Variable `X` in function should be lowercase
+oprim/_distance.py:277:9: N806 Variable `Y` in function should be lowercase
+oprim/_distance.py:334:101: E501 Line too long (107 > 100)
+oprim/_distance.py:403:101: E501 Line too long (106 > 100)
+oprim/_do_calculus_intervention.py:96:101: E501 Line too long (113 > 100)
+oprim/_do_calculus_intervention.py:108:101: E501 Line too long (112 > 100)
+oprim/_docker_image_build.py:102:13: SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
+oprim/_domain_rule_check.py:114:101: E501 Line too long (106 > 100)
+oprim/_domain_rule_check.py:130:101: E501 Line too long (102 > 100)
+oprim/_domain_rule_check.py:134:5: SIM102 Use a single `if` statement instead of nested `if` statements
+oprim/_domain_rule_check.py:135:101: E501 Line too long (103 > 100)
+oprim/_dupont_decomposition.py:42:101: E501 Line too long (115 > 100)
+oprim/_dupont_decomposition.py:44:101: E501 Line too long (104 > 100)
+oprim/_epub_toc_split.py:44:5: SIM103 Return the condition directly
+oprim/_estimate_cost.py:52:49: F821 Undefined name `_DEFAULT_PRICING`
+oprim/_estimate_cost.py:52:77: F821 Undefined name `_FALLBACK_PRICING`
+oprim/_estimate_cost.py:55:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_execution_primitives.py:1:94: E501 Line too long (140 > 100)
+oprim/_execution_primitives.py:121:5: SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
+oprim/_execution_primitives.py:298:101: E501 Line too long (107 > 100)
+oprim/_fetch_rss_feed.py:99:16: N817 CamelCase `ElementTree` imported as acronym `ET`
+oprim/_file_append.py:41:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_file_delete.py:34:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_file_delete.py:36:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_file_read.py:41:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_file_read.py:43:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_file_stat.py:46:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_file_write.py:40:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_file_write_atomic.py:76:13: SIM105 Use `contextlib.suppress(OSError)` instead of `try`-`except`-`pass`
+oprim/_filesystem.py:146:101: E501 Line too long (110 > 100)
+oprim/_filesystem.py:153:101: E501 Line too long (101 > 100)
+oprim/_filesystem.py:298:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_finance.py:34:101: E501 Line too long (103 > 100)
+oprim/_finance.py:195:5: N806 Variable `X` in function should be lowercase
+oprim/_finance.py:353:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_financial_metric_extraction.py:53:85: E501 Line too long (103 > 100)
+oprim/_financial_metric_extraction.py:65:38: E701 Multiple statements on one line (colon)
+oprim/_financial_metric_extraction.py:67:38: E701 Multiple statements on one line (colon)
+oprim/_git_add.py:45:5: F821 Undefined name `_git`
+oprim/_git_blame.py:46:11: F821 Undefined name `_git`
+oprim/_git_branch.py:57:16: F821 Undefined name `_git`
+oprim/_git_branch.py:59:16: F821 Undefined name `_git`
+oprim/_git_branch.py:61:11: F821 Undefined name `_git`
+oprim/_git_checkout.py:45:5: F821 Undefined name `_git`
+oprim/_git_commit.py:51:5: F821 Undefined name `_git`
+oprim/_git_commit.py:53:12: F821 Undefined name `_git`
+oprim/_git_diff.py:59:12: F821 Undefined name `_git`
+oprim/_git_log.py:52:11: F821 Undefined name `_git`
+oprim/_git_show.py:49:16: F821 Undefined name `_git`
+oprim/_git_show.py:50:12: F821 Undefined name `_git`
+oprim/_git_stash.py:49:16: F821 Undefined name `_git`
+oprim/_git_stash.py:53:12: F821 Undefined name `_git`
+oprim/_git_status.py:46:11: F821 Undefined name `_git`
+oprim/_glob_match.py:43:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_file_io.py:82:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_mcp.py:103:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_mcp.py:117:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_mcp.py:130:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_mcp.py:146:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_mcp.py:198:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_mcp.py:248:101: E501 Line too long (101 > 100)
+oprim/_hb_network.py:86:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:94:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:135:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:143:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:180:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:188:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:235:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:243:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:253:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_network.py:324:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_hb_process.py:263:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_html_to_markdown.py:69:101: E501 Line too long (124 > 100)
+oprim/_html_to_markdown.py:72:101: E501 Line too long (103 > 100)
+oprim/_html_to_markdown.py:100:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_http_fetch.py:46:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_http_fetch.py:73:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_http_fetch.py:75:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_kdj.py:43:5: N806 Variable `T` in function should be lowercase
+oprim/_kdj.py:51:101: E501 Line too long (102 > 100)
+oprim/_kdj.py:54:5: E741 Ambiguous variable name: `l`
+oprim/_limit_status_calc.py:13:97: E501 Line too long (103 > 100)
+oprim/_limit_status_calc.py:32:5: N806 Variable `T` in function should be lowercase
+oprim/_limit_status_calc.py:37:101: E501 Line too long (110 > 100)
+oprim/_llm_extract_ku.py:19:101: E501 Line too long (124 > 100)
+oprim/_llm_extract_ku.py:29:101: E501 Line too long (112 > 100)
+oprim/_llm_query_expand.py:43:101: E501 Line too long (112 > 100)
+oprim/_llm_query_expand.py:47:101: E501 Line too long (103 > 100)
+oprim/_load_image.py:71:19: F821 Undefined name `_IMAGE_MIME`
+oprim/_load_image.py:74:37: F821 Undefined name `_IMAGE_MIME`
+oprim/_load_image.py:80:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_load_image.py:85:20: F821 Undefined name `_IMAGE_MIME`
+oprim/_lsp_code_action.py:59:101: E501 Line too long (246 > 100)
+oprim/_lsp_code_action.py:125:25: F821 Undefined name `_text_doc`
+oprim/_lsp_code_action.py:127:22: F821 Undefined name `_position`
+oprim/_lsp_code_action.py:128:20: F821 Undefined name `_position`
+oprim/_lsp_code_action.py:138:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_code_action.py:146:22: F821 Undefined name `_parse_workspace_edit`
+oprim/_lsp_completion.py:59:101: E501 Line too long (246 > 100)
+oprim/_lsp_completion.py:126:16: F821 Undefined name `_text_doc_pos`
+oprim/_lsp_completion.py:129:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_definition.py:58:101: E501 Line too long (246 > 100)
+oprim/_lsp_definition.py:118:13: F821 Undefined name `_text_doc_pos`
+oprim/_lsp_definition.py:121:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_definition.py:123:12: F821 Undefined name `_parse_locations`
+oprim/_lsp_diagnostics.py:58:101: E501 Line too long (246 > 100)
+oprim/_lsp_diagnostics.py:114:30: F821 Undefined name `_text_doc`
+oprim/_lsp_diagnostics.py:117:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_document_symbols.py:58:101: E501 Line too long (246 > 100)
+oprim/_lsp_document_symbols.py:114:30: F821 Undefined name `_text_doc`
+oprim/_lsp_document_symbols.py:117:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_document_symbols.py:119:12: F821 Undefined name `_parse_symbols`
+oprim/_lsp_format.py:58:101: E501 Line too long (246 > 100)
+oprim/_lsp_format.py:119:33: F821 Undefined name `_text_doc`
+oprim/_lsp_format.py:127:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_format.py:129:12: F821 Undefined name `_parse_text_edits`
+oprim/_lsp_hover.py:58:101: E501 Line too long (246 > 100)
+oprim/_lsp_hover.py:118:13: F821 Undefined name `_text_doc_pos`
+oprim/_lsp_hover.py:121:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_references.py:58:101: E501 Line too long (246 > 100)
+oprim/_lsp_references.py:121:19: F821 Undefined name `_text_doc_pos`
+oprim/_lsp_references.py:126:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_references.py:128:12: F821 Undefined name `_parse_locations`
+oprim/_lsp_rename.py:58:101: E501 Line too long (246 > 100)
+oprim/_lsp_rename.py:121:16: F821 Undefined name `_text_doc_pos`
+oprim/_lsp_rename.py:124:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_rename.py:129:12: F821 Undefined name `_parse_workspace_edit`
+oprim/_lsp_workspace_symbols.py:57:101: E501 Line too long (246 > 100)
+oprim/_lsp_workspace_symbols.py:114:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_lsp_workspace_symbols.py:116:12: F821 Undefined name `_parse_symbols`
+oprim/_macro_types.py:23:101: E501 Line too long (126 > 100)
+oprim/_make_event.py:10:19: A002 Function argument `type` is shadowing a Python builtin
+oprim/_mcp_call_tool.py:47:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_mcp_list_tools.py:40:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_metrics_logs.py:53:101: E501 Line too long (104 > 100)
+oprim/_mmap_zero_copy_rw.py:74:95: E501 Line too long (102 > 100)
+oprim/_oapen_search.py:21:42: A002 Function argument `type` is shadowing a Python builtin
+oprim/_oapen_search.py:64:76: N803 Argument name `SourceResult` should be lowercase
+oprim/_oapen_search.py:116:101: E501 Line too long (108 > 100)
+oprim/_parse_atom_feed.py:32:16: N817 CamelCase `ElementTree` imported as acronym `ET`
+oprim/_parse_ripgrep_output.py:9:39: A002 Function argument `format` is shadowing a Python builtin
+oprim/_parse_tool_calls.py:54:21: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_parse_tool_calls.py:74:17: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_path_resolve.py:38:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_pattern_detection.py:39:5: N806 Variable `T` in function should be lowercase
+oprim/_pattern_detection.py:45:5: E741 Ambiguous variable name: `l`
+oprim/_podcast_episode_parser.py:36:16: N817 CamelCase `ElementTree` imported as acronym `ET`
+oprim/_point_process.py:11:5: N803 Argument name `T` should be lowercase
+oprim/_point_process.py:50:5: N806 Variable `A` in function should be lowercase
+oprim/_providers/duix.py:160:101: E501 Line too long (101 > 100)
+oprim/_quant_analysis.py:63:101: E501 Line too long (101 > 100)
+oprim/_quant_analysis.py:76:101: E501 Line too long (129 > 100)
+oprim/_quant_analysis.py:87:101: E501 Line too long (128 > 100)
+oprim/_quant_analysis.py:91:101: E501 Line too long (109 > 100)
+oprim/_quant_analysis.py:109:101: E501 Line too long (104 > 100)
+oprim/_quant_analysis.py:113:101: E501 Line too long (101 > 100)
+oprim/_quant_analysis.py:129:101: E501 Line too long (121 > 100)
+oprim/_quant_analysis.py:132:101: E501 Line too long (110 > 100)
+oprim/_quant_analysis.py:140:101: E501 Line too long (115 > 100)
+oprim/_quant_analysis.py:154:101: E501 Line too long (110 > 100)
+oprim/_quant_analysis.py:158:101: E501 Line too long (111 > 100)
+oprim/_quant_analysis.py:177:101: E501 Line too long (113 > 100)
+oprim/_quant_analysis.py:182:101: E501 Line too long (124 > 100)
+oprim/_quant_analysis.py:186:101: E501 Line too long (135 > 100)
+oprim/_quant_analysis.py:197:101: E501 Line too long (104 > 100)
+oprim/_quant_analysis.py:210:101: E501 Line too long (140 > 100)
+oprim/_quant_analysis.py:214:101: E501 Line too long (123 > 100)
+oprim/_quant_analysis.py:232:101: E501 Line too long (104 > 100)
+oprim/_quant_analysis.py:286:101: E501 Line too long (108 > 100)
+oprim/_quant_analysis.py:374:101: E501 Line too long (101 > 100)
+oprim/_read_gitignore.py:34:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_read_skill_frontmatter.py:86:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_read_skill_frontmatter.py:88:9: F821 Undefined name `_FRONTMATTER_RE`
+oprim/_read_skill_frontmatter.py:96:14: F821 Undefined name `_parse_simple_yaml`
+oprim/_read_skill_frontmatter.py:98:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_read_skill_frontmatter.py:98:101: E501 Line too long (108 > 100)
+oprim/_read_skill_frontmatter.py:108:15: F821 Undefined name `_to_str_list`
+oprim/_read_skill_frontmatter.py:109:15: F821 Undefined name `_to_dict_list`
+oprim/_read_skill_frontmatter.py:110:14: F821 Undefined name `_to_str_list`
+oprim/_redact_secrets.py:49:52: F821 Undefined name `_DEFAULT_PATTERNS`
+oprim/_redact_secrets.py:61:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_resolve_slash_command.py:10:5: A002 Function argument `input` is shadowing a Python builtin
+oprim/_rubric_score.py:170:62: E741 Ambiguous variable name: `l`
+oprim/_run_hook.py:82:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_run_hook.py:100:101: E501 Line too long (119 > 100)
+oprim/_signal_analysis.py:32:101: E501 Line too long (118 > 100)
+oprim/_signal_analysis.py:420:101: E501 Line too long (117 > 100)
+oprim/_signal_processing.py:129:13: N806 Variable `R` in function should be lowercase
+oprim/_signal_processing.py:130:13: N806 Variable `S` in function should be lowercase
+oprim/_signal_processing.py:144:5: N806 Variable `H` in function should be lowercase
+oprim/_signal_processing.py:197:5: N802 Function name `H_change_rate_std` should be lowercase
+oprim/_signal_processing.py:219:101: E501 Line too long (104 > 100)
+oprim/_signal_processing.py:249:101: E501 Line too long (104 > 100)
+oprim/_snapshot_conversation.py:89:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_snapshot_conversation.py:98:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_soul_config_rewrite.py:66:101: E501 Line too long (101 > 100)
+oprim/_soul_config_rewrite.py:93:13: SIM105 Use `contextlib.suppress(OSError)` instead of `try`-`except`-`pass`
+oprim/_statistics.py:188:101: E501 Line too long (102 > 100)
+oprim/_theme_to_sw_industry_mapping.py:49:94: E501 Line too long (103 > 100)
+oprim/_time_series.py:372:101: E501 Line too long (103 > 100)
+oprim/_time_series.py:411:9: E741 Ambiguous variable name: `l`
+oprim/_time_series.py:619:101: E501 Line too long (103 > 100)
+oprim/_topology.py:74:101: E501 Line too long (112 > 100)
+oprim/_transcribe_audio.py:7:101: E501 Line too long (114 > 100)
+oprim/_transcribe_audio.py:78:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_transcribe_audio.py:117:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_web_search.py:42:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/_web_search_fetch.py:89:101: E501 Line too long (115 > 100)
+oprim/bkt.py:46:92: E501 Line too long (118 > 100)
+oprim/bkt.py:47:89: E501 Line too long (113 > 100)
+oprim/bkt.py:48:89: E501 Line too long (115 > 100)
+oprim/bkt.py:50:93: E501 Line too long (123 > 100)
+oprim/calibration.py:20:101: E501 Line too long (104 > 100)
+oprim/canvas_node_execute.py:49:101: E501 Line too long (116 > 100)
+oprim/character_three_view.py:49:101: E501 Line too long (120 > 100)
+oprim/character_three_view.py:56:101: E501 Line too long (109 > 100)
+oprim/cointegration_test.py:49:5: N806 Variable `X` in function should be lowercase
+oprim/crypto/ed25519.py:29:16: N803 Argument name `P` should be lowercase
+oprim/crypto/ed25519.py:29:26: N803 Argument name `Q` should be lowercase
+oprim/crypto/ed25519.py:30:5: N806 Variable `A` in function should be lowercase
+oprim/crypto/ed25519.py:31:5: N806 Variable `B` in function should be lowercase
+oprim/crypto/ed25519.py:32:5: N806 Variable `C` in function should be lowercase
+oprim/crypto/ed25519.py:33:5: N806 Variable `D` in function should be lowercase
+oprim/crypto/ed25519.py:34:5: N806 Variable `E` in function should be lowercase
+oprim/crypto/ed25519.py:34:8: N806 Variable `F` in function should be lowercase
+oprim/crypto/ed25519.py:34:11: N806 Variable `G` in function should be lowercase
+oprim/crypto/ed25519.py:34:14: N806 Variable `H` in function should be lowercase
+oprim/crypto/ed25519.py:38:24: N803 Argument name `P` should be lowercase
+oprim/crypto/ed25519.py:39:5: N806 Variable `Q` in function should be lowercase
+oprim/crypto/ed25519.py:42:13: N806 Variable `Q` in function should be lowercase
+oprim/crypto/ed25519.py:43:9: N806 Variable `P` in function should be lowercase
+oprim/crypto/ed25519.py:48:19: N803 Argument name `P` should be lowercase
+oprim/crypto/ed25519.py:155:5: N806 Variable `A` in function should be lowercase
+oprim/crypto/ed25519.py:157:5: N806 Variable `R_bytes` in function should be lowercase
+oprim/crypto/ed25519.py:194:9: N806 Variable `R` in function should be lowercase
+oprim/crypto/ed25519.py:195:9: N806 Variable `A` in function should be lowercase
+oprim/crypto/ed25519.py:273:30: E741 Ambiguous variable name: `l`
+oprim/deflated_sharpe.py:54:5: N806 Variable `T` in function should be lowercase
+oprim/derivatives/_base.py:4:12: N803 Argument name `S` should be lowercase
+oprim/derivatives/_base.py:4:15: N803 Argument name `K` should be lowercase
+oprim/derivatives/_base.py:4:18: N803 Argument name `T` should be lowercase
+oprim/derivatives/_base.py:14:25: N803 Argument name `S` should be lowercase
+oprim/derivatives/_base.py:14:28: N803 Argument name `K` should be lowercase
+oprim/derivatives/_base.py:14:31: N803 Argument name `T` should be lowercase
+oprim/derivatives/american.py:146:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/american.py:146:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/american.py:146:11: N806 Variable `T` in function should be lowercase
+oprim/derivatives/american.py:165:5: N806 Variable `Z` in function should be lowercase
+oprim/derivatives/american.py:187:9: N806 Variable `St` in function should be lowercase
+oprim/derivatives/american.py:207:9: N806 Variable `X` in function should be lowercase
+oprim/derivatives/american.py:208:9: N806 Variable `Y` in function should be lowercase
+oprim/derivatives/american.py:211:9: N806 Variable `X_mean` in function should be lowercase
+oprim/derivatives/american.py:212:9: N806 Variable `X_std` in function should be lowercase
+oprim/derivatives/american.py:213:9: N806 Variable `X_norm` in function should be lowercase
+oprim/derivatives/american.py:216:13: N806 Variable `A` in function should be lowercase
+oprim/derivatives/binomial_tree.py:85:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/binomial_tree.py:85:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/binomial_tree.py:85:11: N806 Variable `T` in function should be lowercase
+oprim/derivatives/binomial_tree.py:125:5: N806 Variable `ST` in function should be lowercase
+oprim/derivatives/binomial_tree.py:134:5: N806 Variable `V` in function should be lowercase
+oprim/derivatives/binomial_tree.py:137:9: N806 Variable `V` in function should be lowercase
+oprim/derivatives/binomial_tree.py:142:13: N806 Variable `S_nodes` in function should be lowercase
+oprim/derivatives/binomial_tree.py:149:13: N806 Variable `V` in function should be lowercase
+oprim/derivatives/black_scholes.py:72:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/black_scholes.py:72:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/black_scholes.py:72:11: N806 Variable `T` in function should be lowercase
+oprim/derivatives/black_scholes.py:134:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/black_scholes.py:134:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/black_scholes.py:134:11: N806 Variable `T` in function should be lowercase
+oprim/derivatives/black_scholes.py:139:5: N806 Variable `N` in function should be lowercase
+oprim/derivatives/black_scholes.py:153:5: N806 Variable `exp_qT` in function should be lowercase
+oprim/derivatives/black_scholes.py:154:5: N806 Variable `exp_rT` in function should be lowercase
+oprim/derivatives/black_scholes.py:155:5: N806 Variable `sqrt_T` in function should be lowercase
+oprim/derivatives/black_scholes.py:247:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/black_scholes.py:247:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/black_scholes.py:247:11: N806 Variable `T` in function should be lowercase
+oprim/derivatives/black_scholes.py:259:5: SIM102 Use a single `if` statement instead of nested `if` statements
+oprim/derivatives/black_scholes.py:272:9: N806 Variable `log_SK` in function should be lowercase
+oprim/derivatives/black_scholes.py:275:9: N806 Variable `exp_qT` in function should be lowercase
+oprim/derivatives/black_scholes.py:276:9: N806 Variable `exp_rT` in function should be lowercase
+oprim/derivatives/exotic.py:20:17: N803 Argument name `S` should be lowercase
+oprim/derivatives/exotic.py:20:27: N803 Argument name `K` should be lowercase
+oprim/derivatives/exotic.py:20:37: N803 Argument name `T` should be lowercase
+oprim/derivatives/exotic.py:40:5: N803 Argument name `S` should be lowercase
+oprim/derivatives/exotic.py:40:15: N803 Argument name `K` should be lowercase
+oprim/derivatives/exotic.py:40:25: N803 Argument name `H` should be lowercase
+oprim/derivatives/exotic.py:40:35: N803 Argument name `T` should be lowercase
+oprim/derivatives/exotic.py:63:5: N806 Variable `sqrt_T` in function should be lowercase
+oprim/derivatives/exotic.py:76:5: N806 Variable `N` in function should be lowercase
+oprim/derivatives/exotic.py:81:9: N802 Function name `A` should be lowercase
+oprim/derivatives/exotic.py:87:9: N802 Function name `B` should be lowercase
+oprim/derivatives/exotic.py:93:9: N802 Function name `C` should be lowercase
+oprim/derivatives/exotic.py:99:9: N802 Function name `D` should be lowercase
+oprim/derivatives/exotic.py:105:9: N802 Function name `E_rebate` should be lowercase
+oprim/derivatives/exotic.py:111:9: N802 Function name `F_rebate` should be lowercase
+oprim/derivatives/exotic.py:183:23: N803 Argument name `S` should be lowercase
+oprim/derivatives/exotic.py:183:26: N803 Argument name `K` should be lowercase
+oprim/derivatives/exotic.py:183:29: N803 Argument name `H` should be lowercase
+oprim/derivatives/exotic.py:183:32: N803 Argument name `T` should be lowercase
+oprim/derivatives/exotic.py:186:5: N806 Variable `F` in function should be lowercase
+oprim/derivatives/exotic.py:281:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/exotic.py:281:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/exotic.py:281:11: N806 Variable `H` in function should be lowercase
+oprim/derivatives/exotic.py:281:14: N806 Variable `T` in function should be lowercase
+oprim/derivatives/exotic.py:281:101: E501 Line too long (111 > 100)
+oprim/derivatives/exotic.py:302:5: N806 Variable `Z` in function should be lowercase
+oprim/derivatives/exotic.py:308:5: SIM108 Use ternary operator `breached = np.any(paths <= H, axis=1) if "down" in barrier_type else np.any(paths >= H, axis=1)` instead of `if`-`else`-block
+oprim/derivatives/exotic.py:313:5: N806 Variable `ST` in function should be lowercase
+oprim/derivatives/exotic.py:339:5: N803 Argument name `S` should be lowercase
+oprim/derivatives/exotic.py:339:15: N803 Argument name `K` should be lowercase
+oprim/derivatives/exotic.py:339:25: N803 Argument name `T` should be lowercase
+oprim/derivatives/exotic.py:353:9: N806 Variable `ST` in function should be lowercase
+oprim/derivatives/exotic.py:363:5: N806 Variable `sqrt_T` in function should be lowercase
+oprim/derivatives/exotic.py:448:13: N806 Variable `M0` in function should be lowercase
+oprim/derivatives/exotic.py:587:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/exotic.py:587:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/exotic.py:587:11: N806 Variable `T` in function should be lowercase
+oprim/derivatives/exotic.py:608:5: N806 Variable `Z` in function should be lowercase
+oprim/derivatives/exotic.py:613:5: N806 Variable `ST` in function should be lowercase
+oprim/derivatives/monte_carlo.py:17:20: N803 Argument name `S` should be lowercase
+oprim/derivatives/monte_carlo.py:17:30: N803 Argument name `K` should be lowercase
+oprim/derivatives/monte_carlo.py:17:40: N803 Argument name `T` should be lowercase
+oprim/derivatives/monte_carlo.py:97:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/monte_carlo.py:97:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/monte_carlo.py:97:11: N806 Variable `T` in function should be lowercase
+oprim/derivatives/monte_carlo.py:113:5: N806 Variable `vol_sqrt_T` in function should be lowercase
+oprim/derivatives/monte_carlo.py:119:9: N806 Variable `Z` in function should be lowercase
+oprim/derivatives/monte_carlo.py:120:9: N806 Variable `Z_full` in function should be lowercase
+oprim/derivatives/monte_carlo.py:123:9: N806 Variable `Z_full` in function should be lowercase
+oprim/derivatives/monte_carlo.py:128:9: N806 Variable `ST` in function should be lowercase
+oprim/derivatives/monte_carlo.py:130:9: N806 Variable `ST` in function should be lowercase
+oprim/derivatives/monte_carlo.py:142:9: N806 Variable `ST_mean_analytic` in function should be lowercase
+oprim/derivatives/monte_carlo.py:241:5: N806 Variable `S` in function should be lowercase
+oprim/derivatives/monte_carlo.py:241:8: N806 Variable `K` in function should be lowercase
+oprim/derivatives/monte_carlo.py:241:11: N806 Variable `T` in function should be lowercase
+oprim/derivatives/monte_carlo.py:258:5: N806 Variable `Z` in function should be lowercase
+oprim/derivatives/monte_carlo.py:266:5: N806 Variable `ST` in function should be lowercase
+oprim/echo_loop.py:148:101: E501 Line too long (105 > 100)
+oprim/echo_loop.py:157:101: E501 Line too long (112 > 100)
+oprim/echo_loop.py:350:101: E501 Line too long (103 > 100)
+oprim/embed_text.py:89:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/external/clients/sd_client.py:1:15: E701 Multiple statements on one line (colon)
+oprim/external/clients/searxng_client.py:1:20: E701 Multiple statements on one line (colon)
+oprim/external/clients/searxng_client.py:2:22: E701 Multiple statements on one line (colon)
+oprim/external/clients/whisper_client.py:1:20: E701 Multiple statements on one line (colon)
+oprim/external/clients/whisper_client.py:2:21: E701 Multiple statements on one line (colon)
+oprim/file_type_detector.py:20:101: E501 Line too long (101 > 100)
+oprim/fs.py:55:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:96:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:98:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:141:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:180:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:223:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:262:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:264:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:317:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:359:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fs.py:399:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/fsrs_engine.py:90:5: N806 Variable `S` in function should be lowercase
+oprim/fsrs_engine.py:96:5: N806 Variable `DECAY` in function should be lowercase
+oprim/fsrs_engine.py:97:5: N806 Variable `FACTOR` in function should be lowercase
+oprim/generate_svg_diagram.py:167:5: N806 Variable `ISO_X_SCALE` in function should be lowercase
+oprim/generate_svg_diagram.py:168:5: N806 Variable `ISO_Y_SCALE` in function should be lowercase
+oprim/generate_svg_diagram.py:169:5: N806 Variable `Z_SCALE` in function should be lowercase
+oprim/git.py:43:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/git.py:45:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/hooks_image_skill.py:78:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/hooks_image_skill.py:96:101: E501 Line too long (119 > 100)
+oprim/hooks_image_skill.py:177:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/hooks_image_skill.py:256:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/hooks_image_skill.py:268:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/hooks_image_skill.py:268:101: E501 Line too long (108 > 100)
+oprim/hooks_image_skill.py:313:101: E501 Line too long (108 > 100)
+oprim/learning_metrics.py:64:82: E501 Line too long (111 > 100)
+oprim/llm/_embed_text.py:48:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm/_llm_complete.py:94:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm/_llm_stream.py:107:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm/_types.py:85:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm/_utils.py:30:32: E701 Multiple statements on one line (colon)
+oprim/llm/_utils.py:43:37: E701 Multiple statements on one line (colon)
+oprim/llm/llm_call.py:37:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm/llm_call.py:72:13: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm/llm_call.py:73:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm/llm_call.py:75:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm_complete.py:104:14: F821 Undefined name `_validate_messages`
+oprim/llm_complete.py:132:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/llm_complete.py:139:13: F821 Undefined name `_extract_usage`
+oprim/llm_complete.py:146:14: F821 Undefined name `_extract_text`
+oprim/llm_complete.py:147:20: F821 Undefined name `_extract_tool_calls`
+oprim/llm_oprims.py:20:101: E501 Line too long (101 > 100)
+oprim/llm_oprims.py:89:5: E722 Do not use bare `except`
+oprim/llm_stream.py:90:14: F821 Undefined name `_validate_messages`
+oprim/llm_stream.py:146:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:209:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:276:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:335:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:381:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:418:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:453:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:497:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:548:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:613:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:670:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:722:101: E501 Line too long (108 > 100)
+oprim/lsp.py:839:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:871:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:900:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:927:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:951:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:980:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:1010:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/lsp.py:1039:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/mcp/__init__.py:28:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/mcp/__init__.py:52:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/mean_reversion/ornstein_uhlenbeck.py:52:5: N806 Variable `X` in function should be lowercase
+oprim/mean_reversion/ornstein_uhlenbeck.py:53:5: N806 Variable `Y` in function should be lowercase
+oprim/mean_reversion/ornstein_uhlenbeck.py:119:9: N806 Variable `dX` in function should be lowercase
+oprim/mean_reversion/ornstein_uhlenbeck.py:120:9: N806 Variable `X_lag` in function should be lowercase
+oprim/mean_reversion/ornstein_uhlenbeck.py:133:9: N806 Variable `X` in function should be lowercase
+oprim/mean_reversion/ornstein_uhlenbeck.py:134:9: N806 Variable `Y` in function should be lowercase
+oprim/multi_angle.py:47:101: E501 Line too long (103 > 100)
+oprim/ocr_paper.py:110:101: E501 Line too long (109 > 100)
+oprim/ocr_paper.py:125:101: E501 Line too long (109 > 100)
+oprim/profiler_analyze.py:106:101: E501 Line too long (107 > 100)
+oprim/prompt.py:306:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/prompt.py:315:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/provider_health_check.py:14:101: E501 Line too long (159 > 100)
+oprim/recognition_update.py:94:101: E501 Line too long (108 > 100)
+oprim/shell.py:93:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/shell.py:95:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/shell.py:97:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/shell.py:147:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/similarity/vector.py:66:5: N806 Variable `_VALID_METRICS` in function should be lowercase
+oprim/solve_conic.py:34:31: N803 Argument name `A` should be lowercase
+oprim/solve_conic.py:34:41: N803 Argument name `B` should be lowercase
+oprim/solve_conic.py:34:51: N803 Argument name `C` should be lowercase
+oprim/solve_conic.py:49:5: N806 Variable `A` in function should be lowercase
+oprim/solve_conic.py:50:5: N806 Variable `D` in function should be lowercase
+oprim/solve_conic.py:51:5: N806 Variable `E` in function should be lowercase
+oprim/solve_conic.py:52:5: N806 Variable `F` in function should be lowercase
+oprim/solve_conic.py:72:5: N806 Variable `A` in function should be lowercase
+oprim/solve_conic.py:73:5: N806 Variable `C` in function should be lowercase
+oprim/solve_conic.py:74:5: N806 Variable `D` in function should be lowercase
+oprim/solve_conic.py:75:5: N806 Variable `E` in function should be lowercase
+oprim/solve_conic.py:76:5: N806 Variable `F` in function should be lowercase
+oprim/solve_conic.py:100:5: N806 Variable `A` in function should be lowercase
+oprim/solve_conic.py:101:5: N806 Variable `C` in function should be lowercase
+oprim/solve_conic.py:102:5: N806 Variable `D` in function should be lowercase
+oprim/solve_conic.py:103:5: N806 Variable `E` in function should be lowercase
+oprim/solve_conic.py:104:5: N806 Variable `F` in function should be lowercase
+oprim/solve_conic.py:202:9: N806 Variable `A` in function should be lowercase
+oprim/solve_conic.py:203:9: N806 Variable `B` in function should be lowercase
+oprim/solve_conic.py:204:9: N806 Variable `C` in function should be lowercase
+oprim/solve_function.py:44:101: E501 Line too long (109 > 100)
+oprim/solve_geometry3d.py:193:101: E501 Line too long (111 > 100)
+oprim/solve_sequence.py:112:101: E501 Line too long (104 > 100)
+oprim/speech_to_math.py:65:78: E501 Line too long (122 > 100)
+oprim/text.py:150:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/text.py:229:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/text.py:303:101: E501 Line too long (124 > 100)
+oprim/text.py:306:101: E501 Line too long (103 > 100)
+oprim/text.py:334:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/text.py:387:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/text.py:430:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/text.py:476:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+oprim/timeseries/_base.py:8:29: N803 Argument name `X` should be lowercase
+oprim/timeseries/_base.py:62:5: N806 Variable `T` in function should be lowercase
+oprim/timeseries/_base.py:89:5: N806 Variable `X` in function should be lowercase
+oprim/timeseries/_base.py:100:5: N806 Variable `XtX_inv` in function should be lowercase
+oprim/timeseries/causality.py:91:5: N806 Variable `X_r` in function should be lowercase
+oprim/timeseries/causality.py:97:5: N806 Variable `X_u` in function should be lowercase
+oprim/timeseries/cointegration.py:144:9: N806 Variable `X` in function should be lowercase
+oprim/timeseries/cointegration.py:146:9: N806 Variable `X` in function should be lowercase
+oprim/timeseries/cointegration.py:148:9: N806 Variable `X` in function should be lowercase
+oprim/timeseries/cointegration.py:312:5: N806 Variable `dY` in function should be lowercase
+oprim/timeseries/cointegration.py:318:5: N806 Variable `T` in function should be lowercase
+oprim/timeseries/cointegration.py:324:5: N806 Variable `Y_lag` in function should be lowercase
+oprim/timeseries/cointegration.py:328:5: N806 Variable `Z2` in function should be lowercase
+oprim/timeseries/cointegration.py:333:9: N806 Variable `Z2` in function should be lowercase
+oprim/timeseries/cointegration.py:336:5: N806 Variable `Z0` in function should be lowercase
+oprim/timeseries/cointegration.py:343:9: N806 Variable `Z2_aug` in function should be lowercase
+oprim/timeseries/cointegration.py:345:9: N806 Variable `Z2_aug` in function should be lowercase
+oprim/timeseries/cointegration.py:348:16: N803 Argument name `Y` should be lowercase
+oprim/timeseries/cointegration.py:348:19: N803 Argument name `X` should be lowercase
+oprim/timeseries/cointegration.py:350:101: E501 Line too long (101 > 100)
+oprim/timeseries/cointegration.py:353:20: N803 Argument name `Y` should be lowercase
+oprim/timeseries/cointegration.py:353:23: N803 Argument name `X` should be lowercase
+oprim/timeseries/cointegration.py:359:15: N806 Variable `R0` in function should be lowercase
+oprim/timeseries/cointegration.py:361:15: N806 Variable `R1` in function should be lowercase
+oprim/timeseries/cointegration.py:364:5: N806 Variable `S00` in function should be lowercase
+oprim/timeseries/cointegration.py:365:5: N806 Variable `S01` in function should be lowercase
+oprim/timeseries/cointegration.py:366:5: N806 Variable `S11` in function should be lowercase
+oprim/timeseries/cointegration.py:372:9: N806 Variable `S11_inv` in function should be lowercase
+oprim/timeseries/cointegration.py:373:9: N806 Variable `S00_inv` in function should be lowercase
+oprim/timeseries/cointegration.py:375:9: N806 Variable `S11_inv` in function should be lowercase
+oprim/timeseries/cointegration.py:376:9: N806 Variable `S00_inv` in function should be lowercase
+oprim/timeseries/cointegration.py:378:5: N806 Variable `M` in function should be lowercase
+oprim/timeseries/distribution_tests.py:69:5: N806 Variable `S` in function should be lowercase
+oprim/timeseries/distribution_tests.py:70:5: N806 Variable `K` in function should be lowercase
+oprim/timeseries/distribution_tests.py:71:5: N806 Variable `excess_K` in function should be lowercase
+oprim/timeseries/heteroskedasticity.py:60:9: N806 Variable `X` in function should be lowercase
+oprim/timeseries/heteroskedasticity.py:62:9: N806 Variable `X` in function should be lowercase
+oprim/timeseries/heteroskedasticity.py:65:9: N806 Variable `X` in function should be lowercase
+oprim/timeseries/heteroskedasticity.py:77:5: N806 Variable `X_aug` in function should be lowercase
+oprim/timeseries/stationarity.py:178:13: N806 Variable `T` in function should be lowercase
+oprim/timeseries/stationarity.py:293:9: N806 Variable `X` in function should be lowercase
+oprim/timeseries/stationarity.py:297:5: N806 Variable `S` in function should be lowercase
+oprim/vector_db/lancedb.py:40:9: A002 Function argument `filter` is shadowing a Python builtin
+oprim/vector_db/lancedb.py:143:9: A002 Function argument `filter` is shadowing a Python builtin
+oprim/volatility/egarch.py:27:5: N806 Variable `T` in function should be lowercase
+oprim/volatility/egarch.py:110:5: N806 Variable `T` in function should be lowercase
+oprim/volatility/garch.py:23:5: N806 Variable `T` in function should be lowercase
+oprim/volatility/garch.py:95:5: N806 Variable `T` in function should be lowercase
+oprim/volatility/gjr_garch.py:29:5: N806 Variable `T` in function should be lowercase
+oprim/volatility/gjr_garch.py:115:5: N806 Variable `T` in function should be lowercase
+oprim/volatility/gjr_garch.py:187:101: E501 Line too long (112 > 100)
+oprim/volatility/range_based.py:64:5: E741 Ambiguous variable name: `l`
+oprim/volatility/range_based.py:122:5: E741 Ambiguous variable name: `l`
+oprim/volatility/range_based.py:192:5: E741 Ambiguous variable name: `l`
+oprim/zscore_signal.py:33:5: N806 Variable `T` in function should be lowercase
+tests/_providers/test_longcat_avatar.py:68:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/_providers/test_longcat_avatar.py:87:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/_providers/test_longcat_avatar.py:106:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/classifier/test_detect_image_exif.py:74:67: N806 Variable `mock_Image` in function should be lowercase
+tests/classifier/test_detect_image_exif.py:94:67: N806 Variable `mock_Image` in function should be lowercase
+tests/classifier/test_detect_image_exif.py:113:67: N806 Variable `mock_Image` in function should be lowercase
+tests/classifier/test_extract_text_sample.py:60:101: E501 Line too long (108 > 100)
+tests/derivatives/test_american.py:15:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_american.py:15:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_american.py:15:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_american.py:26:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_american.py:26:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_american.py:26:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_american.py:39:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_american.py:39:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_american.py:39:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:15:9: N803 Argument name `S` should be lowercase
+tests/derivatives/test_binomial_tree.py:15:12: N803 Argument name `K` should be lowercase
+tests/derivatives/test_binomial_tree.py:15:15: N803 Argument name `T` should be lowercase
+tests/derivatives/test_binomial_tree.py:23:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:23:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:23:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:36:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:36:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:36:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:47:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:47:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:47:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:59:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:59:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:59:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:71:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:71:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:71:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:127:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:127:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:138:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:138:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:138:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:153:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:153:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_binomial_tree.py:153:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_black_scholes.py:36:9: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_black_scholes.py:36:12: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_black_scholes.py:36:15: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_black_scholes.py:53:9: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_black_scholes.py:53:12: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_black_scholes.py:53:15: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_black_scholes.py:140:9: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_black_scholes.py:167:9: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_black_scholes.py:167:12: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_black_scholes.py:167:15: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_black_scholes.py:175:9: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_black_scholes.py:175:12: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_black_scholes.py:175:15: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_black_scholes.py:239:9: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_black_scholes.py:239:12: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_black_scholes.py:239:15: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_black_scholes.py:272:9: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_black_scholes.py:272:12: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_black_scholes.py:272:15: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:16:9: N803 Argument name `S` should be lowercase
+tests/derivatives/test_exotic.py:16:12: N803 Argument name `K` should be lowercase
+tests/derivatives/test_exotic.py:16:15: N803 Argument name `T` should be lowercase
+tests/derivatives/test_exotic.py:26:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_exotic.py:26:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_exotic.py:26:11: N806 Variable `H` in function should be lowercase
+tests/derivatives/test_exotic.py:26:14: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:37:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_exotic.py:37:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_exotic.py:37:11: N806 Variable `H` in function should be lowercase
+tests/derivatives/test_exotic.py:37:14: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:48:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_exotic.py:48:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_exotic.py:48:11: N806 Variable `H` in function should be lowercase
+tests/derivatives/test_exotic.py:48:14: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:57:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_exotic.py:57:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_exotic.py:57:11: N806 Variable `H` in function should be lowercase
+tests/derivatives/test_exotic.py:57:14: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:67:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_exotic.py:67:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_exotic.py:67:11: N806 Variable `H` in function should be lowercase
+tests/derivatives/test_exotic.py:67:14: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:78:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_exotic.py:78:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_exotic.py:78:11: N806 Variable `H` in function should be lowercase
+tests/derivatives/test_exotic.py:78:14: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:108:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_exotic.py:108:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_exotic.py:108:11: N806 Variable `H` in function should be lowercase
+tests/derivatives/test_exotic.py:108:14: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:144:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_exotic.py:144:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_exotic.py:144:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_exotic.py:464:5: N806 Variable `F` in function should be lowercase
+tests/derivatives/test_exotic.py:475:5: N806 Variable `F` in function should be lowercase
+tests/derivatives/test_exotic.py:485:5: N806 Variable `F` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:13:9: N803 Argument name `S` should be lowercase
+tests/derivatives/test_monte_carlo.py:13:12: N803 Argument name `K` should be lowercase
+tests/derivatives/test_monte_carlo.py:13:15: N803 Argument name `T` should be lowercase
+tests/derivatives/test_monte_carlo.py:23:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:23:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:23:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:32:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:32:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:32:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:42:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:42:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:42:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:113:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:113:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:113:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:123:5: N806 Variable `S` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:123:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_monte_carlo.py:123:11: N806 Variable `T` in function should be lowercase
+tests/derivatives/test_sabr.py:68:5: N806 Variable `F` in function should be lowercase
+tests/derivatives/test_sabr.py:68:8: N806 Variable `K` in function should be lowercase
+tests/derivatives/test_sabr.py:68:11: N806 Variable `T` in function should be lowercase
+tests/distance/test_distributional_distance.py:169:101: E501 Line too long (103 > 100)
+tests/embedding/test_embed_text.py:71:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/embedding/test_embed_text.py:80:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/embedding/test_embed_text.py:98:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/finance/test_nelson_siegel_fit.py:18:101: E501 Line too long (107 > 100)
+tests/finance/test_nelson_siegel_fit.py:31:101: E501 Line too long (102 > 100)
+tests/fulltext/test_tantivy.py:25:101: E501 Line too long (126 > 100)
+tests/fulltext/test_tantivy.py:26:101: E501 Line too long (126 > 100)
+tests/fulltext/test_tantivy.py:120:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/llm/test_llm_call.py:63:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/llm/test_llm_call.py:71:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/llm/test_llm_call.py:86:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/llm/test_llm_call.py:97:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/llm/test_llm_call.py:109:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/llm/test_llm_call.py:109:101: E501 Line too long (111 > 100)
+tests/llm/test_llm_call.py:166:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/markets/test_sector_strength_proxy.py:44:101: E501 Line too long (104 > 100)
+tests/mean_reversion/test_ornstein_uhlenbeck.py:17:5: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:20:101: E501 Line too long (102 > 100)
+tests/mean_reversion/test_ornstein_uhlenbeck.py:28:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:34:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:45:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:58:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:66:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:74:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:87:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:100:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:106:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:113:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:119:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:134:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:141:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:148:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:150:9: N806 Variable `dX` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:151:9: N806 Variable `X_lag` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:172:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:181:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:187:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:193:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:201:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:207:9: N806 Variable `X` in function should be lowercase
+tests/mean_reversion/test_ornstein_uhlenbeck.py:209:101: E501 Line too long (101 > 100)
+tests/parser/test_parse_pdf.py:103:101: E501 Line too long (107 > 100)
+tests/parser/test_parse_pdf.py:114:101: E501 Line too long (107 > 100)
+tests/parser/test_parse_pdf.py:120:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/parser/test_parse_pdf.py:127:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/parser/test_parse_pdf.py:170:14: B017 Do not assert blind exception: `Exception`
+tests/point_process/test_hawkes_nll.py:41:9: N806 Variable `T` in function should be lowercase
+tests/point_process/test_hawkes_nll.py:50:9: N802 Function name `test_nll_depends_on_T` should be lowercase
+tests/point_process/test_hawkes_nll.py:58:9: N802 Function name `test_A_recursive_accumulation` should be lowercase
+tests/point_process/test_hawkes_nll.py:62:9: N806 Variable `T` in function should be lowercase
+tests/signal_processing/test_signal_processing.py:110:9: N806 Variable `H` in function should be lowercase
+tests/signal_processing/test_signal_processing.py:116:9: N806 Variable `H` in function should be lowercase
+tests/signal_processing/test_signal_processing.py:128:9: N806 Variable `H` in function should be lowercase
+tests/signal_processing/test_signal_processing.py:141:9: N806 Variable `mean_H` in function should be lowercase
+tests/signal_processing/test_signal_processing.py:154:9: N806 Variable `H` in function should be lowercase
+tests/signature/test_path_signature.py:23:8: N806 Variable `N` in function should be lowercase
+tests/signature/test_path_signature.py:74:5: N806 Variable `N` in function should be lowercase
+tests/similarity/test_vector_similarity.py:31:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:43:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:54:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:65:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:80:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:92:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:104:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:116:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:127:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:139:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:156:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:171:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:178:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:186:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:196:5: N806 Variable `C` in function should be lowercase
+tests/similarity/test_vector_similarity.py:206:5: N806 Variable `C` in function should be lowercase
+tests/technical/test_bands_extra.py:18:8: E741 Ambiguous variable name: `l`
+tests/technical/test_bands_extra.py:24:8: E741 Ambiguous variable name: `l`
+tests/technical/test_bands_extra.py:33:8: E741 Ambiguous variable name: `l`
+tests/technical/test_bands_extra.py:39:8: E741 Ambiguous variable name: `l`
+tests/technical/test_bands_extra.py:50:8: E741 Ambiguous variable name: `l`
+tests/technical/test_bands_extra.py:56:8: E741 Ambiguous variable name: `l`
+tests/technical/test_bands_extra.py:62:8: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:19:8: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:26:8: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:37:8: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:47:8: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:55:8: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:63:8: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:71:8: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:122:5: E741 Ambiguous variable name: `l`
+tests/technical/test_chandelier_exit.py:132:5: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:20:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:28:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:36:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:44:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:52:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:58:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:71:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:77:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:85:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:91:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:99:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:110:5: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:124:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:130:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:136:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:144:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:150:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:158:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:166:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:179:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:185:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:191:8: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:199:5: E741 Ambiguous variable name: `l`
+tests/technical/test_oscillators_extra.py:210:5: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:52:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:57:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:65:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:73:9: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:80:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:89:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:95:9: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:119:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:124:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:131:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:137:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:144:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:151:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:161:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:172:9: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:179:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:188:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:193:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:200:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:206:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:213:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:219:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:236:9: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:243:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:248:12: E741 Ambiguous variable name: `l`
+tests/technical/test_trend.py:256:9: E741 Ambiguous variable name: `l`
+tests/technical/test_volume.py:69:8: E741 Ambiguous variable name: `l`
+tests/technical/test_volume.py:75:8: E741 Ambiguous variable name: `l`
+tests/technical/test_volume.py:83:8: E741 Ambiguous variable name: `l`
+tests/technical/test_volume.py:91:8: E741 Ambiguous variable name: `l`
+tests/technical/test_volume.py:99:8: E741 Ambiguous variable name: `l`
+tests/technical/test_volume.py:110:8: E741 Ambiguous variable name: `l`
+tests/technical/test_volume.py:116:8: E741 Ambiguous variable name: `l`
+tests/technical/test_volume.py:126:5: E741 Ambiguous variable name: `l`
+tests/test_aegis_b2_appstore.py:69:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_aegis_b2_appstore.py:78:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_aegis_b2_appstore.py:89:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_aegis_b2_appstore.py:100:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_aegis_b2_caddy.py:128:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_aegis_b2_caddy.py:186:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_aegis_b2_docker.py:1:101: E501 Line too long (104 > 100)
+tests/test_aegis_b2_docker.py:14:1: E402 Module level import not at top of file
+tests/test_aegis_b2_docker.py:24:1: E402 Module level import not at top of file
+tests/test_aegis_b2_docker.py:34:1: E402 Module level import not at top of file
+tests/test_audio_mix.py:78:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_audio_normalize.py:54:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_audio_video_merge.py:86:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_avatar_generate_duix.py:62:101: E501 Line too long (101 > 100)
+tests/test_avatar_generate_duix.py:83:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_avatar_generate_duix.py:103:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_b8_oprims.py:306:19: F821 Undefined name `realtime_quote_redis_fetch`
+tests/test_b8_oprims.py:312:19: F821 Undefined name `realtime_quote_redis_fetch`
+tests/test_b8_oprims.py:320:19: F821 Undefined name `realtime_quote_redis_fetch`
+tests/test_b8_oprims.py:328:19: F821 Undefined name `realtime_quote_redis_fetch`
+tests/test_b8_oprims.py:335:28: F821 Undefined name `QuoteFetchError`
+tests/test_b8_oprims.py:336:19: F821 Undefined name `realtime_quote_redis_fetch`
+tests/test_b8_oprims.py:340:15: F821 Undefined name `realtime_quote_redis_fetch`
+tests/test_batch_a.py:73:101: E501 Line too long (106 > 100)
+tests/test_batch_a.py:787:42: E741 Ambiguous variable name: `l`
+tests/test_batch_a.py:788:42: E741 Ambiguous variable name: `l`
+tests/test_batch_a.py:1109:45: E741 Ambiguous variable name: `l`
+tests/test_batch_a.py:1113:101: E501 Line too long (102 > 100)
+tests/test_batch_b.py:146:101: E501 Line too long (102 > 100)
+tests/test_batch_b.py:248:101: E501 Line too long (115 > 100)
+tests/test_batch_b.py:480:48: E741 Ambiguous variable name: `l`
+tests/test_batch_b.py:516:48: E741 Ambiguous variable name: `l`
+tests/test_batch_c.py:493:101: E501 Line too long (107 > 100)
+tests/test_batch_c.py:667:14: B017 Do not assert blind exception: `Exception`
+tests/test_batch_helivex_b.py:21:44: N806 Variable `MockClient` in function should be lowercase
+tests/test_batch_helivex_b.py:38:44: N806 Variable `MockClient` in function should be lowercase
+tests/test_batch_helivex_b.py:53:44: N806 Variable `MockClient` in function should be lowercase
+tests/test_batch_helivex_b.py:68:44: N806 Variable `MockClient` in function should be lowercase
+tests/test_batch_helivex_b.py:84:44: N806 Variable `MockClient` in function should be lowercase
+tests/test_batch_helivex_b.py:248:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_batch_hevi_f11.py:36:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:41:101: E501 Line too long (103 > 100)
+tests/test_batch_hevi_f11.py:90:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:146:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:198:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:349:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:350:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:351:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:352:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:466:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:467:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:552:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:615:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:657:1: E402 Module level import not at top of file
+tests/test_batch_hevi_f11.py:697:1: E402 Module level import not at top of file
+tests/test_batch_mb.py:578:101: E501 Line too long (104 > 100)
+tests/test_batch_mb.py:682:101: E501 Line too long (107 > 100)
+tests/test_batch_mc.py:79:101: E501 Line too long (104 > 100)
+tests/test_batch_mc.py:105:101: E501 Line too long (104 > 100)
+tests/test_batch_mc.py:125:101: E501 Line too long (108 > 100)
+tests/test_batch_mc.py:346:101: E501 Line too long (136 > 100)
+tests/test_bkt_irt.py:61:101: E501 Line too long (124 > 100)
+tests/test_bkt_irt.py:62:101: E501 Line too long (121 > 100)
+tests/test_bkt_irt.py:136:28: E702 Multiple statements on one line (semicolon)
+tests/test_bkt_single_source.py:5:8: N812 Lowercase `_cognitive` imported as non-lowercase `Canon`
+tests/test_bkt_single_source.py:6:8: N812 Lowercase `bkt` imported as non-lowercase `B`
+tests/test_bkt_single_source.py:7:8: N812 Lowercase `cognitive` imported as non-lowercase `Pub`
+tests/test_caddy.py:67:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_caddy.py:75:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_caddy.py:84:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_caddy.py:92:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_caddy.py:144:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_caddy.py:149:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_caddy.py:221:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_caddy.py:229:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_caddy.py:238:101: E501 Line too long (103 > 100)
+tests/test_caddy.py:244:101: E501 Line too long (107 > 100)
+tests/test_caddy.py:250:101: E501 Line too long (103 > 100)
+tests/test_caddy.py:260:101: E501 Line too long (103 > 100)
+tests/test_caddy_new.py:17:101: E501 Line too long (103 > 100)
+tests/test_cognitive.py:37:101: E501 Line too long (111 > 100)
+tests/test_cognitive.py:142:101: E501 Line too long (130 > 100)
+tests/test_cognitive.py:217:5: SIM105 Use `contextlib.suppress(ZeroDivisionError)` instead of `try`-`except`-`pass`
+tests/test_compose.py:11:1: E402 Module level import not at top of file
+tests/test_compose.py:12:1: E402 Module level import not at top of file
+tests/test_data_fetch_quant.py:19:15: F405 `fetch_order_book_depth` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:19:101: E501 Line too long (113 > 100)
+tests/test_data_fetch_quant.py:24:15: F405 `compute_spread` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:30:15: F405 `compute_slippage_estimate` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:30:101: E501 Line too long (103 > 100)
+tests/test_data_fetch_quant.py:35:15: F405 `nlp_sentiment_analysis` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:40:15: F405 `nlp_sentiment_analysis` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:45:15: F405 `compute_option_skew` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:50:15: F405 `compute_term_structure` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:55:15: F405 `compute_term_structure` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:60:15: F405 `merge_exchange_ohlcv` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:66:15: F405 `clean_ohlcv_outliers` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:71:15: F405 `compute_volume_weighted_price` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:71:101: E501 Line too long (110 > 100)
+tests/test_data_fetch_quant.py:76:15: F405 `compute_microstructure_features` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:76:101: E501 Line too long (136 > 100)
+tests/test_data_fetch_quant.py:85:15: F405 `cross_exchange_funding_diff` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:85:101: E501 Line too long (102 > 100)
+tests/test_data_fetch_quant.py:91:9: F405 `compute_pnl_from_trades` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:95:9: F405 `compute_equity_curve` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:99:9: F405 `compute_drawdown_distribution` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:104:9: F405 `compute_market_impact` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:108:9: F405 `generate_bootstrap_samples` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:112:9: F405 `compute_monte_carlo_simulation` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:116:9: F405 `compute_benchmark_metrics` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:116:101: E501 Line too long (112 > 100)
+tests/test_data_fetch_quant.py:120:9: F405 `compute_relative_performance` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:124:19: F405 `split_train_test_time_series` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:128:9: F405 `compute_portfolio_turnover` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:128:101: E501 Line too long (107 > 100)
+tests/test_data_fetch_quant.py:132:9: F405 `compute_position_churn` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:136:9: F405 `compute_risk_exposure` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:136:101: E501 Line too long (131 > 100)
+tests/test_data_fetch_quant.py:140:9: F405 `compute_position_risk` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:144:9: F405 `compute_mcmc_sample` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:144:101: E501 Line too long (108 > 100)
+tests/test_data_fetch_quant.py:148:9: F405 `compute_shapley_decomposition` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:152:9: F405 `compute_herfindahl_index` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:156:9: F405 `compute_signal_crowding` may be undefined, or defined from star imports
+tests/test_data_fetch_quant.py:161:9: F405 `compute_uncertainty_threshold` may be undefined, or defined from star imports
+tests/test_distance.py:189:9: N806 Variable `X` in function should be lowercase
+tests/test_distance.py:195:9: N806 Variable `X` in function should be lowercase
+tests/test_distance.py:196:9: N806 Variable `Y` in function should be lowercase
+tests/test_distance.py:201:9: N806 Variable `X` in function should be lowercase
+tests/test_distance.py:202:9: N806 Variable `Y` in function should be lowercase
+tests/test_distance.py:209:9: N806 Variable `X` in function should be lowercase
+tests/test_distance.py:215:9: N806 Variable `X` in function should be lowercase
+tests/test_distance.py:216:9: N806 Variable `Y` in function should be lowercase
+tests/test_docker.py:14:1: E402 Module level import not at top of file
+tests/test_docker.py:16:1: E402 Module level import not at top of file
+tests/test_docker.py:25:1: E402 Module level import not at top of file
+tests/test_docker.py:102:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:108:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:108:101: E501 Line too long (107 > 100)
+tests/test_docker.py:116:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:188:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:218:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:260:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:266:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:266:101: E501 Line too long (107 > 100)
+tests/test_docker.py:280:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:317:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:331:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:364:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:378:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:431:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:439:101: E501 Line too long (104 > 100)
+tests/test_docker.py:440:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:449:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:457:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:466:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:472:1: E402 Module level import not at top of file
+tests/test_docker.py:482:101: E501 Line too long (102 > 100)
+tests/test_docker.py:538:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker.py:553:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_docker_new.py:10:1: E402 Module level import not at top of file
+tests/test_docker_new.py:12:1: E402 Module level import not at top of file
+tests/test_docker_new.py:20:1: E402 Module level import not at top of file
+tests/test_docker_new.py:64:101: E501 Line too long (134 > 100)
+tests/test_face_animation.py:73:101: E501 Line too long (105 > 100)
+tests/test_filesystem_new.py:79:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_filesystem_new.py:99:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_finance.py:160:9: N806 Variable `X` in function should be lowercase
+tests/test_graph_p1_p7.py:291:101: E501 Line too long (111 > 100)
+tests/test_hb_file_io.py:1:100: E501 Line too long (139 > 100)
+tests/test_hb_git.py:324:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_hb_lsp.py:42:101: E501 Line too long (125 > 100)
+tests/test_hb_lsp.py:49:101: E501 Line too long (102 > 100)
+tests/test_hb_lsp.py:103:101: E501 Line too long (105 > 100)
+tests/test_hb_lsp.py:136:101: E501 Line too long (125 > 100)
+tests/test_hb_mcp.py:57:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_hb_mcp.py:66:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_hb_mcp.py:138:101: E501 Line too long (103 > 100)
+tests/test_hb_network.py:1:96: E501 Line too long (121 > 100)
+tests/test_hb_network.py:37:101: E501 Line too long (112 > 100)
+tests/test_hb_network.py:97:101: E501 Line too long (101 > 100)
+tests/test_hb_network.py:131:101: E501 Line too long (102 > 100)
+tests/test_hb_process.py:1:96: E501 Line too long (112 > 100)
+tests/test_hicode_batch_ha.py:1296:9: N802 Function name `test_google_STOP` should be lowercase
+tests/test_hicode_batch_ha.py:1627:9: N802 Function name `test_google_STOP` should be lowercase
+tests/test_image_to_video.py:72:101: E501 Line too long (104 > 100)
+tests/test_llm_distill_strategy.py:126:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_llm_distill_strategy.py:159:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_llm_extract_ku.py:110:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_llm_extract_ku.py:110:101: E501 Line too long (102 > 100)
+tests/test_llm_extract_ku.py:141:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_llm_extract_ku.py:162:101: E501 Line too long (109 > 100)
+tests/test_ltx2_cloud_generate.py:169:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_ltx2_cloud_generate.py:192:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_macro_fetch.py:216:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_macro_fetch.py:263:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_macro_fetch.py:299:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_macro_fetch.py:400:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:60:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:61:101: E501 Line too long (101 > 100)
+tests/test_media_p1_p4.py:93:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:106:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:151:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:170:30: E702 Multiple statements on one line (semicolon)
+tests/test_media_p1_p4.py:173:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:190:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:192:101: E501 Line too long (109 > 100)
+tests/test_media_p1_p4.py:200:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:219:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:251:101: E501 Line too long (119 > 100)
+tests/test_media_p1_p4.py:266:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_media_p1_p4.py:300:101: E501 Line too long (119 > 100)
+tests/test_media_p1_p4.py:314:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:62:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:70:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:90:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:99:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:104:101: E501 Line too long (101 > 100)
+tests/test_metrics_logs.py:117:101: E501 Line too long (101 > 100)
+tests/test_metrics_logs.py:183:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:194:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:209:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:275:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:280:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:285:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_metrics_logs.py:294:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_mneme_speech_p1_p4.py:311:97: E501 Line too long (104 > 100)
+tests/test_mneme_speech_p1_p4.py:312:98: E501 Line too long (106 > 100)
+tests/test_mneme_speech_p1_p4.py:319:94: E501 Line too long (101 > 100)
+tests/test_mneme_speech_p1_p4.py:320:94: E501 Line too long (101 > 100)
+tests/test_network.py:41:101: E501 Line too long (113 > 100)
+tests/test_network.py:47:101: E501 Line too long (106 > 100)
+tests/test_network.py:226:101: E501 Line too long (105 > 100)
+tests/test_numerics.py:198:9: N802 Function name `test_softmax_T1_vs_scipy` should be lowercase
+tests/test_numerics.py:206:9: N802 Function name `test_softmax_T05_manual` should be lowercase
+tests/test_p6b2_modules.py:731:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_postgres.py:143:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:69:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:77:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:85:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:100:101: E501 Line too long (141 > 100)
+tests/test_rabbitmq.py:101:101: E501 Line too long (139 > 100)
+tests/test_rabbitmq.py:102:101: E501 Line too long (141 > 100)
+tests/test_rabbitmq.py:125:101: E501 Line too long (126 > 100)
+tests/test_rabbitmq.py:136:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:141:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:202:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:210:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:267:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:272:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:277:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_rabbitmq.py:282:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_regime.py:217:9: N806 Variable `P_true` in function should be lowercase
+tests/test_render_html_to_mp4.py:41:101: E501 Line too long (101 > 100)
+tests/test_render_html_to_mp4.py:51:101: E501 Line too long (107 > 100)
+tests/test_s3.py:84:9: N806 Variable `NoCredentials` in function should be lowercase
+tests/test_searxng_search.py:111:5: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_stratum_b1_group3.py:75:35: F821 Undefined name `psycopg`
+tests/test_stratum_b1_group3.py:77:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_stratum_b1_group3.py:126:35: F821 Undefined name `psycopg`
+tests/test_stratum_b1_group3.py:128:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_stratum_b1_group3.py:180:35: F821 Undefined name `psycopg`
+tests/test_stratum_b1_group3.py:182:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_stratum_b1_group3.py:221:35: F821 Undefined name `psycopg`
+tests/test_stratum_b1_group3.py:223:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_stratum_b1_group3.py:232:13: F821 Undefined name `psycopg`
+tests/test_stratum_b1_group3.py:274:35: F821 Undefined name `psycopg`
+tests/test_stratum_b1_group3.py:276:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_stratum_b1_group3.py:312:35: F821 Undefined name `psycopg`
+tests/test_stratum_b1_group3.py:314:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_stratum_b1_group3.py:392:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_stratum_b1_group5.py:97:9: F821 Undefined name `_memory_cache`
+tests/test_stratum_b1_group5.py:100:9: F821 Undefined name `_memory_cache`
+tests/test_stratum_b1_group5.py:101:18: F821 Undefined name `cache_invalidate`
+tests/test_stratum_b1_group5.py:103:33: F821 Undefined name `_memory_cache`
+tests/test_stratum_b1_group5.py:106:18: F821 Undefined name `cache_invalidate`
+tests/test_stratum_b1_group5.py:113:22: F821 Undefined name `cache_invalidate`
+tests/test_stratum_b1_group5.py:121:13: F821 Undefined name `cache_invalidate`
+tests/test_stratum_b1_group5.py:128:13: F821 Undefined name `cache_invalidate`
+tests/test_structural_chunk.py:15:101: E501 Line too long (104 > 100)
+tests/test_structural_chunk.py:53:101: E501 Line too long (105 > 100)
+tests/test_structural_chunk.py:89:101: E501 Line too long (157 > 100)
+tests/test_subtitle_burn.py:78:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_system.py:35:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_system.py:47:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_system.py:54:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_system.py:66:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_tide_v4_b1.py:77:101: E501 Line too long (115 > 100)
+tests/test_tide_v4_b1.py:78:101: E501 Line too long (114 > 100)
+tests/test_tide_v4_b1.py:85:101: E501 Line too long (117 > 100)
+tests/test_tide_v4_b1.py:86:101: E501 Line too long (117 > 100)
+tests/test_tide_v4_b1.py:92:101: E501 Line too long (115 > 100)
+tests/test_tide_v4_b1.py:93:101: E501 Line too long (114 > 100)
+tests/test_tide_v4_b1.py:99:101: E501 Line too long (115 > 100)
+tests/test_tide_v4_b1.py:106:101: E501 Line too long (117 > 100)
+tests/test_tide_v4_b1.py:107:101: E501 Line too long (118 > 100)
+tests/test_tide_v4_b1.py:138:101: E501 Line too long (116 > 100)
+tests/test_tide_v4_b1.py:144:101: E501 Line too long (115 > 100)
+tests/test_tide_v4_b2.py:55:101: E501 Line too long (142 > 100)
+tests/test_tide_v4_b2.py:63:101: E501 Line too long (143 > 100)
+tests/test_tide_v4_b2.py:72:101: E501 Line too long (132 > 100)
+tests/test_tide_v4_b2.py:109:101: E501 Line too long (131 > 100)
+tests/test_url_fetch_ssrf_safe.py:68:101: E501 Line too long (101 > 100)
+tests/test_vector_encode.py:117:101: E501 Line too long (108 > 100)
+tests/test_vector_encode.py:138:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_veya_42_oprim.py:194:56: A002 Function argument `filter` is shadowing a Python builtin
+tests/test_veya_o1o2o3_oprim.py:26:9: N806 Variable `INF` in function should be lowercase
+tests/test_veya_skills_graphify_oprim.py:1:101: E501 Line too long (103 > 100)
+tests/test_veya_superpowers_oprim.py:1:101: E501 Line too long (102 > 100)
+tests/test_veya_superpowers_oprim.py:112:101: E501 Line too long (112 > 100)
+tests/test_veya_superpowers_oprim.py:113:101: E501 Line too long (102 > 100)
+tests/test_video_concat.py:83:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_video_concat.py:91:101: E501 Line too long (101 > 100)
+tests/test_video_concat.py:106:101: E501 Line too long (110 > 100)
+tests/test_video_concat.py:114:101: E501 Line too long (107 > 100)
+tests/test_video_concat.py:130:101: E501 Line too long (106 > 100)
+tests/test_video_concat.py:138:101: E501 Line too long (108 > 100)
+tests/test_video_concat.py:144:101: E501 Line too long (107 > 100)
+tests/test_video_concat.py:163:101: E501 Line too long (108 > 100)
+tests/test_video_concat.py:192:101: E501 Line too long (112 > 100)
+tests/test_video_concat.py:208:101: E501 Line too long (116 > 100)
+tests/test_video_generate_wan_cloud.py:92:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_video_recompose.py:68:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_video_recompose.py:78:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/test_video_recompose.py:91:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/timeseries/test_rolling_window_aggregate.py:17:9: N802 Function name `test_time_window_7D` should be lowercase
+tests/timeseries/test_stationarity.py:34:101: E501 Line too long (117 > 100)
+tests/timeseries/test_time_series_split.py:50:101: E501 Line too long (101 > 100)
+tests/vector_db/test_lancedb.py:83:101: E501 Line too long (102 > 100)
+tests/vector_db/test_lancedb.py:112:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/vector_db/test_lancedb.py:119:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/vector_db/test_lancedb.py:127:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/vector_db/test_lancedb.py:134:9: SIM117 Use a single `with` statement with multiple contexts instead of nested `with` statements
+tests/volatility/test_garch.py:12:43: N803 Argument name `T` should be lowercase
+tests/volatility/test_garch.py:65:9: N806 Variable `T` in function should be lowercase
+tests/volatility/test_range_based.py:26:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:32:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:38:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:46:5: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:69:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:75:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:81:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:95:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:107:5: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:108:22: E702 Multiple statements on one line (semicolon)
+tests/volatility/test_range_based.py:116:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:122:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:129:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:135:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:150:11: E741 Ambiguous variable name: `l`
+tests/volatility/test_range_based.py:156:11: E741 Ambiguous variable name: `l`
+Found 1343 errors.
+[*] 1 fixable with the `--fix` option (27 hidden fixes can be enabled with the `--unsafe-fixes` option).

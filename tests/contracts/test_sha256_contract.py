@@ -4,6 +4,7 @@ These tests pin the observable API contract of sha256_hash so that any
 regression in type, length, determinism, or known-value behaviour is caught
 immediately.
 """
+
 from __future__ import annotations
 
 import pytest

@@ -44,7 +44,8 @@ def detect_hot_money_converge(
         config:             Threshold overrides.
 
     Returns:
-        :class:`~oprim._detector_types.DetectorSignal` on trigger; ``None`` otherwise.
+        :class:`~oprim._detector_types.DetectorSignal` on trigger
+        ``None`` otherwise.
 
     Raises:
         OprimError: If ``known_tycoon_seats`` is empty.

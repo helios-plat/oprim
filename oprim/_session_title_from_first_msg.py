@@ -1,4 +1,5 @@
 """Derive a session title from the first message."""
+
 from __future__ import annotations
 
 from ._hicode_types import Message

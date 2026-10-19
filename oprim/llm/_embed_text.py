@@ -45,7 +45,7 @@ async def embed_text(
     except LLMOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise LLMOprimError("embed_text call failed", cause=e)
+        raise LLMOprimError("embed_text call failed", cause=e) from e
 
     if not isinstance(vector, list) or not vector:
         raise LLMOprimError(

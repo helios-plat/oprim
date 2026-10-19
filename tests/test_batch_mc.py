@@ -29,6 +29,7 @@ from oprim.types import SocraticTurnResult, SolveResult
 # Mock LLM helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _make_caller(text: str):
     """Make a caller that returns text as LLM response."""
 
@@ -38,6 +39,7 @@ def _make_caller(text: str):
             "stop_reason": "end_turn",
             "usage": {"input_tokens": 10, "output_tokens": 20},
         }
+
     return caller
 
 
@@ -48,6 +50,7 @@ def _make_json_caller(data: dict):
 # ─────────────────────────────────────────────────────────────────────────────
 # ocr_paper
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestOCRPaper:
     def test_basic_ocr_from_url(self):
@@ -76,7 +79,9 @@ class TestOCRPaper:
         assert len(result.structured_questions) == 1
 
     def test_ocr_no_image_fails(self):
-        caller = _make_json_caller({"raw_text": "", "math_expressions": [], "structured_questions": []})
+        caller = _make_json_caller(
+            {"raw_text": "", "math_expressions": [], "structured_questions": []}
+        )
         inp = OCRPaperInput()  # no image_b64 or image_url
         result = asyncio.run(ocr_paper(inp, caller=caller))
         assert not result.success
@@ -85,6 +90,7 @@ class TestOCRPaper:
     def test_ocr_caller_error_returns_failure(self):
         async def failing_caller(**kwargs):
             raise RuntimeError("API error")
+
         inp = OCRPaperInput(image_url="http://example.com/img.jpg")
         result = asyncio.run(ocr_paper(inp, caller=failing_caller))
         assert not result.success
@@ -102,7 +108,10 @@ class TestOCRPaper:
         assert result.success
 
     def test_ocr_markdown_json_response(self):
-        text = '```json\n{"raw_text": "hello", "math_expressions": [], "structured_questions": []}\n```'
+        text = (
+            '```json\n{"raw_text": "hello", "math_expressions": [], '
+            '"structured_questions": []}\n```'
+        )
         caller = _make_caller(text)
         inp = OCRPaperInput(image_url="http://example.com/img.jpg")
         result = asyncio.run(ocr_paper(inp, caller=caller))
@@ -114,6 +123,7 @@ class TestOCRPaper:
 # grade_question — MANDATORY test: kernel takes priority
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestGradeQuestion:
     def test_kernel_takes_priority_over_llm(self):
         """When solve_result is solvable, must NOT call LLM."""
@@ -122,7 +132,9 @@ class TestGradeQuestion:
         async def llm_spy(**kwargs):
             llm_called.append(True)
             return {
-                "content": [{"type": "text", "text": '{"is_correct": true, "score": 1.0, "feedback": ""}'}],
+                "content": [
+                    {"type": "text", "text": '{"is_correct": true, "score": 1.0, "feedback": ""}'}
+                ],
                 "stop_reason": "end_turn",
                 "usage": {"input_tokens": 0, "output_tokens": 0},
             }
@@ -183,6 +195,7 @@ class TestGradeQuestion:
     def test_llm_error_returns_failure(self):
         async def failing_caller(**kwargs):
             raise RuntimeError("API error")
+
         inp = GradeQuestionInput(question="x=?", student_answer="1")
         result = asyncio.run(grade_question(inp, caller=failing_caller))
         assert result.method == "llm"
@@ -202,6 +215,7 @@ class TestGradeQuestion:
 # ─────────────────────────────────────────────────────────────────────────────
 # profiler_analyze
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestProfilerAnalyze:
     def _make_profile_caller(self):
@@ -238,6 +252,7 @@ class TestProfilerAnalyze:
     def test_error_on_llm_failure(self):
         async def failing_caller(**kwargs):
             raise RuntimeError("fail")
+
         inp = ProfilerInput(kc_mastery={"k1": 0.5})
         result = asyncio.run(profiler_analyze(inp, caller=failing_caller))
         assert not result.success
@@ -257,6 +272,7 @@ class TestProfilerAnalyze:
 # ─────────────────────────────────────────────────────────────────────────────
 # socratic_turn
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSocraticTurn:
     def test_basic_turn(self):
@@ -293,6 +309,7 @@ class TestSocraticTurn:
     def test_llm_error_returns_fallback(self):
         async def failing_caller(**kwargs):
             raise RuntimeError("API error")
+
         inp = SocraticTurnInput(
             question="x=?",
             correct_answer="1",
@@ -328,6 +345,7 @@ class TestSocraticTurn:
 # find_common_breakpoint
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestFindCommonBreakpoint:
     def test_empty_returns_immediately(self):
         llm_called = []
@@ -342,12 +360,22 @@ class TestFindCommonBreakpoint:
         assert result.breakpoints == []
 
     def test_returns_breakpoints(self):
-        caller = _make_json_caller({
-            "breakpoints": [{"kc_id": "algebra", "error_pattern": "sign error", "frequency": 3, "description": "...", "remedy": "..."}],
-            "dominant_error_type": "sign_error",
-            "affected_question_ids": ["q1", "q2"],
-            "summary": "Students commonly make sign errors.",
-        })
+        caller = _make_json_caller(
+            {
+                "breakpoints": [
+                    {
+                        "kc_id": "algebra",
+                        "error_pattern": "sign error",
+                        "frequency": 3,
+                        "description": "...",
+                        "remedy": "...",
+                    }
+                ],
+                "dominant_error_type": "sign_error",
+                "affected_question_ids": ["q1", "q2"],
+                "summary": "Students commonly make sign errors.",
+            }
+        )
         wrong = [
             WrongQuestion("q1", "x+2=5", "x=7", "x=3"),
             WrongQuestion("q2", "2x=6", "x=12", "x=3"),
@@ -360,18 +388,21 @@ class TestFindCommonBreakpoint:
     def test_error_on_llm_failure(self):
         async def failing_caller(**kwargs):
             raise RuntimeError("fail")
+
         wrong = [WrongQuestion("q1", "x=?", "2", "3")]
         result = asyncio.run(find_common_breakpoint(wrong, caller=failing_caller))
         assert not result.success
         assert result.error
 
     def test_affected_question_ids_returned(self):
-        caller = _make_json_caller({
-            "breakpoints": [],
-            "dominant_error_type": "arithmetic",
-            "affected_question_ids": ["q1"],
-            "summary": "...",
-        })
+        caller = _make_json_caller(
+            {
+                "breakpoints": [],
+                "dominant_error_type": "arithmetic",
+                "affected_question_ids": ["q1"],
+                "summary": "...",
+            }
+        )
         wrong = [WrongQuestion("q1", "1+1=?", "3", "2")]
         result = asyncio.run(find_common_breakpoint(wrong, caller=caller))
         assert "q1" in result.affected_question_ids
@@ -381,34 +412,37 @@ class TestFindCommonBreakpoint:
 # generate_variant — MANDATORY test: answer always empty
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestGenerateVariant:
     def test_variant_answer_empty(self):
         """Generated variant answer MUST always be empty."""
-        caller = _make_json_caller({
-            "question": "求 x^2 - 9 = 0 的解",
-            "answer": "x = ±3",   # LLM tries to set an answer
-            "difficulty": "medium",
-            "kc_ids": ["algebra"],
-        })
+        caller = _make_json_caller(
+            {
+                "question": "求 x^2 - 9 = 0 的解",
+                "answer": "x = ±3",  # LLM tries to set an answer
+                "difficulty": "medium",
+                "kc_ids": ["algebra"],
+            }
+        )
         inp = VariantInput(
             original_question="求 x^2 - 4 = 0 的解",
             original_answer="x = ±2",
             kc_ids=["algebra"],
         )
         result = asyncio.run(generate_variant(inp, caller=caller))
-        assert result.answer == "", (
-            f"generate_variant answer must be empty, got: {result.answer!r}"
-        )
+        assert result.answer == "", f"generate_variant answer must be empty, got: {result.answer!r}"
         assert result.kernel_verified is False
 
     def test_variant_kernel_verified_false(self):
         """kernel_verified MUST always be False after generation."""
-        caller = _make_json_caller({
-            "question": "x+1=5, solve for x",
-            "answer": "x=4",
-            "difficulty": "easy",
-            "kc_ids": ["linear_eq"],
-        })
+        caller = _make_json_caller(
+            {
+                "question": "x+1=5, solve for x",
+                "answer": "x=4",
+                "difficulty": "easy",
+                "kc_ids": ["linear_eq"],
+            }
+        )
         inp = VariantInput(
             original_question="x+1=3, solve for x",
             original_answer="x=2",
@@ -417,12 +451,14 @@ class TestGenerateVariant:
         assert result.kernel_verified is False
 
     def test_variant_question_not_empty(self):
-        caller = _make_json_caller({
-            "question": "2x + 1 = 7 的解",
-            "answer": "x=3",
-            "difficulty": "easy",
-            "kc_ids": [],
-        })
+        caller = _make_json_caller(
+            {
+                "question": "2x + 1 = 7 的解",
+                "answer": "x=3",
+                "difficulty": "easy",
+                "kc_ids": [],
+            }
+        )
         inp = VariantInput(
             original_question="x + 1 = 5 的解",
             original_answer="x=4",
@@ -434,19 +470,22 @@ class TestGenerateVariant:
     def test_llm_error_returns_failure(self):
         async def failing_caller(**kwargs):
             raise RuntimeError("API error")
+
         inp = VariantInput(original_question="x=?", original_answer="1")
         result = asyncio.run(generate_variant(inp, caller=failing_caller))
         assert not result.success
-        assert result.answer == ""       # still empty on failure
+        assert result.answer == ""  # still empty on failure
         assert result.kernel_verified is False
 
     def test_difficulty_preserved(self):
-        caller = _make_json_caller({
-            "question": "x^3=8",
-            "answer": "x=2",
-            "difficulty": "hard",
-            "kc_ids": ["cubic_eq"],
-        })
+        caller = _make_json_caller(
+            {
+                "question": "x^3=8",
+                "answer": "x=2",
+                "difficulty": "hard",
+                "kc_ids": ["cubic_eq"],
+            }
+        )
         inp = VariantInput(original_question="x^2=4", original_answer="x=2")
         result = asyncio.run(generate_variant(inp, caller=caller))
         assert result.difficulty == "hard"
@@ -456,16 +495,19 @@ class TestGenerateVariant:
 # evaluate_diagram
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestEvaluateDiagram:
     def _good_caller(self):
-        return _make_json_caller({
-            "is_correct": True,
-            "score": 0.9,
-            "missing_elements": [],
-            "extra_elements": [],
-            "feedback": "图形正确，坐标标注清晰。",
-            "suggestions": ["可以加粗坐标轴"],
-        })
+        return _make_json_caller(
+            {
+                "is_correct": True,
+                "score": 0.9,
+                "missing_elements": [],
+                "extra_elements": [],
+                "feedback": "图形正确，坐标标注清晰。",
+                "suggestions": ["可以加粗坐标轴"],
+            }
+        )
 
     def test_correct_diagram(self):
         caller = self._good_caller()
@@ -480,14 +522,16 @@ class TestEvaluateDiagram:
         assert result.score >= 0.8
 
     def test_incorrect_diagram(self):
-        caller = _make_json_caller({
-            "is_correct": False,
-            "score": 0.3,
-            "missing_elements": ["vertex", "axis_labels"],
-            "extra_elements": [],
-            "feedback": "缺少顶点标注",
-            "suggestions": ["标注顶点坐标", "标注坐标轴"],
-        })
+        caller = _make_json_caller(
+            {
+                "is_correct": False,
+                "score": 0.3,
+                "missing_elements": ["vertex", "axis_labels"],
+                "extra_elements": [],
+                "feedback": "缺少顶点标注",
+                "suggestions": ["标注顶点坐标", "标注坐标轴"],
+            }
+        )
         inp = DiagramEvalInput(
             image_url="http://example.com/bad.png",
             question="画出 y=x^2 的图像",
@@ -513,6 +557,7 @@ class TestEvaluateDiagram:
     def test_error_on_llm_failure(self):
         async def failing_caller(**kwargs):
             raise RuntimeError("fail")
+
         inp = DiagramEvalInput(image_url="http://example.com/img.png")
         result = asyncio.run(evaluate_diagram(inp, caller=failing_caller))
         assert not result.success

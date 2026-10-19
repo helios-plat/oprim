@@ -3,6 +3,7 @@
 Does NOT parse the content. Parse with parse_plugin_manifest (P-NEW4).
 Symmetrical to load_skill_raw / parse_skill_md pattern.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

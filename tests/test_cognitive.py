@@ -35,7 +35,9 @@ def test_bkt_new_state():
 
 
 def test_bkt_update_basic():
-    state = bkt_new_state(kc_id="math", prior={"p_init": 0.2, "p_transit": 0.2, "p_guess": 0.1, "p_slip": 0.1})
+    state = bkt_new_state(
+        kc_id="math", prior={"p_init": 0.2, "p_transit": 0.2, "p_guess": 0.1, "p_slip": 0.1}
+    )
 
     # Correct response should increase mastery
     old_mastery = state.current()
@@ -140,7 +142,10 @@ def test_bkt_auc_simulation():
     all_outcomes = []
 
     for _ in range(n_students):
-        state = bkt_new_state(kc_id="sim", prior={"p_init": p_init, "p_transit": p_transit, "p_guess": p_guess, "p_slip": p_slip})
+        state = bkt_new_state(
+            kc_id="sim",
+            prior={"p_init": p_init, "p_transit": p_transit, "p_guess": p_guess, "p_slip": p_slip},
+        )
         is_mastered = np.random.random() < p_init
 
         for _ in range(n_steps):
@@ -149,10 +154,7 @@ def test_bkt_auc_simulation():
             all_predictions.append(prob_correct)
 
             # Outcome
-            if is_mastered:
-                outcome = np.random.random() > p_slip
-            else:
-                outcome = np.random.random() < p_guess
+            outcome = np.random.random() > p_slip if is_mastered else np.random.random() < p_guess
 
             all_outcomes.append(int(outcome))
 
@@ -193,6 +195,7 @@ def test_fsrs_retrievability_at_ts():
     r_later = fsrs_retrievability(card_dict=card_v2, now=now + timedelta(days=10))
     assert r_later < r_now
 
+
 def test_bkt_update_retrievability():
     state = bkt_new_state(kc_id="r_test", prior={"p_init": 0.8})
     state.p_mastery = 0.8
@@ -200,15 +203,18 @@ def test_bkt_update_retrievability():
     bkt_update(state=state, is_correct=True, retrievability=0.5)
     assert state.n_attempts == 1
 
+
 def test_fsrs_map_rating_detailed():
     assert fsrs_map_rating(is_correct=True, struggled=True) == "Hard"
     assert fsrs_map_rating(is_correct=True, effortless=False, struggled=False) == "Good"
     assert fsrs_map_rating(is_correct=True, used_answer=True) == "Again"
 
+
 def test_bkt_new_state_defaults():
     state = bkt_new_state(kc_id="default", prior={})
     assert state.p_init == 0.2
     assert state.p_transit == 0.2
+
 
 def test_bkt_update_zero_mastery():
     state = KCState(kc_id="zero", p_mastery=0.0, p_guess=0.0, p_transit=0.1)
@@ -218,9 +224,10 @@ def test_bkt_update_zero_mastery():
     # In code: p_obs = (p_eff * (1 - p_s)) / (p_eff * (1 - p_s) + (1 - p_eff) * p_g)
     # If p_eff=0 and p_g=0, it's 0/0.
     # But let's see how it behaves.
-    # If it fails, we know we should fix it, but let's see current behavior
     with contextlib.suppress(ZeroDivisionError):
+        # If it fails, we know we should fix it, but let's see current behavior
         bkt_update(state=state, is_correct=True)
+
 
 def test_fsrs_review_invalid_rating():
     card = fsrs_new_card()

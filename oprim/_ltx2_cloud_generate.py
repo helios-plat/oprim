@@ -16,6 +16,8 @@ Raises:
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # vendor-specific video provider adapter; not a capability
+
 import asyncio
 import base64
 from pathlib import Path
@@ -27,10 +29,8 @@ from oprim._config import cfg
 class Ltx2CloudError(Exception):
     """LTX-2 fal.ai generation failed."""
 
-
 # B3: 轮询总超时(秒),避免 fal 任务卡住时 `while True` 无限轮询。
 _POLL_TIMEOUT_S = 600.0
-
 
 async def ltx2_cloud_generate(
     *,
@@ -52,7 +52,8 @@ async def ltx2_cloud_generate(
         config: Override dict for FAL_API_KEY / FAL_BASE_URL (falls back to env/cfg).
         mode: "t2v" (text-to-video) or "i2v" (image-to-video).
         prompt: Text prompt.
-        reference_image: Required for i2v mode; ignored for t2v.
+        reference_image: Required for i2v mode
+        ignored for t2v.
         duration_s: Clip duration in seconds. Must be ≤ 20 (LTX-2 single-clip limit).
         resolution: (width, height) tuple.
         audio_enabled: Whether to request native audio/video sync.

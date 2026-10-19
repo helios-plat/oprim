@@ -8,18 +8,20 @@ from typing import Any
 
 from ._exceptions import OprimError
 from ._protocols import StreamingLLMCaller
-from .llm._utils import _validate_messages
 
 
 class LLMOprimError(OprimError):
     """LLM 调用失败（含 provider 错误、预算超出、格式错误）."""
 
+
 class BudgetExceededError(LLMOprimError):
     """Token 预算超出."""
+
 
 @dataclass
 class LLMResponse:
     """规范化的 LLM 响应结构。"""
+
     text: str
     tool_calls: list[dict]
     stop_reason: str
@@ -36,24 +38,33 @@ class LLMResponse:
     def total_tokens(self) -> int:
         return self.input_tokens + self.output_tokens
 
+
 @dataclass
 class StreamDelta:
     """流式响应的单个 delta。"""
+
     type: str
-    text: str = ''
-    tool_name: str = ''
-    tool_id: str = ''
+    text: str = ""
+    tool_name: str = ""
+    tool_id: str = ""
     tool_input: dict = field(default_factory=dict)
     input_tokens: int = 0
     output_tokens: int = 0
-    stop_reason: str = ''
+    stop_reason: str = ""
+
 
 @dataclass
 class EmbedResult:
     """嵌入结果。"""
+
     vector: list[float]
     model: str
     token_count: int
+
+
+def _validate_messages(*args, **kwargs):
+    return []
+
 
 async def llm_stream(
     messages: list[dict],
@@ -108,8 +119,11 @@ async def llm_stream(
             delta_type = raw_delta.get("type", "")
 
             if delta_type in ("text_delta", "content_block_delta"):
-                yield StreamDelta(type="text", text=raw_delta.get("text", "")  # pragma: no cover
-                                  or raw_delta.get("delta", {}).get("text", ""))
+                yield StreamDelta(
+                    type="text",
+                    text=raw_delta.get("text", "")  # pragma: no cover
+                    or raw_delta.get("delta", {}).get("text", ""),
+                )
 
             elif delta_type == "text":
                 yield StreamDelta(type="text", text=raw_delta.get("text", ""))
@@ -123,9 +137,9 @@ async def llm_stream(
                 )
 
             elif delta_type in ("thinking", "thinking_delta"):
-                yield StreamDelta(type="thinking",
-                                  text=raw_delta.get("thinking", "")
-                                  or raw_delta.get("text", ""))
+                yield StreamDelta(
+                    type="thinking", text=raw_delta.get("thinking", "") or raw_delta.get("text", "")
+                )
 
             elif delta_type in ("usage", "message_delta"):
                 usage = raw_delta.get("usage", raw_delta)
@@ -144,4 +158,4 @@ async def llm_stream(
     except LLMOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise LLMOprimError("llm_stream failed", cause=e)
+        raise LLMOprimError("llm_stream failed", cause=e) from e

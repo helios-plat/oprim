@@ -69,9 +69,7 @@ async def llm_complete(
 
     # 2. token 预算估算（粗估，精确版由 obase.TokenCounter 提供）
     if budget_tokens is not None:
-        total_chars = sum(
-            len(json.dumps(m, ensure_ascii=False)) for m in messages
-        )
+        total_chars = sum(len(json.dumps(m, ensure_ascii=False)) for m in messages)
         estimated = total_chars // 4
         if estimated > budget_tokens:
             raise BudgetExceededError(
@@ -91,7 +89,7 @@ async def llm_complete(
     except (LLMOprimError, BudgetExceededError):
         raise  # pragma: no cover
     except Exception as e:
-        raise LLMOprimError("LLM call failed", cause=e)
+        raise LLMOprimError("LLM call failed", cause=e) from e
 
     # 4. 响应格式校验
     if not isinstance(raw, dict):

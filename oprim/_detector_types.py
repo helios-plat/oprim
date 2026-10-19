@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "DetectorSignal",
+]
+
 from datetime import UTC, datetime
 from typing import Any, Literal
 
@@ -33,7 +38,6 @@ class DetectorSignal(BaseModel):
     severity: Literal["low", "medium", "high", "critical"]
     triggered_at: datetime
     evidence: dict[str, Any] = Field(default_factory=dict)
-
 
 def _now_utc() -> datetime:
     """Return current UTC datetime."""

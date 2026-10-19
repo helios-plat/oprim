@@ -14,6 +14,27 @@ oprim: Git 原子操作集
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "BlameLine",
+    "Commit",
+    "FileStatus",
+    "GitOprimError",
+    "Path",
+    "annotations",
+    "dataclass",
+    "git_add",
+    "git_blame",
+    "git_branch",
+    "git_checkout",
+    "git_commit",
+    "git_diff",
+    "git_log",
+    "git_show",
+    "git_stash",
+    "git_status",
+]
+
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,6 +44,7 @@ from ._exceptions import GitOprimError
 # ---------------------------------------------------------------------------
 # 内部工具（不暴露为 oprim）
 # ---------------------------------------------------------------------------
+
 
 def _git(
     *args: str,
@@ -39,10 +61,10 @@ def _git(
             input=input_text,
             timeout=60,
         )
-    except FileNotFoundError:  # pragma: no cover
-        raise GitOprimError("git executable not found")
-    except subprocess.TimeoutExpired:  # pragma: no cover
-        raise GitOprimError(f"git command timed out: {' '.join(args)}")
+    except FileNotFoundError as e:  # pragma: no cover
+        raise GitOprimError("git executable not found") from e
+    except subprocess.TimeoutExpired as e:  # pragma: no cover
+        raise GitOprimError(f"git command timed out: {' '.join(args)}") from e
 
     if result.returncode != 0:
         raise GitOprimError(
@@ -55,10 +77,11 @@ def _git(
 # git_status
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class FileStatus:
     path: str
-    index: str   # staged status char
+    index: str  # staged status char
     worktree: str  # worktree status char
     renamed_from: str | None = None
 
@@ -90,18 +113,21 @@ def git_status(*, repo: str | Path) -> list[FileStatus]:
         renamed_from = None
         if " -> " in rest:
             renamed_from, rest = rest.split(" -> ", 1)
-        statuses.append(FileStatus(
-            path=rest.strip(),
-            index=index,
-            worktree=worktree,
-            renamed_from=renamed_from,
-        ))
+        statuses.append(
+            FileStatus(
+                path=rest.strip(),
+                index=index,
+                worktree=worktree,
+                renamed_from=renamed_from,
+            )
+        )
     return statuses
 
 
 # ---------------------------------------------------------------------------
 # git_diff
 # ---------------------------------------------------------------------------
+
 
 def git_diff(
     *,
@@ -139,6 +165,7 @@ def git_diff(
 # git_add
 # ---------------------------------------------------------------------------
 
+
 def git_add(paths: list[str] | str, *, repo: str | Path) -> None:
     """单次将文件加入暂存区。
 
@@ -160,6 +187,7 @@ def git_add(paths: list[str] | str, *, repo: str | Path) -> None:
 # ---------------------------------------------------------------------------
 # git_commit
 # ---------------------------------------------------------------------------
+
 
 def git_commit(*, repo: str | Path, message: str, allow_empty: bool = False) -> str:
     """单次创建 commit，返回 commit hash。
@@ -190,6 +218,7 @@ def git_commit(*, repo: str | Path, message: str, allow_empty: bool = False) -> 
 # ---------------------------------------------------------------------------
 # git_log
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class Commit:
@@ -228,18 +257,21 @@ def git_log(*, repo: str | Path, n: int = 20, path: str | None = None) -> list[C
             continue
         parts = line.split(sep)
         if len(parts) >= 4:
-            commits.append(Commit(
-                hash=parts[0],
-                author=parts[1],
-                date=parts[2],
-                message=parts[3],
-            ))
+            commits.append(
+                Commit(
+                    hash=parts[0],
+                    author=parts[1],
+                    date=parts[2],
+                    message=parts[3],
+                )
+            )
     return commits
 
 
 # ---------------------------------------------------------------------------
 # git_branch
 # ---------------------------------------------------------------------------
+
 
 def git_branch(
     *,
@@ -280,6 +312,7 @@ def git_branch(
 # git_checkout
 # ---------------------------------------------------------------------------
 
+
 def git_checkout(ref: str, *, repo: str | Path) -> None:
     """単次切换分支或还原文件到某 ref。
 
@@ -301,6 +334,7 @@ def git_checkout(ref: str, *, repo: str | Path) -> None:
 # ---------------------------------------------------------------------------
 # git_stash
 # ---------------------------------------------------------------------------
+
 
 def git_stash(*, repo: str | Path, pop: bool = False, message: str = "") -> str:
     """单次 stash 操作（push 或 pop）。
@@ -332,6 +366,7 @@ def git_stash(*, repo: str | Path, pop: bool = False, message: str = "") -> str:
 # git_show
 # ---------------------------------------------------------------------------
 
+
 def git_show(ref: str, *, repo: str | Path, path: str | None = None) -> str:
     """单次查看 commit 内容或特定文件在某 ref 的内容。
 
@@ -359,6 +394,7 @@ def git_show(ref: str, *, repo: str | Path, path: str | None = None) -> str:
 # git_blame
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class BlameLine:
     lineno: int
@@ -384,7 +420,9 @@ def git_blame(path: str, *, repo: str | Path) -> list[BlameLine]:
         >>> git_blame("src/main.py", repo="/project")
     """
     out = _git(
-        "blame", "--porcelain", path,
+        "blame",
+        "--porcelain",
+        path,
         repo=repo,
     )
     lines: list[BlameLine] = []
@@ -401,10 +439,12 @@ def git_blame(path: str, *, repo: str | Path) -> list[BlameLine]:
         elif line.startswith("author "):
             current_author = line[7:]
         elif line.startswith("\t"):
-            lines.append(BlameLine(
-                lineno=lineno,
-                commit=current_commit[:8],
-                author=current_author,
-                content=line[1:],
-            ))
+            lines.append(
+                BlameLine(
+                    lineno=lineno,
+                    commit=current_commit[:8],
+                    author=current_author,
+                    content=line[1:],
+                )
+            )
     return lines

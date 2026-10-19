@@ -1,4 +1,5 @@
 """Tests for oprim.performance.cumulative_returns."""
+
 import math
 
 import numpy as np

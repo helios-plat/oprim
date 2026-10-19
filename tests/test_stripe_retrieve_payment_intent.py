@@ -1,4 +1,4 @@
-"""Tests for oprim._stripe_retrieve_payment_intent."""
+"""Tests for oprim.stripe_retrieve_payment_intent."""
 
 from __future__ import annotations
 
@@ -75,10 +75,13 @@ async def test_retrieve_succeeded_status() -> None:
 
 @pytest.mark.asyncio
 async def test_retrieve_not_found_raises_api_error() -> None:
-    with patch(
-        "stripe.PaymentIntent.retrieve",
-        side_effect=stripe_sdk.StripeError("No such payment_intent: pi_unknown"),
-    ), pytest.raises(StripeAPIError, match="No such payment_intent"):
+    with (
+        patch(
+            "stripe.PaymentIntent.retrieve",
+            side_effect=stripe_sdk.StripeError("No such payment_intent: pi_unknown"),
+        ),
+        pytest.raises(StripeAPIError, match="No such payment_intent"),
+    ):
         await stripe_retrieve_payment_intent(
             config=CONFIG,
             intent_id="pi_unknown",
@@ -87,10 +90,13 @@ async def test_retrieve_not_found_raises_api_error() -> None:
 
 @pytest.mark.asyncio
 async def test_retrieve_api_error_raises_stripe_api_error() -> None:
-    with patch(
-        "stripe.PaymentIntent.retrieve",
-        side_effect=stripe_sdk.StripeError("Connection error"),
-    ), pytest.raises(StripeAPIError, match="Connection error"):
+    with (
+        patch(
+            "stripe.PaymentIntent.retrieve",
+            side_effect=stripe_sdk.StripeError("Connection error"),
+        ),
+        pytest.raises(StripeAPIError, match="Connection error"),
+    ):
         await stripe_retrieve_payment_intent(
             config=CONFIG,
             intent_id="pi_test_001",

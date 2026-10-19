@@ -42,6 +42,7 @@ class LspOprimError(OprimError):
 # 内部工具
 # ---------------------------------------------------------------------------
 
+
 def _file_uri(path: str | Path) -> str:
     """路径 → LSP file URI。"""
     p = Path(path).resolve()
@@ -67,14 +68,15 @@ def _text_doc_pos(path: str | Path, line: int, character: int) -> dict:
 # 数据类型
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class Diagnostic:
     path: str
-    line: int              # 0-based
+    line: int  # 0-based
     character: int
     end_line: int
     end_character: int
-    severity: int          # 1=Error 2=Warning 3=Info 4=Hint
+    severity: int  # 1=Error 2=Warning 3=Info 4=Hint
     message: str
     source: str
     code: str | int | None = None
@@ -86,7 +88,7 @@ class Diagnostic:
 
 @dataclass
 class Hover:
-    contents: str          # Markdown 格式
+    contents: str  # Markdown 格式
     range_start_line: int | None = None
     range_start_char: int | None = None
 
@@ -103,7 +105,7 @@ class Location:
 @dataclass
 class Symbol:
     name: str
-    kind: int              # SymbolKind enum
+    kind: int  # SymbolKind enum
     path: str
     start_line: int
     start_character: int
@@ -114,10 +116,22 @@ class Symbol:
     @property
     def kind_name(self) -> str:
         _kinds = {
-            1: "File", 2: "Module", 3: "Namespace", 4: "Package",
-            5: "Class", 6: "Method", 7: "Property", 8: "Field",
-            9: "Constructor", 10: "Enum", 11: "Interface", 12: "Function",
-            13: "Variable", 14: "Constant", 15: "String", 16: "Number",
+            1: "File",
+            2: "Module",
+            3: "Namespace",
+            4: "Package",
+            5: "Class",
+            6: "Method",
+            7: "Property",
+            8: "Field",
+            9: "Constructor",
+            10: "Enum",
+            11: "Interface",
+            12: "Function",
+            13: "Variable",
+            14: "Constant",
+            15: "String",
+            16: "Number",
         }
         return _kinds.get(self.kind, f"Kind({self.kind})")
 
@@ -149,7 +163,7 @@ class WorkspaceEdit:
 @dataclass
 class CodeAction:
     title: str
-    kind: str                      # "quickfix" | "refactor" | ...
+    kind: str  # "quickfix" | "refactor" | ...
     diagnostics: list[Diagnostic] = field(default_factory=list)
     edit: WorkspaceEdit | None = None
     command: dict | None = None
@@ -158,6 +172,7 @@ class CodeAction:
 @dataclass
 class CallItem:
     """LSP CallHierarchyItem — 调用层级节点。"""
+
     name: str
     kind: int
     uri: str
@@ -171,6 +186,7 @@ class CallItem:
 # ---------------------------------------------------------------------------
 # lsp_diagnostics
 # ---------------------------------------------------------------------------
+
 
 async def lsp_diagnostics(
     path: str | Path,
@@ -206,7 +222,7 @@ async def lsp_diagnostics(
             {"textDocument": _text_doc(path)},
         )
     except Exception as e:
-        raise LspOprimError(f"lsp_diagnostics failed for '{path}'", cause=e)
+        raise LspOprimError(f"lsp_diagnostics failed for '{path}'", cause=e) from e
 
     items: list = result.get("items", []) if isinstance(result, dict) else (result or [])
     diags = []
@@ -214,23 +230,26 @@ async def lsp_diagnostics(
         r = d.get("range", {})
         start = r.get("start", {})
         end = r.get("end", {})
-        diags.append(Diagnostic(
-            path=str(Path(path).resolve()),
-            line=start.get("line", 0),
-            character=start.get("character", 0),
-            end_line=end.get("line", 0),
-            end_character=end.get("character", 0),
-            severity=d.get("severity", 1),
-            message=d.get("message", ""),
-            source=d.get("source", ""),
-            code=d.get("code"),
-        ))
+        diags.append(
+            Diagnostic(
+                path=str(Path(path).resolve()),
+                line=start.get("line", 0),
+                character=start.get("character", 0),
+                end_line=end.get("line", 0),
+                end_character=end.get("character", 0),
+                severity=d.get("severity", 1),
+                message=d.get("message", ""),
+                source=d.get("source", ""),
+                code=d.get("code"),
+            )
+        )
     return sorted(diags, key=lambda d: (d.line, d.character))
 
 
 # ---------------------------------------------------------------------------
 # lsp_hover
 # ---------------------------------------------------------------------------
+
 
 async def lsp_hover(
     path: str | Path,
@@ -273,7 +292,7 @@ async def lsp_hover(
             _text_doc_pos(path, _line, _char),
         )
     except Exception as e:
-        raise LspOprimError(f"lsp_hover failed for '{path}':{_line}", cause=e)
+        raise LspOprimError(f"lsp_hover failed for '{path}':{_line}", cause=e) from e
 
     if not result:
         return None
@@ -282,10 +301,7 @@ async def lsp_hover(
     if isinstance(contents, dict):
         contents = contents.get("value", "")
     elif isinstance(contents, list):
-        contents = "\n".join(
-            c.get("value", c) if isinstance(c, dict) else str(c)
-            for c in contents
-        )
+        contents = "\n".join(c.get("value", c) if isinstance(c, dict) else str(c) for c in contents)
 
     r = result.get("range", {})
     start = r.get("start", {}) if r else {}
@@ -299,6 +315,7 @@ async def lsp_hover(
 # ---------------------------------------------------------------------------
 # lsp_definition
 # ---------------------------------------------------------------------------
+
 
 async def lsp_definition(
     path: str | Path,
@@ -332,7 +349,7 @@ async def lsp_definition(
             _text_doc_pos(path, line, character),
         )
     except Exception as e:
-        raise LspOprimError("lsp_definition failed", cause=e)
+        raise LspOprimError("lsp_definition failed", cause=e) from e
 
     return _parse_locations(result)
 
@@ -340,6 +357,7 @@ async def lsp_definition(
 # ---------------------------------------------------------------------------
 # lsp_references
 # ---------------------------------------------------------------------------
+
 
 async def lsp_references(
     path: str | Path,
@@ -378,7 +396,7 @@ async def lsp_references(
             },
         )
     except Exception as e:
-        raise LspOprimError("lsp_references failed", cause=e)
+        raise LspOprimError("lsp_references failed", cause=e) from e
 
     return _parse_locations(result)
 
@@ -386,6 +404,7 @@ async def lsp_references(
 # ---------------------------------------------------------------------------
 # lsp_document_symbols
 # ---------------------------------------------------------------------------
+
 
 async def lsp_document_symbols(
     path: str | Path,
@@ -415,7 +434,7 @@ async def lsp_document_symbols(
             {"textDocument": _text_doc(path)},
         )
     except Exception as e:
-        raise LspOprimError(f"lsp_document_symbols failed for '{path}'", cause=e)
+        raise LspOprimError(f"lsp_document_symbols failed for '{path}'", cause=e) from e
 
     return _parse_symbols(result or [], str(Path(path).resolve()))
 
@@ -423,6 +442,7 @@ async def lsp_document_symbols(
 # ---------------------------------------------------------------------------
 # lsp_workspace_symbols
 # ---------------------------------------------------------------------------
+
 
 async def lsp_workspace_symbols(
     query: str,
@@ -450,7 +470,7 @@ async def lsp_workspace_symbols(
             {"query": query},
         )
     except Exception as e:
-        raise LspOprimError("lsp_workspace_symbols failed", cause=e)
+        raise LspOprimError("lsp_workspace_symbols failed", cause=e) from e
 
     return _parse_symbols(result or [], "")
 
@@ -458,6 +478,7 @@ async def lsp_workspace_symbols(
 # ---------------------------------------------------------------------------
 # lsp_rename
 # ---------------------------------------------------------------------------
+
 
 async def lsp_rename(
     path: str | Path,
@@ -494,7 +515,7 @@ async def lsp_rename(
             {**_text_doc_pos(path, line, character), "newName": new_name},
         )
     except Exception as e:
-        raise LspOprimError("lsp_rename failed", cause=e)
+        raise LspOprimError("lsp_rename failed", cause=e) from e
 
     if not result:
         return WorkspaceEdit()
@@ -505,6 +526,7 @@ async def lsp_rename(
 # ---------------------------------------------------------------------------
 # lsp_completion
 # ---------------------------------------------------------------------------
+
 
 async def lsp_completion(
     path: str | Path,
@@ -545,7 +567,7 @@ async def lsp_completion(
             {**_text_doc_pos(path, line, character), "context": context},
         )
     except Exception as e:
-        raise LspOprimError("lsp_completion failed", cause=e)
+        raise LspOprimError("lsp_completion failed", cause=e) from e
 
     items = []
     if isinstance(result, dict):
@@ -558,19 +580,22 @@ async def lsp_completion(
         doc = item.get("documentation", "")
         if isinstance(doc, dict):
             doc = doc.get("value", "")
-        completions.append(Completion(
-            label=item.get("label", ""),
-            kind=item.get("kind"),
-            detail=item.get("detail", ""),
-            documentation=str(doc),
-            insert_text=item.get("insertText", item.get("label", "")),
-        ))
+        completions.append(
+            Completion(
+                label=item.get("label", ""),
+                kind=item.get("kind"),
+                detail=item.get("detail", ""),
+                documentation=str(doc),
+                insert_text=item.get("insertText", item.get("label", "")),
+            )
+        )
     return completions
 
 
 # ---------------------------------------------------------------------------
 # lsp_format
 # ---------------------------------------------------------------------------
+
 
 async def lsp_format(
     path: str | Path,
@@ -610,7 +635,7 @@ async def lsp_format(
             },
         )
     except Exception as e:
-        raise LspOprimError(f"lsp_format failed for '{path}'", cause=e)
+        raise LspOprimError(f"lsp_format failed for '{path}'", cause=e) from e
 
     return _parse_text_edits(result or [])
 
@@ -618,6 +643,7 @@ async def lsp_format(
 # ---------------------------------------------------------------------------
 # lsp_code_action
 # ---------------------------------------------------------------------------
+
 
 async def lsp_code_action(
     path: str | Path,
@@ -667,23 +693,26 @@ async def lsp_code_action(
     try:
         result = await server.request("textDocument/codeAction", params)
     except Exception as e:
-        raise LspOprimError("lsp_code_action failed", cause=e)
+        raise LspOprimError("lsp_code_action failed", cause=e) from e
 
     actions = []
-    for item in (result or []):
+    for item in result or []:
         if isinstance(item, dict):
-            actions.append(CodeAction(
-                title=item.get("title", ""),
-                kind=item.get("kind", ""),
-                edit=_parse_workspace_edit(item["edit"]) if "edit" in item else None,
-                command=item.get("command"),
-            ))
+            actions.append(
+                CodeAction(
+                    title=item.get("title", ""),
+                    kind=item.get("kind", ""),
+                    edit=_parse_workspace_edit(item["edit"]) if "edit" in item else None,
+                    command=item.get("command"),
+                )
+            )
     return actions
 
 
 # ---------------------------------------------------------------------------
 # 内部解析工具
 # ---------------------------------------------------------------------------
+
 
 def _parse_locations(result: Any) -> list[Location]:
     """解析 LSP definition/references 响应为 Location 列表。"""
@@ -700,13 +729,15 @@ def _parse_locations(result: Any) -> list[Location]:
         r = item.get("range", {})
         start = r.get("start", {})
         end = r.get("end", {})
-        locs.append(Location(
-            path=path,
-            start_line=start.get("line", 0),
-            start_character=start.get("character", 0),
-            end_line=end.get("line", 0),
-            end_character=end.get("character", 0),
-        ))
+        locs.append(
+            Location(
+                path=path,
+                start_line=start.get("line", 0),
+                start_character=start.get("character", 0),
+                end_line=end.get("line", 0),
+                end_character=end.get("character", 0),
+            )
+        )
     return locs
 
 
@@ -719,19 +750,25 @@ def _parse_symbols(result: list, default_path: str) -> list[Symbol]:
         loc = item.get("location", {})
         uri = loc.get("uri", "") if loc else ""
         path = uri.replace("file://", "") if uri.startswith("file://") else (default_path or uri)
-        r = (loc.get("range", {}) if loc else {}) or item.get("range", {}) or item.get("selectionRange", {})
+        r = (
+            (loc.get("range", {}) if loc else {})
+            or item.get("range", {})
+            or item.get("selectionRange", {})
+        )
         start = r.get("start", {})
         end = r.get("end", {})
-        syms.append(Symbol(
-            name=item.get("name", ""),
-            kind=item.get("kind", 0),
-            path=path,
-            start_line=start.get("line", 0),
-            start_character=start.get("character", 0),
-            end_line=end.get("line", 0),
-            end_character=end.get("character", 0),
-            container=item.get("containerName", ""),
-        ))
+        syms.append(
+            Symbol(
+                name=item.get("name", ""),
+                kind=item.get("kind", 0),
+                path=path,
+                start_line=start.get("line", 0),
+                start_character=start.get("character", 0),
+                end_line=end.get("line", 0),
+                end_character=end.get("character", 0),
+                container=item.get("containerName", ""),
+            )
+        )
     return sorted(syms, key=lambda s: (s.path, s.start_line))
 
 
@@ -744,13 +781,15 @@ def _parse_text_edits(result: list) -> list[TextEdit]:
         r = item.get("range", {})
         start = r.get("start", {})
         end = r.get("end", {})
-        edits.append(TextEdit(
-            start_line=start.get("line", 0),
-            start_character=start.get("character", 0),
-            end_line=end.get("line", 0),
-            end_character=end.get("character", 0),
-            new_text=item.get("newText", ""),
-        ))
+        edits.append(
+            TextEdit(
+                start_line=start.get("line", 0),
+                start_character=start.get("character", 0),
+                end_line=end.get("line", 0),
+                end_character=end.get("character", 0),
+                new_text=item.get("newText", ""),
+            )
+        )
     return edits
 
 
@@ -777,6 +816,7 @@ def _parse_workspace_edit(result: dict) -> WorkspaceEdit:
 # ---------------------------------------------------------------------------
 # H-B D组 新增函数 (10)
 # ---------------------------------------------------------------------------
+
 
 def _parse_call_item(raw: dict) -> CallItem:
     r = raw.get("range", raw.get("selectionRange", {}))
@@ -836,7 +876,7 @@ async def lsp_goto_definition(
             _text_doc_pos(path, pos[0], pos[1]),
         )
     except Exception as e:
-        raise LspOprimError("lsp_goto_definition failed", cause=e)
+        raise LspOprimError("lsp_goto_definition failed", cause=e) from e
     return _parse_locations(result)
 
 
@@ -868,7 +908,7 @@ async def lsp_find_references(
     try:
         result = await lsp.request("textDocument/references", params)
     except Exception as e:
-        raise LspOprimError("lsp_find_references failed", cause=e)
+        raise LspOprimError("lsp_find_references failed", cause=e) from e
     return _parse_locations(result)
 
 
@@ -897,7 +937,7 @@ async def lsp_goto_implementation(
             _text_doc_pos(path, pos[0], pos[1]),
         )
     except Exception as e:
-        raise LspOprimError("lsp_goto_implementation failed", cause=e)
+        raise LspOprimError("lsp_goto_implementation failed", cause=e) from e
     return _parse_locations(result)
 
 
@@ -924,7 +964,7 @@ async def lsp_document_symbol(
             {"textDocument": _text_doc(path)},
         )
     except Exception as e:
-        raise LspOprimError("lsp_document_symbol failed", cause=e)
+        raise LspOprimError("lsp_document_symbol failed", cause=e) from e
     return _parse_symbols(result or [], default_path=str(path))
 
 
@@ -948,7 +988,7 @@ async def lsp_workspace_symbol(
     try:
         result = await lsp.request("workspace/symbol", {"query": query})
     except Exception as e:
-        raise LspOprimError("lsp_workspace_symbol failed", cause=e)
+        raise LspOprimError("lsp_workspace_symbol failed", cause=e) from e
     return _parse_symbols(result or [], default_path="")
 
 
@@ -977,7 +1017,7 @@ async def lsp_prepare_call_hierarchy(
             _text_doc_pos(path, pos[0], pos[1]),
         )
     except Exception as e:
-        raise LspOprimError("lsp_prepare_call_hierarchy failed", cause=e)
+        raise LspOprimError("lsp_prepare_call_hierarchy failed", cause=e) from e
     if not result:
         return None
     items = result if isinstance(result, list) else [result]
@@ -1007,7 +1047,7 @@ async def lsp_incoming_calls(
             {"item": _call_item_to_lsp(item)},
         )
     except Exception as e:
-        raise LspOprimError("lsp_incoming_calls failed", cause=e)
+        raise LspOprimError("lsp_incoming_calls failed", cause=e) from e
     if not result:
         return []
     return [_parse_call_item(r["from"]) for r in result if isinstance(r, dict) and "from" in r]
@@ -1036,7 +1076,7 @@ async def lsp_outgoing_calls(
             {"item": _call_item_to_lsp(item)},
         )
     except Exception as e:
-        raise LspOprimError("lsp_outgoing_calls failed", cause=e)
+        raise LspOprimError("lsp_outgoing_calls failed", cause=e) from e
     if not result:
         return []
     return [_parse_call_item(r["to"]) for r in result if isinstance(r, dict) and "to" in r]

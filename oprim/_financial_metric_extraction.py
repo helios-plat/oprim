@@ -9,22 +9,21 @@ from pydantic import BaseModel, Field
 
 class NewsItem(BaseModel):
     """新闻条目."""
+
     content: str = Field(..., description="新闻正文")
     source: str | None = Field(None, description="来源")
 
 
 class FinancialMetric(BaseModel):
     """抽取的财务指标."""
+
     metric_name: str = Field(..., description="指标名称")
     value: float | None = Field(None, description="数值")
     sentiment_score: float = Field(0.0, description="情感分 [-1, 1]")
     source_excerpt: str | None = Field(None, description="来源片段")
 
 
-def financial_metric_extraction(
-    *,
-    news: list[NewsItem]
-) -> list[FinancialMetric]:
+def financial_metric_extraction(*, news: list[NewsItem]) -> list[FinancialMetric]:
     """从中文财经新闻抽取财务指标 + 情感分(V1 规则实现).
 
     Args:
@@ -50,7 +49,9 @@ def financial_metric_extraction(
         for metric, keywords in patterns.items():
             for kw in keywords:
                 # 匹配 "关键词 [达到/为/是/：/:/下降/减少]? 123.45 (亿/万)?"
-                m = re.search(rf"{kw}\s*[：:为是约达到增至减至下降减少]*\s*([\d.]+)\s*([亿万]?)", text)
+                m = re.search(
+                    rf"{kw}\s*[：:为是约达到增至减至下降减少]*\s*([\d.]+)\s*([亿万]?)", text
+                )
                 if m:
                     val = float(m.group(1))
                     unit = m.group(2)
@@ -69,12 +70,14 @@ def financial_metric_extraction(
                             sentiment -= 0.2
                     sentiment = max(-1.0, min(1.0, sentiment))
 
-                    results.append(FinancialMetric(
-                        metric_name=metric,
-                        value=val,
-                        sentiment_score=sentiment,
-                        source_excerpt=text[max(0, m.start()-10):m.end()+10]
-                    ))
-                    break # 找到一个关键词即可
+                    results.append(
+                        FinancialMetric(
+                            metric_name=metric,
+                            value=val,
+                            sentiment_score=sentiment,
+                            source_excerpt=text[max(0, m.start() - 10) : m.end() + 10],
+                        )
+                    )
+                    break  # 找到一个关键词即可
 
     return results

@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from oprim.signal_processing import (
-    H_change_rate_std,
     atr,
+    h_change_rate_std,
     hurst_exponent,
     linear_slope,
     orderbook_entropy,
@@ -72,7 +72,7 @@ class TestATR:
     def test_wilder_smoothing_triggered(self):
         """period=3, len=20 -> Wilder smoothing loop runs (trs[period:] has elements)."""
         highs, lows, closes = self._make_ohlc(20, range_val=2.0)
-        result = atr(highs, lows, closes, period=3)
+        result = atr(highs, lows=lows, closes=closes, period=3)
         assert np.isfinite(result)
         assert result > 0
 
@@ -82,7 +82,7 @@ class TestATR:
         closes = np.full(n, 100.0)
         highs = np.full(n, 101.0)
         lows = np.full(n, 99.0)
-        result = atr(highs, lows, closes, period=5)
+        result = atr(highs, lows=lows, closes=closes, period=5)
         # True range = max(H-L, |H-C_prev|, |L-C_prev|) = 2 for constant prices
         assert result == pytest.approx(2.0, rel=1e-6)
 
@@ -92,13 +92,13 @@ class TestATR:
         lows = np.array([99.0, 98.0])
         closes = np.array([100.0, 101.0])
         with pytest.raises(ValueError, match="at least"):
-            atr(highs, lows, closes, period=5)
+            atr(highs, lows=lows, closes=closes, period=5)
 
     def test_minimum_valid_length(self):
         """n == period + 1 is valid (SMA seed only, no smoothing loop)."""
         n = 4  # period=3, need 4 bars
         highs, lows, closes = self._make_ohlc(n)
-        result = atr(highs, lows, closes, period=3)
+        result = atr(highs, lows=lows, closes=closes, period=3)
         assert np.isfinite(result)
 
 
@@ -107,14 +107,14 @@ class TestHurstExponent:
         """np.cumsum(randn) -> H close to 0.5 (allow [0.3, 0.7])."""
         rng = np.random.default_rng(42)
         series = rng.standard_normal(512)
-        H = hurst_exponent(series)
-        assert 0.3 <= H <= 0.7
+        h_val = hurst_exponent(series)
+        assert 0.3 <= h_val <= 0.7
 
     def test_trending(self):
         """Monotone series -> H > 0.5."""
         series = np.linspace(0, 100, 256)
-        H = hurst_exponent(series)
-        assert H > 0.5
+        h_val = hurst_exponent(series)
+        assert h_val > 0.5
 
     def test_too_short_raises(self):
         """Series shorter than min_window * 2 raises ValueError."""
@@ -125,8 +125,8 @@ class TestHurstExponent:
         """Result is in [0, 1]."""
         rng = np.random.default_rng(0)
         series = rng.standard_normal(256)
-        H = hurst_exponent(series)
-        assert 0.0 <= H <= 1.0
+        h_val = hurst_exponent(series)
+        assert 0.0 <= h_val <= 1.0
 
     @pytest.mark.academic_reference
     def test_hurst_rs_analysis_1951(self):
@@ -138,8 +138,8 @@ class TestHurstExponent:
             # levels where this R/S implementation returns H close to 1.
             series = rng.standard_normal(512)
             results.append(hurst_exponent(series))
-        mean_H = np.mean(results)
-        assert 0.3 <= mean_H <= 0.7
+        mean_h = np.mean(results)
+        assert 0.3 <= mean_h <= 0.7
 
     def test_not_enough_window_sizes_raises(self):
         """Series where only 1 window size fits → ValueError 'Not enough window sizes'."""
@@ -151,33 +151,33 @@ class TestHurstExponent:
     def test_constant_series_returns_fallback(self):
         """Constant series → all chunk stds=0 → rs_vals empty → fallback 0.5."""
         series = np.full(64, 3.14)
-        H = hurst_exponent(series)
-        assert pytest.approx(0.5, abs=0.01) == H
+        h_val = hurst_exponent(series)
+        assert pytest.approx(0.5, abs=0.01) == h_val
 
 
 class TestHChangeRateStd:
     def test_basic(self):
         """Known diff std: values = [0,1,2,3,4,5,6], window=6 -> diffs=[1,1,1,1,1,1] -> std=0."""
         values = np.arange(7, dtype=float)
-        result = H_change_rate_std(values, window=6)
+        result = h_change_rate_std(values, window=6)
         assert result == pytest.approx(0.0, abs=1e-12)
 
     def test_varying_diffs(self):
         """Non-constant diffs should have positive std."""
         values = np.array([1.0, 2.0, 4.0, 3.0, 5.0, 2.0, 6.0])
-        result = H_change_rate_std(values, window=6)
+        result = h_change_rate_std(values, window=6)
         assert result > 0
 
     def test_too_short_raises(self):
         """len < window + 1 raises ValueError."""
         with pytest.raises(ValueError, match="at least"):
-            H_change_rate_std(np.array([1.0, 2.0, 3.0]), window=6)
+            h_change_rate_std(np.array([1.0, 2.0, 3.0]), window=6)
 
     def test_uses_tail_segment(self):
         """Uses last window+1 values, not all data."""
         # Prefix is noisy, tail is constant -> std should be 0
         values = np.array([10.0, -10.0, 5.0, -5.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
-        result = H_change_rate_std(values, window=5)
+        result = h_change_rate_std(values, window=5)
         assert result == pytest.approx(0.0, abs=1e-12)
 
 

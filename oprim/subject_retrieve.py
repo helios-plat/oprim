@@ -1,4 +1,5 @@
 """oprim.subject_retrieve — Retrieve a Subject by subject_id."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -21,6 +22,7 @@ async def subject_retrieve(subject_id: str, *, store: Any = None) -> Subject | N
 
     try:
         from oprim.subject_create import _MEMORY_STORE
+
         return _MEMORY_STORE.get(subject_id)
     except Exception:
         return None

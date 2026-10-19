@@ -1,4 +1,5 @@
 """arXiv paper search via public Atom API."""
+
 from __future__ import annotations
 
 import time
@@ -35,7 +36,8 @@ def arxiv_search(
         categories: arXiv category codes, e.g. ["q-fin.TR", "cs.LG"].
         keywords:   keyword string searched in title and abstract.
         author:     author name filter.
-        after_date: ISO date string (YYYY-MM-DD); exclude papers before this date.
+        after_date: ISO date string (YYYY-MM-DD)
+        exclude papers before this date.
         max_results: maximum results to fetch.
         rate_limit_sleep: seconds to sleep before request (be polite to arXiv).
     """
@@ -74,20 +76,18 @@ def arxiv_search(
         if after_date and published < after_date:
             continue
         authors = [
-            a.findtext(f"{{{_ATOM_NS}}}name") or ""
-            for a in entry.findall(f"{{{_ATOM_NS}}}author")
+            a.findtext(f"{{{_ATOM_NS}}}name") or "" for a in entry.findall(f"{{{_ATOM_NS}}}author")
         ]
-        cats = [
-            t.get("term", "")
-            for t in entry.findall(f"{{{_ATOM_NS}}}category")
-        ]
-        papers.append(ArxivPaper(
-            arxiv_id=arxiv_id,
-            title=title,
-            abstract=abstract,
-            authors=authors,
-            pdf_url=f"https://arxiv.org/pdf/{arxiv_id}",
-            published=published,
-            categories=cats,
-        ))
+        cats = [t.get("term", "") for t in entry.findall(f"{{{_ATOM_NS}}}category")]
+        papers.append(
+            ArxivPaper(
+                arxiv_id=arxiv_id,
+                title=title,
+                abstract=abstract,
+                authors=authors,
+                pdf_url=f"https://arxiv.org/pdf/{arxiv_id}",
+                published=published,
+                categories=cats,
+            )
+        )
     return papers

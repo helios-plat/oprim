@@ -1,8 +1,10 @@
 """Public re-export of cognitive modeling atoms (BKT + FSRS).
 
-oprim._cognitive is the canonical implementation; this module exposes it
+oprim._cognitive is the canonical implementation
+this module exposes it
 under the public path `oprim.cognitive` for oskill and downstream consumers.
 """
+
 from oprim._cognitive import (  # noqa: F401
     KCState,
     bkt_classify_error,

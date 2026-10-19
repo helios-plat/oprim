@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from .git import _git
+from oprim.git import _git
 
 
 @dataclass
@@ -15,6 +15,7 @@ class FileStatus:
     worktree: str
     renamed_from: str | None = None
 
+
 @dataclass
 class Commit:
     hash: str
@@ -22,12 +23,14 @@ class Commit:
     date: str
     message: str
 
+
 @dataclass
 class BlameLine:
     lineno: int
     commit: str
     author: str
     content: str
+
 
 def git_log(*, repo: str | Path, n: int = 20, path: str | None = None) -> list[Commit]:
     """单次获取 commit 历史。
@@ -58,10 +61,12 @@ def git_log(*, repo: str | Path, n: int = 20, path: str | None = None) -> list[C
             continue
         parts = line.split(sep)
         if len(parts) >= 4:
-            commits.append(Commit(
-                hash=parts[0],
-                author=parts[1],
-                date=parts[2],
-                message=parts[3],
-            ))
+            commits.append(
+                Commit(
+                    hash=parts[0],
+                    author=parts[1],
+                    date=parts[2],
+                    message=parts[3],
+                )
+            )
     return commits

@@ -31,7 +31,7 @@ def read_gitignore(root: str | Path) -> list[str]:
     try:
         text = gitignore.read_text(encoding="utf-8", errors="replace")
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read .gitignore in '{root}'", cause=e)
+        raise FileOprimError(f"cannot read .gitignore in '{root}'", cause=e) from e
 
     rules = []
     for line in text.splitlines():

@@ -11,7 +11,7 @@ import pandas as pd
 
 
 def regime_filter_data(
-    data: pd.DataFrame,
+    data: pd.DataFrame, *,
     regime_labels: pd.Series,
     target_regime: str | list[str],
     mode: Literal["hard", "soft"] = "hard",
@@ -71,7 +71,7 @@ def regime_filter_data(
 
 
 def regime_transition_matrix(
-    regime_labels: pd.Series,
+    regime_labels: pd.Series, *,
     states: list[str] | None = None,
     include_duration: bool = True,
 ) -> dict[str, Any]:
@@ -115,7 +115,7 @@ def regime_transition_matrix(
     if skipped_transitions > 0 and states is not None:
         warnings.warn(
             f"{skipped_transitions} transitions skipped due to unknown labels: {unknown_labels}",
-            stacklevel=2
+            stacklevel=2,
         )
 
     # Normalize to probabilities
@@ -169,7 +169,7 @@ def regime_transition_matrix(
 
 
 def regime_label_align(
-    target_index: pd.DatetimeIndex,
+    target_index: pd.DatetimeIndex, *,
     regime_labels: pd.Series,
     method: Literal["asof", "ffill"] = "asof",
     tolerance: pd.Timedelta | None = None,
@@ -202,14 +202,18 @@ def regime_label_align(
     if method == "ffill" and tolerance is None:
         # ffill without tolerance: allow unlimited forward-fill
         merged = pd.merge_asof(
-            target_df, label_df,
-            left_index=True, right_index=True,
+            target_df,
+            label_df,
+            left_index=True,
+            right_index=True,
             direction="backward",
         )
     else:
         merged = pd.merge_asof(
-            target_df, label_df,
-            left_index=True, right_index=True,
+            target_df,
+            label_df,
+            left_index=True,
+            right_index=True,
             direction="backward",
             tolerance=tolerance,
         )

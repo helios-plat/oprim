@@ -91,7 +91,11 @@ def recognition_update(
         if correct:
             p = (p * p_correct_given_mastered) / p_correct_total
         else:
-            p = (p * ps) / (p * ps + (1.0 - p) * (1.0 - pg)) if (p * ps + (1.0 - p) * (1.0 - pg)) > 0 else p
+            p = (
+                (p * ps) / (p * ps + (1.0 - p) * (1.0 - pg))
+                if (p * ps + (1.0 - p) * (1.0 - pg)) > 0
+                else p
+            )
     # else: p stays the same (no information)
 
     # Recognition boost: if recognised, push mastery higher

@@ -6,6 +6,7 @@ The persistence chain is:
 
 This oprim only handles the deserialization end. No file reads.
 """
+
 from __future__ import annotations
 
 from oprim._cc_types import CheckpointData, RunState

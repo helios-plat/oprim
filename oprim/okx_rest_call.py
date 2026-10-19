@@ -1,4 +1,5 @@
 """oprim.okx_rest_call — Generic OKX REST API helper."""
+
 from __future__ import annotations
 
 from datetime import UTC
@@ -57,12 +58,14 @@ async def okx_rest_call(
                 hashlib.sha256,
             ).digest()
         ).decode()
-        headers.update({
-            "OK-ACCESS-KEY": auth["api_key"],
-            "OK-ACCESS-SIGN": sig,
-            "OK-ACCESS-TIMESTAMP": ts,
-            "OK-ACCESS-PASSPHRASE": auth["passphrase"],
-        })
+        headers.update(
+            {
+                "OK-ACCESS-KEY": auth["api_key"],
+                "OK-ACCESS-SIGN": sig,
+                "OK-ACCESS-TIMESTAMP": ts,
+                "OK-ACCESS-PASSPHRASE": auth["passphrase"],
+            }
+        )
 
     async with httpx.AsyncClient(timeout=timeout) as client:
         resp = await client.request(

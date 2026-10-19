@@ -1,4 +1,5 @@
 """Convert internal Message list to Anthropic-on-Bedrock request format."""
+
 from __future__ import annotations
 
 from typing import Any

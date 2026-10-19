@@ -1,4 +1,5 @@
 """Deserialize a plain dict back into a Session."""
+
 from __future__ import annotations
 
 from pathlib import Path

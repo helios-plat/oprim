@@ -1,4 +1,5 @@
 """ProviderRegistry register for qwen3 (LLM via DashScope, qwen3-max default)."""
+
 from __future__ import annotations
 
 

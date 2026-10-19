@@ -1,4 +1,4 @@
-"""Tests for oprim._stripe_verify_webhook_signature."""
+"""Tests for oprim.stripe_verify_webhook_signature."""
 
 from __future__ import annotations
 
@@ -54,13 +54,16 @@ def test_event_has_type_key() -> None:
 
 
 def test_invalid_signature_raises() -> None:
-    with patch(
-        "stripe.Webhook.construct_event",
-        side_effect=stripe_sdk.error.SignatureVerificationError(
-            "No signatures found matching the expected signature for payload",
-            sig_header=SIG_HEADER,
+    with (
+        patch(
+            "stripe.Webhook.construct_event",
+            side_effect=stripe_sdk.error.SignatureVerificationError(
+                "No signatures found matching the expected signature for payload",
+                sig_header=SIG_HEADER,
+            ),
         ),
-    ), pytest.raises(StripeInvalidSignatureError):
+        pytest.raises(StripeInvalidSignatureError),
+    ):
         stripe_verify_webhook_signature(
             config=CONFIG,
             payload=PAYLOAD,
@@ -79,13 +82,16 @@ def test_webhook_secret_none_raises_value_error() -> None:
 
 def test_tampered_payload_raises_invalid_signature_error() -> None:
     tampered = b'{"id": "evt_TAMPERED", "type": "payment_intent.succeeded"}'
-    with patch(
-        "stripe.Webhook.construct_event",
-        side_effect=stripe_sdk.error.SignatureVerificationError(
-            "Signature mismatch",
-            sig_header=SIG_HEADER,
+    with (
+        patch(
+            "stripe.Webhook.construct_event",
+            side_effect=stripe_sdk.error.SignatureVerificationError(
+                "Signature mismatch",
+                sig_header=SIG_HEADER,
+            ),
         ),
-    ), pytest.raises(StripeInvalidSignatureError):
+        pytest.raises(StripeInvalidSignatureError),
+    ):
         stripe_verify_webhook_signature(
             config=CONFIG,
             payload=tampered,

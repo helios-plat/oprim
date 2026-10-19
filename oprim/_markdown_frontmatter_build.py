@@ -1,4 +1,5 @@
 """oprim.markdown_frontmatter_build — Build YAML frontmatter string."""
+
 from __future__ import annotations
 
 import yaml

@@ -2,6 +2,7 @@
 
 Pure computation, no LLM. Score range 0.0–1.0.
 """
+
 from __future__ import annotations
 
 import re

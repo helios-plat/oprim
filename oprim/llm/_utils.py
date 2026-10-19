@@ -2,6 +2,7 @@ from __future__ import annotations
 
 _VALID_ROLES = {"user", "assistant", "system", "tool"}
 
+
 def _validate_messages(messages: list[dict]) -> list[str]:
     errors = []
     if not messages:
@@ -18,12 +19,14 @@ def _validate_messages(messages: list[dict]) -> list[str]:
             errors.append(f"messages[{i}] missing 'content'")
     return errors
 
+
 def _extract_usage(response: dict) -> dict[str, int]:
     usage = response.get("usage", {})
     return {
         "input_tokens": usage.get("input_tokens") or usage.get("prompt_tokens") or 0,
         "output_tokens": usage.get("output_tokens") or usage.get("completion_tokens") or 0,
     }
+
 
 def _extract_text(response: dict) -> str:
     content = response.get("content", [])
@@ -38,6 +41,7 @@ def _extract_text(response: dict) -> str:
                 parts.append(block)
         return "".join(parts)
     return ""
+
 
 def _extract_tool_calls(response: dict) -> list[dict]:
     content = response.get("content", [])

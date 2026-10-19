@@ -65,7 +65,9 @@ def test_timeout_parameter_passed_to_opener():
     resp = _make_mock_response()
     opener = _make_opener(resp)
 
-    with patch("oprim._url_fetch_ssrf_safe.make_ssrf_safe_opener", return_value=opener) as mock_make:
+    with patch(
+        "oprim._url_fetch_ssrf_safe.make_ssrf_safe_opener", return_value=opener
+    ) as mock_make:
         url_fetch_ssrf_safe(url="http://example.com/", timeout=30)
 
     mock_make.assert_called_once_with(timeout=30)

@@ -15,11 +15,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def parse_unified_diff(diff_text: str) -> list[FileDiff]:
     """解析 unified diff 文本为结构化表示。

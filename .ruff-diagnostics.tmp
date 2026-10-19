@@ -1,0 +1,31 @@
+tests/runtime/test_coding_worktree.py:80:1: W293 Blank line contains whitespace
+tests/runtime/test_coding_worktree.py:113:1: W293 Blank line contains whitespace
+tests/runtime/test_coding_worktree.py:132:1: W293 Blank line contains whitespace
+tests/runtime/test_coding_worktree.py:164:1: W293 Blank line contains whitespace
+tests/runtime/test_coding_worktree.py:198:1: W293 Blank line contains whitespace
+tests/runtime/test_coding_worktree.py:222:1: W293 Blank line contains whitespace
+tests/runtime/test_lease_fencing_targeted.py:14:9: F841 Local variable `item` is assigned to but never used
+tests/runtime/test_lease_fencing_targeted.py:36:45: RUF043 Pattern passed to `match=` contains metacharacters but is neither escaped nor raw
+tests/runtime/test_lease_fencing_targeted.py:39:45: RUF043 Pattern passed to `match=` contains metacharacters but is neither escaped nor raw
+tests/runtime/test_lease_fencing_targeted.py:42:45: RUF043 Pattern passed to `match=` contains metacharacters but is neither escaped nor raw
+tests/test_context_engine.py:453:9: F841 Local variable `record` is assigned to but never used
+tests/test_verification_os_e2e.py:22:1: E402 Module level import not at top of file
+tests/test_verification_os_e2e.py:23:1: E402 Module level import not at top of file
+tests/test_verification_os_e2e.py:24:1: E402 Module level import not at top of file
+tests/test_verification_os_e2e.py:78:16: E712 Avoid equality comparisons to `True`; use `spec.frozen:` for truth checks
+tests/test_verification_os_e2e.py:79:16: E712 Avoid equality comparisons to `True`; use `spec.verify_immutable():` for truth checks
+tests/test_verification_os_e2e.py:110:16: E712 Avoid equality comparisons to `True`; use `fmap.verify_immutable():` for truth checks
+tests/test_verification_os_e2e.py:142:16: E712 Avoid equality comparisons to `True`; use `harness.verify_immutable():` for truth checks
+tests/test_verification_os_e2e.py:212:16: E712 Avoid equality comparisons to `True`; use `doctor_result.get("ok"):` for truth checks
+tests/test_verification_os_e2e.py:213:16: E712 Avoid equality comparisons to `True`; use `launch_result.get("ok"):` for truth checks
+tests/test_verification_os_e2e.py:214:16: E712 Avoid equality comparisons to `True`; use `drive_result.get("ok"):` for truth checks
+tests/test_verification_os_e2e.py:250:16: E712 Avoid equality comparisons to `True`; use `bundle.verify_integrity():` for truth checks
+tests/test_verification_os_e2e.py:298:16: E712 Avoid equality comparisons to `True`; use `verdict.verify_integrity():` for truth checks
+tests/test_verification_os_e2e.py:311:9: F841 Local variable `authority_respected` is assigned to but never used
+tests/test_verification_os_e2e.py:348:16: E712 Avoid equality comparisons to `False`; use `not verdict.is_stale(head_sha):` for false checks
+tests/test_verification_os_e2e.py:354:16: E712 Avoid equality comparisons to `True`; use `verdict.is_stale(fake_new_head):` for truth checks
+tests/test_verification_os_e2e.py:358:9: RUF059 Unpacked variable `verdict2` is never used
+tests/test_verification_os_e2e.py:363:16: E712 Avoid equality comparisons to `False`; use `not is_stale:` for false checks
+veya/obase/free_pool.py:183:17: B007 Loop control variable `source` not used within loop body
+Found 29 errors.
+No fixes available (22 hidden fixes can be enabled with the `--unsafe-fixes` option).

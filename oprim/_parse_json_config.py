@@ -1,4 +1,5 @@
 """Parse JSON/JSONC config strings into plain dicts."""
+
 from __future__ import annotations
 
 import json
@@ -47,9 +48,7 @@ def parse_json_config(raw: str) -> dict[str, Any]:
         raise ValueError(f"Invalid JSON in config: {exc}") from exc
 
     if not isinstance(parsed, dict):
-        raise ValueError(
-            f"Config must be a JSON object, got {type(parsed).__name__}"
-        )
+        raise ValueError(f"Config must be a JSON object, got {type(parsed).__name__}")
 
     parsed.pop("$schema", None)
     return parsed

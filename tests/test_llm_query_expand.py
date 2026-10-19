@@ -17,13 +17,16 @@ def test_llm_query_expand_basic():
     assert res[2] == "variant 2"
     assert res[3] == "variant 3"
 
+
 def test_llm_query_expand_empty_query():
     with pytest.raises(OprimError, match="Query cannot be empty"):
         llm_query_expand(query="  ", llm=MagicMock())
 
+
 def test_llm_query_expand_invalid_num_variants():
     with pytest.raises(OprimError, match="num_variants must be > 0"):
         llm_query_expand(query="base", llm=MagicMock(), num_variants=0)
+
 
 def test_llm_query_expand_llm_error():
     def mock_llm(**kwargs):
@@ -32,6 +35,7 @@ def test_llm_query_expand_llm_error():
     res = llm_query_expand(query="base", llm=mock_llm, num_variants=2)
     assert len(res) == 1
     assert res[0] == "base"
+
 
 def test_llm_query_expand_cleanup_and_pad():
     def mock_llm(**kwargs):
@@ -42,4 +46,4 @@ def test_llm_query_expand_cleanup_and_pad():
     assert res[0] == "base"
     assert res[1] == "var 1"
     assert res[2] == "var 2"
-    assert res[3] == "base" # Padded
+    assert res[3] == "base"  # Padded

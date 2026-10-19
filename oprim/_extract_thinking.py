@@ -10,27 +10,33 @@ from ._exceptions import OprimError
 class PromptOprimError(OprimError):
     """prompt 构建 / 消息处理失败。"""
 
+
 class SnapshotOprimError(OprimError):
     """会话快照失败。"""
+
 
 @dataclass
 class ThinkingResult:
     """扩展思考提取结果。"""
+
     thinking: str
     text: str
     has_thinking: bool
     thinking_blocks: list[str] = field(default_factory=list)
     text_blocks: list[str] = field(default_factory=list)
 
+
 @dataclass
 class ConversationSnapshot:
     """会话快照结构。"""
+
     snapshot_id: str
     session_id: str
     message_count: int
     created_at: float
     store_key: str
     revision: str
+
 
 def extract_thinking(response: dict) -> ThinkingResult:
     """从 LLM 响应中拆分 thinking block 和 text block（纯计算）。
@@ -58,8 +64,10 @@ def extract_thinking(response: dict) -> ThinkingResult:
     if not isinstance(content, list):
         if isinstance(content, str):
             return ThinkingResult(
-                thinking="", text=content,
-                has_thinking=False, text_blocks=[content],
+                thinking="",
+                text=content,
+                has_thinking=False,
+                text_blocks=[content],
             )
         raise PromptOprimError(
             f"extract_thinking: content must be list or str, got {type(content).__name__}"

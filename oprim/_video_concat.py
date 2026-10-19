@@ -75,8 +75,7 @@ async def video_concat(
 
     if transitions is not None and len(transitions) != len(inputs) - 1:
         raise VideoConcatError(
-            f"transitions length ({len(transitions)}) must equal len(inputs)-1 "
-            f"({len(inputs) - 1})"
+            f"transitions length ({len(transitions)}) must equal len(inputs)-1 ({len(inputs) - 1})"
         )
 
     # When advanced features are requested, force re-encode via concat_filter.
@@ -90,7 +89,9 @@ async def video_concat(
             await _concat_demuxer(inputs, output_path, timeout_s)
         else:
             await _concat_filter(
-                inputs, output_path, timeout_s,
+                inputs,
+                output_path,
+                timeout_s,
                 trim_lead_frames=trim_lead_frames,
                 transitions=transitions or [],
             )
@@ -108,10 +109,14 @@ async def _concat_demuxer(inputs: list[Path], output_path: Path, timeout_s: floa
 
     try:
         args = [
-            "-f", "concat",
-            "-safe", "0",
-            "-i", str(list_path),
-            "-c", "copy",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            str(list_path),
+            "-c",
+            "copy",
             str(output_path),
         ]
         await ffmpeg_run(args=args, timeout_s=timeout_s, expected_output=output_path)
@@ -135,7 +140,9 @@ async def _concat_filter(
 ) -> None:
     if transitions:
         await _concat_with_transitions(
-            inputs, output_path, timeout_s,
+            inputs,
+            output_path,
+            timeout_s,
             trim_lead_frames=trim_lead_frames,
             transitions=transitions,
         )
@@ -160,14 +167,21 @@ async def _concat_filter(
     concat_inputs = "".join(filter_parts)
     filter_complex = f"{concat_inputs}concat=n={n}:v=1:a=1[outv][outa]"
 
-    args.extend([
-        "-filter_complex", filter_complex,
-        "-map", "[outv]",
-        "-map", "[outa]",
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        str(output_path),
-    ])
+    args.extend(
+        [
+            "-filter_complex",
+            filter_complex,
+            "-map",
+            "[outv]",
+            "-map",
+            "[outa]",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            str(output_path),
+        ]
+    )
     await ffmpeg_run(args=args, timeout_s=timeout_s, expected_output=output_path)
 
 
@@ -248,14 +262,21 @@ async def _concat_with_transitions(
 
     filter_complex = "".join(parts).rstrip(";")
 
-    args.extend([
-        "-filter_complex", filter_complex,
-        "-map", v_acc,
-        "-map", a_acc,
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        str(output_path),
-    ])
+    args.extend(
+        [
+            "-filter_complex",
+            filter_complex,
+            "-map",
+            v_acc,
+            "-map",
+            a_acc,
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            str(output_path),
+        ]
+    )
     await ffmpeg_run(args=args, timeout_s=timeout_s, expected_output=output_path)
 
 
@@ -264,8 +285,13 @@ async def _probe_durations(inputs: list[Path]) -> list[float]:
     durations: list[float] = []
     for p in inputs:
         cmd = [
-            "ffprobe", "-v", "quiet", "-print_format", "json",
-            "-show_format", str(p),
+            "ffprobe",
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_format",
+            str(p),
         ]
         try:
             proc = await asyncio.create_subprocess_exec(

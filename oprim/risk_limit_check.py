@@ -1,4 +1,5 @@
 """oprim.risk_limit_check — Evaluate position / drawdown / rule-based risk limits."""
+
 from __future__ import annotations
 
 from typing import Any
