@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 from obase import ProviderRegistry
+
 from oprim.first_last_frame_transition import (
     FrameTransitionError,
     FrameTransitionProviderNotFoundError,

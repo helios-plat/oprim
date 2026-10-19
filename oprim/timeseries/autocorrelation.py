@@ -92,9 +92,7 @@ def ljung_box_test(
         if boxpierce:
             q = float(n * np.sum(np.array(acfs[:h]) ** 2))
         else:
-            q = float(n * (n + 2) * np.sum(
-                [acfs[k - 1] ** 2 / (n - k) for k in range(1, h + 1)]
-            ))
+            q = float(n * (n + 2) * np.sum([acfs[k - 1] ** 2 / (n - k) for k in range(1, h + 1)]))
         p_val = float(stats.chi2.sf(q, df=h))
         statistics.append(q)
         p_values.append(p_val)

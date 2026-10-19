@@ -12,10 +12,10 @@ from oprim import dns_resolve, http_health_probe, http_request_once, tcp_port_ch
 from oprim._exceptions import OprimConnectionError, OprimTimeoutError, OprimValidationError
 from oprim._network import DNSResolveResult, HealthProbeResult, HttpResponse, PortCheckResult
 
-
 # ---------------------------------------------------------------------------
 # tcp_port_check
 # ---------------------------------------------------------------------------
+
 
 class TestTcpPortCheck:
     def test_reachable(self):
@@ -33,19 +33,24 @@ class TestTcpPortCheck:
         assert "refused" in (result.error or "")
 
     def test_timeout(self):
-        with patch("oprim._network.socket.create_connection", side_effect=socket.timeout()):
+        with patch("oprim._network.socket.create_connection", side_effect=TimeoutError()):
             result = tcp_port_check(host="10.255.255.1", port=80, timeout_sec=1)
         assert result.reachable is False
         assert "timeout" in (result.error or "")
 
     def test_dns_failure(self):
-        with patch("oprim._network.socket.create_connection", side_effect=socket.gaierror(-2, "Name not found")):
+        with patch(
+            "oprim._network.socket.create_connection",
+            side_effect=socket.gaierror(-2, "Name not found"),
+        ):
             result = tcp_port_check(host="nonexistent.example.invalid", port=80)
         assert result.reachable is False
         assert "dns" in (result.error or "").lower()
 
     def test_oserror_returns_not_reachable(self):
-        with patch("oprim._network.socket.create_connection", side_effect=OSError("network unreachable")):
+        with patch(
+            "oprim._network.socket.create_connection", side_effect=OSError("network unreachable")
+        ):
             result = tcp_port_check(host="localhost", port=80)
         assert result.reachable is False
         assert result.error is not None
@@ -62,6 +67,7 @@ class TestTcpPortCheck:
 # ---------------------------------------------------------------------------
 # http_health_probe
 # ---------------------------------------------------------------------------
+
 
 class TestHttpHealthProbe:
     def _make_resp(self, status_code=200, text="OK"):
@@ -156,6 +162,7 @@ class TestHttpHealthProbe:
 # dns_resolve
 # ---------------------------------------------------------------------------
 
+
 class TestDnsResolve:
     def test_successful_a_record(self):
         mock_answers = MagicMock()
@@ -224,7 +231,9 @@ class TestDnsResolve:
     def test_dns_exception_generic(self):
         nxdomain_cls, noanswer_cls, timeout_cls, dnsexc_cls = self._dns_mock_setup()
         with patch("oprim._network.dns") as mock_dns:
-            mock_dns.resolver.Resolver.return_value.resolve.side_effect = dnsexc_cls("generic dns error")
+            mock_dns.resolver.Resolver.return_value.resolve.side_effect = dnsexc_cls(
+                "generic dns error"
+            )
             mock_dns.resolver.NXDOMAIN = nxdomain_cls
             mock_dns.resolver.NoAnswer = noanswer_cls
             mock_dns.resolver.Timeout = timeout_cls
@@ -275,6 +284,7 @@ class TestDnsResolve:
 # ---------------------------------------------------------------------------
 # http_request_once
 # ---------------------------------------------------------------------------
+
 
 class TestHttpRequestOnce:
     def _make_resp(self, status_code=200, content=b"body", headers=None):

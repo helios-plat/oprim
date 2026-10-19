@@ -1,4 +1,5 @@
 """oprim.subject_update — Update an existing Subject record."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -28,6 +29,7 @@ async def subject_update(
     else:
         try:
             from oprim.subject_create import _MEMORY_STORE
+
             _store = _MEMORY_STORE
         except Exception:
             return None

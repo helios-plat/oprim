@@ -1,11 +1,12 @@
 """oprim.video_element_edit — Edit elements within video metadata/transcript."""
+
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
-class VideoEditOperation(str, Enum):
+class VideoEditOperation(StrEnum):
     REPLACE = "replace"
     INSERT = "insert"
     DELETE = "delete"
@@ -24,9 +25,11 @@ async def video_element_edit(
     Args:
         elements: List of element dicts to operate on.
         operation: One of "replace", "insert", "delete".
-        target_index: Index into elements for replace/delete; insertion point for insert.
+        target_index: Index into elements for replace/delete
+        insertion point for insert.
         replacement: New element dict for replace/insert operations.
-        caller: LLM caller (reserved for future enrichment; not called here).
+        caller: LLM caller (reserved for future enrichment
+        not called here).
 
     Returns:
         New list with the edit applied.

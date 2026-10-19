@@ -1,4 +1,5 @@
 """Validate a list of Todo objects for internal consistency."""
+
 from __future__ import annotations
 
 from ._hicode_types import Todo

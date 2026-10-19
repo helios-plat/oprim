@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from datetime import date
 from typing import Any, Literal
 
@@ -38,7 +39,8 @@ async def fetch_macro_m2(
     Args:
         start_date: Inclusive lower bound.  ``None`` = no lower bound.
         end_date:   Inclusive upper bound.  ``None`` = no upper bound.
-        source:     Data source.  Only ``"akshare"`` is freely available;
+        source:     Data source.  Only ``"akshare"`` is freely available
+
                     ``"wind"`` and ``"tushare"`` require licensed access and
                     raise :exc:`MacroFetchError` immediately.
 
@@ -69,22 +71,18 @@ async def fetch_macro_m2(
             continue
         obs_date = date.fromisoformat(str(raw_date)[:10])
         meta = {"source": source, "unit_yoy": "%", "unit_abs": "亿元"}
-        try:
+        with contextlib.suppress(TypeError, ValueError):
             points.append(
                 MacroDataPoint(
                     indicator="m2_yoy", date=obs_date, value=float(row[_M2_YOY_COL]), metadata=meta
                 )
             )
-        except (TypeError, ValueError):
-            pass
-        try:
+        with contextlib.suppress(TypeError, ValueError):
             points.append(
                 MacroDataPoint(
                     indicator="m2_abs", date=obs_date, value=float(row[_M2_ABS_COL]), metadata=meta
                 )
             )
-        except (TypeError, ValueError):
-            pass
 
     points.sort(key=lambda p: p.date)
     return _filter_by_date(points, start_date, end_date)

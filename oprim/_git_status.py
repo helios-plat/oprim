@@ -1,10 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import subprocess
+
 from dataclasses import dataclass
 from pathlib import Path
-from ._exceptions import GitOprimError
+
+from oprim.git import _git
+
 
 @dataclass
 class FileStatus:
@@ -13,6 +15,7 @@ class FileStatus:
     worktree: str
     renamed_from: str | None = None
 
+
 @dataclass
 class Commit:
     hash: str
@@ -20,12 +23,14 @@ class Commit:
     date: str
     message: str
 
+
 @dataclass
 class BlameLine:
     lineno: int
     commit: str
     author: str
     content: str
+
 
 def git_status(*, repo: str | Path) -> list[FileStatus]:
     """单次获取工作区状态（porcelain v1）。
@@ -54,10 +59,12 @@ def git_status(*, repo: str | Path) -> list[FileStatus]:
         renamed_from = None
         if " -> " in rest:
             renamed_from, rest = rest.split(" -> ", 1)
-        statuses.append(FileStatus(
-            path=rest.strip(),
-            index=index,
-            worktree=worktree,
-            renamed_from=renamed_from,
-        ))
+        statuses.append(
+            FileStatus(
+                path=rest.strip(),
+                index=index,
+                worktree=worktree,
+                renamed_from=renamed_from,
+            )
+        )
     return statuses

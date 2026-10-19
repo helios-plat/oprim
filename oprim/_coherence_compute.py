@@ -38,7 +38,8 @@ def coherence_compute(
 ) -> dict[str, dict]:
     """Compute coherence evidence for each node from confirmed knowledge sources.
 
-    Returns {node_id: {supports_from_confirmed, contradicts_from_confirmed, supporters, contradictors}}
+    Returns {node_id: {supports_from_confirmed, contradicts_from_confirmed,
+    supporters, contradictors}}
     Only counts edges from confirmed knowledge (grade >= moderate + independent source).
     """
     confirmed = set()

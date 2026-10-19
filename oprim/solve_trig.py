@@ -10,17 +10,12 @@ Version: oprim v3.4.0
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
-
-from obase.sympy_runtime import SymPyRuntime
 
 from oprim.types import SolveResult, SolveStep
 
-
-TaskType = Literal[
-    "solve", "simplify", "evaluate", "period", "identity", "auto"
-]
+TaskType = Literal["solve", "simplify", "evaluate", "period", "identity", "auto"]
 
 
 @dataclass(frozen=True)
@@ -30,8 +25,8 @@ class TrigSolveInput:
     expression: str
     variable: str = "x"
     task: TaskType = "auto"
-    angle_degrees: float | None = None   # for "evaluate"
-    rhs: str = "0"                        # RHS when task="solve" (expr = rhs)
+    angle_degrees: float | None = None  # for "evaluate"
+    rhs: str = "0"  # RHS when task="solve" (expr = rhs)
     timeout: float = 5.0
 
 
@@ -54,10 +49,7 @@ def solve_trig(inp: TrigSolveInput) -> SolveResult:
 
     task = inp.task
     if task == "auto":
-        if inp.angle_degrees is not None:
-            task = "evaluate"
-        else:
-            task = "solve"
+        task = "evaluate" if inp.angle_degrees is not None else "solve"
 
     try:
         import sympy as sp

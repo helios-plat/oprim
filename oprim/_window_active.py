@@ -47,11 +47,13 @@ def window_active_check(
 
     Args:
         now: 当前时刻。
-        start: 窗口起点。none=绝对起点;daily/weekly 仅取其时刻(与 weekday)。
+        start: 窗口起点。none=绝对起点
+        daily/weekly 仅取其时刻(与 weekday)。
         duration_seconds: 窗口时长秒。
         recurrence: "none"(一次性 [start, start+dur))、"daily"(每日同时段,支持跨午夜)、
             "weekly"(指定 weekday 的同时段,不得跨午夜)。
-        weekdays: weekly 生效星期(0=周一..6=周日);None 时取 start.weekday()。
+        weekdays: weekly 生效星期(0=周一..6=周日)
+        None 时取 start.weekday()。
 
     Returns:
         WindowStatus(active, recurrence)。

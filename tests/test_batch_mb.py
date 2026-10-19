@@ -9,34 +9,31 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
-import ast
-import inspect
 import math
-import textwrap
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
-# ── M-B imports ──────────────────────────────────────────────────────────────
-from oprim.solve_conic import solve_conic, ConicParams, _classify_by_discriminant
-from oprim.solve_function import solve_function, FunctionSolveInput
-from oprim.solve_derivative import solve_derivative, DerivativeSolveInput
-from oprim.solve_geometry3d import solve_geometry3d, Geometry3DInput
-from oprim.solve_sequence import solve_sequence, SequenceSolveInput
-from oprim.solve_trig import solve_trig, TrigSolveInput
-from oprim.solve_probability import solve_probability, ProbabilitySolveInput
-from oprim.verify_step import verify_step, StepVerifyInput, verify_steps
-from oprim.kernel_to_plot2d import kernel_to_plot2d, Plot2DRequest, solve_result_to_plot2d
-from oprim.kernel_to_three import kernel_to_three, Plot3DRequest
-from oprim.generate_svg_diagram import generate_svg_diagram, generate_svg_from_plot2d, SVGConfig
-from oprim.types import SolveResult, SolveStep, Plot2DData, Three3DData, SocraticTurnResult
+from oprim.generate_svg_diagram import SVGConfig, generate_svg_diagram, generate_svg_from_plot2d
+from oprim.kernel_to_plot2d import Plot2DRequest, kernel_to_plot2d, solve_result_to_plot2d
+from oprim.kernel_to_three import Plot3DRequest, kernel_to_three
 
+# ── M-B imports ──────────────────────────────────────────────────────────────
+from oprim.solve_conic import _classify_by_discriminant, solve_conic
+from oprim.solve_derivative import DerivativeSolveInput, solve_derivative
+from oprim.solve_function import FunctionSolveInput, solve_function
+from oprim.solve_geometry3d import Geometry3DInput, solve_geometry3d
+from oprim.solve_probability import ProbabilitySolveInput, solve_probability
+from oprim.solve_sequence import SequenceSolveInput, solve_sequence
+from oprim.solve_trig import TrigSolveInput, solve_trig
+from oprim.types import Plot2DData, SocraticTurnResult, SolveResult, Three3DData
+from oprim.verify_step import StepVerifyInput, verify_step, verify_steps
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MANDATORY: test_verify_no_llm_call
 # CI checks that verify_step.py has NO import of ProviderRegistry/anthropic.
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestVerifyStepNoLLM:
     def test_verify_no_llm_call(self):
@@ -85,16 +82,16 @@ class TestVerifyStepNoLLM:
 
 CONIC_CASES = [
     # (expression, expected_type_substring)
-    ("x**2 + y**2 - 9",                   "circle"),
-    ("x**2 + y**2 - 2*x - 4*y - 4",       "circle"),
-    ("x**2/4 + y**2/9 - 1",               "ellipse"),
-    ("x**2/9 + y**2/4 - 1",               "ellipse"),
-    ("x**2 - y**2/4 - 1",                 "hyperbola"),
-    ("4*x**2 - y**2 - 16",                "hyperbola"),
-    ("y**2 - 4*x",                        "parabola"),
-    ("x**2 - 4*y",                        "parabola"),
-    ("(x-1)**2 + (y+2)**2 - 25",          "circle"),
-    ("x**2/16 + y**2/25 - 1",             "ellipse"),
+    ("x**2 + y**2 - 9", "circle"),
+    ("x**2 + y**2 - 2*x - 4*y - 4", "circle"),
+    ("x**2/4 + y**2/9 - 1", "ellipse"),
+    ("x**2/9 + y**2/4 - 1", "ellipse"),
+    ("x**2 - y**2/4 - 1", "hyperbola"),
+    ("4*x**2 - y**2 - 16", "hyperbola"),
+    ("y**2 - 4*x", "parabola"),
+    ("x**2 - 4*y", "parabola"),
+    ("(x-1)**2 + (y+2)**2 - 25", "circle"),
+    ("x**2/16 + y**2/25 - 1", "ellipse"),
 ]
 
 
@@ -152,6 +149,7 @@ class TestConicCases:
 # ─────────────────────────────────────────────────────────────────────────────
 # solve_function
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSolveFunction:
     def test_zeros_quadratic(self):
@@ -214,6 +212,7 @@ class TestSolveFunction:
 # solve_derivative
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestSolveDerivative:
     def test_first_derivative(self):
         inp = DerivativeSolveInput(expression="x**3 + 2*x", task="derivative")
@@ -267,6 +266,7 @@ class TestSolveDerivative:
 # solve_geometry3d
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestSolveGeometry3D:
     def test_distance(self):
         inp = Geometry3DInput(task="distance", p1=(0, 0, 0), p2=(3, 4, 0))
@@ -284,14 +284,14 @@ class TestSolveGeometry3D:
         inp = Geometry3DInput(task="sphere", radius=3.0)
         r = solve_geometry3d(inp)
         assert r.solvable
-        vol = (4/3) * math.pi * 27
+        vol = (4 / 3) * math.pi * 27
         assert str(round(vol, 0))[:2] in r.answer  # check rough value
 
     def test_cylinder_volume(self):
         inp = Geometry3DInput(task="cylinder", radius=2.0, height=5.0)
         r = solve_geometry3d(inp)
         assert r.solvable
-        vol = math.pi * 4 * 5
+        math.pi * 4 * 5
         assert "V" in r.answer
 
     def test_cone_volume(self):
@@ -326,6 +326,7 @@ class TestSolveGeometry3D:
 # ─────────────────────────────────────────────────────────────────────────────
 # solve_sequence
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSolveSequence:
     def test_arithmetic_nth_term(self):
@@ -379,6 +380,7 @@ class TestSolveSequence:
 # solve_trig
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestSolveTrig:
     def test_solve_sin_zero(self):
         inp = TrigSolveInput(expression="sin(x)", task="solve", rhs="0")
@@ -428,6 +430,7 @@ class TestSolveTrig:
 # solve_probability
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestSolveProbability:
     def test_combinations(self):
         inp = ProbabilitySolveInput(task="combinations", n=5, k=2)
@@ -450,9 +453,9 @@ class TestSolveProbability:
     def test_bayes(self):
         inp = ProbabilitySolveInput(
             task="bayes",
-            p_a=0.01,          # P(disease)
+            p_a=0.01,  # P(disease)
             p_b_given_a=0.95,  # P(+|disease)
-            p_b=0.05,          # P(+)
+            p_b=0.05,  # P(+)
         )
         r = solve_probability(inp)
         assert r.solvable
@@ -494,6 +497,7 @@ class TestSolveProbability:
 # ─────────────────────────────────────────────────────────────────────────────
 # verify_step (additional)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestVerifyStep:
     def test_valid_factoring(self):
@@ -570,6 +574,7 @@ class TestVerifyStep:
 # kernel_to_plot2d
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestKernelToPlot2D:
     def test_basic_parabola(self):
         req = Plot2DRequest(expression="x**2", x_range=(-5.0, 5.0), num_points=50)
@@ -579,7 +584,9 @@ class TestKernelToPlot2D:
         assert len(data.y_values) == len(data.x_values)
 
     def test_zero_annotation(self):
-        req = Plot2DRequest(expression="x**2 - 4", x_range=(-5.0, 5.0), num_points=200, mark_zeros=True)
+        req = Plot2DRequest(
+            expression="x**2 - 4", x_range=(-5.0, 5.0), num_points=200, mark_zeros=True
+        )
         data = kernel_to_plot2d(req)
         # Should detect zero crossings near ±2
         assert len(data.annotations) >= 1
@@ -604,6 +611,7 @@ class TestKernelToPlot2D:
 # kernel_to_three
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestKernelToThree:
     def test_basic_surface(self):
         req = Plot3DRequest(
@@ -624,7 +632,7 @@ class TestKernelToThree:
             grid_points=3,
         )
         data = kernel_to_three(req)
-        for xv, yv, zv in zip(data.x_values, data.y_values, data.z_values):
+        for xv, yv, zv in zip(data.x_values, data.y_values, data.z_values, strict=False):
             assert abs(zv - (xv + yv)) < 1e-6
 
     def test_surface_func_stored(self):
@@ -647,6 +655,7 @@ class TestKernelToThree:
 # ─────────────────────────────────────────────────────────────────────────────
 # generate_svg_diagram
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestGenerateSVGDiagram:
     def test_svg_from_plot2d(self):
@@ -683,7 +692,9 @@ class TestGenerateSVGDiagram:
             generate_svg_diagram("not a data object")  # type: ignore
 
     def test_custom_config(self):
-        data = Plot2DData(x_values=[0.0, 1.0], y_values=[0.0, 1.0], x_range=(0.0, 1.0), y_range=(0.0, 1.0))
+        data = Plot2DData(
+            x_values=[0.0, 1.0], y_values=[0.0, 1.0], x_range=(0.0, 1.0), y_range=(0.0, 1.0)
+        )
         cfg = SVGConfig(width=800, height=600, stroke_color="#FF0000")
         svg = generate_svg_from_plot2d(data, cfg)
         assert 'width="800"' in svg
@@ -705,6 +716,7 @@ class TestGenerateSVGDiagram:
 # ─────────────────────────────────────────────────────────────────────────────
 # SocraticTurnResult (from types)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSocraticTurnResult:
     def test_basic_construction(self):

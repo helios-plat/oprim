@@ -1,4 +1,5 @@
 """Pure-compute: apply_patch."""
+
 from __future__ import annotations
 
 from ._parse_unified_diff import parse_unified_diff
@@ -42,9 +43,7 @@ def apply_patch(original: str, *, patch: str) -> str:
                 if prefix == " ":
                     # Context line — verify it matches
                     if src_idx >= len(lines):
-                        raise ValueError(
-                            f"hunk failed at line {src_idx + 1}: source exhausted"
-                        )
+                        raise ValueError(f"hunk failed at line {src_idx + 1}: source exhausted")
                     if lines[src_idx].rstrip("\n") != content.rstrip("\n"):
                         raise ValueError(
                             f"hunk failed at line {src_idx + 1}: "
@@ -55,9 +54,7 @@ def apply_patch(original: str, *, patch: str) -> str:
                 elif prefix == "-":
                     # Deletion — verify and skip
                     if src_idx >= len(lines):
-                        raise ValueError(
-                            f"hunk failed at line {src_idx + 1}: source exhausted"
-                        )
+                        raise ValueError(f"hunk failed at line {src_idx + 1}: source exhausted")
                     if lines[src_idx].rstrip("\n") != content.rstrip("\n"):
                         raise ValueError(
                             f"hunk failed at line {src_idx + 1}: "

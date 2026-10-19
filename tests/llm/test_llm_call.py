@@ -1,12 +1,13 @@
 """Tests for oprim.llm.llm_call — mocking DashScope and Anthropic APIs."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oprim.llm.llm_call import LLMResponse, llm_call
 from oprim.errors import LLMError, LLMRateLimitError
+from oprim.llm.llm_call import LLMResponse, llm_call
 
 
 def _make_dashscope_response(
@@ -60,18 +61,22 @@ class TestLLMCall:
         resp = _make_dashscope_response(status_code=429)
         resp.message = "Rate limit exceeded"
 
-        with patch("dashscope.Generation.call", return_value=resp):
-            with pytest.raises(LLMRateLimitError):
-                llm_call("test", provider="qwen3_dashscope")
+        with (
+            patch("dashscope.Generation.call", return_value=resp),
+            pytest.raises(LLMRateLimitError),
+        ):
+            llm_call("test", provider="qwen3_dashscope")
 
     def test_dashscope_error_status_raises(self):
         resp = _make_dashscope_response(status_code=500)
         resp.message = "Internal server error"
 
-        with patch("dashscope.Generation.call", return_value=resp):
-            with patch("time.sleep"):
-                with pytest.raises(LLMError):
-                    llm_call("test", provider="qwen3_dashscope")
+        with (
+            patch("dashscope.Generation.call", return_value=resp),
+            patch("time.sleep"),
+            pytest.raises(LLMError),
+        ):
+            llm_call("test", provider="qwen3_dashscope")
 
     def test_dashscope_retry_on_exception(self):
         """Exception on first 2 calls, success on 3rd."""
@@ -84,9 +89,8 @@ class TestLLMCall:
                 raise ConnectionError("transient")
             return resp
 
-        with patch("dashscope.Generation.call", side_effect=side_effect):
-            with patch("time.sleep"):
-                result = llm_call("prompt", provider="qwen3_dashscope")
+        with patch("dashscope.Generation.call", side_effect=side_effect), patch("time.sleep"):
+            result = llm_call("prompt", provider="qwen3_dashscope")
 
         assert result.text == "recovered"
         assert call_count["n"] == 3
@@ -95,10 +99,12 @@ class TestLLMCall:
         def always_fail(**kwargs):
             raise ConnectionError("always fails")
 
-        with patch("dashscope.Generation.call", side_effect=always_fail):
-            with patch("time.sleep"):
-                with pytest.raises(LLMError, match="3 retries"):
-                    llm_call("test", provider="qwen3_dashscope")
+        with (
+            patch("dashscope.Generation.call", side_effect=always_fail),
+            patch("time.sleep"),
+            pytest.raises(LLMError, match="3 retries"),
+        ):
+            llm_call("test", provider="qwen3_dashscope")
 
     def test_unknown_provider_raises(self):
         with pytest.raises(LLMError, match="Unknown LLM provider"):
@@ -107,13 +113,19 @@ class TestLLMCall:
     def test_claude_no_anthropic_package(self):
         """If anthropic is not installed, should raise LLMError with anthropic mention."""
         # Directly test the error path via mocking _call_claude
-        with patch("oprim.llm.llm_call._call_claude", side_effect=LLMError("anthropic package not installed")):
-            with pytest.raises(LLMError, match="anthropic"):
-                llm_call("test", provider="claude")
+        with (
+            patch(
+                "oprim.llm.llm_call._call_claude",
+                side_effect=LLMError("anthropic package not installed"),
+            ),
+            pytest.raises(LLMError, match="anthropic"),
+        ):
+            llm_call("test", provider="claude")
 
     def test_claude_success_mocked(self):
         import sys
         from unittest.mock import MagicMock
+
         mock_anthropic = MagicMock()
         mock_client = MagicMock()
         mock_resp = MagicMock()
@@ -134,6 +146,7 @@ class TestLLMCall:
     def test_claude_retry_on_exception(self):
         import sys
         from unittest.mock import MagicMock
+
         mock_anthropic = MagicMock()
         mock_client = MagicMock()
         mock_resp = MagicMock()
@@ -151,28 +164,31 @@ class TestLLMCall:
         mock_client.messages.create.side_effect = side_effect
         mock_anthropic.Anthropic.return_value = mock_client
 
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic}):
-            with patch("time.sleep"):
-                result = llm_call("hi", provider="claude")
+        with patch.dict(sys.modules, {"anthropic": mock_anthropic}), patch("time.sleep"):
+            result = llm_call("hi", provider="claude")
 
         assert result.text == "retry success"
 
     def test_claude_exhausted_retries_raises(self):
         import sys
         from unittest.mock import MagicMock
+
         mock_anthropic = MagicMock()
         mock_client = MagicMock()
         mock_client.messages.create.side_effect = ConnectionError("always fails")
         mock_anthropic.Anthropic.return_value = mock_client
 
-        with patch.dict(sys.modules, {"anthropic": mock_anthropic}):
-            with patch("time.sleep"):
-                with pytest.raises(LLMError, match="3 retries"):
-                    llm_call("hi", provider="claude")
+        with (
+            patch.dict(sys.modules, {"anthropic": mock_anthropic}),
+            patch("time.sleep"),
+            pytest.raises(LLMError, match="3 retries"),
+        ):
+            llm_call("hi", provider="claude")
 
     def test_claude_with_system_prompt(self):
         import sys
         from unittest.mock import MagicMock
+
         mock_anthropic = MagicMock()
         mock_client = MagicMock()
         mock_resp = MagicMock()
@@ -188,4 +204,3 @@ class TestLLMCall:
         call_kwargs = mock_client.messages.create.call_args.kwargs
         assert call_kwargs.get("system") == "You are a tester"
         assert result.text == "ok"
-

@@ -1,4 +1,5 @@
 """Convert internal Message list to OpenAI chat completion request format."""
+
 from __future__ import annotations
 
 import json
@@ -29,14 +30,16 @@ def to_openai_format(messages: list[Message]) -> dict[str, Any]:
                     tc = p.tool_call
                     if tc is None:
                         continue
-                    tool_calls.append({
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {
-                            "name": tc.name,
-                            "arguments": json.dumps(tc.args),
-                        },
-                    })
+                    tool_calls.append(
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {
+                                "name": tc.name,
+                                "arguments": json.dumps(tc.args),
+                            },
+                        }
+                    )
                 entry: dict[str, Any] = {"role": "assistant", "tool_calls": tool_calls}
                 if content is not None:
                     entry["content"] = content
@@ -52,10 +55,12 @@ def to_openai_format(messages: list[Message]) -> dict[str, Any]:
             for p in msg.parts:
                 if p.type == "tool_result" and p.tool_result is not None:
                     tr = p.tool_result
-                    converted.append({
-                        "role": "tool",
-                        "tool_call_id": tr.call_id,
-                        "content": tr.content,
-                    })
+                    converted.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": tr.call_id,
+                            "content": tr.content,
+                        }
+                    )
 
     return {"messages": converted}

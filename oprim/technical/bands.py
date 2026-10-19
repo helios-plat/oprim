@@ -86,9 +86,8 @@ def bollinger_bands(
 
 
 def donchian_channel(
-    highs: np.ndarray | pd.Series,
+    highs: np.ndarray | pd.Series, *,
     lows: np.ndarray | pd.Series,
-    *,
     window: int = 20,
 ) -> dict[str, np.ndarray | pd.Series]:
     """Donchian Channel (price range breakout indicator).
@@ -100,7 +99,8 @@ def donchian_channel(
 
     First (window-1) positions are NaN.
 
-    Reference: Donchian (1960s); standard turtle trading reference.
+    Reference: Donchian (1960s)
+    standard turtle trading reference.
 
     Parameters
     ----------
@@ -143,10 +143,9 @@ def donchian_channel(
 
 
 def keltner_channels(
-    highs: np.ndarray | pd.Series,
+    highs: np.ndarray | pd.Series, *,
     lows: np.ndarray | pd.Series,
     closes: np.ndarray | pd.Series,
-    *,
     ema_period: int = 20,
     atr_period: int = 10,
     multiplier: float = 2.0,

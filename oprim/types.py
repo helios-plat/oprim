@@ -5,15 +5,30 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "BaseModel",
+    "GradeResult",
+    "PeerPercentileResult",
+    "Plot2DData",
+    "SocraticTurnResult",
+    "SolveResult",
+    "SolveStep",
+    "StepCheckResult",
+    "Three3DData",
+    "annotations",
+    "dataclass",
+    "field",
+]
+
 from dataclasses import dataclass, field
-from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict
-
+from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Mneme types — SolveResult / SolveStep / StepCheckResult
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class SolveStep:
@@ -68,6 +83,7 @@ class SolveResult:
 # ---------------------------------------------------------------------------
 # Mneme types — Plot2DData / Three3DData (diagram generation)
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class Plot2DData:
@@ -131,6 +147,7 @@ class Three3DData:
 # Grade result (used by compute_feedback)
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class GradeResult:
     """Result of grading a student answer."""
@@ -146,6 +163,7 @@ class GradeResult:
 # ---------------------------------------------------------------------------
 # Peer percentile data (used by compute_peer_percentile)
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class PeerPercentileResult:
@@ -163,11 +181,13 @@ class PeerPercentileResult:
 # Socratic dialogue (used by M-B/M-C elements)
 # ---------------------------------------------------------------------------
 
+
 class SocraticTurnResult(BaseModel):
     """Result of a single Socratic dialogue turn."""
 
     text: str
     step_check_triggered: bool = False
+
 
 # ---------------------------------------------------------------------------
 # KCState — defined in _cognitive.py, re-exported here for compatibility
@@ -177,5 +197,6 @@ class SocraticTurnResult(BaseModel):
 def __getattr__(name):
     if name == "KCState":
         from oprim._cognitive import KCState
+
         return KCState
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

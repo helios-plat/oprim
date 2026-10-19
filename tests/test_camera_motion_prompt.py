@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from oprim.camera_motion_prompt import camera_motion_prompt
 
 

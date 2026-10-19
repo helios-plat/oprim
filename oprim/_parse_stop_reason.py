@@ -1,4 +1,5 @@
 """Parse provider-specific stop/finish reason from a raw response dict."""
+
 from __future__ import annotations
 
 from typing import Any

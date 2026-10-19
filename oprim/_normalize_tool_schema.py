@@ -1,4 +1,5 @@
 """Normalize internal tool schema dicts to provider-specific formats."""
+
 from __future__ import annotations
 
 from typing import Any

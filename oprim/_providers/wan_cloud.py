@@ -5,6 +5,8 @@ Moved from hevi service layer per P8.5-B3.5 lesson: duration param removed.
 
 from __future__ import annotations
 
+__oprim_layer__ = "provider"  # external provider adapter; not a capability
+
 import asyncio
 import base64
 from pathlib import Path
@@ -13,7 +15,6 @@ from typing import Any
 
 class WanCloudError(Exception):
     """Wan cloud API call failed."""
-
 
 async def invoke(
     *,
@@ -36,7 +37,8 @@ async def invoke(
     Args:
         mode: "t2v" or "i2v".
         prompt: Text prompt.
-        reference_image: Required for i2v; ignored for t2v.
+        reference_image: Required for i2v
+        ignored for t2v.
         output_path: Destination file path.
         api_key: DashScope API key (DASHSCOPE_API_KEY).
         base_url: DashScope video generation endpoint.
@@ -113,7 +115,6 @@ async def invoke(
                 code = task_output.get("code", "unknown")
                 msg = task_output.get("message", "")
                 raise WanCloudError(f"Wan task {task_status}: {code} — {msg}")
-
 
 def _raise_api_error(stage: str, resp: object) -> None:
     """Extract code+message from response and raise WanCloudError."""

@@ -74,10 +74,12 @@ class TestEquityCurveSegmentLabel:
         dates = [date(2024, 1, 1) + timedelta(days=i) for i in range(200)]
         splits = time_series_split(dates=dates, train_pct=0.6, val_pct=0.2, gap_days=5)
 
-        equity = pd.DataFrame({
-            "date": dates,
-            "equity": [100.0 + i * 0.3 for i in range(200)],
-        })
+        equity = pd.DataFrame(
+            {
+                "date": dates,
+                "equity": [100.0 + i * 0.3 for i in range(200)],
+            }
+        )
 
         result = equity_curve_segment_label(
             equity_curve=equity,

@@ -2,6 +2,38 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [3.23.0] — 2026-07-30
+
+### Added (SPEC §2.2/§2.3: batch-warehouse commerce vertical atoms)
+
+Depends on companion obase PR (`FulfillmentProvider`/`TaxProvider` Protocols added
+alongside the existing `PaymentProvider`/`NotificationProvider`/`SearchProvider`,
+all through the generic `ProviderRegistry` mechanism — no dedicated registry classes).
+§2.1 db_* atoms deliberately skipped per prior decision (obase.persistence covers
+that need directly; see 3O_MEDUSA_IMPLEMENTATION_SPEC.md).
+
+**外部 API 原子 (§2.2, 11 个, provider dispatch via `ProviderRegistry.generic()`)**
+- feat: `ext_pay_authorize` / `ext_pay_capture` / `ext_pay_refund` / `ext_pay_cancel` — category="payment"
+- feat: `ext_ship_get_rates` / `ext_ship_create_label` / `ext_ship_cancel_label` — category="fulfillment"
+- feat: `ext_search_upsert` / `ext_search_delete` — category="search"
+- feat: `ext_notify_send` — category="notification"; renders `template` as a Jinja2 string against `data`, dispatches to `send_email`/`send_sms` by `channel` (design note: obase.NotificationProvider has no generic "send" method, so templating + channel routing lives in this atom)
+- feat: `ext_tax_calculate` — category="tax"
+
+**纯计算原子 (§2.3, 5 个, no provider)**
+- feat: `math_currency_round` — Decimal-based ROUND_HALF_UP, avoids float binary-imprecision artifacts
+- feat: `math_calc_percentage` — un-rounded percentage of an integer base
+- feat: `math_tax_multiplier` — rate (0-100 scale, matching `tax_rate.rate_percent`) → price multiplier
+- feat: `generate_id_v7` — prefixed UUIDv7 (thin wrapper over `obase.uuid7`, same precedent as `_new_session_id.py`)
+- feat: `string_slugify` — lowercase/hyphenate; preserves CJK characters (does not transliterate/strip Chinese titles)
+
+New shared exceptions in `_exceptions.py`: `PaymentOprimError`, `ShippingOprimError`,
+`SearchIndexOprimError` (distinct from the pre-existing web-search `SearchOprimError`),
+`NotifyOprimError`, `TaxOprimError`.
+
+Pre-existing gap (not introduced by this change, noted for visibility): `.github/workflows/ci.yml`
+never installs `obase`, so every obase-dependent oprim test (avatar_generate, tts_synthesize,
+and now these 16 atoms) has been failing collection in CI regardless of this branch.
+
 ## [3.11.0] — 2026-07-03
 
 ### Added

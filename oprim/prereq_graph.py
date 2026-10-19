@@ -3,6 +3,7 @@
 确定性 oprim 原子操作。此前内联在服务层 main.py（_topo_sort_kus），
 违反"服务层不写本应属 oprim 的确定性算法"，上移至 oprim。
 """
+
 from __future__ import annotations
 
 
@@ -15,7 +16,7 @@ def topo_sort_by_prereq(items: list[dict]) -> list[dict]:
     in_deg = {k["id"]: 0 for k in items}
     adj: dict[str, list[str]] = {k["id"]: [] for k in items}
     for ku in items:
-        for p in (ku.get("prerequisites") or []):
+        for p in ku.get("prerequisites") or []:
             if p in id_map:
                 in_deg[ku["id"]] += 1
                 adj[p].append(ku["id"])

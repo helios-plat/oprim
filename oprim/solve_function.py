@@ -9,17 +9,23 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
 from obase.sympy_runtime import SymPyRuntime
 
 from oprim.types import SolveResult, SolveStep
 
-
 TaskType = Literal[
-    "zeros", "evaluate", "domain", "monotonicity", "parity",
-    "compose", "inverse", "simplify", "auto"
+    "zeros",
+    "evaluate",
+    "domain",
+    "monotonicity",
+    "parity",
+    "compose",
+    "inverse",
+    "simplify",
+    "auto",
 ]
 
 
@@ -27,11 +33,11 @@ TaskType = Literal[
 class FunctionSolveInput:
     """Input specification for a function problem."""
 
-    expression: str          # f(x) expression, e.g. "x**2 - 4"
+    expression: str  # f(x) expression, e.g. "x**2 - 4"
     variable: str = "x"
     task: TaskType = "auto"
-    point: float | None = None          # for "evaluate"
-    g_expression: str | None = None     # for "compose"
+    point: float | None = None  # for "evaluate"
+    g_expression: str | None = None  # for "compose"
     timeout: float = 5.0
 
 
@@ -42,7 +48,9 @@ def _find_zeros(expr_str: str, var: str, rt: SymPyRuntime, timeout: float) -> tu
     return "could not solve", expr_str
 
 
-def _evaluate_at(expr_str: str, var: str, point: float, rt: SymPyRuntime, timeout: float) -> tuple[str, str]:
+def _evaluate_at(
+    expr_str: str, var: str, point: float, rt: SymPyRuntime, timeout: float
+) -> tuple[str, str]:
     result = rt.evaluate(f"({expr_str}).subs({var}, {point})", timeout=timeout)
     if result.success:
         return result.result_str, f"f({point})"
@@ -57,15 +65,16 @@ def _check_parity(expr_str: str, var: str, rt: SymPyRuntime, timeout: float) -> 
     """Check if function is even, odd, or neither."""
     try:
         import sympy as sp
+
         x = sp.Symbol(var)
         f = sp.sympify(expr_str)
         f_neg = f.subs(x, -x)
         diff_even = sp.simplify(f_neg - f)
         diff_odd = sp.simplify(f_neg + f)
         if diff_even == 0:
-            return "even", f"f(-x) - f(x) = 0"
+            return "even", "f(-x) - f(x) = 0"
         elif diff_odd == 0:
-            return "odd", f"f(-x) + f(x) = 0"
+            return "odd", "f(-x) + f(x) = 0"
         else:
             return "neither", f"f(-x)={f_neg}"
     except Exception as e:
@@ -165,6 +174,7 @@ def solve_function(inp: FunctionSolveInput) -> SolveResult:
         elif task == "compose" and inp.g_expression:
             try:
                 import sympy as sp
+
                 x = sp.Symbol(inp.variable)
                 f = sp.sympify(inp.expression)
                 g = sp.sympify(inp.g_expression)
@@ -186,6 +196,7 @@ def solve_function(inp: FunctionSolveInput) -> SolveResult:
         elif task == "monotonicity":
             try:
                 import sympy as sp
+
                 x = sp.Symbol(inp.variable)
                 f = sp.sympify(inp.expression)
                 df = sp.diff(f, x)
@@ -206,6 +217,7 @@ def solve_function(inp: FunctionSolveInput) -> SolveResult:
         elif task == "inverse":
             try:
                 import sympy as sp
+
                 x = sp.Symbol(inp.variable)
                 y = sp.Symbol("y")
                 f = sp.sympify(inp.expression)

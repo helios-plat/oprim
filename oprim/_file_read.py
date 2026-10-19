@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import stat
+
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def file_read(
     path: str | Path,
@@ -35,10 +37,10 @@ def file_read(
     p = Path(path)
     try:
         text = p.read_text(encoding=encoding, errors=errors)
-    except FileNotFoundError:
-        raise FileOprimError(f"file not found: {path}")
+    except FileNotFoundError as e:
+        raise FileOprimError(f"file not found: {path}") from e
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read '{path}'", cause=e)
+        raise FileOprimError(f"cannot read '{path}'", cause=e) from e
 
     if start is None and end is None:
         return text

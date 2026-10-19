@@ -1,4 +1,5 @@
 """Count estimated tokens for a list of Messages."""
+
 from __future__ import annotations
 
 import json

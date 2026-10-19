@@ -5,7 +5,8 @@ Ported from Tide's ``domain.lhb.seat_service.classify_seat`` (the DB-bound
 its own curated seat/keyword lists (``a_share_config.py``) — proprietary,
 evolving market knowledge that doesn't belong baked into a generic quant
 primitives library. Here that data is instead **injected** via a ``registry``
-dict at call time; without one, only the 3 structural classes that need no
+dict at call time
+without one, only the 3 structural classes that need no
 market-knowledge config are reachable (northbound / institutional / retail).
 
 ASSUMPTION (flagged for review): the registry-injection design itself — Tide

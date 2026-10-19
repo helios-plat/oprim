@@ -1,4 +1,5 @@
 """oprim.zscore_signal — Rolling z-score signal for pairs-trading spread."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -30,22 +31,22 @@ def zscore_signal(
     import numpy as np  # noqa: PLC0415
 
     arr = np.asarray(series, dtype=float)
-    T = len(arr)
+    t_val = len(arr)
 
     if lookback < 2:
         raise ValueError(f"lookback must be ≥ 2, got {lookback}")
-    if T < lookback:
-        raise ValueError(f"series too short (len={T}) for lookback={lookback}")
+    if lookback > t_val:
+        raise ValueError(f"series too short (len={t_val}) for lookback={lookback}")
 
     zscores: list[float] = []
-    for i in range(lookback - 1, T):
+    for i in range(lookback - 1, t_val):
         window = arr[i - lookback + 1 : i + 1]
         mu = float(window.mean())
         sigma = float(window.std(ddof=1))
         z = (arr[i] - mu) / sigma if sigma > 0 else 0.0
         zscores.append(z)
 
-    last_window = arr[T - lookback :]
+    last_window = arr[t_val - lookback :]
     last_mean = float(last_window.mean())
     last_std = float(last_window.std(ddof=1))
     last_z = zscores[-1]

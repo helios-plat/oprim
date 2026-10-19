@@ -30,6 +30,7 @@ def _mock_get(status_code: int = 200, json_data=None):
 # rabbitmq_queue_status
 # ---------------------------------------------------------------------------
 
+
 class TestRabbitmqQueueStatus:
     def _queue_data(self, messages=5):
         return {
@@ -66,40 +67,71 @@ class TestRabbitmqQueueStatus:
         assert result.messages == 0
 
     def test_queue_not_found(self):
-        with patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(404)):
-            with pytest.raises(OprimNotFoundError):
-                rabbitmq_queue_status(
-                    mgmt_url="http://guest:guest@localhost:15672/api/",
-                    queue_name="nonexistent",
-                )
+        with (
+            patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(404)),
+            pytest.raises(OprimNotFoundError),
+        ):
+            rabbitmq_queue_status(
+                mgmt_url="http://guest:guest@localhost:15672/api/",
+                queue_name="nonexistent",
+            )
 
     def test_auth_failure(self):
-        with patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(401)):
-            with pytest.raises(OprimAuthError):
-                rabbitmq_queue_status(
-                    mgmt_url="http://wrong:creds@localhost:15672/api/",
-                    queue_name="q",
-                )
+        with (
+            patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(401)),
+            pytest.raises(OprimAuthError),
+        ):
+            rabbitmq_queue_status(
+                mgmt_url="http://wrong:creds@localhost:15672/api/",
+                queue_name="q",
+            )
 
     def test_connection_error(self):
-        with patch("oprim._rabbitmq.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                rabbitmq_queue_status(
-                    mgmt_url="http://guest:guest@nonexistent:15672/api/",
-                    queue_name="q",
-                )
+        with (
+            patch("oprim._rabbitmq.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            rabbitmq_queue_status(
+                mgmt_url="http://guest:guest@nonexistent:15672/api/",
+                queue_name="q",
+            )
 
 
 # ---------------------------------------------------------------------------
 # rabbitmq_connection_status
 # ---------------------------------------------------------------------------
 
+
 class TestRabbitmqConnectionStatus:
     def _conn_data(self):
         return [
-            {"name": "conn1", "state": "running", "channels": 1, "recv_oct": 100, "send_oct": 200, "peer_host": "10.0.0.1", "user": "guest"},
-            {"name": "conn2", "state": "blocked", "channels": 0, "recv_oct": 50, "send_oct": 50, "peer_host": "10.0.0.2", "user": "guest"},
-            {"name": "conn3", "state": "running", "channels": 2, "recv_oct": 300, "send_oct": 400, "peer_host": "10.0.0.3", "user": "guest"},
+            {
+                "name": "conn1",
+                "state": "running",
+                "channels": 1,
+                "recv_oct": 100,
+                "send_oct": 200,
+                "peer_host": "10.0.0.1",
+                "user": "guest",
+            },
+            {
+                "name": "conn2",
+                "state": "blocked",
+                "channels": 0,
+                "recv_oct": 50,
+                "send_oct": 50,
+                "peer_host": "10.0.0.2",
+                "user": "guest",
+            },
+            {
+                "name": "conn3",
+                "state": "running",
+                "channels": 2,
+                "recv_oct": 300,
+                "send_oct": 400,
+                "peer_host": "10.0.0.3",
+                "user": "guest",
+            },
         ]
 
     def test_normal_connections(self):
@@ -122,7 +154,15 @@ class TestRabbitmqConnectionStatus:
 
     def test_all_running(self):
         data = [
-            {"name": f"conn{i}", "state": "running", "channels": 1, "recv_oct": 0, "send_oct": 0, "peer_host": "", "user": ""}
+            {
+                "name": f"conn{i}",
+                "state": "running",
+                "channels": 1,
+                "recv_oct": 0,
+                "send_oct": 0,
+                "peer_host": "",
+                "user": "",
+            }
             for i in range(5)
         ]
         with patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(200, data)):
@@ -133,19 +173,24 @@ class TestRabbitmqConnectionStatus:
         assert result.running == 5
 
     def test_auth_failure(self):
-        with patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(401)):
-            with pytest.raises(OprimAuthError):
-                rabbitmq_connection_status(mgmt_url="http://bad:creds@localhost:15672/api/")
+        with (
+            patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(401)),
+            pytest.raises(OprimAuthError),
+        ):
+            rabbitmq_connection_status(mgmt_url="http://bad:creds@localhost:15672/api/")
 
     def test_connection_error(self):
-        with patch("oprim._rabbitmq.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                rabbitmq_connection_status(mgmt_url="http://guest:guest@nonexistent:15672/api/")
+        with (
+            patch("oprim._rabbitmq.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            rabbitmq_connection_status(mgmt_url="http://guest:guest@nonexistent:15672/api/")
 
 
 # ---------------------------------------------------------------------------
 # rabbitmq_consumer_status
 # ---------------------------------------------------------------------------
+
 
 class TestRabbitmqConsumerStatus:
     def _consumer_data(self, queue_name="my-queue"):
@@ -199,25 +244,30 @@ class TestRabbitmqConsumerStatus:
         assert c.active is True
 
     def test_auth_failure(self):
-        with patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(401)):
-            with pytest.raises(OprimAuthError):
-                rabbitmq_consumer_status(
-                    mgmt_url="http://bad:creds@localhost:15672/api/",
-                    queue_name="q",
-                )
+        with (
+            patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(401)),
+            pytest.raises(OprimAuthError),
+        ):
+            rabbitmq_consumer_status(
+                mgmt_url="http://bad:creds@localhost:15672/api/",
+                queue_name="q",
+            )
 
     def test_connection_error(self):
-        with patch("oprim._rabbitmq.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                rabbitmq_consumer_status(
-                    mgmt_url="http://guest:guest@nonexistent:15672/api/",
-                    queue_name="q",
-                )
+        with (
+            patch("oprim._rabbitmq.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            rabbitmq_consumer_status(
+                mgmt_url="http://guest:guest@nonexistent:15672/api/",
+                queue_name="q",
+            )
 
 
 # ---------------------------------------------------------------------------
 # rabbitmq_node_status
 # ---------------------------------------------------------------------------
+
 
 class TestRabbitmqNodeStatus:
     def _node_data(self):
@@ -264,21 +314,29 @@ class TestRabbitmqNodeStatus:
         assert result[0].mem_alarm is True
 
     def test_auth_failure(self):
-        with patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(401)):
-            with pytest.raises(OprimAuthError):
-                rabbitmq_node_status(mgmt_url="http://bad:creds@localhost:15672/api/")
+        with (
+            patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(401)),
+            pytest.raises(OprimAuthError),
+        ):
+            rabbitmq_node_status(mgmt_url="http://bad:creds@localhost:15672/api/")
 
     def test_connection_error(self):
-        with patch("oprim._rabbitmq.httpx.get", side_effect=httpx.ConnectError("refused")):
-            with pytest.raises(OprimConnectionError):
-                rabbitmq_node_status(mgmt_url="http://guest:guest@nonexistent:15672/api/")
+        with (
+            patch("oprim._rabbitmq.httpx.get", side_effect=httpx.ConnectError("refused")),
+            pytest.raises(OprimConnectionError),
+        ):
+            rabbitmq_node_status(mgmt_url="http://guest:guest@nonexistent:15672/api/")
 
     def test_timeout_error(self):
-        with patch("oprim._rabbitmq.httpx.get", side_effect=httpx.TimeoutException("timed out")):
-            with pytest.raises(OprimConnectionError):
-                rabbitmq_node_status(mgmt_url="http://guest:guest@localhost:15672/api/")
+        with (
+            patch("oprim._rabbitmq.httpx.get", side_effect=httpx.TimeoutException("timed out")),
+            pytest.raises(OprimConnectionError),
+        ):
+            rabbitmq_node_status(mgmt_url="http://guest:guest@localhost:15672/api/")
 
     def test_server_error(self):
-        with patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(503)):
-            with pytest.raises(OprimConnectionError):
-                rabbitmq_node_status(mgmt_url="http://guest:guest@localhost:15672/api/")
+        with (
+            patch("oprim._rabbitmq.httpx.get", return_value=_mock_get(503)),
+            pytest.raises(OprimConnectionError),
+        ):
+            rabbitmq_node_status(mgmt_url="http://guest:guest@localhost:15672/api/")

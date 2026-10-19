@@ -1,11 +1,14 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import difflib
+
 import re
 from dataclasses import dataclass
-from pathlib import Path
+
 from ._exceptions import ParseOprimError
+
+_DEFAULT_PATTERNS: list[str] = []
+
 
 @dataclass
 class Hunk:
@@ -16,11 +19,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def redact_secrets(
     text: str,
@@ -50,12 +55,14 @@ def redact_secrets(
     try:
         for pat in active:
             compiled = re.compile(pat)
+
             # 若有捕获组，替换 group(2)（值部分）；否则替换整个匹配
             def _repl(m: re.Match) -> str:  # type: ignore[type-arg]
                 if m.lastindex and m.lastindex >= 2:
                     return m.group(0).replace(m.group(2), replacement)
                 return replacement
+
             result = compiled.sub(_repl, result)
     except re.error as e:
-        raise ParseOprimError(f"invalid pattern: {e}", cause=e)
+        raise ParseOprimError(f"invalid pattern: {e}", cause=e) from e
     return result

@@ -12,19 +12,19 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from oprim.types import Three3DData, SolveResult
+from oprim.types import SolveResult, Three3DData
 
 
 @dataclass(frozen=True)
 class Plot3DRequest:
     """Parameters for generating 3D data from an expression."""
 
-    expression: str               # z = f(x, y) expression string
+    expression: str  # z = f(x, y) expression string
     x_var: str = "x"
     y_var: str = "y"
     x_range: tuple[float, float] = (-5.0, 5.0)
     y_range: tuple[float, float] = (-5.0, 5.0)
-    grid_points: int = 20         # points per axis (grid_points² total)
+    grid_points: int = 20  # points per axis (grid_points² total)
     title: str = ""
     x_label: str = "x"
     y_label: str = "y"
@@ -36,6 +36,7 @@ def _safe_eval_z(expr_str: str, x_var: str, y_var: str, xv: float, yv: float) ->
     """Evaluate z=f(x,y) at a point; return None on error."""
     try:
         import sympy as sp
+
         sx = sp.Symbol(x_var)
         sy = sp.Symbol(y_var)
         f = sp.sympify(expr_str)

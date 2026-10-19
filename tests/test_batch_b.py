@@ -9,10 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock
@@ -22,23 +20,40 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from oprim import (
-    CodeAction, Completion, Diagnostic, Hover,
-    HookResult, ImageBlock, Location, LspOprimError,
-    McpOprimError, ShellOprimError, SkillMeta, Symbol,
-    TextEdit, WorkspaceEdit,
-    lsp_code_action, lsp_completion, lsp_definition,
-    lsp_diagnostics, lsp_document_symbols, lsp_format,
-    lsp_hover, lsp_references, lsp_rename, lsp_workspace_symbols,
-    load_image, mcp_call_tool, mcp_list_tools,
-    read_skill_frontmatter, run_hook,
+    CodeAction,
+    Completion,
+    HookResult,
+    ImageBlock,
+    Location,
+    LspOprimError,
+    McpOprimError,
+    SkillMeta,
+    Symbol,
+    TextEdit,
+    WorkspaceEdit,
+    load_image,
+    lsp_code_action,
+    lsp_completion,
+    lsp_definition,
+    lsp_diagnostics,
+    lsp_document_symbols,
+    lsp_format,
+    lsp_hover,
+    lsp_references,
+    lsp_rename,
+    lsp_workspace_symbols,
+    mcp_call_tool,
+    mcp_list_tools,
+    read_skill_frontmatter,
+    run_hook,
 )
+from oprim._exceptions import FileOprimError, GitOprimError, ParseOprimError
 from oprim.worktree import git_worktree_add, git_worktree_list, git_worktree_remove
-from oprim._exceptions import FileOprimError, ParseOprimError, GitOprimError
-
 
 # ===========================================================================
 # fixtures
 # ===========================================================================
+
 
 @pytest.fixture
 def git_repo(tmp_path):
@@ -80,6 +95,7 @@ def make_mcp_client(list_response=None, call_response=None, raises=None):
 # ===========================================================================
 # run_hook 测试
 # ===========================================================================
+
 
 class TestRunHook:
     def test_allow_decision_json(self, tmp_path):
@@ -129,7 +145,9 @@ class TestRunHook:
     def test_receives_event_json_on_stdin(self, tmp_path):
         """hook 收到事件 JSON 并可读取。"""
         script = tmp_path / "echo_stdin.sh"
-        script.write_text('#!/bin/sh\nread line\necho \'{"decision":"allow","output":"\'$line\'"}\' ')
+        script.write_text(
+            '#!/bin/sh\nread line\necho \'{"decision":"allow","output":"\'$line\'"}\' '
+        )
         script.chmod(0o755)
         result = asyncio.run(run_hook(str(script), event_json={"event": "test", "tool": "bash"}))
         assert result.decision == "allow"
@@ -147,21 +165,82 @@ class TestRunHook:
 # load_image 测试
 # ===========================================================================
 
+
 class TestLoadImage:
     def test_loads_png(self, tmp_path):
         """PNG 文件正确编码为 base64。"""
         # 最小有效 PNG (1x1 透明)
-        png_bytes = bytes([
-            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-            0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
-            0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41,
-            0x54, 0x78, 0x9C, 0x62, 0x00, 0x01, 0x00, 0x00,
-            0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
-            0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
-            0x42, 0x60, 0x82,
-        ])
+        png_bytes = bytes(
+            [
+                0x89,
+                0x50,
+                0x4E,
+                0x47,
+                0x0D,
+                0x0A,
+                0x1A,
+                0x0A,
+                0x00,
+                0x00,
+                0x00,
+                0x0D,
+                0x49,
+                0x48,
+                0x44,
+                0x52,
+                0x00,
+                0x00,
+                0x00,
+                0x01,
+                0x00,
+                0x00,
+                0x00,
+                0x01,
+                0x08,
+                0x06,
+                0x00,
+                0x00,
+                0x00,
+                0x1F,
+                0x15,
+                0xC4,
+                0x89,
+                0x00,
+                0x00,
+                0x00,
+                0x0A,
+                0x49,
+                0x44,
+                0x41,
+                0x54,
+                0x78,
+                0x9C,
+                0x62,
+                0x00,
+                0x01,
+                0x00,
+                0x00,
+                0x05,
+                0x00,
+                0x01,
+                0x0D,
+                0x0A,
+                0x2D,
+                0xB4,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x49,
+                0x45,
+                0x4E,
+                0x44,
+                0xAE,
+                0x42,
+                0x60,
+                0x82,
+            ]
+        )
         p = tmp_path / "test.png"
         p.write_bytes(png_bytes)
         block = load_image(p)
@@ -223,6 +302,7 @@ class TestLoadImage:
 # read_skill_frontmatter 测试
 # ===========================================================================
 
+
 class TestReadSkillFrontmatter:
     def _make_skill(self, tmp_path, frontmatter: str, body: str = "# body") -> Path:
         d = tmp_path / "skill"
@@ -231,7 +311,9 @@ class TestReadSkillFrontmatter:
         return d
 
     def test_reads_name(self, tmp_path):
-        d = self._make_skill(tmp_path, "name: refactor_python\ndescription: refactors python code\nversion: 1.0.0")
+        d = self._make_skill(
+            tmp_path, "name: refactor_python\ndescription: refactors python code\nversion: 1.0.0"
+        )
         meta = read_skill_frontmatter(d)
         assert meta.name == "refactor_python"
 
@@ -293,6 +375,7 @@ class TestReadSkillFrontmatter:
 # git_worktree 测试
 # ===========================================================================
 
+
 class TestGitWorktree:
     def test_add_creates_directory(self, git_repo):
         wt = git_worktree_add("feat/wt-test", repo=git_repo)
@@ -343,15 +426,24 @@ class TestGitWorktree:
 # lsp_* 测试（全部使用 mock handle）
 # ===========================================================================
 
+
 class TestLspDiagnostics:
     def test_returns_diagnostics(self):
-        server = make_lsp_server({
-            "items": [
-                {"range": {"start": {"line": 0, "character": 0},
-                           "end": {"line": 0, "character": 5}},
-                 "severity": 1, "message": "undefined name", "source": "pylsp"}
-            ]
-        })
+        server = make_lsp_server(
+            {
+                "items": [
+                    {
+                        "range": {
+                            "start": {"line": 0, "character": 0},
+                            "end": {"line": 0, "character": 5},
+                        },
+                        "severity": 1,
+                        "message": "undefined name",
+                        "source": "pylsp",
+                    }
+                ]
+            }
+        )
         result = asyncio.run(lsp_diagnostics("main.py", server=server))
         assert len(result) == 1
         assert result[0].message == "undefined name"
@@ -363,24 +455,50 @@ class TestLspDiagnostics:
         assert result == []
 
     def test_sorted_by_line(self):
-        server = make_lsp_server({"items": [
-            {"range": {"start": {"line": 5, "character": 0},
-                       "end": {"line": 5, "character": 1}},
-             "severity": 2, "message": "warn", "source": ""},
-            {"range": {"start": {"line": 1, "character": 0},
-                       "end": {"line": 1, "character": 1}},
-             "severity": 1, "message": "err", "source": ""},
-        ]})
+        server = make_lsp_server(
+            {
+                "items": [
+                    {
+                        "range": {
+                            "start": {"line": 5, "character": 0},
+                            "end": {"line": 5, "character": 1},
+                        },
+                        "severity": 2,
+                        "message": "warn",
+                        "source": "",
+                    },
+                    {
+                        "range": {
+                            "start": {"line": 1, "character": 0},
+                            "end": {"line": 1, "character": 1},
+                        },
+                        "severity": 1,
+                        "message": "err",
+                        "source": "",
+                    },
+                ]
+            }
+        )
         result = asyncio.run(lsp_diagnostics("main.py", server=server))
         assert result[0].line == 1
         assert result[1].line == 5
 
     def test_severity_name(self):
-        server = make_lsp_server({"items": [
-            {"range": {"start": {"line": 0, "character": 0},
-                       "end": {"line": 0, "character": 1}},
-             "severity": 2, "message": "warn", "source": ""}
-        ]})
+        server = make_lsp_server(
+            {
+                "items": [
+                    {
+                        "range": {
+                            "start": {"line": 0, "character": 0},
+                            "end": {"line": 0, "character": 1},
+                        },
+                        "severity": 2,
+                        "message": "warn",
+                        "source": "",
+                    }
+                ]
+            }
+        )
         result = asyncio.run(lsp_diagnostics("main.py", server=server))
         assert result[0].severity_name == "warning"
 
@@ -397,10 +515,12 @@ class TestLspDiagnostics:
 
 class TestLspHover:
     def test_returns_hover(self):
-        server = make_lsp_server({
-            "contents": {"kind": "markdown", "value": "```python\ndef foo()\n```"},
-            "range": {"start": {"line": 5, "character": 4}, "end": {"line": 5, "character": 7}}
-        })
+        server = make_lsp_server(
+            {
+                "contents": {"kind": "markdown", "value": "```python\ndef foo()\n```"},
+                "range": {"start": {"line": 5, "character": 4}, "end": {"line": 5, "character": 7}},
+            }
+        )
         result = asyncio.run(lsp_hover("main.py", line=5, character=4, server=server))
         assert result is not None
         assert "foo" in result.contents
@@ -429,11 +549,17 @@ class TestLspHover:
 
 class TestLspDefinition:
     def test_returns_locations(self):
-        server = make_lsp_server([{
-            "uri": "file:///project/utils.py",
-            "range": {"start": {"line": 10, "character": 0},
-                      "end": {"line": 10, "character": 5}}
-        }])
+        server = make_lsp_server(
+            [
+                {
+                    "uri": "file:///project/utils.py",
+                    "range": {
+                        "start": {"line": 10, "character": 0},
+                        "end": {"line": 10, "character": 5},
+                    },
+                }
+            ]
+        )
         result = asyncio.run(lsp_definition("main.py", line=5, character=4, server=server))
         assert len(result) == 1
         assert result[0].path == "/project/utils.py"
@@ -445,11 +571,12 @@ class TestLspDefinition:
         assert result == []
 
     def test_single_dict_result(self):
-        server = make_lsp_server({
-            "uri": "file:///a.py",
-            "range": {"start": {"line": 3, "character": 0},
-                      "end": {"line": 3, "character": 5}}
-        })
+        server = make_lsp_server(
+            {
+                "uri": "file:///a.py",
+                "range": {"start": {"line": 3, "character": 0}, "end": {"line": 3, "character": 5}},
+            }
+        )
         result = asyncio.run(lsp_definition("f.py", line=0, character=0, server=server))
         assert len(result) == 1
 
@@ -459,21 +586,41 @@ class TestLspDefinition:
             asyncio.run(lsp_definition("f.py", line=0, character=0, server=server))
 
     def test_returns_location_objects(self):
-        server = make_lsp_server([{"uri": "file:///x.py",
-                                   "range": {"start": {"line": 0, "character": 0},
-                                             "end": {"line": 0, "character": 1}}}])
+        server = make_lsp_server(
+            [
+                {
+                    "uri": "file:///x.py",
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 0, "character": 1},
+                    },
+                }
+            ]
+        )
         result = asyncio.run(lsp_definition("f.py", line=0, character=0, server=server))
-        assert all(isinstance(l, Location) for l in result)
+        assert all(isinstance(loc, Location) for loc in result)
 
 
 class TestLspReferences:
     def test_returns_multiple(self):
-        server = make_lsp_server([
-            {"uri": "file:///a.py", "range": {"start": {"line": 1, "character": 0},
-                                              "end": {"line": 1, "character": 3}}},
-            {"uri": "file:///b.py", "range": {"start": {"line": 2, "character": 5},
-                                              "end": {"line": 2, "character": 8}}},
-        ])
+        server = make_lsp_server(
+            [
+                {
+                    "uri": "file:///a.py",
+                    "range": {
+                        "start": {"line": 1, "character": 0},
+                        "end": {"line": 1, "character": 3},
+                    },
+                },
+                {
+                    "uri": "file:///b.py",
+                    "range": {
+                        "start": {"line": 2, "character": 5},
+                        "end": {"line": 2, "character": 8},
+                    },
+                },
+            ]
+        )
         result = asyncio.run(lsp_references("f.py", line=0, character=0, server=server))
         assert len(result) == 2
 
@@ -484,8 +631,9 @@ class TestLspReferences:
 
     def test_include_declaration_param(self):
         server = make_lsp_server([])
-        asyncio.run(lsp_references("f.py", line=0, character=0,
-                                   server=server, include_declaration=True))
+        asyncio.run(
+            lsp_references("f.py", line=0, character=0, server=server, include_declaration=True)
+        )
         call_params = server.request.call_args[0][1]
         assert call_params["context"]["includeDeclaration"] is True
 
@@ -495,22 +643,39 @@ class TestLspReferences:
             asyncio.run(lsp_references("f.py", line=0, character=0, server=server))
 
     def test_returns_location_objects(self):
-        server = make_lsp_server([{"uri": "file:///x.py",
-                                   "range": {"start": {"line": 0, "character": 0},
-                                             "end": {"line": 0, "character": 1}}}])
+        server = make_lsp_server(
+            [
+                {
+                    "uri": "file:///x.py",
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 0, "character": 1},
+                    },
+                }
+            ]
+        )
         result = asyncio.run(lsp_references("f.py", line=0, character=0, server=server))
-        assert all(isinstance(l, Location) for l in result)
+        assert all(isinstance(loc, Location) for loc in result)
 
 
 class TestLspDocumentSymbols:
     def test_returns_symbols(self):
-        server = make_lsp_server([
-            {"name": "MyClass", "kind": 5,
-             "range": {"start": {"line": 0, "character": 0},
-                       "end": {"line": 10, "character": 0}},
-             "selectionRange": {"start": {"line": 0, "character": 6},
-                                "end": {"line": 0, "character": 13}}},
-        ])
+        server = make_lsp_server(
+            [
+                {
+                    "name": "MyClass",
+                    "kind": 5,
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 10, "character": 0},
+                    },
+                    "selectionRange": {
+                        "start": {"line": 0, "character": 6},
+                        "end": {"line": 0, "character": 13},
+                    },
+                },
+            ]
+        )
         result = asyncio.run(lsp_document_symbols("main.py", server=server))
         assert result[0].name == "MyClass"
         assert result[0].kind == 5
@@ -522,14 +687,26 @@ class TestLspDocumentSymbols:
         assert result == []
 
     def test_sorted_by_line(self):
-        server = make_lsp_server([
-            {"name": "b", "kind": 12,
-             "range": {"start": {"line": 10, "character": 0},
-                       "end": {"line": 12, "character": 0}}},
-            {"name": "a", "kind": 12,
-             "range": {"start": {"line": 2, "character": 0},
-                       "end": {"line": 4, "character": 0}}},
-        ])
+        server = make_lsp_server(
+            [
+                {
+                    "name": "b",
+                    "kind": 12,
+                    "range": {
+                        "start": {"line": 10, "character": 0},
+                        "end": {"line": 12, "character": 0},
+                    },
+                },
+                {
+                    "name": "a",
+                    "kind": 12,
+                    "range": {
+                        "start": {"line": 2, "character": 0},
+                        "end": {"line": 4, "character": 0},
+                    },
+                },
+            ]
+        )
         result = asyncio.run(lsp_document_symbols("f.py", server=server))
         assert result[0].name == "a"
 
@@ -539,21 +716,39 @@ class TestLspDocumentSymbols:
             asyncio.run(lsp_document_symbols("f.py", server=server))
 
     def test_returns_symbol_objects(self):
-        server = make_lsp_server([{"name": "x", "kind": 6,
-                                   "range": {"start": {"line": 0, "character": 0},
-                                             "end": {"line": 0, "character": 5}}}])
+        server = make_lsp_server(
+            [
+                {
+                    "name": "x",
+                    "kind": 6,
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 0, "character": 5},
+                    },
+                }
+            ]
+        )
         result = asyncio.run(lsp_document_symbols("f.py", server=server))
         assert all(isinstance(s, Symbol) for s in result)
 
 
 class TestLspWorkspaceSymbols:
     def test_returns_symbols(self):
-        server = make_lsp_server([{
-            "name": "parse_args", "kind": 12,
-            "location": {"uri": "file:///main.py",
-                         "range": {"start": {"line": 5, "character": 0},
-                                   "end": {"line": 10, "character": 0}}}
-        }])
+        server = make_lsp_server(
+            [
+                {
+                    "name": "parse_args",
+                    "kind": 12,
+                    "location": {
+                        "uri": "file:///main.py",
+                        "range": {
+                            "start": {"line": 5, "character": 0},
+                            "end": {"line": 10, "character": 0},
+                        },
+                    },
+                }
+            ]
+        )
         result = asyncio.run(lsp_workspace_symbols("parse", server=server))
         assert result[0].name == "parse_args"
         assert result[0].path == "/main.py"
@@ -574,32 +769,51 @@ class TestLspWorkspaceSymbols:
         assert server.request.call_args[0][1]["query"] == "myQuery"
 
     def test_returns_symbol_objects(self):
-        server = make_lsp_server([{"name": "x", "kind": 12,
-                                   "location": {"uri": "file:///f.py",
-                                                "range": {"start": {"line": 0, "character": 0},
-                                                          "end": {"line": 1, "character": 0}}}}])
+        server = make_lsp_server(
+            [
+                {
+                    "name": "x",
+                    "kind": 12,
+                    "location": {
+                        "uri": "file:///f.py",
+                        "range": {
+                            "start": {"line": 0, "character": 0},
+                            "end": {"line": 1, "character": 0},
+                        },
+                    },
+                }
+            ]
+        )
         result = asyncio.run(lsp_workspace_symbols("x", server=server))
         assert all(isinstance(s, Symbol) for s in result)
 
 
 class TestLspRename:
     def test_returns_workspace_edit(self):
-        server = make_lsp_server({
-            "changes": {
-                "file:///a.py": [{"range": {"start": {"line": 1, "character": 0},
-                                            "end": {"line": 1, "character": 3}},
-                                  "newText": "new_name"}]
+        server = make_lsp_server(
+            {
+                "changes": {
+                    "file:///a.py": [
+                        {
+                            "range": {
+                                "start": {"line": 1, "character": 0},
+                                "end": {"line": 1, "character": 3},
+                            },
+                            "newText": "new_name",
+                        }
+                    ]
+                }
             }
-        })
-        result = asyncio.run(lsp_rename("a.py", line=1, character=0,
-                                        new_name="new_name", server=server))
+        )
+        result = asyncio.run(
+            lsp_rename("a.py", line=1, character=0, new_name="new_name", server=server)
+        )
         assert isinstance(result, WorkspaceEdit)
         assert "/a.py" in result.changes
 
     def test_empty_result_returns_empty_edit(self):
         server = make_lsp_server(None)
-        result = asyncio.run(lsp_rename("f.py", line=0, character=0,
-                                        new_name="x", server=server))
+        result = asyncio.run(lsp_rename("f.py", line=0, character=0, new_name="x", server=server))
         assert isinstance(result, WorkspaceEdit)
         assert result.changes == {}
 
@@ -614,27 +828,43 @@ class TestLspRename:
             asyncio.run(lsp_rename("f.py", line=0, character=0, new_name="x", server=server))
 
     def test_text_edits_parsed(self):
-        server = make_lsp_server({
-            "changes": {
-                "file:///b.py": [{"range": {"start": {"line": 2, "character": 0},
-                                            "end": {"line": 2, "character": 3}},
-                                  "newText": "renamed"}]
+        server = make_lsp_server(
+            {
+                "changes": {
+                    "file:///b.py": [
+                        {
+                            "range": {
+                                "start": {"line": 2, "character": 0},
+                                "end": {"line": 2, "character": 3},
+                            },
+                            "newText": "renamed",
+                        }
+                    ]
+                }
             }
-        })
-        result = asyncio.run(lsp_rename("f.py", line=0, character=0,
-                                        new_name="renamed", server=server))
+        )
+        result = asyncio.run(
+            lsp_rename("f.py", line=0, character=0, new_name="renamed", server=server)
+        )
         edits = result.changes.get("/b.py", [])
         assert edits[0].new_text == "renamed"
 
 
 class TestLspCompletion:
     def test_returns_completions(self):
-        server = make_lsp_server({
-            "items": [
-                {"label": "parse_args", "kind": 3, "detail": "function",
-                 "documentation": "parses args", "insertText": "parse_args"},
-            ]
-        })
+        server = make_lsp_server(
+            {
+                "items": [
+                    {
+                        "label": "parse_args",
+                        "kind": 3,
+                        "detail": "function",
+                        "documentation": "parses args",
+                        "insertText": "parse_args",
+                    },
+                ]
+            }
+        )
         result = asyncio.run(lsp_completion("f.py", line=5, character=3, server=server))
         assert result[0].label == "parse_args"
 
@@ -650,8 +880,9 @@ class TestLspCompletion:
 
     def test_trigger_character_passed(self):
         server = make_lsp_server({"items": []})
-        asyncio.run(lsp_completion("f.py", line=0, character=5,
-                                   server=server, trigger_character="."))
+        asyncio.run(
+            lsp_completion("f.py", line=0, character=5, server=server, trigger_character=".")
+        )
         params = server.request.call_args[0][1]
         assert params["context"]["triggerCharacter"] == "."
         assert params["context"]["triggerKind"] == 2
@@ -669,11 +900,17 @@ class TestLspCompletion:
 
 class TestLspFormat:
     def test_returns_text_edits(self):
-        server = make_lsp_server([
-            {"range": {"start": {"line": 1, "character": 0},
-                       "end": {"line": 1, "character": 3}},
-             "newText": "    x = 1"}
-        ])
+        server = make_lsp_server(
+            [
+                {
+                    "range": {
+                        "start": {"line": 1, "character": 0},
+                        "end": {"line": 1, "character": 3},
+                    },
+                    "newText": "    x = 1",
+                }
+            ]
+        )
         result = asyncio.run(lsp_format("f.py", server=server))
         assert result[0].new_text == "    x = 1"
 
@@ -700,50 +937,83 @@ class TestLspFormat:
             asyncio.run(lsp_format("f.py", server=server))
 
     def test_returns_text_edit_objects(self):
-        server = make_lsp_server([{"range": {"start": {"line": 0, "character": 0},
-                                             "end": {"line": 0, "character": 1}},
-                                   "newText": "x"}])
+        server = make_lsp_server(
+            [
+                {
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 0, "character": 1},
+                    },
+                    "newText": "x",
+                }
+            ]
+        )
         result = asyncio.run(lsp_format("f.py", server=server))
         assert all(isinstance(e, TextEdit) for e in result)
 
 
 class TestLspCodeAction:
     def test_returns_actions(self):
-        server = make_lsp_server([
-            {"title": "Import os", "kind": "quickfix"},
-            {"title": "Extract method", "kind": "refactor"},
-        ])
-        result = asyncio.run(lsp_code_action("f.py",
-                                             start_line=0, start_character=0,
-                                             end_line=0, end_character=5,
-                                             server=server))
+        server = make_lsp_server(
+            [
+                {"title": "Import os", "kind": "quickfix"},
+                {"title": "Extract method", "kind": "refactor"},
+            ]
+        )
+        result = asyncio.run(
+            lsp_code_action(
+                "f.py", start_line=0, start_character=0, end_line=0, end_character=5, server=server
+            )
+        )
         assert len(result) == 2
         assert result[0].title == "Import os"
 
     def test_empty(self):
         server = make_lsp_server([])
-        result = asyncio.run(lsp_code_action("f.py", start_line=0, start_character=0,
-                                             end_line=0, end_character=1, server=server))
+        result = asyncio.run(
+            lsp_code_action(
+                "f.py", start_line=0, start_character=0, end_line=0, end_character=1, server=server
+            )
+        )
         assert result == []
 
     def test_only_kinds_passed(self):
         server = make_lsp_server([])
-        asyncio.run(lsp_code_action("f.py", start_line=0, start_character=0,
-                                    end_line=0, end_character=1, server=server,
-                                    only_kinds=["quickfix"]))
+        asyncio.run(
+            lsp_code_action(
+                "f.py",
+                start_line=0,
+                start_character=0,
+                end_line=0,
+                end_character=1,
+                server=server,
+                only_kinds=["quickfix"],
+            )
+        )
         params = server.request.call_args[0][1]
         assert params["context"]["only"] == ["quickfix"]
 
     def test_raises_on_error(self):
         server = make_lsp_server(raises=RuntimeError("err"))
         with pytest.raises(LspOprimError):
-            asyncio.run(lsp_code_action("f.py", start_line=0, start_character=0,
-                                        end_line=0, end_character=1, server=server))
+            asyncio.run(
+                lsp_code_action(
+                    "f.py",
+                    start_line=0,
+                    start_character=0,
+                    end_line=0,
+                    end_character=1,
+                    server=server,
+                )
+            )
 
     def test_returns_code_action_objects(self):
         server = make_lsp_server([{"title": "Fix", "kind": "quickfix"}])
-        result = asyncio.run(lsp_code_action("f.py", start_line=0, start_character=0,
-                                             end_line=0, end_character=1, server=server))
+        result = asyncio.run(
+            lsp_code_action(
+                "f.py", start_line=0, start_character=0, end_line=0, end_character=1, server=server
+            )
+        )
         assert all(isinstance(a, CodeAction) for a in result)
 
 
@@ -751,19 +1021,25 @@ class TestLspCodeAction:
 # mcp_list_tools / mcp_call_tool 测试
 # ===========================================================================
 
+
 class TestMcpListTools:
     def test_returns_tools(self):
-        client = make_mcp_client(list_response=[
-            {"name": "search_web", "description": "searches web",
-             "inputSchema": {"type": "object"}}
-        ])
+        client = make_mcp_client(
+            list_response=[
+                {
+                    "name": "search_web",
+                    "description": "searches web",
+                    "inputSchema": {"type": "object"},
+                }
+            ]
+        )
         result = asyncio.run(mcp_list_tools(client=client))
         assert result[0]["name"] == "search_web"
 
     def test_normalizes_input_schema(self):
-        client = make_mcp_client(list_response=[
-            {"name": "tool", "input_schema": {"type": "object"}}
-        ])
+        client = make_mcp_client(
+            list_response=[{"name": "tool", "input_schema": {"type": "object"}}]
+        )
         result = asyncio.run(mcp_list_tools(client=client))
         assert "inputSchema" in result[0]
 
@@ -778,24 +1054,25 @@ class TestMcpListTools:
             asyncio.run(mcp_list_tools(client=client))
 
     def test_filters_non_dict(self):
-        client = make_mcp_client(list_response=[
-            {"name": "valid", "description": "ok"},
-            "not_a_dict",
-            42,
-        ])
+        client = make_mcp_client(
+            list_response=[
+                {"name": "valid", "description": "ok"},
+                "not_a_dict",
+                42,
+            ]
+        )
         result = asyncio.run(mcp_list_tools(client=client))
         assert len(result) == 1
 
 
 class TestMcpCallTool:
     def test_returns_content(self):
-        client = make_mcp_client(call_response={
-            "content": [{"type": "text", "text": "result text"}],
-            "isError": False
-        })
-        result = asyncio.run(mcp_call_tool("search_web",
-                                           arguments={"query": "python"},
-                                           client=client))
+        client = make_mcp_client(
+            call_response={"content": [{"type": "text", "text": "result text"}], "isError": False}
+        )
+        result = asyncio.run(
+            mcp_call_tool("search_web", arguments={"query": "python"}, client=client)
+        )
         assert result["content"][0]["text"] == "result text"
         assert result["isError"] is False
 
@@ -821,10 +1098,9 @@ class TestMcpCallTool:
             asyncio.run(mcp_call_tool("t", arguments={}, client=client))
 
     def test_is_error_preserved(self):
-        client = make_mcp_client(call_response={
-            "content": [{"type": "text", "text": "error msg"}],
-            "isError": True
-        })
+        client = make_mcp_client(
+            call_response={"content": [{"type": "text", "text": "error msg"}], "isError": True}
+        )
         result = asyncio.run(mcp_call_tool("t", arguments={}, client=client))
         assert result["isError"] is True
 
@@ -832,6 +1108,7 @@ class TestMcpCallTool:
 # ===========================================================================
 # 覆盖率补足
 # ===========================================================================
+
 
 class TestBatchBCoverageGaps:
     """补足 B 批次剩余 miss 行。"""
@@ -859,60 +1136,84 @@ class TestBatchBCoverageGaps:
     # lsp.py: completion doc as dict
     def test_lsp_completion_doc_dict(self):
         """completion documentation 为 dict 时取 value 字段。"""
-        server = make_lsp_server({"items": [
-            {"label": "foo", "documentation": {"kind": "markdown", "value": "doc text"}}
-        ]})
+        server = make_lsp_server(
+            {
+                "items": [
+                    {"label": "foo", "documentation": {"kind": "markdown", "value": "doc text"}}
+                ]
+            }
+        )
         result = asyncio.run(lsp_completion("f.py", line=0, character=0, server=server))
         assert "doc text" in result[0].documentation
 
     # --- lsp.py: _parse_symbols non-dict item skip (line 684)
     def test_lsp_document_symbols_filters_non_dict(self):
         """symbols 列表中非 dict 项被跳过。"""
-        server = make_lsp_server([
-            {"name": "good", "kind": 12,
-             "range": {"start": {"line": 0, "character": 0},
-                       "end": {"line": 1, "character": 0}}},
-            "not_a_dict",
-            42,
-        ])
+        server = make_lsp_server(
+            [
+                {
+                    "name": "good",
+                    "kind": 12,
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 1, "character": 0},
+                    },
+                },
+                "not_a_dict",
+                42,
+            ]
+        )
         result = asyncio.run(lsp_document_symbols("f.py", server=server))
         assert len(result) == 1 and result[0].name == "good"
 
     # --- lsp.py: _parse_locations non-dict skip (line 709)
     def test_lsp_references_filters_non_dict(self):
-        server = make_lsp_server([
-            {"uri": "file:///a.py", "range": {"start": {"line": 0, "character": 0},
-                                              "end": {"line": 0, "character": 1}}},
-            "bad_item",
-        ])
+        server = make_lsp_server(
+            [
+                {
+                    "uri": "file:///a.py",
+                    "range": {
+                        "start": {"line": 0, "character": 0},
+                        "end": {"line": 0, "character": 1},
+                    },
+                },
+                "bad_item",
+            ]
+        )
         result = asyncio.run(lsp_references("f.py", line=0, character=0, server=server))
         assert len(result) == 1
 
     # --- lsp.py: _parse_workspace_edit documentChanges path (lines 733-738)
     def test_lsp_rename_document_changes_format(self):
         """documentChanges 格式的 WorkspaceEdit 也能正确解析。"""
-        server = make_lsp_server({
-            "documentChanges": [
-                {
-                    "textDocument": {"uri": "file:///c.py", "version": 1},
-                    "edits": [{"range": {"start": {"line": 3, "character": 0},
-                                         "end": {"line": 3, "character": 5}},
-                               "newText": "renamed"}]
-                }
-            ]
-        })
-        result = asyncio.run(lsp_rename("f.py", line=0, character=0,
-                                        new_name="renamed", server=server))
+        server = make_lsp_server(
+            {
+                "documentChanges": [
+                    {
+                        "textDocument": {"uri": "file:///c.py", "version": 1},
+                        "edits": [
+                            {
+                                "range": {
+                                    "start": {"line": 3, "character": 0},
+                                    "end": {"line": 3, "character": 5},
+                                },
+                                "newText": "renamed",
+                            }
+                        ],
+                    }
+                ]
+            }
+        )
+        result = asyncio.run(
+            lsp_rename("f.py", line=0, character=0, new_name="renamed", server=server)
+        )
         assert "/c.py" in result.changes
         assert result.changes["/c.py"][0].new_text == "renamed"
 
     # --- lsp.py: non-dict item in documentChanges (line 733)
     def test_lsp_rename_document_changes_non_dict_skipped(self):
-        server = make_lsp_server({
-            "documentChanges": ["not_a_dict", None]
-        })
-        result = asyncio.run(lsp_rename("f.py", line=0, character=0,
-                                        new_name="x", server=server))
+        server = make_lsp_server({"documentChanges": ["not_a_dict", None]})
+        result = asyncio.run(lsp_rename("f.py", line=0, character=0, new_name="x", server=server))
         assert result.changes == {}
 
     # --- worktree.py: list branch field (line 68)

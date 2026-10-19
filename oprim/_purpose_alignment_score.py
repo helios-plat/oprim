@@ -2,13 +2,14 @@
 
 Pure computation, no LLM. Score range 0.0–1.0.
 """
+
 from __future__ import annotations
 
 import re
 
 
 def _cosine_sim(a: list[float], b: list[float]) -> float:
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     na = sum(x * x for x in a) ** 0.5
     nb = sum(x * x for x in b) ** 0.5
     if na == 0.0 or nb == 0.0:

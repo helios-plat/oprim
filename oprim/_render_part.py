@@ -1,4 +1,5 @@
 """render_part — produce a human-readable string for a Part."""
+
 from __future__ import annotations
 
 from ._hicode_types import Part

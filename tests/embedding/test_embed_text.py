@@ -1,4 +1,5 @@
 """Tests for oprim.embedding.embed_text — mocking DashScope API."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -13,9 +14,7 @@ def _make_dashscope_response(embeddings: list[list[float]], status_code: int = 2
     """Build a mock DashScope TextEmbedding response."""
     resp = MagicMock()
     resp.status_code = status_code
-    resp.output = {
-        "embeddings": [{"embedding": vec} for vec in embeddings]
-    }
+    resp.output = {"embeddings": [{"embedding": vec} for vec in embeddings]}
     resp.message = "OK"
     return resp
 
@@ -48,8 +47,7 @@ class TestEmbedText:
     def test_batching_at_boundary(self):
         """11 texts should trigger 2 DashScope calls (batch_size=10 at provider level)."""
         texts = [f"text {i}" for i in range(11)]
-        mock_vecs_10 = [[0.1] * 1024 for _ in range(10)]
-        mock_vecs_1 = [[0.2] * 1024]
+        [[0.1] * 1024 for _ in range(10)]
 
         call_count = {"n": 0}
 
@@ -69,19 +67,23 @@ class TestEmbedText:
         resp.status_code = 429
         resp.message = "Quota exceeded"
 
-        with patch("oprim.embedding.qwen3_dashscope.TextEmbedding.call", return_value=resp):
-            with pytest.raises(QuotaExceededError):
-                embed_text(["test"], provider="qwen3_dashscope")
+        with (
+            patch("oprim.embedding.qwen3_dashscope.TextEmbedding.call", return_value=resp),
+            pytest.raises(QuotaExceededError),
+        ):
+            embed_text(["test"], provider="qwen3_dashscope")
 
     def test_api_error_raises_after_retries(self):
         resp = MagicMock()
         resp.status_code = 500
         resp.message = "Internal error"
 
-        with patch("oprim.embedding.qwen3_dashscope.TextEmbedding.call", return_value=resp):
-            with patch("time.sleep"):  # don't actually sleep
-                with pytest.raises(EmbeddingError):
-                    embed_text(["test"], provider="qwen3_dashscope")
+        with (
+            patch("oprim.embedding.qwen3_dashscope.TextEmbedding.call", return_value=resp),
+            patch("time.sleep"),  # don't actually sleep
+            pytest.raises(EmbeddingError),
+        ):
+            embed_text(["test"], provider="qwen3_dashscope")
 
     def test_retry_on_exception(self):
         """Exception on first two calls, success on third."""
@@ -96,9 +98,11 @@ class TestEmbedText:
                 raise ConnectionError("transient error")
             return success_resp
 
-        with patch("oprim.embedding.qwen3_dashscope.TextEmbedding.call", side_effect=side_effect):
-            with patch("time.sleep"):
-                result = embed_text(["test"], provider="qwen3_dashscope")
+        with (
+            patch("oprim.embedding.qwen3_dashscope.TextEmbedding.call", side_effect=side_effect),
+            patch("time.sleep"),
+        ):
+            result = embed_text(["test"], provider="qwen3_dashscope")
 
         assert len(result) == 1
         assert call_count["n"] == 3
@@ -120,6 +124,7 @@ class TestEmbedText:
 class TestBgeM3Embedder:
     def test_model_name_and_dim(self):
         from oprim.embedding.bge_m3 import BgeM3Embedder
+
         e = BgeM3Embedder()
         assert e.model_name == "BAAI/bge-m3"
         assert e.native_dim == 1024
@@ -127,8 +132,10 @@ class TestBgeM3Embedder:
     def test_flagembedding_path(self):
         import sys
         from unittest.mock import MagicMock, patch
-        from oprim.embedding.bge_m3 import BgeM3Embedder
+
         import numpy as np
+
+        from oprim.embedding.bge_m3 import BgeM3Embedder
 
         mock_flag_pkg = MagicMock()
         mock_model = MagicMock()
@@ -146,8 +153,10 @@ class TestBgeM3Embedder:
     def test_sentence_transformers_path(self):
         import sys
         from unittest.mock import MagicMock, patch
-        from oprim.embedding.bge_m3 import BgeM3Embedder
+
         import numpy as np
+
+        from oprim.embedding.bge_m3 import BgeM3Embedder
 
         mock_st_pkg = MagicMock()
         mock_model = MagicMock()
@@ -165,6 +174,7 @@ class TestBgeM3Embedder:
     def test_embed_exception_raises_embeddingerror(self):
         import sys
         from unittest.mock import MagicMock, patch
+
         from oprim.embedding.bge_m3 import BgeM3Embedder
         from oprim.errors import EmbeddingError
 

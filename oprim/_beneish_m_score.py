@@ -2,20 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any
 from pydantic import BaseModel, Field
-
-from oprim._exceptions import OprimError
 
 
 class BeneishInput(BaseModel):
     """Beneish M-Score 输入数据 (单期)."""
+
     net_profit: float = Field(..., description="净利润")
     revenue: float = Field(..., description="营业收入")
     total_assets: float = Field(..., description="总资产")
     total_liabilities: float = Field(..., description="总负债")
     operating_cash_flow: float = Field(..., description="经营性现金流")
-    
+
     # 补充 8 因子模型所需字段 (若 SPEC 未列出则设为默认值以保持兼容)
     accounts_receivable: float = Field(0.0, description="应收账款")
     gross_margin: float = Field(0.0, description="毛利")
@@ -27,6 +25,7 @@ class BeneishInput(BaseModel):
 
 class BeneishResult(BaseModel):
     """Beneish M-Score 结果."""
+
     m_score: float = Field(..., description="M-Score 分数")
     factors: dict[str, float] = Field(..., description="8 因子明细")
 
@@ -44,10 +43,11 @@ def beneish_m_score(
 
     Returns:
         BeneishResult(m_score, factors).
-        
+
     Note:
         M > -2.22 通常被视为存在造假风险。
     """
+
     def safe_ratio(num: float, den: float, default: float = 1.0) -> float:
         if abs(den) < 1e-12:
             return default
@@ -61,11 +61,12 @@ def beneish_m_score(
     # 2. GMI (Gross Margin Index)
     gmi_curr = safe_ratio(current.gross_margin, current.revenue)
     gmi_prior = safe_ratio(prior.gross_margin, prior.revenue)
-    gmi = safe_ratio(gmi_prior, gmi_curr) # Inverse
+    gmi = safe_ratio(gmi_prior, gmi_curr)  # Inverse
 
     # 3. AQI (Asset Quality Index)
     def get_aq(d: BeneishInput) -> float:
         return 1.0 - safe_ratio(d.current_assets + d.ppe, d.total_assets)
+
     aqi = safe_ratio(get_aq(current), get_aq(prior))
 
     # 4. SGI (Sales Growth Index)
@@ -87,18 +88,20 @@ def beneish_m_score(
     lvgi = safe_ratio(lvgi_curr, lvgi_prior)
 
     # 8. TATA (Total Accruals to Total Assets)
-    tata = safe_ratio(current.net_profit - current.operating_cash_flow, current.total_assets, default=0.0)
+    tata = safe_ratio(
+        current.net_profit - current.operating_cash_flow, current.total_assets, default=0.0
+    )
 
     # coefficients from Beneish (1999)
     m_score = (
-        -4.84 
-        + 0.92 * dsri 
-        + 0.528 * gmi 
-        + 0.404 * aqi 
-        + 0.892 * sgi 
-        + 0.115 * depi 
-        - 0.172 * sgai 
-        + 4.679 * tata 
+        -4.84
+        + 0.92 * dsri
+        + 0.528 * gmi
+        + 0.404 * aqi
+        + 0.892 * sgi
+        + 0.115 * depi
+        - 0.172 * sgai
+        + 4.679 * tata
         - 0.327 * lvgi
     )
 
@@ -113,5 +116,5 @@ def beneish_m_score(
             "SGAI": float(sgai),
             "LVGI": float(lvgi),
             "TATA": float(tata),
-        }
+        },
     )

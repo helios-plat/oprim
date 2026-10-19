@@ -1,4 +1,5 @@
 """Extract pinned messages from conversation history."""
+
 from __future__ import annotations
 
 from ._hicode_types import Message

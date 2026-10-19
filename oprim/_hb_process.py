@@ -1,6 +1,7 @@
 """H-B B组: 进程控制扩展 (5)
 spawn_pty / stream_stdout / kill_process / wait_with_timeout / run_background
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -18,6 +19,7 @@ from ._exceptions import ShellOprimError
 @dataclass
 class ProcHandle:
     """普通异步子进程句柄。"""
+
     pid: int
     _proc: asyncio.subprocess.Process = field(repr=False)
 
@@ -25,6 +27,7 @@ class ProcHandle:
 @dataclass
 class PtyHandle:
     """PTY 伪终端子进程句柄。"""
+
     pid: int
     master_fd: int
     _proc: asyncio.subprocess.Process = field(repr=False)
@@ -214,9 +217,7 @@ async def wait_with_timeout(
         task.cancel()
         with contextlib.suppress(asyncio.CancelledError):
             await task
-        raise TimeoutError(
-            f"process {proc.pid} did not finish within {timeout}s"
-        )
+        raise TimeoutError(f"process {proc.pid} did not finish within {timeout}s")
     return task.result()
 
 
@@ -260,7 +261,7 @@ async def run_background(
             stderr=asyncio.subprocess.DEVNULL,
         )
     except Exception as e:
-        raise ShellOprimError(f"run_background failed to start: {cmd[:80]}", cause=e)
+        raise ShellOprimError(f"run_background failed to start: {cmd[:80]}", cause=e) from e
 
     job_id: JobId = str(uuid.uuid4())
     _JOBS[job_id] = proc

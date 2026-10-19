@@ -1,25 +1,25 @@
 """Tests for P-G1 through P-G7 graph primitives."""
+
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from oprim._adamic_adar_score import adamic_adar_score
+from oprim._aii_graph_types import SourceTraceResult
+from oprim._direct_link_score import direct_link_score
 from oprim._ku_conflict_detect import ku_conflict_detect
 from oprim._purpose_alignment_score import purpose_alignment_score
-from oprim._source_trace import source_trace
-from oprim._direct_link_score import direct_link_score
 from oprim._source_overlap_score import source_overlap_score
-from oprim._adamic_adar_score import adamic_adar_score
+from oprim._source_trace import source_trace
 from oprim._type_affinity_score import type_affinity_score
-from oprim._aii_graph_types import ConflictSignal, SourceTraceResult
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _vec(direction: int, dim: int = 4) -> list[float]:
     v = [0.0] * dim
@@ -34,6 +34,7 @@ def _similar_vec(base: list[float], noise: float = 0.01) -> list[float]:
 # ---------------------------------------------------------------------------
 # P-G1: ku_conflict_detect
 # ---------------------------------------------------------------------------
+
 
 class TestKuConflictDetect:
     def test_high_similarity_opposing_polarity_is_candidate(self):
@@ -127,6 +128,7 @@ class TestKuConflictDetect:
 # P-G2: purpose_alignment_score
 # ---------------------------------------------------------------------------
 
+
 class TestPurposeAlignmentScore:
     def test_identical_text_scores_near_one(self):
         v = [1.0, 0.0, 0.0]
@@ -158,6 +160,7 @@ class TestPurposeAlignmentScore:
 
     def test_score_between_zero_and_one(self):
         import random
+
         rng = random.Random(42)
         v1 = [rng.gauss(0, 1) for _ in range(8)]
         v2 = [rng.gauss(0, 1) for _ in range(8)]
@@ -190,6 +193,7 @@ class TestPurposeAlignmentScore:
 # ---------------------------------------------------------------------------
 # P-G3: source_trace
 # ---------------------------------------------------------------------------
+
 
 class TestSourceTrace:
     async def test_returns_source_trace_result(self):
@@ -240,6 +244,7 @@ class TestSourceTrace:
 # P-G4: direct_link_score
 # ---------------------------------------------------------------------------
 
+
 class TestDirectLinkScore:
     def test_one_edge_scores_3(self):
         edges = [{"source": "a", "target": "b"}]
@@ -267,6 +272,7 @@ class TestDirectLinkScore:
 # P-G5: source_overlap_score
 # ---------------------------------------------------------------------------
 
+
 class TestSourceOverlapScore:
     def test_identical_sources_score_4(self):
         s = ["src1", "src2", "src3"]
@@ -288,19 +294,23 @@ class TestSourceOverlapScore:
 # P-G6: adamic_adar_score
 # ---------------------------------------------------------------------------
 
+
 class TestAdamicAdarScore:
     def test_no_common_neighbors_scores_0(self):
-        assert adamic_adar_score(neighbors_a=["x"], neighbors_b=["y"], neighbor_degree={"x": 5, "y": 5}) == 0.0
+        assert (
+            adamic_adar_score(
+                neighbors_a=["x"], neighbors_b=["y"], neighbor_degree={"x": 5, "y": 5}
+            )
+            == 0.0
+        )
 
     def test_common_neighbor_degree_1_skipped(self):
-        assert adamic_adar_score(
-            neighbors_a=["n"], neighbors_b=["n"], neighbor_degree={"n": 1}
-        ) == 0.0
+        assert (
+            adamic_adar_score(neighbors_a=["n"], neighbors_b=["n"], neighbor_degree={"n": 1}) == 0.0
+        )
 
     def test_common_neighbor_contributes(self):
-        score = adamic_adar_score(
-            neighbors_a=["n"], neighbors_b=["n"], neighbor_degree={"n": 10}
-        )
+        score = adamic_adar_score(neighbors_a=["n"], neighbors_b=["n"], neighbor_degree={"n": 10})
         expected = (1.0 / math.log(10)) * 1.5
         assert abs(score - expected) < 1e-9
 
@@ -317,6 +327,7 @@ class TestAdamicAdarScore:
 # ---------------------------------------------------------------------------
 # P-G7: type_affinity_score
 # ---------------------------------------------------------------------------
+
 
 class TestTypeAffinityScore:
     def test_same_type_returns_1(self):

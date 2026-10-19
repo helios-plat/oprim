@@ -1,24 +1,24 @@
 """Tests — H-B G组: MCP IO 扩展 (mcp_connect / load_custom_tool)."""
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from oprim._hb_mcp import (
     McpOprimError,
     McpSession,
-    Tool,
     load_custom_tool,
     mcp_connect,
 )
 
-
 # ---------------------------------------------------------------------------
 # mcp_connect
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_mcp_connect_empty_url() -> None:
@@ -55,24 +55,31 @@ async def test_mcp_connect_sse_success() -> None:
 async def test_mcp_connect_sse_mcp_not_installed() -> None:
     """If mcp package not importable, McpOprimError raised."""
     import sys
+
     # Simulate mcp.client.sse not available by patching inside the function
-    with patch.dict(sys.modules, {"mcp.client.sse": None}):
-        with pytest.raises((McpOprimError, Exception)):
-            await mcp_connect("https://mcp.example.com/sse", timeout=1)
+    with (
+        patch.dict(sys.modules, {"mcp.client.sse": None}),
+        pytest.raises((McpOprimError, Exception)),
+    ):
+        await mcp_connect("https://mcp.example.com/sse", timeout=1)
 
 
 @pytest.mark.asyncio
 async def test_mcp_connect_stdio_empty_after_prefix() -> None:
     """stdio:// with empty command should still produce some McpOprimError."""
     import sys
-    with patch.dict(sys.modules, {"mcp.client.stdio": None}):
-        with pytest.raises((McpOprimError, Exception)):
-            await mcp_connect("stdio:///bin/fake_mcp_server", timeout=1)
+
+    with (
+        patch.dict(sys.modules, {"mcp.client.stdio": None}),
+        pytest.raises((McpOprimError, Exception)),
+    ):
+        await mcp_connect("stdio:///bin/fake_mcp_server", timeout=1)
 
 
 # ---------------------------------------------------------------------------
 # McpSession
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_mcp_session_request_disconnected() -> None:
@@ -91,14 +98,19 @@ async def test_mcp_session_close_no_session() -> None:
 # load_custom_tool
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_load_custom_tool_json(tmp_path: Path) -> None:
     tool_file = tmp_path / "search.json"
-    tool_file.write_text(json.dumps({
-        "name": "search",
-        "description": "Search the web",
-        "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}},
-    }))
+    tool_file.write_text(
+        json.dumps(
+            {
+                "name": "search",
+                "description": "Search the web",
+                "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}}},
+            }
+        )
+    )
     tool = await load_custom_tool(tool_file)
     assert tool.name == "search"
     assert tool.description == "Search the web"
@@ -125,10 +137,7 @@ async def test_load_custom_tool_yaml(tmp_path: Path) -> None:
 async def test_load_custom_tool_ts_with_name(tmp_path: Path) -> None:
     tool_file = tmp_path / "mytool.ts"
     tool_file.write_text(
-        "export const definition = {\n"
-        "  name: 'my_tool',\n"
-        "  description: 'does something',\n"
-        "};\n"
+        "export const definition = {\n  name: 'my_tool',\n  description: 'does something',\n};\n"
     )
     tool = await load_custom_tool(tool_file)
     assert tool.name == "my_tool"
@@ -137,7 +146,9 @@ async def test_load_custom_tool_ts_with_name(tmp_path: Path) -> None:
 @pytest.mark.asyncio
 async def test_load_custom_tool_ts_schema_comment(tmp_path: Path) -> None:
     tool_file = tmp_path / "annotated.ts"
-    schema_json = json.dumps({"name": "annotated", "description": "annotated tool", "inputSchema": {}})
+    schema_json = json.dumps(
+        {"name": "annotated", "description": "annotated tool", "inputSchema": {}}
+    )
     tool_file.write_text(f"/* @schema {schema_json} */\nexport function annotated() {{}}\n")
     tool = await load_custom_tool(tool_file)
     assert tool.name == "annotated"

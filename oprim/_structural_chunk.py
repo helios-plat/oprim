@@ -6,6 +6,7 @@ Each chunk preserves heading context for downstream LLM extraction.
 """
 
 from __future__ import annotations
+
 import re
 
 
@@ -50,7 +51,6 @@ def structural_chunk(
 
     # Track hierarchy stack: index = level-1, value = heading text
     # Level 0 (preamble) is treated specially
-    context_stack: list[str] = []  # stack of (level, heading) for ancestry
 
     # We maintain a parallel stack of (level, heading) pairs
     level_stack: list[tuple[int, str]] = []

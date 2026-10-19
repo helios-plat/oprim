@@ -2,6 +2,7 @@
 
 Pure computation. Empty sets → 0.
 """
+
 from __future__ import annotations
 
 

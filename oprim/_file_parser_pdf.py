@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import fitz  # type: ignore[import-untyped]  # pymupdf
+try:
+    import fitz  # type: ignore[import-untyped]  # pymupdf
+except ImportError:
+    fitz = None  # type: ignore[assignment]
 
 from oprim._document_types import Page, ParsedDocument
 from oprim._exceptions import OprimError
+from oprim._optional import require_optional
 
 
 def file_parser_pdf(
@@ -21,7 +25,8 @@ def file_parser_pdf(
 
     Args:
         file_path: Path to the PDF file
-        strategy: Extraction strategy ("pymupdf4llm" default; "docling" reserved)
+        strategy: Extraction strategy ("pymupdf4llm" default
+        "docling" reserved)
 
     Returns:
         ParsedDocument with pages, tables, images, metadata
@@ -34,6 +39,7 @@ def file_parser_pdf(
         >>> len(doc.pages) > 0
         True
     """
+    require_optional(fitz, feature="pdf", extra="pdf", package="PyMuPDF")
     if not file_path.exists():
         raise OprimError(f"file_not_found: {file_path}")
 
@@ -59,13 +65,11 @@ def file_parser_pdf(
                 # Fallback: extract via text blocks with rawdict (better CID handling)
                 text_blocks = page.get_text("blocks")
                 fallback_text = "\n".join(
-                    b[4] for b in text_blocks
-                    if isinstance(b[4], str) and b[4].strip()
+                    b[4] for b in text_blocks if isinstance(b[4], str) and b[4].strip()
                 )
                 # Use fallback only if it's better (fewer \ufffd)
                 if fallback_text and (
-                    fallback_text.count("\ufffd") / max(len(fallback_text), 1)
-                    < garbled_ratio
+                    fallback_text.count("\ufffd") / max(len(fallback_text), 1) < garbled_ratio
                 ):
                     text = fallback_text
 

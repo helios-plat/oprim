@@ -1,16 +1,14 @@
 """P-AII-1: failure_lesson_extract — pure-rule lesson generation from failure evidence.
 
-No LLM. Dispatches to rule templates by trigger_type; all output is derivable from inputs.
+No LLM. Dispatches to rule templates by trigger_type
+all output is derivable from inputs.
 """
 
 from __future__ import annotations
 
 from oprim._aii_types import FailureLessonResult
 
-
-_SUPPORTED_TYPES: frozenset[str] = frozenset(
-    {"verify_failed", "retrieval_miss", "defeater_struck"}
-)
+_SUPPORTED_TYPES: frozenset[str] = frozenset({"verify_failed", "retrieval_miss", "defeater_struck"})
 
 
 def failure_lesson_extract(
@@ -34,8 +32,7 @@ def failure_lesson_extract(
     """
     if trigger_type not in _SUPPORTED_TYPES:
         raise ValueError(
-            f"Unknown trigger_type {trigger_type!r}. "
-            f"Supported: {sorted(_SUPPORTED_TYPES)}"
+            f"Unknown trigger_type {trigger_type!r}. Supported: {sorted(_SUPPORTED_TYPES)}"
         )
 
     lesson: str
@@ -45,9 +42,7 @@ def failure_lesson_extract(
 
     elif trigger_type == "retrieval_miss":
         if "query" not in evidence:
-            raise ValueError(
-                "trigger_type='retrieval_miss' requires 'query' in evidence"
-            )
+            raise ValueError("trigger_type='retrieval_miss' requires 'query' in evidence")
         lesson = f"主题 '{evidence['query']}' 检索无命中"
 
     else:  # defeater_struck

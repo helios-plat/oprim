@@ -153,10 +153,10 @@ def score_etf_inflow(*, net_flow_7d_usd: float) -> float:
         >>> score_etf_inflow(net_flow_7d_usd=5_000_000_000.0)
         1.0
     """
-    B = 1e9
+    b = 1e9
     return _interpolate(
         value=net_flow_7d_usd,
-        knots=[(-5 * B, -1.0), (-0.5 * B, -0.25), (0.5 * B, 0.25), (5 * B, 1.0)],
+        knots=[(-5 * b, -1.0), (-0.5 * b, -0.25), (0.5 * b, 0.25), (5 * b, 1.0)],
     )
 
 
@@ -202,8 +202,12 @@ def score_funding_rate(*, rate_8h: float) -> float:
     return _interpolate(
         value=rate_8h,
         knots=[
-            (-0.0015, 1.0), (-0.0005, 0.3), (0.0001, 0.0),
-            (0.0005, -0.3), (0.0010, -0.7), (0.0015, -1.0),
+            (-0.0015, 1.0),
+            (-0.0005, 0.3),
+            (0.0001, 0.0),
+            (0.0005, -0.3),
+            (0.0010, -0.7),
+            (0.0015, -1.0),
         ],
     )
 
@@ -355,13 +359,13 @@ def score_oi_change(*, oi_change_7d: float, price_change_7d: float) -> float:
         >>> score_oi_change(oi_change_7d=0.10, price_change_7d=0.05)
         1.0
     """
-    OI_THRESH = 0.01
-    PRICE_THRESH = 0.01
-    OI_MAX = 0.10
+    oi_thresh = 0.01
+    price_thresh = 0.01
+    oi_max = 0.10
 
-    if abs(oi_change_7d) < OI_THRESH:
+    if abs(oi_change_7d) < oi_thresh:
         return 0.0
-    if abs(price_change_7d) < PRICE_THRESH:
+    if abs(price_change_7d) < price_thresh:
         return 0.0
 
     if oi_change_7d > 0 and price_change_7d > 0:
@@ -373,7 +377,7 @@ def score_oi_change(*, oi_change_7d: float, price_change_7d: float) -> float:
     else:
         base = -0.3
 
-    intensity = min(1.0, abs(oi_change_7d) / OI_MAX)
+    intensity = min(1.0, abs(oi_change_7d) / oi_max)
     return base * intensity
 
 

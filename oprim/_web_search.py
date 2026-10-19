@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
+
 from ._exceptions import SearchOprimError
 from ._protocols import SearchCaller
 from .llm._types import SearchResult
+
 
 async def web_search(
     query: str,
@@ -34,19 +36,21 @@ async def web_search(
 
     try:
         raw = await client(query=query, top_k=top_k)
-    except (SearchOprimError,):
+    except SearchOprimError:
         raise  # pragma: no cover
     except Exception as e:
-        raise SearchOprimError("web_search call failed", cause=e)
+        raise SearchOprimError("web_search call failed", cause=e) from e
 
     results = []
     for i, item in enumerate(raw[:top_k]):
         if not isinstance(item, dict):
             continue
-        results.append(SearchResult(
-            title=str(item.get("title", "")),
-            url=str(item.get("url", "")),
-            snippet=str(item.get("snippet", item.get("description", ""))),
-            rank=i,
-        ))
+        results.append(
+            SearchResult(
+                title=str(item.get("title", "")),
+                url=str(item.get("url", "")),
+                snippet=str(item.get("snippet", item.get("description", ""))),
+                rank=i,
+            )
+        )
     return results

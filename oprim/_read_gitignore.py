@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import stat
+
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def read_gitignore(root: str | Path) -> list[str]:
     """单次读取并解析 .gitignore 文件，返回规则列表。
@@ -29,7 +31,7 @@ def read_gitignore(root: str | Path) -> list[str]:
     try:
         text = gitignore.read_text(encoding="utf-8", errors="replace")
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read .gitignore in '{root}'", cause=e)
+        raise FileOprimError(f"cannot read .gitignore in '{root}'", cause=e) from e
 
     rules = []
     for line in text.splitlines():

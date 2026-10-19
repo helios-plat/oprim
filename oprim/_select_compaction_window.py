@@ -1,4 +1,5 @@
 """Select which messages to compact vs keep in context."""
+
 from __future__ import annotations
 
 from ._hicode_types import Message, Window

@@ -1,4 +1,5 @@
 """Local Qwen3-Embedding via Ollama HTTP API."""
+
 from __future__ import annotations
 
 import time
@@ -18,9 +19,7 @@ class Qwen3LocalEmbedder:
     """Embed texts via local Ollama (qwen3-embedding:0.6b)."""
 
     def __init__(self) -> None:
-        self._base_url = str(
-            cfg.get("OLLAMA_BASE_URL", _DEFAULT_BASE_URL)
-        ).rstrip("/")
+        self._base_url = str(cfg.get("OLLAMA_BASE_URL", _DEFAULT_BASE_URL)).rstrip("/")
 
     @property
     def model_name(self) -> str:
@@ -50,9 +49,7 @@ class Qwen3LocalEmbedder:
                 data = resp.json()
                 embedding = data.get("embedding")
                 if not embedding:
-                    raise EmbeddingError(
-                        f"Ollama returned empty embedding: {data}"
-                    )
+                    raise EmbeddingError(f"Ollama returned empty embedding: {data}")
                 return embedding
             except EmbeddingError:
                 raise
@@ -67,6 +64,4 @@ class Qwen3LocalEmbedder:
                         wait_s=wait,
                     )
                     time.sleep(wait)
-        raise EmbeddingError(
-            f"Ollama embedding failed after 3 retries: {last_err}"
-        ) from last_err
+        raise EmbeddingError(f"Ollama embedding failed after 3 retries: {last_err}") from last_err

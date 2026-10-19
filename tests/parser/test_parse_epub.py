@@ -1,4 +1,5 @@
 """Tests for oprim.parser.parse_epub."""
+
 from __future__ import annotations
 
 from pathlib import Path

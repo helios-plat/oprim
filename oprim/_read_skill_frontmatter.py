@@ -1,14 +1,14 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import asyncio
-import base64
-import json
+
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from ._exceptions import FileOprimError, ParseOprimError, ShellOprimError
+
+from ._exceptions import FileOprimError, ParseOprimError
+
 
 @dataclass
 class HookResult:
@@ -16,9 +16,11 @@ class HookResult:
     output: str
     exit_code: int
 
+
 @dataclass
 class ImageBlock:
     """Anthropic content block 格式的图片表示。"""
+
     type: str
     source_type: str
     media_type: str
@@ -26,9 +28,11 @@ class ImageBlock:
     path: str
     size_bytes: int
 
+
 @dataclass
 class SkillMeta:
     """Skill frontmatter 解析结果（渐进披露第 1 步，不含 body）。"""
+
     name: str
     description: str
     version: str
@@ -37,6 +41,47 @@ class SkillMeta:
     tags: list[str]
     raw: dict
     skill_dir: str
+
+
+# Module-level constants and helpers
+_FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---", re.DOTALL)
+
+
+def _parse_simple_yaml(text: str) -> dict:
+    """Simple YAML parser for frontmatter (subset)."""
+    result = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" in line:
+            key, val = line.split(":", 1)
+            key = key.strip()
+            val = val.strip()
+            # Try to parse as list
+            if val.startswith("[") and val.endswith("]"):
+                val = [x.strip().strip("\"'") for x in val[1:-1].split(",")]
+            elif val.lower() == "true":
+                val = True
+            elif val.lower() == "false":
+                val = False
+            elif val.lower() == "null":
+                val = None
+            result[key] = val
+    return result
+
+
+def _to_str_list(val: Any) -> list[str]:
+    if isinstance(val, list):
+        return [str(x) for x in val]
+    return []
+
+
+def _to_dict_list(val: Any) -> list[dict]:
+    if isinstance(val, list):
+        return [x if isinstance(x, dict) else {} for x in val]
+    return []
+
 
 def read_skill_frontmatter(skill_dir: str | Path) -> SkillMeta:
     """单次读取 skill 目录的 SKILL.md frontmatter（渐进披露第 1 步）。
@@ -85,7 +130,7 @@ def read_skill_frontmatter(skill_dir: str | Path) -> SkillMeta:
     try:
         text = skill_md.read_text(encoding="utf-8", errors="replace")
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"cannot read SKILL.md in '{skill_dir}'", cause=e)
+        raise FileOprimError(f"cannot read SKILL.md in '{skill_dir}'", cause=e) from e
 
     m = _FRONTMATTER_RE.match(text)
     if not m:
@@ -97,7 +142,7 @@ def read_skill_frontmatter(skill_dir: str | Path) -> SkillMeta:
     try:
         fm = _parse_simple_yaml(fm_text)
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError(f"frontmatter YAML parse error in '{skill_dir}'", cause=e)  # pragma: no cover
+        raise ParseOprimError(f"frontmatter YAML parse error in '{skill_dir}'", cause=e) from e
 
     name = fm.get("name", "")
     if not name:

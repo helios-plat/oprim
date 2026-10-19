@@ -1,4 +1,5 @@
 """Classify the risk level of a tool call."""
+
 from __future__ import annotations
 
 from oprim._hicode_types import ToolCall

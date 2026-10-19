@@ -1,4 +1,5 @@
 """Resolve relative and home-relative path strings in config dicts."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -25,9 +26,7 @@ def _looks_like_path(value: str) -> bool:
     # Windows absolute: C:\... or C:/...
     if len(value) >= 3 and value[1] == ":" and value[2] in ("/", "\\"):
         return True
-    if "/" in value or "\\" in value:
-        return True
-    return False
+    return bool("/" in value or "\\" in value)
 
 
 def _resolve_path_str(value: str, base: Path) -> str:
@@ -46,16 +45,13 @@ def _resolve_value(value: Any, base: Path, *, in_path_key: bool = False) -> Any:
             return _resolve_path_str(value, base)
         return value
     if isinstance(value, dict):
-        return {
-            k: _resolve_value(v, base, in_path_key=(k in _PATH_KEYS))
-            for k, v in value.items()
-        }
+        return {k: _resolve_value(v, base, in_path_key=(k in _PATH_KEYS)) for k, v in value.items()}
     if isinstance(value, list):
         return [_resolve_value(item, base, in_path_key=in_path_key) for item in value]
     return value
 
 
-def resolve_config_path_refs(config: dict[str, Any], *, base: "Path") -> dict[str, Any]:
+def resolve_config_path_refs(config: dict[str, Any], *, base: Path) -> dict[str, Any]:
     """Resolve path strings in *config* relative to *base*.
 
     Rules applied to string values:
@@ -67,9 +63,7 @@ def resolve_config_path_refs(config: dict[str, Any], *, base: "Path") -> dict[st
     - ``~``-prefixed paths → expanded via :func:`pathlib.Path.expanduser`
     - Absolute paths pass through unchanged.
 
-    Returns a new dict; *config* is not mutated.
+    Returns a new dict
+    *config* is not mutated.
     """
-    return {
-        k: _resolve_value(v, base, in_path_key=(k in _PATH_KEYS))
-        for k, v in config.items()
-    }
+    return {k: _resolve_value(v, base, in_path_key=(k in _PATH_KEYS)) for k, v in config.items()}

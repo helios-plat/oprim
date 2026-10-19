@@ -1,4 +1,5 @@
 """Build a formatted system prompt from agent instructions, project context, and tools."""
+
 from __future__ import annotations
 
 from typing import Any

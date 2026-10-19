@@ -1,4 +1,5 @@
 """Tests for CC supplement oprim elements (P-NEW1..8)."""
+
 from __future__ import annotations
 
 import json
@@ -8,19 +9,21 @@ import pytest
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
-def _skill(name: str, description: str = "") -> "object":
+
+def _skill(name: str, description: str = "") -> object:
     from oprim._hicode_types import SkillSpec
 
     return SkillSpec(name=name, description=description, body="")
 
 
-def _tool_call(name: str) -> "object":
+def _tool_call(name: str) -> object:
     from oprim._hicode_types import ToolCall
 
     return ToolCall(id="t1", name=name, args={})
 
 
 # ── P-NEW1 match_skill_trigger ────────────────────────────────────────────────
+
 
 class TestMatchSkillTrigger:
     def test_single_match_by_name(self) -> None:
@@ -80,6 +83,7 @@ class TestMatchSkillTrigger:
 
 # ── P-NEW2 interpolate_skill_args ─────────────────────────────────────────────
 
+
 class TestInterpolateSkillArgs:
     def test_arguments_placeholder_joins_all(self) -> None:
         from oprim._interpolate_skill_args import interpolate_skill_args
@@ -125,6 +129,7 @@ class TestInterpolateSkillArgs:
 
 
 # ── P-NEW3 resolve_slash_command ──────────────────────────────────────────────
+
 
 class TestResolveSlashCommand:
     def test_registered_command_returns_skill_ref(self) -> None:
@@ -172,18 +177,22 @@ class TestResolveSlashCommand:
 
 # ── P-NEW4 parse_plugin_manifest ──────────────────────────────────────────────
 
+
 class TestParsePluginManifest:
     def test_full_manifest_parsed(self) -> None:
         from oprim._parse_plugin_manifest import parse_plugin_manifest
 
-        raw = json.dumps({
-            "name": "p", "version": "2.0",
-            "skills": [{"name": "s1"}],
-            "subagents": [{"name": "ag1"}],
-            "commands": [{"name": "cmd"}],
-            "hooks": [{"event": "preToolUse"}],
-            "mcp_defs": [{"name": "mcp1"}],
-        })
+        raw = json.dumps(
+            {
+                "name": "p",
+                "version": "2.0",
+                "skills": [{"name": "s1"}],
+                "subagents": [{"name": "ag1"}],
+                "commands": [{"name": "cmd"}],
+                "hooks": [{"event": "preToolUse"}],
+                "mcp_defs": [{"name": "mcp1"}],
+            }
+        )
         m = parse_plugin_manifest(raw)
         assert m.name == "p" and m.version == "2.0"
         assert len(m.skills) == 1
@@ -226,6 +235,7 @@ class TestParsePluginManifest:
 
 
 # ── P-NEW5 load_plugin_raw ────────────────────────────────────────────────────
+
 
 class TestLoadPluginRaw:
     @pytest.mark.asyncio
@@ -289,6 +299,7 @@ class TestLoadPluginRaw:
 
 # ── P-NEW6 check_plan_mode_allowed ────────────────────────────────────────────
 
+
 class TestCheckPlanModeAllowed:
     def test_plan_mode_read_tool_allowed(self) -> None:
         from oprim._check_plan_mode_allowed import check_plan_mode_allowed
@@ -340,8 +351,9 @@ class TestCheckPlanModeAllowed:
 
 # ── P-NEW7 make_checkpoint ────────────────────────────────────────────────────
 
+
 class TestMakeCheckpoint:
-    def _state(self, **kw: object) -> "object":
+    def _state(self, **kw: object) -> object:
         from oprim._cc_types import RunState
 
         defaults: dict = {"step": 0, "data": {}, "completed_steps": []}
@@ -401,8 +413,9 @@ class TestMakeCheckpoint:
 
 # ── P-NEW8 restore_from_checkpoint ───────────────────────────────────────────
 
+
 class TestRestoreFromCheckpoint:
-    def _checkpoint(self, **kw: object) -> "object":
+    def _checkpoint(self, **kw: object) -> object:
         from oprim._cc_types import CheckpointData
 
         base = {

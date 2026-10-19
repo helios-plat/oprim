@@ -71,9 +71,7 @@ async def face_animation(
     try:
         fn = ProviderRegistry.get().generic("face_animation", provider)
     except ProviderNotFoundError as exc:
-        raise FaceAnimationProviderNotFoundError(
-            f"Provider not found: {provider!r}"
-        ) from exc
+        raise FaceAnimationProviderNotFoundError(f"Provider not found: {provider!r}") from exc
 
     try:
         await fn(

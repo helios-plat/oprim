@@ -7,6 +7,7 @@ No LLM, fully deterministic. Rule set:
   - 矛盾句式 ("与X矛盾"/"否定了X")             → contradicts
   - 无匹配                                      → []
 """
+
 from __future__ import annotations
 
 import re
@@ -15,25 +16,25 @@ from oprim._aii_graph_types import RelationCandidate
 
 # --- Theorem reference patterns (with explicit Chinese keywords) ---
 _THEOREM_PAT = re.compile(
-    r'(?:由|根据|依据|见|利用|引用)\s*'
-    r'([^\s，。；！？\n（(]{1,30}?)\s*'
-    r'(?:定理|引理|公理|命题|推论|定律)',
+    r"(?:由|根据|依据|见|利用|引用)\s*"
+    r"([^\s，。；！？\n（(]{1,30}?)\s*"
+    r"(?:定理|引理|公理|命题|推论|定律)",
     re.UNICODE,
 )
 
 # --- Special case sentence patterns ---
 _SPECIAL_PAT = re.compile(
-    r'是\s*([^\s，。；！？\n（(]{1,30}?)\s*的\s*(?:特例|特殊(?:情况|形式|版本))'
-    r'|退化为\s*([^\s，。；！？\n（(]{1,30})'
-    r'|当.{0,40}?时\s*退化为\s*([^\s，。；！？\n（(]{1,30})',
+    r"是\s*([^\s，。；！？\n（(]{1,30}?)\s*的\s*(?:特例|特殊(?:情况|形式|版本))"
+    r"|退化为\s*([^\s，。；！？\n（(]{1,30})"
+    r"|当.{0,40}?时\s*退化为\s*([^\s，。；！？\n（(]{1,30})",
     re.UNICODE,
 )
 
 # --- Contradiction sentence patterns ---
 _CONTRADICT_PAT = re.compile(
-    r'与\s*([^\s，。；！？\n（(]{1,30}?)\s*(?:矛盾|相矛盾|对立|冲突)'
-    r'|否定了\s*([^\s，。；！？\n（(]{1,30})'
-    r'|反驳了\s*([^\s，。；！？\n（(]{1,30})',
+    r"与\s*([^\s，。；！？\n（(]{1,30}?)\s*(?:矛盾|相矛盾|对立|冲突)"
+    r"|否定了\s*([^\s，。；！？\n（(]{1,30})"
+    r"|反驳了\s*([^\s，。；！？\n（(]{1,30})",
     re.UNICODE,
 )
 
@@ -95,12 +96,14 @@ def relation_extract_rule(
         if key in seen_evidence:
             continue
         seen_evidence.add(key)
-        results.append(RelationCandidate(
-            relation_type="references",
-            target_ref=target,
-            evidence=m.group(0).strip(),
-            confidence_signal=sig,
-        ))
+        results.append(
+            RelationCandidate(
+                relation_type="references",
+                target_ref=target,
+                evidence=m.group(0).strip(),
+                confidence_signal=sig,
+            )
+        )
 
     # --- Special case sentences ---
     for m in _SPECIAL_PAT.finditer(ku_text):
@@ -113,12 +116,14 @@ def relation_extract_rule(
         if key in seen_evidence:
             continue
         seen_evidence.add(key)
-        results.append(RelationCandidate(
-            relation_type="special_case_of",
-            target_ref=target,
-            evidence=m.group(0).strip(),
-            confidence_signal=sig,
-        ))
+        results.append(
+            RelationCandidate(
+                relation_type="special_case_of",
+                target_ref=target,
+                evidence=m.group(0).strip(),
+                confidence_signal=sig,
+            )
+        )
 
     # --- Contradiction sentences ---
     for m in _CONTRADICT_PAT.finditer(ku_text):
@@ -131,12 +136,14 @@ def relation_extract_rule(
         if key in seen_evidence:
             continue
         seen_evidence.add(key)
-        results.append(RelationCandidate(
-            relation_type="contradicts",
-            target_ref=target,
-            evidence=m.group(0).strip(),
-            confidence_signal=sig,
-        ))
+        results.append(
+            RelationCandidate(
+                relation_type="contradicts",
+                target_ref=target,
+                evidence=m.group(0).strip(),
+                confidence_signal=sig,
+            )
+        )
 
     # --- Symbol dependencies (only when known_entities provided) ---
     if ku_symbolic is not None and known_entities is not None:
@@ -146,11 +153,13 @@ def relation_extract_rule(
                 if key in seen_evidence:
                     continue
                 seen_evidence.add(key)
-                results.append(RelationCandidate(
-                    relation_type="prerequisite_of",
-                    target_ref=sym,
-                    evidence=f"symbol dependency: {sym!r}",
-                    confidence_signal="symbol_dep",
-                ))
+                results.append(
+                    RelationCandidate(
+                        relation_type="prerequisite_of",
+                        target_ref=sym,
+                        evidence=f"symbol dependency: {sym!r}",
+                        confidence_signal="symbol_dep",
+                    )
+                )
 
     return results

@@ -1,4 +1,5 @@
 """Map short model aliases to canonical model IDs per provider."""
+
 from __future__ import annotations
 
 _ANTHROPIC_ALIASES: dict[str, str] = {

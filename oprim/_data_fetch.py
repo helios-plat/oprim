@@ -3,9 +3,8 @@
 Each function wraps exactly one HTTP request with injected HttpClient Protocol.
 Covers: order book, news, on-chain, derivatives, social, DeFi, microstructure.
 """
-from __future__ import annotations
 
-from typing import Any
+from __future__ import annotations
 
 from oprim._protocols import HttpClient
 
@@ -14,14 +13,21 @@ class DataFetchError(Exception):
     """Raised when a data fetch oprim fails."""
 
 
-async def fetch_order_book_depth(*, client: HttpClient, exchange: str, symbol: str, depth: int = 20) -> dict:
+async def fetch_order_book_depth(
+    *, client: HttpClient, exchange: str, symbol: str, depth: int = 20
+) -> dict:
     """Fetch order book depth from exchange API.
 
     Example:
         >>> await fetch_order_book_depth(client=c, exchange="binance", symbol="BTC-USDT")
     """
     try:
-        return await client.get(f"/api/{exchange}/orderbook", params={"symbol": symbol, "depth": depth}) or {}
+        return (
+            await client.get(
+                f"/api/{exchange}/orderbook", params={"symbol": symbol, "depth": depth}
+            )
+            or {}
+        )
     except Exception as e:
         raise DataFetchError(f"fetch_order_book_depth: {e}") from e
 
@@ -40,11 +46,15 @@ async def compute_spread(*, bids: list[list[float]], asks: list[list[float]]) ->
     return {"spread": spread, "spread_bps": round(spread / mid * 10000, 2), "mid": mid}
 
 
-async def compute_slippage_estimate(*, order_size: float, bids: list[list[float]], asks: list[list[float]], side: str = "buy") -> float:
+async def compute_slippage_estimate(
+    *, order_size: float, bids: list[list[float]], asks: list[list[float]], side: str = "buy"
+) -> float:
     """Estimate slippage for a given order size against order book.
 
     Example:
-        >>> await compute_slippage_estimate(order_size=1.0, bids=[[50000,10]], asks=[[50010,10]], side="buy")
+        >>> await compute_slippage_estimate(
+        ...     order_size=1.0, bids=[[50000,10]], asks=[[50010,10]], side="buy"
+        ... )
     """
     levels = asks if side == "buy" else bids
     if not levels:
@@ -63,7 +73,9 @@ async def compute_slippage_estimate(*, order_size: float, bids: list[list[float]
     return round(abs(avg_price - ref_price) / ref_price, 6)
 
 
-async def fetch_news_events(*, client: HttpClient, category: str = "crypto", limit: int = 20) -> list[dict]:
+async def fetch_news_events(
+    *, client: HttpClient, category: str = "crypto", limit: int = 20
+) -> list[dict]:
     """Fetch recent news events.
 
     Example:
@@ -111,14 +123,19 @@ async def fetch_smart_money_flows(*, client: HttpClient, symbol: str = "BTC") ->
         raise DataFetchError(f"fetch_smart_money_flows: {e}") from e
 
 
-async def fetch_whale_transactions(*, client: HttpClient, symbol: str = "BTC", min_usd: float = 1_000_000) -> list[dict]:
+async def fetch_whale_transactions(
+    *, client: HttpClient, symbol: str = "BTC", min_usd: float = 1_000_000
+) -> list[dict]:
     """Fetch whale transactions above threshold.
 
     Example:
         >>> await fetch_whale_transactions(client=c, symbol="BTC", min_usd=1000000)
     """
     try:
-        return await client.get("/api/onchain/whales", params={"symbol": symbol, "min_usd": min_usd}) or []
+        return (
+            await client.get("/api/onchain/whales", params={"symbol": symbol, "min_usd": min_usd})
+            or []
+        )
     except Exception as e:
         raise DataFetchError(f"fetch_whale_transactions: {e}") from e
 
@@ -183,7 +200,9 @@ async def fetch_stablecoin_supply_change(*, client: HttpClient, days: int = 7) -
         raise DataFetchError(f"fetch_stablecoin_supply_change: {e}") from e
 
 
-async def fetch_funding_rate(*, client: HttpClient, exchange: str = "binance", symbol: str = "BTC-USDT") -> dict:
+async def fetch_funding_rate(
+    *, client: HttpClient, exchange: str = "binance", symbol: str = "BTC-USDT"
+) -> dict:
     """Fetch perpetual funding rate from exchange.
 
     Example:
@@ -195,7 +214,9 @@ async def fetch_funding_rate(*, client: HttpClient, exchange: str = "binance", s
         raise DataFetchError(f"fetch_funding_rate: {e}") from e
 
 
-async def cross_exchange_funding_diff(*, client: HttpClient, symbol: str = "BTC-USDT", exchanges: list[str] | None = None) -> dict:
+async def cross_exchange_funding_diff(
+    *, client: HttpClient, symbol: str = "BTC-USDT", exchanges: list[str] | None = None
+) -> dict:
     """Compute funding rate differential across exchanges.
 
     Example:
@@ -250,7 +271,9 @@ async def fetch_option_open_interest(*, client: HttpClient, symbol: str = "BTC")
         raise DataFetchError(f"fetch_option_open_interest: {e}") from e
 
 
-async def fetch_perp_basis(*, client: HttpClient, exchange: str = "binance", symbol: str = "BTC-USDT") -> dict:
+async def fetch_perp_basis(
+    *, client: HttpClient, exchange: str = "binance", symbol: str = "BTC-USDT"
+) -> dict:
     """Fetch perpetual-spot basis.
 
     Example:
@@ -278,14 +301,19 @@ async def compute_term_structure(*, futures_prices: dict[str, float], spot: floa
     return {"shape": shape, "basis": basis, "avg_basis": round(avg, 6)}
 
 
-async def fetch_social_sentiment(*, client: HttpClient, symbol: str = "BTC", source: str = "twitter") -> dict:
+async def fetch_social_sentiment(
+    *, client: HttpClient, symbol: str = "BTC", source: str = "twitter"
+) -> dict:
     """Fetch social media sentiment metrics.
 
     Example:
         >>> await fetch_social_sentiment(client=c, symbol="BTC")
     """
     try:
-        return await client.get("/api/social/sentiment", params={"symbol": symbol, "source": source}) or {}
+        return (
+            await client.get("/api/social/sentiment", params={"symbol": symbol, "source": source})
+            or {}
+        )
     except Exception as e:
         raise DataFetchError(f"fetch_social_sentiment: {e}") from e
 
@@ -413,14 +441,19 @@ async def compute_volume_weighted_price(*, bars: list[dict]) -> float:
     return round(vwap, 6)
 
 
-async def fetch_tick_data(*, client: HttpClient, exchange: str, symbol: str, limit: int = 1000) -> list[dict]:
+async def fetch_tick_data(
+    *, client: HttpClient, exchange: str, symbol: str, limit: int = 1000
+) -> list[dict]:
     """Fetch tick-level trade data.
 
     Example:
         >>> await fetch_tick_data(client=c, exchange="binance", symbol="BTC-USDT")
     """
     try:
-        return await client.get(f"/api/{exchange}/ticks", params={"symbol": symbol, "limit": limit}) or []
+        return (
+            await client.get(f"/api/{exchange}/ticks", params={"symbol": symbol, "limit": limit})
+            or []
+        )
     except Exception as e:
         raise DataFetchError(f"fetch_tick_data: {e}") from e
 
@@ -435,7 +468,11 @@ async def compute_microstructure_features(*, ticks: list[dict]) -> dict:
         return {"buy_ratio": 0.5, "avg_size": 0, "tick_count": 0}
     buys = sum(1 for t in ticks if t.get("side") == "buy")
     avg_size = sum(t.get("qty", 0) for t in ticks) / len(ticks)
-    return {"buy_ratio": round(buys / len(ticks), 4), "avg_size": round(avg_size, 4), "tick_count": len(ticks)}
+    return {
+        "buy_ratio": round(buys / len(ticks), 4),
+        "avg_size": round(avg_size, 4),
+        "tick_count": len(ticks),
+    }
 
 
 async def fetch_etf_premium_discount(*, client: HttpClient, ticker: str = "GBTC") -> dict:

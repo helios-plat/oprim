@@ -1,4 +1,5 @@
 """Tests for oprim.volatility.realized: realized_variance."""
+
 import numpy as np
 import pytest
 
@@ -47,6 +48,7 @@ def test_sampling_frequency_ignored():
 
 def test_series_input():
     import pandas as pd
+
     r = pd.Series(np.random.default_rng(4).standard_normal(50))
     rv = realized_variance(r)
     assert isinstance(rv, float)
@@ -54,6 +56,7 @@ def test_series_input():
 
 def test_dataframe_input():
     import pandas as pd
+
     rng = np.random.default_rng(5)
     df = pd.DataFrame(rng.standard_normal((10, 50)))
     rv = realized_variance(df)

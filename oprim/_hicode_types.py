@@ -1,5 +1,46 @@
 """Shared types for hicode batch H-A pure-compute oprim elements."""
+
 from __future__ import annotations
+
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "AgentSpec",
+    "Answer",
+    "BashRule",
+    "Capabilities",
+    "Conflict",
+    "Edit",
+    "Entry",
+    "Event",
+    "FileChange",
+    "FileEntry",
+    "Filter",
+    "GitStatus",
+    "Hit",
+    "McpToolSpec",
+    "Message",
+    "ModelSpec",
+    "Part",
+    "PartDelta",
+    "Patch",
+    "Pattern",
+    "PermSet",
+    "Persona",
+    "Question",
+    "Rule",
+    "Session",
+    "SignalInfo",
+    "SkillSpec",
+    "StateDelta",
+    "SubagentResult",
+    "TaskHint",
+    "Todo",
+    "TodoDelta",
+    "Tool",
+    "ToolCall",
+    "ToolResult",
+    "Window",
+]
 
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -13,13 +54,11 @@ Decision = Literal["allow", "ask", "deny"]
 
 # ── Tool call / result ────────────────────────────────────────────────────────
 
-
 @dataclass
 class ToolCall:
     id: str
     name: str
     args: dict[str, Any]
-
 
 @dataclass
 class ToolResult:
@@ -27,9 +66,7 @@ class ToolResult:
     content: str
     is_error: bool = False
 
-
 # ── Part & Message ────────────────────────────────────────────────────────────
-
 
 @dataclass
 class Part:
@@ -44,7 +81,6 @@ class Part:
     data: str | None = None  # base64 for image parts
     pinned: bool = False
 
-
 @dataclass
 class PartDelta:
     """Streaming chunk for a single Part."""
@@ -56,22 +92,18 @@ class PartDelta:
     tool_name: str | None = None
     args_chunk: str | None = None
 
-
 @dataclass
 class Message:
     role: str  # user / assistant / system / tool
     parts: list[Part]
     pinned: bool = False
 
-
 # ── Edit / Patch / Conflict ───────────────────────────────────────────────────
-
 
 @dataclass
 class Edit:
     old: str
     new: str
-
 
 @dataclass
 class Patch:
@@ -79,15 +111,12 @@ class Patch:
     new: str
     idx: int  # edit index in the plan
 
-
 @dataclass
 class Conflict:
     idx_a: int
     idx_b: int
 
-
 # ── File / Grep ───────────────────────────────────────────────────────────────
-
 
 @dataclass
 class Hit:
@@ -96,20 +125,17 @@ class Hit:
     col: int
     text: str
 
-
 @dataclass
 class FileEntry:
     path: Path
     mtime: float
     size: int = 0
 
-
 @dataclass
 class Entry:
     path: Path
     is_dir: bool
     children: list[Entry] = field(default_factory=list)
-
 
 @dataclass
 class Pattern:
@@ -120,9 +146,7 @@ class Pattern:
     anchored: bool = False  # original starts with /
     dir_only: bool = False  # original ends with /
 
-
 # ── Process / Shell ───────────────────────────────────────────────────────────
-
 
 @dataclass
 class SignalInfo:
@@ -132,9 +156,7 @@ class SignalInfo:
     name: str | None = None
     description: str | None = None
 
-
 # ── Todo ──────────────────────────────────────────────────────────────────────
-
 
 @dataclass
 class Todo:
@@ -143,16 +165,13 @@ class Todo:
     status: str  # pending / in_progress / completed / cancelled
     priority: str = "medium"  # high / medium / low
 
-
 @dataclass
 class TodoDelta:
     added: list[Todo]
     removed: list[Todo]
     status_changed: list[tuple[Todo, str]]  # (todo, old_status)
 
-
 # ── Session ───────────────────────────────────────────────────────────────────
-
 
 @dataclass
 class Session:
@@ -164,22 +183,18 @@ class Session:
     agent: str = ""
     version: int = 1
 
-
 @dataclass
 class StateDelta:
     new_messages: list[Message]
     changed_fields: dict[str, Any]
     warning: str | None = None
 
-
 @dataclass
 class Window:
     to_compact: list[Message]
     to_keep: list[Message]
 
-
 # ── Event / Share ─────────────────────────────────────────────────────────────
-
 
 @dataclass
 class Event:
@@ -188,15 +203,12 @@ class Event:
     payload: dict[str, Any]
     timestamp: float
 
-
 @dataclass
 class Filter:
     type: str | None = None
     condition: dict[str, Any] | None = None
 
-
 # ── Model / Agent ─────────────────────────────────────────────────────────────
-
 
 @dataclass
 class ModelSpec:
@@ -211,7 +223,6 @@ class ModelSpec:
     cost_per_input_token: float = 0.0
     cost_per_output_token: float = 0.0
 
-
 @dataclass
 class Capabilities:
     tools: bool
@@ -219,14 +230,12 @@ class Capabilities:
     reasoning: bool
     max_context: int
 
-
 @dataclass
 class TaskHint:
     needs_tools: bool = False
     needs_vision: bool = False
     needs_reasoning: bool = False
     min_context: int = 0
-
 
 @dataclass
 class AgentSpec:
@@ -236,28 +245,23 @@ class AgentSpec:
     model: str
     system_prompt: str
 
-
 @dataclass
 class SkillSpec:
     name: str
     description: str
     body: str
 
-
 # ── Permissions ───────────────────────────────────────────────────────────────
-
 
 @dataclass
 class BashRule:
     pattern: str
     action: Decision
 
-
 @dataclass
 class Rule:
     pattern: str
     action: Decision
-
 
 @dataclass
 class Persona:
@@ -267,15 +271,12 @@ class Persona:
     deny: list[str] = field(default_factory=list)
     bash_rules: list[BashRule] = field(default_factory=list)
 
-
 @dataclass
 class PermSet:
     tool_actions: dict[str, Decision] = field(default_factory=dict)
     bash_rules: list[BashRule] = field(default_factory=list)
 
-
 # ── Tool ──────────────────────────────────────────────────────────────────────
-
 
 @dataclass
 class Tool:
@@ -283,9 +284,7 @@ class Tool:
     description: str
     parameters: dict[str, Any] = field(default_factory=dict)
 
-
 # ── Subagent / MCP / Question ─────────────────────────────────────────────────
-
 
 @dataclass
 class SubagentResult:
@@ -293,13 +292,11 @@ class SubagentResult:
     content: str
     error: str | None = None
 
-
 @dataclass
 class McpToolSpec:
     name: str
     description: str
     input_schema: dict[str, Any]
-
 
 @dataclass
 class Question:
@@ -307,15 +304,12 @@ class Question:
     options: list[str]
     header: str = ""
 
-
 @dataclass
 class Answer:
     option_idx: int | None = None
     text: str | None = None
 
-
 # ── Git / File change ─────────────────────────────────────────────────────────
-
 
 @dataclass
 class GitStatus:
@@ -323,7 +317,6 @@ class GitStatus:
     added: list[str]
     deleted: list[str]
     untracked: list[str]
-
 
 @dataclass
 class FileChange:

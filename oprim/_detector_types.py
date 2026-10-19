@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "DetectorSignal",
+]
+
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -34,7 +39,6 @@ class DetectorSignal(BaseModel):
     triggered_at: datetime
     evidence: dict[str, Any] = Field(default_factory=dict)
 
-
 def _now_utc() -> datetime:
     """Return current UTC datetime."""
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)

@@ -1,4 +1,5 @@
 """Filter a model catalog to curated models only."""
+
 from __future__ import annotations
 
 from ._hicode_types import ModelSpec

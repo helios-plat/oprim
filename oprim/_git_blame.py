@@ -1,10 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import subprocess
+
 from dataclasses import dataclass
 from pathlib import Path
-from ._exceptions import GitOprimError
+
+from oprim.git import _git
+
 
 @dataclass
 class FileStatus:
@@ -13,6 +15,7 @@ class FileStatus:
     worktree: str
     renamed_from: str | None = None
 
+
 @dataclass
 class Commit:
     hash: str
@@ -20,12 +23,14 @@ class Commit:
     date: str
     message: str
 
+
 @dataclass
 class BlameLine:
     lineno: int
     commit: str
     author: str
     content: str
+
 
 def git_blame(path: str, *, repo: str | Path) -> list[BlameLine]:
     """单次获取文件的 blame 信息（每行对应的 commit/author）。
@@ -44,7 +49,9 @@ def git_blame(path: str, *, repo: str | Path) -> list[BlameLine]:
         >>> git_blame("src/main.py", repo="/project")
     """
     out = _git(
-        "blame", "--porcelain", path,
+        "blame",
+        "--porcelain",
+        path,
         repo=repo,
     )
     lines: list[BlameLine] = []
@@ -61,10 +68,12 @@ def git_blame(path: str, *, repo: str | Path) -> list[BlameLine]:
         elif line.startswith("author "):
             current_author = line[7:]
         elif line.startswith("\t"):
-            lines.append(BlameLine(
-                lineno=lineno,
-                commit=current_commit[:8],
-                author=current_author,
-                content=line[1:],
-            ))
+            lines.append(
+                BlameLine(
+                    lineno=lineno,
+                    commit=current_commit[:8],
+                    author=current_author,
+                    content=line[1:],
+                )
+            )
     return lines

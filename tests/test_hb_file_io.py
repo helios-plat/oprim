@@ -1,9 +1,9 @@
-"""Tests — H-B A组: file IO extensions (ensure_parent_dir / file_read_bytes / image_to_base64 / atomic_write / backup_before_overwrite)."""
+"""Tests — H-B A组: file IO extensions (ensure_parent_dir / file_read_bytes /
+image_to_base64 / atomic_write / backup_before_overwrite)."""
+
 from __future__ import annotations
 
-import asyncio
 import base64
-import os
 from pathlib import Path
 
 import pytest
@@ -16,10 +16,10 @@ from oprim._hb_file_io import (
     image_to_base64,
 )
 
-
 # ---------------------------------------------------------------------------
 # ensure_parent_dir
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_ensure_parent_dir_creates_dirs(tmp_path: Path) -> None:
@@ -61,6 +61,7 @@ async def test_ensure_parent_dir_root(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # file_read_bytes
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_file_read_bytes_full(tmp_path: Path) -> None:
@@ -157,6 +158,7 @@ async def test_image_to_base64_empty_file(tmp_path: Path) -> None:
 @pytest.mark.asyncio
 async def test_image_to_base64_large_file_warning(tmp_path: Path) -> None:
     import warnings
+
     f = tmp_path / "big.png"
     f.write_bytes(b"X" * (21 * 1024 * 1024))  # 21 MB
     with warnings.catch_warnings(record=True) as w:
@@ -168,6 +170,7 @@ async def test_image_to_base64_large_file_warning(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # atomic_write
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_atomic_write_creates_file(tmp_path: Path) -> None:
@@ -210,6 +213,7 @@ async def test_atomic_write_unicode(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # backup_before_overwrite
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_backup_returns_path(tmp_path: Path) -> None:

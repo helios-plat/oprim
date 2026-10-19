@@ -1,4 +1,5 @@
 """Generate a new session ID using UUID v7."""
+
 from __future__ import annotations
 
 from obase import uuid7

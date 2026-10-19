@@ -4,10 +4,11 @@
 违反"服务层不写确定性算法/呈现逻辑"。DB 取数仍在服务层；本模块只对取出的数据做纯计算+成文。
 （注：这些是确定性 fetch→compute→format，非 LLM/多支柱业务事务，故归 oprim 而非包成 omodul。）
 """
+
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import date, timedelta
-from typing import Optional, Sequence
 
 
 def consecutive_active_days(active_dates: set, today: date) -> int:
@@ -22,7 +23,7 @@ def consecutive_active_days(active_dates: set, today: date) -> int:
 
 def weekly_digest_metrics(
     *,
-    interactions_7d: Sequence,   # 元素 (occurred_at, knowledge_point, is_correct)
+    interactions_7d: Sequence,  # 元素 (occurred_at, knowledge_point, is_correct)
     days_active_7d: int,
     effort_gains_7d: int,
     streak: int,
@@ -61,7 +62,10 @@ def daily_report_text(
     """某天学习活动 → 家长一句话日报（看成长非分数）。"""
     if n == 0:
         return f"{day_iso}：今天还没有学习记录。"
-    text = f"{day_iso} 学习日报：练了 {n} 道、覆盖 {distinct_kcs} 个知识点，正确率 {round(correct / n * 100)}%"
+    text = (
+        f"{day_iso} 学习日报：练了 {n} 道、覆盖 {distinct_kcs} 个知识点，"
+        f"正确率 {round(correct / n * 100)}%"
+    )
     if socratic:
         text += f"，自主攻克 {int(socratic)} 次苏格拉底引导"
     text += f"。当前连续 {streak} 天，薄弱点 {int(weak_kc_count)} 个。"

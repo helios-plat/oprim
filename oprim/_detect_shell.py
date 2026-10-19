@@ -1,4 +1,5 @@
 """Detect the default shell for a given platform string."""
+
 from __future__ import annotations
 
 _PLATFORM_MAP: dict[str, str] = {

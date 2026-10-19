@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim.image_understand import ImageUnderstandError, image_understand
 
 
@@ -26,9 +26,7 @@ class TestImageUnderstand:
             return "A cat sitting on a table"
 
         ProviderRegistry.register(category="vlm", name="mock", fn=_vlm)
-        result = await image_understand(
-            provider="mock", image_path=img, prompt="Describe this"
-        )
+        result = await image_understand(provider="mock", image_path=img, prompt="Describe this")
         assert "cat" in result
 
     async def test_image_not_found(self, tmp_path: Path) -> None:

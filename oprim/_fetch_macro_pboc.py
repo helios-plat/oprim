@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from datetime import date
 from typing import Any, Literal
 
@@ -79,10 +80,8 @@ async def fetch_macro_pboc(
         except (TypeError, ValueError, KeyError):
             continue
         meta: dict[str, Any] = {"source": source, "unit": "%", "op_type": op_type}
-        try:
+        with contextlib.suppress(TypeError, ValueError, KeyError):
             meta["volume_bn"] = float(row[_VOL_COL])
-        except (TypeError, ValueError, KeyError):
-            pass
         points.append(MacroDataPoint(indicator=indicator, date=obs_date, value=rate, metadata=meta))
 
     points.sort(key=lambda p: p.date)

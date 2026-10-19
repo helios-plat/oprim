@@ -34,7 +34,8 @@ def stop_loss_compliance_check(
     """Check whether a position has breached its stop-loss level.
 
     ``current_loss_pct`` = (entry_price − current_price) / entry_price × 100.
-    A positive value means the position is in loss; negative means profit.
+    A positive value means the position is in loss
+    negative means profit.
     ``triggered`` is ``True`` when ``current_loss_pct >= stop_loss_pct``.
 
     Args:

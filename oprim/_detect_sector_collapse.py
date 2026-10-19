@@ -27,7 +27,7 @@ def detect_sector_collapse(
     price_1h_ago: float,
     price_now: float,
     constituent_changes: list[float],
-    config: SectorCollapseConfig = SectorCollapseConfig(),
+    config: SectorCollapseConfig | None = None,
 ) -> DetectorSignal | None:
     """Detect a sector-wide collapse: sharp 1H drop with elevated internal divergence.
 
@@ -43,7 +43,8 @@ def detect_sector_collapse(
         config:               Threshold overrides.
 
     Returns:
-        :class:`~oprim._detector_types.DetectorSignal` on trigger; ``None`` otherwise.
+        :class:`~oprim._detector_types.DetectorSignal` on trigger
+        ``None`` otherwise.
 
     Raises:
         OprimError: If ``price_1h_ago`` ≤ 0 or fewer than 2 constituents supplied.
@@ -58,6 +59,8 @@ def detect_sector_collapse(
         >>> sig is not None and sig.severity in ("medium", "high", "critical")
         True
     """
+    if config is None:
+        config = SectorCollapseConfig()
     if price_1h_ago <= 0:
         raise OprimError(f"price_1h_ago must be > 0, got {price_1h_ago}")
     if len(constituent_changes) < 2:

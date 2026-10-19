@@ -1,11 +1,14 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import difflib
-import re
+
 from dataclasses import dataclass
-from pathlib import Path
+
 from ._exceptions import ParseOprimError
+
+_DEFAULT_PRICING: dict[str, dict[str, float]] = {}
+_FALLBACK_PRICING: dict[str, float] = {}
+
 
 @dataclass
 class Hunk:
@@ -16,11 +19,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def estimate_cost(
     in_tokens: int,
@@ -49,10 +54,7 @@ def estimate_cost(
         0.0105
     """
     try:
-        if pricing is not None:
-            p = pricing
-        else:
-            p = _DEFAULT_PRICING.get(model, _FALLBACK_PRICING)
+        p = pricing if pricing is not None else _DEFAULT_PRICING.get(model, _FALLBACK_PRICING)
         return in_tokens * p["in"] + out_tokens * p["out"]
     except (KeyError, TypeError) as e:  # pragma: no cover
-        raise ParseOprimError("invalid pricing format", cause=e)
+        raise ParseOprimError("invalid pricing format", cause=e) from e

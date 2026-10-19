@@ -1,4 +1,5 @@
 """P-2: media_extract — download subtitle text or audio from a video URL."""
+
 from __future__ import annotations
 
 import asyncio
@@ -79,9 +80,7 @@ async def media_extract(
 
     # No subtitle (or prefer_subtitle=False): download audio as mp3
     _require_ffmpeg()
-    audio_path = await _download_audio(
-        video_url, yt_dlp_args, work_dir, info.get("id", "audio")
-    )
+    audio_path = await _download_audio(video_url, yt_dlp_args, work_dir, info.get("id", "audio"))
 
     return MediaResult(
         has_subtitle=False,
@@ -96,6 +95,7 @@ async def media_extract(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _require_yt_dlp() -> None:
     if shutil.which("yt-dlp") is None:
@@ -146,14 +146,23 @@ async def _try_download_subtitle(url: str, yt_dlp_args: list[str], work_dir: Pat
         return None
 
     # Step 2: download subtitle
-    sub_cmd = [
-        "yt-dlp",
-        "--write-subs", "--write-auto-subs",
-        f"--sub-lang={target_lang}",
-        "--convert-subs", "srt",
-        "--skip-download", "--no-playlist", "--no-warnings",
-        "-o", str(work_dir / "%(id)s.%(ext)s"),
-    ] + yt_dlp_args + [url]
+    sub_cmd = (
+        [
+            "yt-dlp",
+            "--write-subs",
+            "--write-auto-subs",
+            f"--sub-lang={target_lang}",
+            "--convert-subs",
+            "srt",
+            "--skip-download",
+            "--no-playlist",
+            "--no-warnings",
+            "-o",
+            str(work_dir / "%(id)s.%(ext)s"),
+        ]
+        + yt_dlp_args
+        + [url]
+    )
 
     proc = await asyncio.create_subprocess_exec(
         *sub_cmd,
@@ -170,17 +179,25 @@ async def _try_download_subtitle(url: str, yt_dlp_args: list[str], work_dir: Pat
     return None
 
 
-async def _download_audio(
-    url: str, yt_dlp_args: list[str], work_dir: Path, video_id: str
-) -> Path:
+async def _download_audio(url: str, yt_dlp_args: list[str], work_dir: Path, video_id: str) -> Path:
     """Download best audio and convert to mp3 via yt-dlp -x."""
     out_template = str(work_dir / f"{video_id}.%(ext)s")
-    cmd = [
-        "yt-dlp", "-f", "bestaudio",
-        "-x", "--audio-format", "mp3",
-        "--no-playlist", "--no-warnings",
-        "-o", out_template,
-    ] + yt_dlp_args + [url]
+    cmd = (
+        [
+            "yt-dlp",
+            "-f",
+            "bestaudio",
+            "-x",
+            "--audio-format",
+            "mp3",
+            "--no-playlist",
+            "--no-warnings",
+            "-o",
+            out_template,
+        ]
+        + yt_dlp_args
+        + [url]
+    )
 
     proc = await asyncio.create_subprocess_exec(
         *cmd,

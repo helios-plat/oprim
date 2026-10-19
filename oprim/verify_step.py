@@ -10,7 +10,6 @@ Version: oprim v3.4.0
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 
 from oprim.types import SolveResult, SolveStep, StepCheckResult
@@ -56,6 +55,7 @@ class StepVerifyInput:
 def _make_symbols(variable: str, extras: list[str]):
     """Create a sympy symbols namespace dict."""
     import sympy as sp
+
     ns = {}
     all_vars = [variable] + [v for v in extras if v != variable]
     for name in all_vars:
@@ -66,12 +66,14 @@ def _make_symbols(variable: str, extras: list[str]):
 def _sympify_with_ns(expr_str: str, ns: dict):
     """Parse expression string using local symbol namespace."""
     import sympy as sp
+
     return sp.sympify(expr_str, locals=ns)
 
 
 def _check_equivalence(expr_a_str: str, expr_b_str: str, ns: dict) -> tuple[bool, str]:
     """Check if two expressions are symbolically equivalent."""
     import sympy as sp
+
     try:
         a = _sympify_with_ns(expr_a_str, ns)
         b = _sympify_with_ns(expr_b_str, ns)

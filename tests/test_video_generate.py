@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim.video_generate import VideoGenError, VideoGenProviderNotFoundError, video_generate
 
 
@@ -41,9 +40,7 @@ class TestVideoGenerate:
     async def test_provider_registered_success(self, tmp_path: Path) -> None:
         _register_stub_provider(tmp_path)
         out = tmp_path / "generated.mp4"
-        result = await video_generate(
-            provider="stub", prompt="A cat on the moon", output_path=out
-        )
+        result = await video_generate(provider="stub", prompt="A cat on the moon", output_path=out)
         assert result == out
         assert out.exists()
 
@@ -80,9 +77,7 @@ class TestVideoGenerate:
 
         ProviderRegistry.register(category="video_gen", name="slow", caller=_timeout)
         with pytest.raises(VideoGenError, match="failed"):
-            await video_generate(
-                provider="slow", prompt="test", output_path=tmp_path / "out.mp4"
-            )
+            await video_generate(provider="slow", prompt="test", output_path=tmp_path / "out.mp4")
 
     async def test_output_not_produced_raises(self, tmp_path: Path) -> None:
         async def _noop(**kw: object) -> None:
@@ -90,9 +85,7 @@ class TestVideoGenerate:
 
         ProviderRegistry.register(category="video_gen", name="noop", caller=_noop)
         with pytest.raises(VideoGenError, match="did not produce output"):
-            await video_generate(
-                provider="noop", prompt="test", output_path=tmp_path / "out.mp4"
-            )
+            await video_generate(provider="noop", prompt="test", output_path=tmp_path / "out.mp4")
 
     async def test_reference_image_passed(self, tmp_path: Path) -> None:
         captured: dict[str, object] = {}
@@ -105,7 +98,5 @@ class TestVideoGenerate:
         ref = tmp_path / "ref.png"
         ref.write_bytes(b"\x89PNG")
         out = tmp_path / "out.mp4"
-        await video_generate(
-            provider="ref", prompt="test", reference_image=ref, output_path=out
-        )
+        await video_generate(provider="ref", prompt="test", reference_image=ref, output_path=out)
         assert captured["reference_image"] == ref

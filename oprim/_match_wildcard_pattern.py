@@ -1,4 +1,5 @@
 """Wildcard pattern matching using fnmatch semantics."""
+
 from __future__ import annotations
 
 import fnmatch

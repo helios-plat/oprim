@@ -2,6 +2,34 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "BudgetExceededError",
+    "EncodeFramesError",
+    "FFprobeError",
+    "FileOprimError",
+    "GitOprimError",
+    "HttpOprimError",
+    "LLMOprimError",
+    "NotifyOprimError",
+    "OprimAuthError",
+    "OprimConnectionError",
+    "OprimError",
+    "OprimNotFoundError",
+    "OprimTimeoutError",
+    "OprimValidationError",
+    "ParseOprimError",
+    "PathSecurityError",
+    "PaymentOprimError",
+    "PromptOprimError",
+    "SearchIndexOprimError",
+    "SearchOprimError",
+    "ShellOprimError",
+    "ShippingOprimError",
+    "SnapshotOprimError",
+    "TaxOprimError",
+]
+
 
 class OprimError(Exception):
     """所有 oprim 失败时抛出的基类异常."""
@@ -16,22 +44,17 @@ class OprimError(Exception):
             s += f" (caused by: {self.cause})"
         return s
 
-
 class FileOprimError(OprimError):
     """文件 IO 类 oprim 失败."""
-
 
 class GitOprimError(OprimError):
     """Git subprocess 类 oprim 失败."""
 
-
 class ShellOprimError(OprimError):
     """bash_exec 类 oprim 失败."""
 
-
 class ParseOprimError(OprimError):
     """解析类 oprim 失败."""
-
 
 class PathSecurityError(OprimError):
     """路径安全校验失败（沙箱越界 / 路径穿越）."""
@@ -40,18 +63,14 @@ class PathSecurityError(OprimError):
 class OprimConnectionError(OprimError):
     """External connection failure (docker daemon / pg / rabbitmq / http / etc.)."""
 
-
 class OprimTimeoutError(OprimError):
     """Operation timed out."""
-
 
 class OprimNotFoundError(OprimError):
     """Target object not found (container_id missing, queue absent, etc.)."""
 
-
 class OprimAuthError(OprimError):
     """Authentication failure (S3 / DB / Caddy admin / etc.)."""
-
 
 class OprimValidationError(OprimError):
     """Input parameter validation failed."""
@@ -73,3 +92,31 @@ class HttpOprimError(OprimError):
 
 class SnapshotOprimError(OprimError):
     """会话快照持久化失败."""
+
+class PaymentOprimError(OprimError):
+    """支付 provider 调用失败(ext_pay_* 原子)."""
+
+class ShippingOprimError(OprimError):
+    """物流履约 provider 调用失败(ext_ship_* 原子)."""
+
+class SearchIndexOprimError(OprimError):
+    """搜索索引 provider 调用失败(ext_search_* 原子,区别于网页搜索的 SearchOprimError)."""
+
+class NotifyOprimError(OprimError):
+    """通知 provider 调用失败(ext_notify_send 原子)."""
+
+class TaxOprimError(OprimError):
+    """税费计算 provider 调用失败(ext_tax_calculate 原子)."""
+
+
+class FFprobeError(OprimError):
+    """ffprobe could not be executed, or produced unusable output.
+
+    Lives here rather than in `_ffprobe` so the error taxonomy stays in one
+    place and the error remains public API, consistent with ProbeDurationError
+    and the other media error types.
+    """
+
+
+class EncodeFramesError(OprimError):
+    """Image-sequence encoding failed."""

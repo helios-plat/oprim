@@ -1,9 +1,11 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import stat
+
 from pathlib import Path
-from ._exceptions import FileOprimError, PathSecurityError
+
+from ._exceptions import FileOprimError
+
 
 def glob_match(
     pattern: str,
@@ -38,11 +40,12 @@ def glob_match(
     try:
         matches = list(r.glob(pattern))
     except OSError as e:  # pragma: no cover
-        raise FileOprimError(f"glob failed for '{pattern}' in '{root}'", cause=e)
+        raise FileOprimError(f"glob failed for '{pattern}' in '{root}'", cause=e) from e
 
     if respect_gitignore:
         matches = [
-            p for p in matches
+            p
+            for p in matches
             if ".git" not in p.parts
             and not any(part.startswith(".") for part in p.relative_to(r).parts)
         ]

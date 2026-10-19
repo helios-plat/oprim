@@ -1,4 +1,5 @@
 """P-NEW3 resolve_slash_command — map /command input to a registered SkillRef."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -7,11 +8,11 @@ from oprim._cc_types import SkillRef
 
 
 def resolve_slash_command(
-    input: str,
+    raw_input: str,
     *,
     registry: dict[str, Any],
 ) -> SkillRef | None:
-    """Parse a slash command from *input* and look it up in *registry*.
+    """Parse a slash command from *raw_input* and look it up in *registry*.
 
     Contract:
         - Non-slash (not starting with /) -> None
@@ -20,13 +21,13 @@ def resolve_slash_command(
         - Registered: return SkillRef(name, args=remaining tokens)
 
     Args:
-        input: Raw user input, e.g. "/deploy --env prod".
+        raw_input: Raw user input, e.g. "/deploy --env prod".
         registry: Map of command_name -> registered value.
 
     Returns:
         SkillRef with name and parsed args, or None.
     """
-    stripped = input.strip()
+    stripped = raw_input.strip()
     if not stripped.startswith("/"):
         return None
 

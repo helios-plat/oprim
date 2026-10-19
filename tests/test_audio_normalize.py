@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from oprim.audio_normalize import AudioNormalizeError, audio_normalize
+from oprim._audio_normalize import AudioNormalizeError, audio_normalize
 
 
 def _mock_ffmpeg_run():
@@ -51,9 +51,11 @@ class TestAudioNormalize:
         async def _fail(**kw: object) -> str:
             raise FFmpegError("filter error", code=1, stderr="filter error")
 
-        with patch("oprim.audio_normalize.ffmpeg_run", side_effect=_fail):
-            with pytest.raises(AudioNormalizeError, match="FFmpeg normalization failed"):
-                await audio_normalize(input_path=inp, output_path=tmp_path / "out.wav")
+        with (
+            patch("oprim.audio_normalize.ffmpeg_run", side_effect=_fail),
+            pytest.raises(AudioNormalizeError, match="FFmpeg normalization failed"),
+        ):
+            await audio_normalize(input_path=inp, output_path=tmp_path / "out.wav")
 
     async def test_output_file_created(self, tmp_path: Path) -> None:
         inp = tmp_path / "raw.wav"

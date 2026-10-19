@@ -1,4 +1,5 @@
 """oprim.cointegration_test — Engle-Granger cointegration test."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -46,8 +47,8 @@ def cointegration_test(
     # OLS hedge ratio
     from numpy.linalg import lstsq  # noqa: PLC0415
 
-    X = np.column_stack([a, np.ones(len(a))])
-    hedge_ratio = float(lstsq(X, b, rcond=None)[0][0])
+    x = np.column_stack([a, np.ones(len(a))])
+    hedge_ratio = float(lstsq(x, b, rcond=None)[0][0])
 
     return {
         "t_stat": float(t_stat),

@@ -1,4 +1,5 @@
 """deserialize_event — parse JSON bytes into an Event."""
+
 from __future__ import annotations
 
 import json

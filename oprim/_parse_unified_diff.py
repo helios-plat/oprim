@@ -1,11 +1,10 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import difflib
+
 import re
 from dataclasses import dataclass
-from pathlib import Path
-from ._exceptions import ParseOprimError
+
 
 @dataclass
 class Hunk:
@@ -16,11 +15,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def parse_unified_diff(diff_text: str) -> list[FileDiff]:
     """解析 unified diff 文本为结构化表示。

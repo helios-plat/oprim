@@ -1,22 +1,26 @@
 """Auto-split from hicode whl. Verify before use."""
 
 from __future__ import annotations
+
 import json
-from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from typing import Any
+
 from ._exceptions import OprimError
-from ._protocols import EmbedCaller, StreamingLLMCaller
+
 
 class LLMOprimError(OprimError):
     """LLM 调用失败（含 provider 错误、预算超出、格式错误）."""
 
+
 class BudgetExceededError(LLMOprimError):
     """Token 预算超出."""
+
 
 @dataclass
 class LLMResponse:
     """规范化的 LLM 响应结构。"""
+
     text: str
     tool_calls: list[dict]
     stop_reason: str
@@ -33,24 +37,67 @@ class LLMResponse:
     def total_tokens(self) -> int:
         return self.input_tokens + self.output_tokens
 
+
 @dataclass
 class StreamDelta:
     """流式响应的单个 delta。"""
+
     type: str
-    text: str = ''
-    tool_name: str = ''
-    tool_id: str = ''
+    text: str = ""
+    tool_name: str = ""
+    tool_id: str = ""
     tool_input: dict = field(default_factory=dict)
     input_tokens: int = 0
     output_tokens: int = 0
-    stop_reason: str = ''
+    stop_reason: str = ""
+
 
 @dataclass
 class EmbedResult:
     """嵌入结果。"""
+
     vector: list[float]
     model: str
     token_count: int
+
+
+def _extract_tool_calls(*args, **kwargs):
+    raise NotImplementedError
+
+
+def _validate_messages(messages: list[dict]) -> list[str]:
+    """Validate message format. Returns list of error strings."""
+    errors = []
+    for i, msg in enumerate(messages):
+        if not isinstance(msg, dict):
+            errors.append(f"message {i} is not a dict")
+            continue
+        role = msg.get("role", "")
+        if role not in ("system", "user", "assistant", "tool"):
+            errors.append(f"message {i} has invalid role: {role}")
+        if "content" not in msg:
+            errors.append(f"message {i} missing content")
+    return errors
+
+
+def _extract_usage(raw: dict) -> dict[str, int]:
+    """Extract usage info from LLM response."""
+    usage = raw.get("usage", {})
+    return {
+        "input_tokens": usage.get("input_tokens", 0),
+        "output_tokens": usage.get("output_tokens", 0),
+    }
+
+
+def _extract_text(raw: dict) -> str:
+    """Extract text content from LLM response."""
+    return raw.get("content", "") or raw.get("text", "")
+
+
+def _extract_tool_calls(raw: dict) -> list[dict]:
+    """Extract tool calls from LLM response."""
+    return raw.get("tool_calls", [])
+
 
 async def llm_complete(
     messages: list[dict],
@@ -106,9 +153,7 @@ async def llm_complete(
 
     # 2. token 预算估算（粗估，精确版由 obase.TokenCounter 提供）
     if budget_tokens is not None:
-        total_chars = sum(
-            len(json.dumps(m, ensure_ascii=False)) for m in messages
-        )
+        total_chars = sum(len(json.dumps(m, ensure_ascii=False)) for m in messages)
         estimated = total_chars // 4
         if estimated > budget_tokens:
             raise BudgetExceededError(
@@ -128,7 +173,7 @@ async def llm_complete(
     except (LLMOprimError, BudgetExceededError):
         raise  # pragma: no cover
     except Exception as e:
-        raise LLMOprimError("LLM call failed", cause=e)
+        raise LLMOprimError("LLM call failed", cause=e) from e
 
     # 4. 响应格式校验
     if not isinstance(raw, dict):

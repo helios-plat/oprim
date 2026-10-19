@@ -1,5 +1,12 @@
 """Minimal env-var config for oprim knowledge sub-packages."""
+
 from __future__ import annotations
+
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "get",
+    "load_config",
+]
 
 import os
 from pathlib import Path
@@ -8,7 +15,6 @@ from typing import Any
 import yaml
 
 _store: dict[str, Any] = {}
-
 
 def load_config(path: Path | None = None) -> dict[str, Any]:
     global _store
@@ -20,10 +26,8 @@ def load_config(path: Path | None = None) -> dict[str, Any]:
     _store = data
     return _store
 
-
 def get(key: str, default: Any = None) -> Any:
     return _store.get(key, os.environ.get(key, default))
-
 
 # Module-level singleton usable as `cfg.get(...)` and `cfg.load_config(...)`
 cfg = type("_Cfg", (), {"get": staticmethod(get), "load_config": staticmethod(load_config)})()

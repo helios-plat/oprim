@@ -1,4 +1,4 @@
-"""Tests for oprim.vibevoice_synthesize (M3 — ≥6 tests)."""
+"""Tests for oprim._vibevoice_synthesize (M3 — ≥6 tests)."""
 
 from __future__ import annotations
 
@@ -8,11 +8,10 @@ import wave
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from oprim.vibevoice_synthesize import VibeVoiceError, VibeVoiceSetupError, vibevoice_synthesize
+from oprim._vibevoice_synthesize import VibeVoiceError, VibeVoiceSetupError, vibevoice_synthesize
 
 
 def _make_wav_bytes(n_samples: int = 256, framerate: int = 22050) -> bytes:
@@ -61,10 +60,7 @@ class TestVibevoiceSynthesize:
     async def test_multi_speaker_four_lines(self, tmp_path: Path) -> None:
         """4 speakers alternating → WAV with all segments concatenated."""
         out = tmp_path / "multi.wav"
-        script = [
-            _Line(speaker_id=f"s{i}", text=f"line {i}")
-            for i in range(4)
-        ]
+        script = [_Line(speaker_id=f"s{i}", text=f"line {i}") for i in range(4)]
         call_log: list[str] = []
 
         def _infer(text: str, speaker_id: str, voice_ref: Path | None) -> bytes:
@@ -114,7 +110,9 @@ class TestVibevoiceSynthesize:
         out = tmp_path / "wm.wav"
         script = [_Line(speaker_id="s", text="watermarked")]
         await vibevoice_synthesize(
-            script=script, output_path=out, watermark=True,
+            script=script,
+            output_path=out,
+            watermark=True,
             _inference_fn=_make_infer_fn(),
         )
         assert out.exists()
@@ -131,6 +129,7 @@ class TestVibevoiceSynthesize:
     async def test_setup_error_on_missing_torch(self, tmp_path: Path) -> None:
         """Missing torch raises VibeVoiceSetupError when no _inference_fn override."""
         import sys
+
         original = sys.modules.get("torch")
         sys.modules["torch"] = None  # type: ignore[assignment]
         try:

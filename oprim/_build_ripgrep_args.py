@@ -1,4 +1,5 @@
 """Pure-compute: build_ripgrep_args."""
+
 from __future__ import annotations
 
 

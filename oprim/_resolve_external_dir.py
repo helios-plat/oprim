@@ -1,4 +1,5 @@
 """Resolve an external directory path against an allowlist of roots."""
+
 from __future__ import annotations
 
 from pathlib import Path

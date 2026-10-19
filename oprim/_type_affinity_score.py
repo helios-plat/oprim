@@ -3,6 +3,7 @@
 Default matrix: same=1.0, theorem↔definition=0.8, example↔theorem=0.6, other=0.2.
 Custom affinity_matrix can override defaults. Pure computation.
 """
+
 from __future__ import annotations
 
 _DEFAULT_AFFINITY: dict[tuple[str, str], float] = {

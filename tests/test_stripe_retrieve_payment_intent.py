@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import stripe as stripe_sdk
 
-from oprim.stripe_create_payment_intent import StripeAPIError, StripeConfig, StripePaymentIntent
-from oprim.stripe_retrieve_payment_intent import stripe_retrieve_payment_intent
+from oprim._stripe_create_payment_intent import StripeAPIError, StripeConfig, StripePaymentIntent
+from oprim._stripe_retrieve_payment_intent import stripe_retrieve_payment_intent
 
 CONFIG = StripeConfig(
     api_key="sk_test_fake_key",
@@ -75,25 +75,29 @@ async def test_retrieve_succeeded_status() -> None:
 
 @pytest.mark.asyncio
 async def test_retrieve_not_found_raises_api_error() -> None:
-    with patch(
-        "stripe.PaymentIntent.retrieve",
-        side_effect=stripe_sdk.StripeError("No such payment_intent: pi_unknown"),
+    with (
+        patch(
+            "stripe.PaymentIntent.retrieve",
+            side_effect=stripe_sdk.StripeError("No such payment_intent: pi_unknown"),
+        ),
+        pytest.raises(StripeAPIError, match="No such payment_intent"),
     ):
-        with pytest.raises(StripeAPIError, match="No such payment_intent"):
-            await stripe_retrieve_payment_intent(
-                config=CONFIG,
-                intent_id="pi_unknown",
-            )
+        await stripe_retrieve_payment_intent(
+            config=CONFIG,
+            intent_id="pi_unknown",
+        )
 
 
 @pytest.mark.asyncio
 async def test_retrieve_api_error_raises_stripe_api_error() -> None:
-    with patch(
-        "stripe.PaymentIntent.retrieve",
-        side_effect=stripe_sdk.StripeError("Connection error"),
+    with (
+        patch(
+            "stripe.PaymentIntent.retrieve",
+            side_effect=stripe_sdk.StripeError("Connection error"),
+        ),
+        pytest.raises(StripeAPIError, match="Connection error"),
     ):
-        with pytest.raises(StripeAPIError, match="Connection error"):
-            await stripe_retrieve_payment_intent(
-                config=CONFIG,
-                intent_id="pi_test_001",
-            )
+        await stripe_retrieve_payment_intent(
+            config=CONFIG,
+            intent_id="pi_test_001",
+        )

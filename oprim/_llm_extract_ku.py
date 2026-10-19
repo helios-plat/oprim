@@ -13,10 +13,12 @@ import uuid
 
 _log = logging.getLogger(__name__)
 
-_EXTRACT_PROMPT = """Extract a knowledge unit from the following text chunk.
+_EXTRACT_PROMPT = (
+    """Extract a knowledge unit from the following text chunk.
 
 Return JSON with these fields:
-- knowledge_type: one of [proposition, rule, case, opinion, procedure, query, solution_strategy, relation, formula, theorem]
+- knowledge_type: one of [proposition, rule, case, opinion, procedure, query, """
+    """solution_strategy, relation, formula, theorem]
 - natural_text: the key claim or knowledge in one clear sentence
 - symbolic_form: structured representation (dict with type-specific fields, or null)
 - tags: list of relevant keywords
@@ -25,15 +27,18 @@ Text:
 {text}
 
 Respond with valid JSON only."""
+)
 
-_RETRY_SUFFIX = "\n\nIMPORTANT: Respond with ONLY the JSON object. No explanation, no markdown, no code fences."
+_RETRY_SUFFIX = (
+    "\n\nIMPORTANT: Respond with ONLY the JSON object. No explanation, no markdown, no code fences."
+)
 
 
 def _parse_json_response(resp: str) -> dict:
     """Strip markdown fences and parse JSON. Raises json.JSONDecodeError on failure."""
     t = resp.strip()
-    t = re.sub(r'^```(?:json)?\s*\n?', '', t)
-    t = re.sub(r'\n?```\s*$', '', t).strip()
+    t = re.sub(r"^```(?:json)?\s*\n?", "", t)
+    t = re.sub(r"\n?```\s*$", "", t).strip()
     return json.loads(t)
 
 
@@ -63,7 +68,7 @@ def llm_extract_ku(
 
         llm = ProviderRegistry.get().llm(provider)
         # Prefer sync wrapper (async LLMs attach call_sync)
-        caller = getattr(llm, 'call_sync', None) or llm
+        caller = getattr(llm, "call_sync", None) or llm
         prompt = _EXTRACT_PROMPT.format(text=text[:3000])
 
         response = caller(prompt)

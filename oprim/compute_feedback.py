@@ -10,8 +10,7 @@ from __future__ import annotations
 
 import math
 import re
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from dataclasses import dataclass
 
 from oprim.types import GradeResult, SolveResult
 
@@ -68,10 +67,7 @@ def compute_feedback(
     # Normalise
     s = _normalise(student_answer, case_sensitive, strip_whitespace)
 
-    if expected is not None:
-        e = _normalise(expected, case_sensitive, strip_whitespace)
-    else:
-        e = None
+    e = _normalise(expected, case_sensitive, strip_whitespace) if expected is not None else None
 
     # Format check: student answer is empty
     if not s:
@@ -215,6 +211,7 @@ def grade_answer(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _normalise(s: str, case_sensitive: bool, strip_whitespace: bool) -> str:
     """Normalise a string for comparison."""
     result = s.strip() if strip_whitespace else s
@@ -232,9 +229,7 @@ def _has_invalid_format(s: str) -> bool:
     if not stripped:
         return False  # empty is handled separately
     # If it's purely non-alphanumeric garbage
-    if re.match(r'^[^a-zA-Z0-9]+$', stripped):
-        return True
-    return False
+    return bool(re.match(r"^[^a-zA-Z0-9]+$", stripped))
 
 
 def _try_parse_number(s: str) -> float | None:
@@ -257,6 +252,7 @@ def _try_parse_number(s: str) -> float | None:
     # Try expressions like "sqrt(2)" — approximate
     try:
         import sympy
+
         expr = sympy.sympify(s)
         if expr.is_number:
             return float(expr.evalf())
@@ -274,6 +270,7 @@ def _symbolic_equivalent(s: str, e: str) -> bool:
     """Check if two expression strings are symbolically equivalent."""
     try:
         import sympy
+
         expr_s = sympy.sympify(s)
         expr_e = sympy.sympify(e)
         diff = sympy.simplify(expr_s - expr_e)

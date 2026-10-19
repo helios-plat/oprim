@@ -1,13 +1,20 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-from .._exceptions import OprimError, LLMOprimError, BudgetExceededError, PromptOprimError, SearchOprimError, HttpOprimError, SnapshotOprimError
-from ._types import LLMResponse, StreamDelta, EmbedResult, ConversationSnapshot, ThinkingResult, SearchResult, HttpResponse
+
 import json
-from collections.abc import AsyncIterator
 from typing import Any
-from .._protocols import EmbedCaller, StreamingLLMCaller
-from ._utils import _validate_messages, _extract_usage, _extract_text, _extract_tool_calls
+
+from .._exceptions import (
+    BudgetExceededError,
+    LLMOprimError,
+)
+from ._types import (
+    LLMResponse,
+)
+from ._utils import _extract_text, _extract_tool_calls, _extract_usage, _validate_messages
+
+
 async def llm_complete(
     messages: list[dict],
     *,
@@ -62,9 +69,7 @@ async def llm_complete(
 
     # 2. token 预算估算（粗估，精确版由 obase.TokenCounter 提供）
     if budget_tokens is not None:
-        total_chars = sum(
-            len(json.dumps(m, ensure_ascii=False)) for m in messages
-        )
+        total_chars = sum(len(json.dumps(m, ensure_ascii=False)) for m in messages)
         estimated = total_chars // 4
         if estimated > budget_tokens:
             raise BudgetExceededError(
@@ -84,7 +89,7 @@ async def llm_complete(
     except (LLMOprimError, BudgetExceededError):
         raise  # pragma: no cover
     except Exception as e:
-        raise LLMOprimError("LLM call failed", cause=e)
+        raise LLMOprimError("LLM call failed", cause=e) from e
 
     # 4. 响应格式校验
     if not isinstance(raw, dict):

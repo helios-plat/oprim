@@ -1,4 +1,5 @@
 """oprim.ed25519_sign — Ed25519 message signing."""
+
 from __future__ import annotations
 
 

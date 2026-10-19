@@ -48,7 +48,7 @@ def detect_news_shock(
     *,
     news: list[NewsItem],
     five_min_prices: list[float],
-    config: NewsShockConfig = NewsShockConfig(),
+    config: NewsShockConfig | None = None,
 ) -> DetectorSignal | None:
     """Detect a news-driven price shock — significant sentiment hit AND abnormal 5-min volatility.
 
@@ -66,7 +66,8 @@ def detect_news_shock(
         config:          Threshold overrides.
 
     Returns:
-        :class:`~oprim._detector_types.DetectorSignal` on trigger; ``None`` otherwise.
+        :class:`~oprim._detector_types.DetectorSignal` on trigger
+        ``None`` otherwise.
 
     Raises:
         OprimError: If ``five_min_prices`` has fewer than 2 elements.
@@ -77,6 +78,8 @@ def detect_news_shock(
         >>> prices = [10.0, 10.3, 10.6, 10.4, 10.8]
         >>> sig = detect_news_shock(news=news, five_min_prices=prices)
     """
+    if config is None:
+        config = NewsShockConfig()
     if len(five_min_prices) < 2:
         raise OprimError(f"five_min_prices must have ≥ 2 elements, got {len(five_min_prices)}")
     if not news:

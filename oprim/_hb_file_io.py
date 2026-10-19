@@ -1,10 +1,12 @@
 """H-B A组: 文件 IO 扩展 (5)
 ensure_parent_dir / file_read_bytes / image_to_base64 / atomic_write / backup_before_overwrite
 """
+
 from __future__ import annotations
 
 import asyncio
 import base64
+import contextlib
 import os
 import shutil
 import tempfile
@@ -77,8 +79,8 @@ async def file_read_bytes(
     loop = asyncio.get_event_loop()
     try:
         return await loop.run_in_executor(None, _read)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"file not found: {path}")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"file not found: {path}") from e
     except PermissionError as e:
         raise PermissionError(f"permission denied: {path}") from e
 
@@ -155,10 +157,8 @@ async def atomic_write(path: Path, *, content: str, encoding: str = "utf-8") -> 
                 shutil.copy2(tmp_path, str(p))
                 os.unlink(tmp_path)
         except Exception:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp_path)
-            except OSError:
-                pass
             raise
 
     loop = asyncio.get_event_loop()

@@ -4,6 +4,7 @@
 自由作答/长答案/无法可靠比对 → 返回 'unsure'，由调用方走"对照答案自评"兜底。
 原则：宁可 unsure，绝不误判（误判比自评更伤信任）。
 """
+
 from __future__ import annotations
 
 import re
@@ -31,7 +32,7 @@ def judge_answer(student: str, correct: str, question_type: str = "") -> dict:
 
     # 1) 选择题：参考答案规范化后只含 A-D（单选/多选）
     if re.fullmatch(r"[A-D]{1,4}", cn):
-        if len(sn) <= 6:                      # 学生也得是"选项形态"，长答交自评
+        if len(sn) <= 6:  # 学生也得是"选项形态"，长答交自评
             sc = _choice_set(student)
             if sc:
                 return {"verdict": "correct" if sc == cn else "wrong"}
@@ -43,7 +44,10 @@ def judge_answer(student: str, correct: str, question_type: str = "") -> dict:
 
     # 3) 短数值/符号：剥掉非关键字符后相等
     if len(cn) <= 8 and len(sn) <= 12:
-        keep = lambda x: re.sub(r"[^0-9A-Z./=+\-]", "", x)
+
+        def keep(x):
+            return re.sub(r"[^0-9A-Z./=+\-]", "", x)
+
         c2, s2 = keep(cn), keep(sn)
         if c2 and s2 == c2:
             return {"verdict": "correct"}

@@ -1,4 +1,5 @@
 """Inject AGENTS.md content into a system prompt."""
+
 from __future__ import annotations
 
 _ANCHOR = "# AGENTS"
@@ -40,6 +41,6 @@ def inject_agents_md(prompt: str, *, agents_md: str) -> str:
         if newline_pos == -1:
             # Anchor is at the very end of the string with no newline
             return prompt + block
-        return prompt[: newline_pos] + block + prompt[newline_pos:]
+        return prompt[:newline_pos] + block + prompt[newline_pos:]
 
     return prompt + block

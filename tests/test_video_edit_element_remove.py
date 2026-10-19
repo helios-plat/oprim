@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 from obase import ProviderRegistry
+
 from oprim.video_edit_element_remove import (
     VideoEditError,
     VideoEditProviderNotFoundError,

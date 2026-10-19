@@ -1,4 +1,5 @@
 """Tests for oprim.timeseries.distribution_tests: jarque_bera_test."""
+
 import numpy as np
 import pytest
 
@@ -56,6 +57,7 @@ def test_jb_constant_series():
 
 def test_jb_series_input():
     import pandas as pd
+
     x = pd.Series(np.random.default_rng(3).standard_normal(200))
     r = jarque_bera_test(x)
     assert "statistic" in r
@@ -65,6 +67,7 @@ def test_jb_series_input():
 def test_jb_matches_scipy():
     """JB statistic should match scipy.stats.jarque_bera."""
     from scipy.stats import jarque_bera
+
     rng = np.random.default_rng(7)
     x = rng.standard_normal(500)
     r = jarque_bera_test(x)

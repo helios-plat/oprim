@@ -7,17 +7,24 @@
 - 固定难度连续答对单调不降且封顶（R6）
 覆盖生产实现 oprim.bkt 与孪生 oprim.cognitive。
 """
-import copy
 
 import numpy as np
 import pytest
 from sklearn.metrics import roc_auc_score
 
 from oprim import KCState
-from oprim.bkt import bkt_update, predict_correct, classify_error, _item_adjust, new_state_from_prior
+from oprim.bkt import (
+    _item_adjust,
+    bkt_update,
+    classify_error,
+    new_state_from_prior,
+    predict_correct,
+)
+from oprim.cognitive import (
+    bkt_predict_correct,
+)
 from oprim.cognitive import (
     bkt_update as bkt_update_c,
-    bkt_predict_correct,
 )
 
 _MASTERY_CAP = 0.97
@@ -25,8 +32,12 @@ _MASTERY_CAP = 0.97
 
 def mk(p_mastery=None, p_init=0.3, p_transit=0.2, p_guess=0.2, p_slip=0.1):
     return KCState(
-        kc_id="t", p_init=p_init, p_transit=p_transit,
-        p_guess=p_guess, p_slip=p_slip, p_mastery=p_mastery,
+        kc_id="t",
+        p_init=p_init,
+        p_transit=p_transit,
+        p_guess=p_guess,
+        p_slip=p_slip,
+        p_mastery=p_mastery,
     )
 
 
@@ -51,8 +62,16 @@ def test_r1_bkt_update_backward_compat(params, is_correct):
 @pytest.mark.parametrize("params", _CASES)
 def test_r1_predict_and_classify_backward_compat(params):
     s = mk(**params)
-    assert predict_correct(state=s) == predict_correct(state=s, difficulty=None) == predict_correct(state=s, difficulty=0.5)
-    assert classify_error(state=s) == classify_error(state=s, difficulty=None) == classify_error(state=s, difficulty=0.5)
+    assert (
+        predict_correct(state=s)
+        == predict_correct(state=s, difficulty=None)
+        == predict_correct(state=s, difficulty=0.5)
+    )
+    assert (
+        classify_error(state=s)
+        == classify_error(state=s, difficulty=None)
+        == classify_error(state=s, difficulty=0.5)
+    )
 
 
 def test_r1_twin_cognitive_backward_compat():
@@ -90,8 +109,8 @@ def test_r2_wrong_easier_means_stronger_evidence():
 def test_r2_item_adjust_monotone():
     g_easy, s_easy = _item_adjust(0.2, 0.1, 0.2)
     g_hard, s_hard = _item_adjust(0.2, 0.1, 0.8)
-    assert s_hard > 0.1 > s_easy   # 难题 slip↑
-    assert g_hard < 0.2 < g_easy   # 难题 guess↓
+    assert s_hard > 0.1 > s_easy  # 难题 slip↑
+    assert g_hard < 0.2 < g_easy  # 难题 guess↓
 
 
 # ── R3: 边界与数值安全 ─────────────────────────────────────────────────
@@ -118,15 +137,16 @@ def test_r4_difficulty_aware_auc_not_worse():
     prior = {"p_init": 0.2, "p_transit": 0.15, "p_guess": 0.2, "p_slip": 0.1}
     n_students, n_steps = 200, 25
 
-    items, outcomes = [], []          # 共享的 (难度, 结果) 序列，独立于预测器
+    items, outcomes = [], []  # 共享的 (难度, 结果) 序列，独立于预测器
     for _ in range(n_students):
         mastered = rng.rand() < prior["p_init"]
         for _ in range(n_steps):
-            b = float(rng.rand())     # 题目难度 ∈[0,1]
+            b = float(rng.rand())  # 题目难度 ∈[0,1]
             g_b, s_b = _item_adjust(prior["p_guess"], prior["p_slip"], b)
             p_correct = (1 - s_b) if mastered else g_b
             outcome = int(rng.rand() < p_correct)
-            items.append(b); outcomes.append(outcome)
+            items.append(b)
+            outcomes.append(outcome)
             if not mastered and rng.rand() < prior["p_transit"]:
                 mastered = True
 
@@ -135,7 +155,7 @@ def test_r4_difficulty_aware_auc_not_worse():
     aware_state = new_state_from_prior(kc_id="sim", prior=prior)
     blind_pred, aware_pred = [], []
     # 注意：状态在学生间不重置，模拟同一长序列；仅为 AUC 对比，足够
-    for b, outcome in zip(items, outcomes):
+    for b, outcome in zip(items, outcomes, strict=False):
         blind_pred.append(predict_correct(state=blind_state, difficulty=None))
         aware_pred.append(predict_correct(state=aware_state, difficulty=b))
         bkt_update(state=blind_state, is_correct=bool(outcome), difficulty=None)
@@ -144,7 +164,7 @@ def test_r4_difficulty_aware_auc_not_worse():
     auc_blind = roc_auc_score(outcomes, blind_pred)
     auc_aware = roc_auc_score(outcomes, aware_pred)
     assert auc_aware >= 0.65
-    assert auc_aware >= auc_blind - 1e-9   # 难度感知不劣于难度盲
+    assert auc_aware >= auc_blind - 1e-9  # 难度感知不劣于难度盲
 
 
 # ── R6: 固定难度连续答对单调不降且封顶 ─────────────────────────────────

@@ -1,11 +1,12 @@
 """Auto-split from hicode whl."""
 
 from __future__ import annotations
-import difflib
+
 import re
 from dataclasses import dataclass
-from pathlib import Path
+
 from ._exceptions import ParseOprimError
+
 
 @dataclass
 class Hunk:
@@ -16,11 +17,13 @@ class Hunk:
     header: str
     lines: list[str]
 
+
 @dataclass
 class FileDiff:
     old_path: str
     new_path: str
     hunks: list[Hunk]
+
 
 def html_to_markdown(html: str) -> str:
     """将 HTML 字符串转换为 Markdown 格式（纯计算）。
@@ -53,22 +56,31 @@ def html_to_markdown(html: str) -> str:
             text = re.sub(
                 rf"<h{i}[^>]*>(.*?)</h{i}>",
                 lambda m, n=i: f"\n{'#' * n} {m.group(1).strip()}\n",
-                text, flags=re.DOTALL | re.IGNORECASE,
+                text,
+                flags=re.DOTALL | re.IGNORECASE,
             )
 
         # 代码块
         text = re.sub(
             r"<pre[^>]*><code[^>]*>(.*?)</code></pre>",
             lambda m: f"\n```\n{m.group(1)}\n```\n",
-            text, flags=re.DOTALL | re.IGNORECASE,
+            text,
+            flags=re.DOTALL | re.IGNORECASE,
         )
         text = re.sub(r"<code[^>]*>(.*?)</code>", r"`\1`", text, flags=re.DOTALL | re.IGNORECASE)
 
         # 链接
-        text = re.sub(r'<a[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>', r"[\2](\1)", text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(
+            r'<a[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>',
+            r"[\2](\1)",
+            text,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
 
         # 粗体/斜体
-        text = re.sub(r"<strong[^>]*>(.*?)</strong>", r"**\1**", text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(
+            r"<strong[^>]*>(.*?)</strong>", r"**\1**", text, flags=re.DOTALL | re.IGNORECASE
+        )
         text = re.sub(r"<b[^>]*>(.*?)</b>", r"**\1**", text, flags=re.DOTALL | re.IGNORECASE)
         text = re.sub(r"<em[^>]*>(.*?)</em>", r"*\1*", text, flags=re.DOTALL | re.IGNORECASE)
         text = re.sub(r"<i[^>]*>(.*?)</i>", r"*\1*", text, flags=re.DOTALL | re.IGNORECASE)
@@ -96,4 +108,4 @@ def html_to_markdown(html: str) -> str:
         return text.strip() + "\n"
 
     except Exception as e:  # pragma: no cover
-        raise ParseOprimError("html_to_markdown failed", cause=e)
+        raise ParseOprimError("html_to_markdown failed", cause=e) from e

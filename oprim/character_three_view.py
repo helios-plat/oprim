@@ -1,7 +1,7 @@
 """oprim.character_three_view — Generate front/side/back character reference views via LLM."""
+
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel
@@ -42,19 +42,24 @@ async def character_three_view(
     system = (
         "You are a character design assistant. Given a character description, "
         "produce front/side/back view prompts for image generation. "
-        "Return STRICT JSON: {\"front\": str, \"side\": str, \"back\": str, \"style_tags\": [str]}"
+        'Return STRICT JSON: {"front": str, "side": str, "back": str, "style_tags": [str]}'
     )
     messages = [
         {
             "role": "user",
-            "content": f"Character: {character_description}\nStyle: {style or 'default'}\nGenerate three-view prompts.",
+            "content": (
+                f"Character: {character_description}\nStyle: {style or 'default'}\n"
+                "Generate three-view prompts."
+            ),
         }
     ]
 
     try:
         response = await caller(messages=messages, system=system, max_tokens=max_tokens)
         content = response.get("content", [])
-        text = "".join(b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text")
+        text = "".join(
+            b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"
+        )
         data = json.loads(text)
         return ThreeViewResult(
             front_prompt=data.get("front", ""),

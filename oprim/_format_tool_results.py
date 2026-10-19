@@ -1,4 +1,5 @@
 """Convert ToolResult objects into tool_result Part objects."""
+
 from __future__ import annotations
 
 from ._hicode_types import Part, ToolResult

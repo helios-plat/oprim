@@ -2,7 +2,8 @@
 
 A4: unifies the local subprocess providers (duix / sadtalker / musetalk /
 longcat_avatar) behind one interface. All four are currently
-portrait-driven only (portrait_image + audio -> talking-head video); none
+portrait-driven only (portrait_image + audio -> talking-head video)
+none
 of them re-lip-sync an existing video (source_video + audio -> dubbed
 video) — that mode has no backend yet and raises LipsyncNotImplementedError.
 

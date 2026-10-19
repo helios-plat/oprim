@@ -1,4 +1,5 @@
 """Build a JSON-schema-style tool dict from a Tool dataclass."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -29,9 +30,7 @@ def build_tool_schema(tool: Tool) -> dict[str, Any]:
         If ``tool.description`` is empty or whitespace-only.
     """
     if not tool.description or not tool.description.strip():
-        raise ValueError(
-            f"tool {tool.name!r} must have a non-empty description"
-        )
+        raise ValueError(f"tool {tool.name!r} must have a non-empty description")
 
     return {
         "name": tool.name,

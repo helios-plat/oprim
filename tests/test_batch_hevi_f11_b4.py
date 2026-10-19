@@ -1,8 +1,8 @@
 """Batch 4 backward-compat tests: ltx2_cloud_generate + video_generate fps/bitrate."""
+
 from __future__ import annotations
 
 import inspect
-import pytest
 
 from oprim._ltx2_cloud_generate import ltx2_cloud_generate
 from oprim._video_generate import video_generate
@@ -28,10 +28,13 @@ class TestLtx2FpsBitrate:
         async def _run():
             try:
                 await ltx2_cloud_generate(
-                    mode="t2v", prompt="test",
-                    duration_s=3.0, resolution=(1280, 720),
+                    mode="t2v",
+                    prompt="test",
+                    duration_s=3.0,
+                    resolution=(1280, 720),
                     output_path=__import__("pathlib").Path("/tmp/out.mp4"),
-                    fps=30, bitrate_kbps=4000,
+                    fps=30,
+                    bitrate_kbps=4000,
                     config={"FAL_API_KEY": ""},
                 )
             except Exception as e:
@@ -68,9 +71,11 @@ class TestVideoGenerateFpsBitrate:
         async def _run():
             try:
                 await video_generate(
-                    provider="wan_cloud", prompt="test",
+                    provider="wan_cloud",
+                    prompt="test",
                     output_path=__import__("pathlib").Path("/tmp/out.mp4"),
-                    fps=30, bitrate_kbps=2000,
+                    fps=30,
+                    bitrate_kbps=2000,
                 )
             except Exception as e:
                 assert "TypeError" not in type(e).__name__

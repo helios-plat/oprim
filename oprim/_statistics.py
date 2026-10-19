@@ -12,7 +12,7 @@ from scipy import stats
 
 
 def bootstrap_ci(
-    data: np.ndarray,
+    data: np.ndarray, *,
     statistic_fn: Callable[[np.ndarray], float],
     n_bootstrap: int = 1000,
     confidence_level: float = 0.95,
@@ -83,8 +83,8 @@ def bootstrap_ci(
         jack_mean = jack_stats.mean()
         # BCa acceleration: a = sum((jack_mean - jack_i)^3) / (6 * sum((jack_mean - jack_i)^2)^1.5)
         diff = jack_mean - jack_stats
-        num = np.sum(diff ** 3)
-        den = 6 * (np.sum(diff ** 2) ** 1.5)
+        num = np.sum(diff**3)
+        den = 6 * (np.sum(diff**2) ** 1.5)
         a = num / den if den != 0 else 0.0
 
         z_alpha_low = stats.norm.ppf(alpha / 2)
@@ -109,7 +109,7 @@ def bootstrap_ci(
 
 
 def percentile_ci(
-    samples: np.ndarray,
+    samples: np.ndarray, *,
     quantiles: list[float] | None = None,
     interpolation: str = "linear",
 ) -> dict[str, float]:
@@ -148,7 +148,7 @@ def percentile_ci(
 
 
 def distribution_summary(
-    data: np.ndarray,
+    data: np.ndarray, *,
     percentiles: list[float] | None = None,
 ) -> dict[str, float]:
     """Unified distribution descriptive statistics.
@@ -173,9 +173,17 @@ def distribution_summary(
     n = int(valid.size)
 
     if n == 0:
-        result = {"mean": np.nan, "median": np.nan, "std": np.nan,
-                  "skew": np.nan, "kurtosis_excess": np.nan,
-                  "n": 0, "n_nan": n_nan, "min": np.nan, "max": np.nan}
+        result = {
+            "mean": np.nan,
+            "median": np.nan,
+            "std": np.nan,
+            "skew": np.nan,
+            "kurtosis_excess": np.nan,
+            "n": 0,
+            "n_nan": n_nan,
+            "min": np.nan,
+            "max": np.nan,
+        }
         for p in percentiles:
             result[f"q_{p}"] = np.nan
         return result
@@ -185,7 +193,9 @@ def distribution_summary(
         "median": float(np.median(valid)),
         "std": float(np.std(valid, ddof=1)) if n > 1 else 0.0,
         "skew": float(stats.skew(valid, bias=False)) if n > 2 else np.nan,
-        "kurtosis_excess": float(stats.kurtosis(valid, fisher=True, bias=False)) if n > 3 else np.nan,
+        "kurtosis_excess": float(stats.kurtosis(valid, fisher=True, bias=False))
+        if n > 3
+        else np.nan,
         "n": n,
         "n_nan": n_nan,
         "min": float(np.min(valid)),
@@ -197,7 +207,7 @@ def distribution_summary(
 
 
 def skew_kurt_robust(
-    data: np.ndarray,
+    data: np.ndarray, *,
     bias: bool = False,
     nan_policy: Literal["propagate", "raise", "omit"] = "omit",
 ) -> dict[str, float]:
@@ -238,7 +248,7 @@ def skew_kurt_robust(
 
 
 def kolmogorov_smirnov_test(
-    sample_a: np.ndarray,
+    sample_a: np.ndarray, *,
     sample_b: np.ndarray | str | None = None,
     mode: Literal["one_sample", "two_sample"] = "two_sample",
     alternative: Literal["two-sided", "less", "greater"] = "two-sided",
@@ -269,18 +279,21 @@ def kolmogorov_smirnov_test(
         sample_b_arr = np.asarray(sample_b, dtype=np.float64)
         sample_b_arr = sample_b_arr[~np.isnan(sample_b_arr)]
         stat, p = stats.ks_2samp(sample_a, sample_b_arr, alternative=alternative)
-        return {"statistic": float(stat), "p_value": float(p),
-                "n_a": len(sample_a), "n_b": len(sample_b_arr)}
+        return {
+            "statistic": float(stat),
+            "p_value": float(p),
+            "n_a": len(sample_a),
+            "n_b": len(sample_b_arr),
+        }
     else:  # one_sample
         if sample_b is None:
             sample_b = "norm"
         stat, p = stats.kstest(sample_a, sample_b, alternative=alternative)
-        return {"statistic": float(stat), "p_value": float(p),
-                "n_a": len(sample_a), "n_b": 0}
+        return {"statistic": float(stat), "p_value": float(p), "n_a": len(sample_a), "n_b": 0}
 
 
 def mann_kendall_trend(
-    data: np.ndarray,
+    data: np.ndarray, *,
     alpha: float = 0.05,
     hamed_rao_correction: bool = True,
 ) -> dict[str, Any]:
@@ -304,8 +317,14 @@ def mann_kendall_trend(
     n = len(data)
 
     if n < 3:
-        return {"trend": "no_trend", "p_value": 1.0, "tau": 0.0,
-                "z_score": 0.0, "slope": 0.0, "n": n}
+        return {
+            "trend": "no_trend",
+            "p_value": 1.0,
+            "tau": 0.0,
+            "z_score": 0.0,
+            "slope": 0.0,
+            "n": n,
+        }
 
     # Vectorized S statistic using broadcasting
     # S = sum_{i<j} sign(x_j - x_i)
@@ -361,10 +380,7 @@ def mann_kendall_trend(
     slope = float(np.median(slopes))
 
     # Determine trend
-    if p_value <= alpha:
-        trend = "increasing" if z > 0 else "decreasing"
-    else:
-        trend = "no_trend"
+    trend = ("increasing" if z > 0 else "decreasing") if p_value <= alpha else "no_trend"
 
     return {
         "trend": trend,
@@ -377,7 +393,7 @@ def mann_kendall_trend(
 
 
 def bayes_beta_update(
-    prior_alpha: float,
+    prior_alpha: float, *,
     prior_beta: float,
     successes: int,
     failures: int,
@@ -428,7 +444,7 @@ def bayes_beta_update(
 
 
 def brier_score_decomposed(
-    forecasts: np.ndarray,
+    forecasts: np.ndarray, *,
     outcomes: np.ndarray,
     n_bins: int = 10,
     method: Literal["binned", "binless"] = "binned",
@@ -506,7 +522,7 @@ def brier_score_decomposed(
 
 
 def pearson_spearman_corr(
-    x: np.ndarray,
+    x: np.ndarray, *,
     y: np.ndarray,
     min_samples: int = 30,
     nan_policy: Literal["propagate", "raise", "omit"] = "omit",
@@ -552,7 +568,7 @@ def pearson_spearman_corr(
 
 
 def kde_density(
-    data: np.ndarray,
+    data: np.ndarray, *,
     bandwidth: Literal["silverman", "scott"] | float = "silverman",
     eval_points: np.ndarray | None = None,
 ) -> dict[str, np.ndarray]:
@@ -591,7 +607,7 @@ def kde_density(
 
 
 def correlation_batch(
-    data: pd.DataFrame,
+    data: pd.DataFrame, *,
     method: Literal["pearson", "spearman"] = "pearson",
 ) -> pd.DataFrame:
     """Compute full correlation matrix for a DataFrame.
@@ -619,7 +635,7 @@ def correlation_batch(
 
 
 def percentile_value(
-    data: np.ndarray,
+    data: np.ndarray, *,
     q: float,
     window: int | None = None,
     method: str = "linear",
@@ -664,7 +680,7 @@ def percentile_value(
     n = len(data)
     result = np.full(n, np.nan)
     for i in range(window, n):
-        seg = data[i - window: i]
+        seg = data[i - window : i]
         valid = seg[np.isfinite(seg)]
         if len(valid) >= 10:
             result[i] = float(np.quantile(valid, q, method=method))

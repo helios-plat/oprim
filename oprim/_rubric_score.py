@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import re
 
-
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def rubric_score(
     essay_text: str,
@@ -82,6 +82,7 @@ def _score_dimension(dim: str, text: str, grade_level: str, essay_type: str) -> 
 # ---------------------------------------------------------------------------
 # Individual scorers (0–100)
 # ---------------------------------------------------------------------------
+
 
 def _paragraphs(text: str) -> list[str]:
     paras = [p.strip() for p in re.split(r"\n{2,}|\n(?=\s)", text) if p.strip()]
@@ -168,16 +169,13 @@ def _score_language(text: str) -> float:
     lengths = [len(s) for s in sents]
     mean_len = sum(lengths) / n
 
-    if n < 2:
-        variance = 0.0
-    else:
-        variance = sum((l - mean_len) ** 2 for l in lengths) / n
+    variance = 0.0 if n < 2 else sum((length - mean_len) ** 2 for length in lengths) / n
 
     # Sentence count component
     count_score = min(100.0, n * 5.0)  # 20 sentences → full
 
     # Variety component (higher variance = more varied sentence structure)
-    variety_score = min(100.0, (variance ** 0.5) * 5.0)
+    variety_score = min(100.0, (variance**0.5) * 5.0)
 
     return round(0.5 * count_score + 0.5 * variety_score, 1)
 
@@ -187,7 +185,7 @@ def _score_format(text: str) -> float:
     score = 50.0
 
     # Chinese punctuation presence
-    punc = len(re.findall(r"[，。！？、；：""''（）【】《》]", text))
+    punc = len(re.findall(r"[，。！？、；：" "''（）【】《》]", text))
     total_chars = len(text)
     punc_ratio = punc / total_chars if total_chars else 0.0
     if punc_ratio >= 0.05:

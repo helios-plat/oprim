@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -33,7 +33,6 @@ from oprim._postgres import (
     SlowQuery,
     TableSize,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -141,9 +140,8 @@ class TestPostgresPoolStatus:
                 postgres_pool_status(dsn="postgresql://u:wrongpass@localhost/db")
 
     def test_psycopg_not_installed(self):
-        with patch("oprim._postgres.psycopg", None):
-            with pytest.raises(OprimError, match="psycopg"):
-                postgres_pool_status(dsn="postgresql://u:p@localhost/db")
+        with patch("oprim._postgres.psycopg", None), pytest.raises(OprimError, match="psycopg"):
+            postgres_pool_status(dsn="postgresql://u:p@localhost/db")
 
     def test_timeout_error(self):
         with patch("oprim._postgres.psycopg") as mock_psycopg:

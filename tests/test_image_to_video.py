@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim._image_to_video import (
     ImageToVideoError,
     ImageToVideoProviderNotFoundError,
@@ -69,7 +69,8 @@ class TestImageToVideo:
             )
 
     async def test_provider_not_found(self, tmp_path: Path, ref_image: Path) -> None:
-        """Regression: unregistered image_to_video provider raises ImageToVideoProviderNotFoundError."""
+        """Regression: unregistered image_to_video provider raises
+        ImageToVideoProviderNotFoundError."""
         with pytest.raises(ImageToVideoProviderNotFoundError, match="Provider not found"):
             await image_to_video(
                 provider="nonexistent_i2v",

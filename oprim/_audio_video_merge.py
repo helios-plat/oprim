@@ -60,12 +60,18 @@ async def audio_video_merge(
         raise AudioVideoMergeError(f"Audio file not found: {audio_path}")
 
     args = [
-        "-i", str(video_path),
-        "-i", str(audio_path),
-        "-c:v", "copy",
-        "-c:a", audio_codec,
-        "-map", "0:v:0",
-        "-map", "1:a:0",
+        "-i",
+        str(video_path),
+        "-i",
+        str(audio_path),
+        "-c:v",
+        "copy",
+        "-c:a",
+        audio_codec,
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
         "-shortest",
         str(output_path),
     ]

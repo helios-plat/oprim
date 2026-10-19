@@ -2,6 +2,7 @@
 
 Score = min(count * 3.0, 9.0). Pure computation.
 """
+
 from __future__ import annotations
 
 

@@ -53,11 +53,14 @@ async def audience_feedback_extract(
         raise FeedbackExtractError("comments must not be empty")
 
     messages = [
-        {"role": "system", "content": (
-            "Extract structured feedback from comments. "
-            "Return JSON: {\"positive_points\": [str], \"negative_points\": [str], "
-            "\"questions\": [str], \"suggestions\": [str]}."
-        )},
+        {
+            "role": "system",
+            "content": (
+                "Extract structured feedback from comments. "
+                'Return JSON: {"positive_points": [str], "negative_points": [str], '
+                '"questions": [str], "suggestions": [str]}.'
+            ),
+        },
         {"role": "user", "content": "\n".join(comments[:200])},
     ]
 

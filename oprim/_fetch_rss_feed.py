@@ -39,7 +39,7 @@ def fetch_rss_feed(
         return result
 
     try:
-        from obase.http.dns_pinned_transport import SSRFBlockedError, make_ssrf_safe_opener
+        from obase.http.dns_pinned_transport import make_ssrf_safe_opener
 
         opener = make_ssrf_safe_opener(timeout=timeout)
         req = urllib.request.Request(url)
@@ -96,9 +96,9 @@ def _parse_rss_xml(*, xml_string: str, feed_url: str, max_items: int) -> dict:
 
     # defusedxml fallback — prevents XXE / billion-laughs attacks
     try:
-        import defusedxml.ElementTree as ET  # type: ignore
+        import defusedxml.ElementTree as ElementTree  # type: ignore
 
-        root = ET.fromstring(xml_string)
+        root = ElementTree.fromstring(xml_string)
         channel = root.find("channel")
         if channel is None:
             channel = root

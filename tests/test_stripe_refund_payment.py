@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import stripe as stripe_sdk
 
-from oprim.stripe_create_payment_intent import StripeAPIError, StripeConfig
-from oprim.stripe_refund_payment import stripe_refund_payment
+from oprim._stripe_create_payment_intent import StripeAPIError, StripeConfig
+from oprim._stripe_refund_payment import stripe_refund_payment
 
 CONFIG = StripeConfig(
     api_key="sk_test_fake_key",
@@ -78,12 +78,14 @@ async def test_reason_fraudulent() -> None:
 
 @pytest.mark.asyncio
 async def test_api_error_raises_stripe_api_error() -> None:
-    with patch(
-        "stripe.Refund.create",
-        side_effect=stripe_sdk.StripeError("Charge already refunded"),
+    with (
+        patch(
+            "stripe.Refund.create",
+            side_effect=stripe_sdk.StripeError("Charge already refunded"),
+        ),
+        pytest.raises(StripeAPIError, match="Charge already refunded"),
     ):
-        with pytest.raises(StripeAPIError, match="Charge already refunded"):
-            await stripe_refund_payment(
-                config=CONFIG,
-                intent_id="pi_test_001",
-            )
+        await stripe_refund_payment(
+            config=CONFIG,
+            intent_id="pi_test_001",
+        )

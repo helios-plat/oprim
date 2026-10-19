@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Callable
 
 from oprim.types import Plot2DData, SolveResult
 
@@ -20,7 +19,7 @@ from oprim.types import Plot2DData, SolveResult
 class Plot2DRequest:
     """Parameters for generating a 2D plot from a SolveResult."""
 
-    expression: str                # f(x) or conic equation
+    expression: str  # f(x) or conic equation
     variable: str = "x"
     x_range: tuple[float, float] = (-10.0, 10.0)
     y_range: tuple[float, float] = (-10.0, 10.0)
@@ -28,8 +27,8 @@ class Plot2DRequest:
     title: str = ""
     x_label: str = "x"
     y_label: str = "y"
-    mark_zeros: bool = True         # annotate zero crossings
-    mark_extrema: bool = False      # annotate extrema
+    mark_zeros: bool = True  # annotate zero crossings
+    mark_extrema: bool = False  # annotate extrema
     solve_result: SolveResult | None = None
 
 
@@ -37,6 +36,7 @@ def _safe_eval_at(expr_str: str, var: str, x_val: float) -> float | None:
     """Evaluate expression at a point; return None on error."""
     try:
         import sympy as sp
+
         sym = sp.Symbol(var)
         f = sp.sympify(expr_str)
         val = float(f.subs(sym, x_val).evalf())
@@ -67,9 +67,7 @@ def _sample_function(
     return xs, ys
 
 
-def _find_zero_crossings(
-    xs: list[float], ys: list[float]
-) -> list[tuple[float, float, str]]:
+def _find_zero_crossings(xs: list[float], ys: list[float]) -> list[tuple[float, float, str]]:
     """Find approximate zero crossings by sign change."""
     annotations: list[tuple[float, float, str]] = []
     for i in range(len(xs) - 1):

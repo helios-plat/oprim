@@ -18,10 +18,10 @@ import pytest
 from oprim._mneme_speech_types import PronunciationResult
 from oprim._rubric_score import rubric_score
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_registry(category: str, return_value):
     """Patch ProviderRegistry so generic(category, ...) returns a mock caller."""
@@ -105,6 +105,7 @@ class TestSpeechToText:
 # P-2: evaluate_pronunciation
 # ===========================================================================
 
+
 class TestEvaluatePronunciation:
     def _mock_result(self, overall=0.85, fluency=0.80, accuracy=0.90):
         return {
@@ -157,16 +158,18 @@ class TestEvaluatePronunciation:
     async def test_word_scores_structure_complete(self):
         from oprim._evaluate_pronunciation import evaluate_pronunciation
 
-        mock_caller = AsyncMock(return_value={
-            "overall_score": 0.75,
-            "fluency_score": 0.70,
-            "accuracy_score": 0.80,
-            "word_scores": [
-                {"word": "this", "score": 0.8, "issue": ""},
-                {"word": "is", "score": 0.9, "issue": ""},
-                {"word": "hard", "score": 0.6, "issue": "consonant_cluster"},
-            ],
-        })
+        mock_caller = AsyncMock(
+            return_value={
+                "overall_score": 0.75,
+                "fluency_score": 0.70,
+                "accuracy_score": 0.80,
+                "word_scores": [
+                    {"word": "this", "score": 0.8, "issue": ""},
+                    {"word": "is", "score": 0.9, "issue": ""},
+                    {"word": "hard", "score": 0.6, "issue": "consonant_cluster"},
+                ],
+            }
+        )
         with patch(_PR_PATH) as mock_reg:
             mock_reg.get.return_value.generic.return_value = mock_caller
             result = await evaluate_pronunciation(
@@ -193,15 +196,14 @@ class TestEvaluatePronunciation:
         mock_caller = AsyncMock(return_value=pr)
         with patch(_PR_PATH) as mock_reg:
             mock_reg.get.return_value.generic.return_value = mock_caller
-            result = await evaluate_pronunciation(
-                audio_b64=_valid_b64(), reference_text="ok"
-            )
+            result = await evaluate_pronunciation(audio_b64=_valid_b64(), reference_text="ok")
         assert result is pr
 
 
 # ===========================================================================
 # P-3: text_to_speech
 # ===========================================================================
+
 
 class TestTextToSpeech:
     async def test_normal_synthesis_returns_base64(self):
@@ -309,16 +311,24 @@ class TestRubricScore:
             assert 0.0 <= score <= 100.0, f"{dim}={score} out of range"
 
     def test_long_essay_scores_higher_than_short(self):
-        long_result = rubric_score(_LONG_ESSAY, rubric=_RUBRIC, grade_level="高中", essay_type="议论文")
-        short_result = rubric_score(_SHORT_ESSAY, rubric=_RUBRIC, grade_level="高中", essay_type="议论文")
+        long_result = rubric_score(
+            _LONG_ESSAY, rubric=_RUBRIC, grade_level="高中", essay_type="议论文"
+        )
+        short_result = rubric_score(
+            _SHORT_ESSAY, rubric=_RUBRIC, grade_level="高中", essay_type="议论文"
+        )
         long_total = sum(long_result.values())
         short_total = sum(short_result.values())
         assert long_total > short_total
 
     def test_different_rubric_weights_no_effect_on_scores(self):
         """Weights are caller's responsibility; function doesn't apply them."""
-        r1 = rubric_score(_LONG_ESSAY, rubric={"结构": 1.0}, grade_level="高中", essay_type="议论文")
-        r2 = rubric_score(_LONG_ESSAY, rubric={"结构": 0.5}, grade_level="高中", essay_type="议论文")
+        r1 = rubric_score(
+            _LONG_ESSAY, rubric={"结构": 1.0}, grade_level="高中", essay_type="议论文"
+        )
+        r2 = rubric_score(
+            _LONG_ESSAY, rubric={"结构": 0.5}, grade_level="高中", essay_type="议论文"
+        )
         assert r1["结构"] == r2["结构"]
 
     def test_custom_dimension_still_returns_score(self):

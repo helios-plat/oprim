@@ -1,4 +1,5 @@
 """Serialize a Session to a plain JSON-serializable dict."""
+
 from __future__ import annotations
 
 from typing import Any

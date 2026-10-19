@@ -1,4 +1,5 @@
 """Apply provider-specific payload patches to work around API quirks."""
+
 from __future__ import annotations
 
 import copy
@@ -25,10 +26,7 @@ def patch_provider_quirk(payload: dict[str, Any], *, provider: str) -> dict[str,
 
     if provider == "openai":
         messages = result.get("messages", [])
-        result["messages"] = [
-            m for m in messages
-            if m.get("content") != ""
-        ]
+        result["messages"] = [m for m in messages if m.get("content") != ""]
         return result
 
     if provider == "google":

@@ -1,4 +1,5 @@
 """Tests for oprim.timeseries.autocorrelation: ljung_box_test, durbin_watson."""
+
 import numpy as np
 import pytest
 
@@ -18,6 +19,7 @@ def _ar1_residuals(phi=0.7, n=200, seed=0):
 
 
 # ---------- Ljung-Box tests ----------
+
 
 def test_lb_white_noise_high_pvalue():
     e = _white_noise(200)
@@ -90,6 +92,7 @@ def test_lb_matches_statsmodels():
 
 # ---------- Durbin-Watson tests ----------
 
+
 def test_dw_no_autocorrelation():
     e = _white_noise(200)
     dw = durbin_watson(e)
@@ -122,6 +125,7 @@ def test_dw_too_short_raises():
 
 def test_lb_series_input():
     import pandas as pd
+
     e = pd.Series(_white_noise(100))
     r = ljung_box_test(e, lags=5)
     assert "statistic" in r
@@ -142,6 +146,7 @@ def test_lb_zero_variance():
 
 def test_dw_series_input():
     import pandas as pd
+
     e = pd.Series(_white_noise(100))
     dw = durbin_watson(e)
     assert 0 <= dw <= 4

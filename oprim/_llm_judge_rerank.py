@@ -56,7 +56,7 @@ def llm_judge_rerank(
         ```python
         def dummy_llm(**kwargs):
             return {"content": "0: 9\\n1: 1"}
-        
+
         docs = ["highly relevant", "irrelevant"]
         res = llm_judge_rerank(query="test", documents=docs, llm=dummy_llm)
         assert res[0].original_index == 0
@@ -84,11 +84,11 @@ For example:
 """
 
     messages = [{"role": "user", "content": prompt}]
-    
+
     try:
         response = llm(messages=messages)
         content = response.get("content", "")
-    except Exception as e:
+    except Exception:
         # Fallback due to LLM failure: return 0.0 scores
         return [RerankResult(original_index=i, score=0.0) for i in range(len(documents))][:top_k]
 
@@ -96,7 +96,7 @@ For example:
     for match in _RERANK_RE.finditer(content):
         idx = int(match.group(1))
         score_raw = int(match.group(2))
-        
+
         if 0 <= idx < len(documents):
             # Normalize to [0, 1]
             score_norm = max(0.0, min(1.0, (score_raw - 1) / 9.0))

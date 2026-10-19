@@ -4,12 +4,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import ebooklib  # type: ignore[import-untyped]
 from bs4 import BeautifulSoup
-from ebooklib import epub
+
+try:
+    import ebooklib  # type: ignore[import-untyped]
+    from ebooklib import epub
+except ImportError:  # optional epub extra
+    ebooklib = None  # type: ignore[assignment]
+    epub = None  # type: ignore[assignment]
 
 from oprim._document_types import Page, ParsedDocument
 from oprim._exceptions import OprimError
+from oprim._optional import require_optional
 
 
 def file_parser_epub(*, file_path: Path) -> ParsedDocument:
@@ -26,6 +32,7 @@ def file_parser_epub(*, file_path: Path) -> ParsedDocument:
     """
     if not file_path.exists():
         raise OprimError(f"file_not_found: {file_path}")
+    require_optional(ebooklib, feature="epub", extra="epub", package="ebooklib")
 
     try:
         book = epub.read_epub(str(file_path))
@@ -37,12 +44,14 @@ def file_parser_epub(*, file_path: Path) -> ParsedDocument:
 
     # Build TOC title map
     toc_map: dict[str, str] = {}
+
     def _walk(nodes):
         for node in nodes:
             if hasattr(node, "href") and hasattr(node, "title"):
                 toc_map[node.href.split("#")[0]] = node.title
             if hasattr(node, "__iter__") and not hasattr(node, "href"):
                 _walk(node)
+
     _walk(book.toc)
 
     pages = []

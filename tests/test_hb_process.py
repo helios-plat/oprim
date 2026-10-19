@@ -1,16 +1,18 @@
-"""Tests — H-B B组: 进程控制 (spawn_pty / stream_stdout / kill_process / wait_with_timeout / run_background)."""
+"""Tests — H-B B组: 进程控制 (spawn_pty / stream_stdout / kill_process /
+wait_with_timeout / run_background)."""
+
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import sys
 from pathlib import Path
 
 import pytest
 
 from oprim._hb_process import (
-    ProcHandle,
-    PtyHandle,
     _JOBS,
+    ProcHandle,
     kill_process,
     run_background,
     spawn_pty,
@@ -18,10 +20,10 @@ from oprim._hb_process import (
     wait_with_timeout,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helper: create a ProcHandle wrapping a real subprocess
 # ---------------------------------------------------------------------------
+
 
 async def _make_proc(cmd: str, *, cwd: Path, stdout: bool = True) -> ProcHandle:
     proc = await asyncio.create_subprocess_shell(
@@ -39,6 +41,7 @@ async def _make_proc(cmd: str, *, cwd: Path, stdout: bool = True) -> ProcHandle:
 # ---------------------------------------------------------------------------
 # wait_with_timeout
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_wait_normal(tmp_path: Path) -> None:
@@ -97,6 +100,7 @@ async def test_wait_negative_timeout(tmp_path: Path) -> None:
 # kill_process
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_kill_term(tmp_path: Path) -> None:
     handle = await _make_proc("sleep 60", cwd=tmp_path, stdout=False)
@@ -137,6 +141,7 @@ async def test_kill_kill_sig(tmp_path: Path) -> None:
 # stream_stdout
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_stream_stdout_proc(tmp_path: Path) -> None:
     handle = await _make_proc('echo "hello from stream"', cwd=tmp_path, stdout=True)
@@ -166,6 +171,7 @@ async def test_stream_stdout_invalid_handle() -> None:
 # ---------------------------------------------------------------------------
 # run_background
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_run_background_returns_job_id(tmp_path: Path) -> None:
@@ -210,6 +216,7 @@ async def test_run_background_multiple(tmp_path: Path) -> None:
 # spawn_pty (only on Unix)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.skipif(sys.platform == "win32", reason="PTY not available on Windows")
 @pytest.mark.asyncio
 async def test_spawn_pty_basic(tmp_path: Path) -> None:
@@ -224,13 +231,12 @@ async def test_spawn_pty_basic(tmp_path: Path) -> None:
                 chunks.append(chunk)
                 if "pty_test_ok" in "".join(chunks):
                     break
-    except (asyncio.TimeoutError, TimeoutError):
+    except TimeoutError:
         pass
     import os
-    try:
+
+    with contextlib.suppress(OSError):
         os.close(handle.master_fd)
-    except OSError:
-        pass
     await handle._proc.wait()
 
 
