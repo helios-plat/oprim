@@ -5,6 +5,10 @@ Canonical stratum tables are the plural contract (``substrates`` / ``concepts`` 
 11a6f0b era (``substrate`` / ``concept`` / ``note``) are accepted on restore and
 used on create only when the plural table is absent — no data is ever silently
 dropped or double-counted.
+
+Restored from Phase 2 Wave 2 (commit 11a6f0b) and adapted to the current
+consumer schema (oskill.sync): plural tables ``substrates`` / ``concepts`` /
+``notes`` with the consumer column set, plus lazy schema bootstrap.
 """
 
 from __future__ import annotations
@@ -201,3 +205,23 @@ class ChangefeedSnapshot:
             )
             restored += 1
         return restored
+
+    def list_snapshots(self, user_id: str) -> list[dict]:
+        """Return all snapshots for user, newest first."""
+        ensure_schema(self.db)
+        rows = self.db.fetchall(
+            "SELECT id, user_id, device_id, seq_at, file_id, created_at "
+            "FROM changefeed_snapshots WHERE user_id = ? ORDER BY seq_at DESC",
+            [user_id],
+        )
+        return [
+            {
+                "snapshot_id": r[0],
+                "user_id": r[1],
+                "device_id": r[2],
+                "seq_at": r[3],
+                "file_id": r[4],
+                "created_at": str(r[5]),
+            }
+            for r in rows
+        ]
