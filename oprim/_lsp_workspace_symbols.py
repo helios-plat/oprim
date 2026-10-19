@@ -9,6 +9,8 @@ from ._lsp_helpers import (
     _parse_symbols,
 )
 from ._protocols import LspServerHandle
+from .lsp import _parse_symbols
+
 
 
 class LspOprimError(OprimError):

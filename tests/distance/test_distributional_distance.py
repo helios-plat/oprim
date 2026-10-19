@@ -1,4 +1,4 @@
-"""Tests for distributional_distance in oprim.distance."""
+"""Tests for distributional_distance in oprim._distance."""
 
 from __future__ import annotations
 

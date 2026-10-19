@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ._exceptions import ParseOprimError
+from .text import _EXT_MAP, _FILENAME_MAP
+
 
 _FILENAME_MAP: dict[str, str] = {}
 _EXT_MAP: dict[str, str] = {}

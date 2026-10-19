@@ -10,6 +10,8 @@ from ._lsp_helpers import (
     _text_doc,
 )
 from ._protocols import LspServerHandle
+from .lsp import _text_doc
+
 
 
 class LspOprimError(OprimError):

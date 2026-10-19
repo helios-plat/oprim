@@ -127,9 +127,11 @@ class TestProviderRegistryPath:
 
         fake_vecs = [[1.0] * 128]
         mock_embed = MagicMock(return_value=fake_vecs)
-        with patch("obase.ProviderRegistry.get", return_value=mock_embed) as mock_get:
+        fake_reg = MagicMock()
+        fake_reg._generic = {"embedding": {"bge-m3": mock_embed}}
+        with patch("obase.ProviderRegistry.get", return_value=fake_reg) as mock_get:
             result = vector_encode(texts=["test"], provider="bge-m3", normalize=False)
-        mock_get.assert_called_once_with("embedding", "bge-m3")
+        mock_get.assert_called_once_with()
         mock_embed.assert_called_once_with(["test"])
         np.testing.assert_allclose(result[0, 0], 1.0)
 

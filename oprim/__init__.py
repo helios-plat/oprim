@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ast
 import importlib
+import sys as _sys
+import types as _types
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +54,15 @@ def _build_element_map() -> None:
                 names = []
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                     names.append(node.name)
+                elif (
+                    isinstance(node, ast.Assign)
+                    and isinstance(node.value, ast.Name)
+                    and not stem.startswith("__")
+                ):
+                    # module-level public alias, e.g.
+                    # ``caddy_admin_routes = caddy_routes_list``; the element
+                    # namespace must expose the alias as well as the original.
+                    names.extend(t.id for t in node.targets if isinstance(t, ast.Name))
                 elif isinstance(node, ast.ImportFrom) and rel_path.name == "__init__.py":
                     for alias in node.names:
                         if alias.name != "*":
@@ -73,6 +84,94 @@ def _build_element_map() -> None:
 
 _build_element_map()
 
+# Authoritative export bindings inherited from origin/main's explicit import
+# surface.  The AST walk above is permissive (it discovers new atoms without a
+# registry edit), but several public names are defined in more than one module
+# (e.g. ``LLMResponse`` exists in ``llm/_types`` and in the legacy
+# ``llm_complete`` / ``embed_text`` / ``llm_stream`` shims).  Where both lines
+# shipped a binding, origin/main's explicit ``from ... import`` is the contract;
+# apply it as an override so the exported name and the value returned by the
+# owning function are the same object.
+_AUTHORITATIVE_EXPORTS: dict[str, str] = {
+    "ArxivPaper": "oprim._arxiv_search",
+    "BudgetExceededError": "oprim._exceptions",
+    "CascadeDeleteResult": "oprim._aii_graph_types",
+    "ConflictDetectionInput": "oprim._aii_graph_types",
+    "ConflictPair": "oprim._aii_graph_types",
+    "ConflictSignal": "oprim._aii_graph_types",
+    "ConversationSnapshot": "oprim.llm._types",
+    "DEFAULT_MATRIX": "oprim._llm_router",
+    "EmbedResult": "oprim.llm._types",
+    "FileOprimError": "oprim._exceptions",
+    "GitOprimError": "oprim._exceptions",
+    "GradeResult": "oprim.types",
+    "GraphRetrievalResult": "oprim._aii_graph_types",
+    "HttpOprimError": "oprim._exceptions",
+    "HttpResponse": "oprim.llm._types",
+    "LLMOprimError": "oprim._exceptions",
+    "LLMResponse": "oprim.llm._types",
+    "OprimError": "oprim._exceptions",
+    "ParseOprimError": "oprim._exceptions",
+    "PathSecurityError": "oprim._exceptions",
+    "PeerPercentileResult": "oprim.types",
+    "Plot2DData": "oprim.types",
+    "PromptOprimError": "oprim._exceptions",
+    "SearchOprimError": "oprim._exceptions",
+    "SearchResult": "oprim.llm._types",
+    "ShellOprimError": "oprim._exceptions",
+    "SnapshotOprimError": "oprim._exceptions",
+    "SolveResult": "oprim.types",
+    "SolveStep": "oprim.types",
+    "SourceResult": "oprim._media_types",
+    "SourceTraceResult": "oprim._aii_graph_types",
+    "StepCheckResult": "oprim.types",
+    "StreamDelta": "oprim.llm._types",
+    "ThinkingResult": "oprim.llm._types",
+    "Three3DData": "oprim.types",
+    "TwoStepIngestResult": "oprim._aii_graph_types",
+    "__version__": "oprim._version",
+    "adamic_adar_score": "oprim._adamic_adar_score",
+    "aggregate_results": "oprim._parallel_llm",
+    "arxiv_search": "oprim._arxiv_search",
+    "build_system_prompt": "oprim.prompt",
+    "compute_effortful_gain": "oprim.compute_effortful_gain",
+    "compute_effortful_gain_from_arrays": "oprim.compute_effortful_gain",
+    "compute_feedback": "oprim.compute_feedback",
+    "compute_peer_percentile": "oprim.compute_peer_percentile",
+    "compute_percentile_batch": "oprim.compute_peer_percentile",
+    "compute_shapley_decomposition": "oprim._quant_analysis",
+    "compute_shapley_values": "oprim._quant_analysis",
+    "direct_link_score": "oprim._direct_link_score",
+    "dispatch_parallel": "oprim._parallel_llm",
+    "document_structure_extractor": "oprim._document_structure_extractor",
+    "due_compute": "oprim.due_compute",
+    "error_classify": "oprim.error_classify",
+    "extract_thinking": "oprim.prompt",
+    "file_parser_plaintext": "oprim._file_parser_plaintext",
+    "file_type_detector": "oprim.file_type_detector",
+    "grade_answer": "oprim.compute_feedback",
+    "gutenberg_search": "oprim._gutenberg_search",
+    "http_download_file": "oprim._http_download_file",
+    "ku_conflict_detect": "oprim._ku_conflict_detect",
+    "load_matrix": "oprim._llm_router",
+    "markdown_frontmatter_build": "oprim._markdown_frontmatter_build",
+    "oapen_search": "oprim._oapen_search",
+    "purpose_alignment_score": "oprim._purpose_alignment_score",
+    "quality_check": "oprim._quality_gate",
+    "recognition_update": "oprim.recognition_update",
+    "recognition_update_sequence": "oprim.recognition_update",
+    "route_decision": "oprim._llm_router",
+    "snapshot_conversation": "oprim.prompt",
+    "source_overlap_score": "oprim._source_overlap_score",
+    "source_trace": "oprim._source_trace",
+    "speech_to_math": "oprim.speech_to_math",
+    "split_prompt": "oprim._parallel_llm",
+    "text_clean_publish_noise": "oprim._text_clean_publish_noise",
+    "truncate_messages": "oprim.prompt",
+    "type_affinity_score": "oprim._type_affinity_score",
+}
+_ELEMENT_MAP.update(_AUTHORITATIVE_EXPORTS)
+
 # KCState 归 obase（经 oprim._cognitive 单源、惰性暴露）。登记到元素表以保持
 # `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
 # __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
@@ -82,6 +181,10 @@ _ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibili
 # bkt.py 不是 __init__ 包文件，AST 元素扫描不收录其 ImportFrom 别名，故在此显式登记，
 # 以保持 `from oprim import classify_error` 可达（M2 collection 契约）。
 _ELEMENT_MAP["classify_error"] = "oprim.bkt"
+
+# `oprim.storage` (storage adapter contracts) also defines an UploadResult; keep the
+# historical top-level binding pointing at the file-upload handler type.
+_ELEMENT_MAP["UploadResult"] = "oprim._file_upload_handler"
 
 
 # llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
@@ -107,6 +210,36 @@ def __getattr__(name: str) -> Any:
 def __dir__() -> list[str]:
     return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
 
+
+class _OprimPackage(_types.ModuleType):
+    """Keep exported callables winning over same-named submodules.
+
+    Many atoms live in ``oprim/<name>.py`` and export a callable also called ``<name>``.
+    ``oprim.<name>`` must be that callable (``__getattr__`` resolves it via
+    ``_ELEMENT_MAP``), but once anything imports the submodule ``oprim.<name>`` the
+    import system does ``setattr(oprim, "<name>", <module>)``, shadowing ``__getattr__``
+    -- so ``oprim.<name>(...)`` raised "'module' object is not callable" depending on
+    import order. Intercept that binding and store the exported callable instead; the
+    submodule stays reachable via ``sys.modules`` / ``importlib.import_module``.
+    """
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if (
+            isinstance(value, _types.ModuleType)
+            and value.__name__ == f"{self.__name__}.{name}"
+            and name in _ELEMENT_MAP
+        ):
+            if _ELEMENT_MAP[name] != value.__name__:
+                # The export lives in another module (e.g. ``_<name>.py``); leave the
+                # attribute unbound so ``__getattr__`` resolves the export lazily.
+                return
+            exported = getattr(value, name, None)
+            if exported is not None and not isinstance(exported, _types.ModuleType):
+                value = exported
+        super().__setattr__(name, value)
+
+
+_sys.modules[__name__].__class__ = _OprimPackage
 
 __all__ = sorted(_ELEMENT_MAP.keys())
 

@@ -1,4 +1,4 @@
-"""B2 Caddy tests — caddy_admin_config / caddy_routes_list /
+"""B2 Caddy tests — caddy_admin_config / caddy_admin_routes alias /
 caddy_route_add_atomic / caddy_route_remove_atomic."""
 
 from __future__ import annotations
@@ -9,6 +9,7 @@ import pytest
 
 from oprim import (
     caddy_admin_config,
+    caddy_admin_routes,
     caddy_route_add_atomic,
     caddy_route_remove_atomic,
     caddy_routes_list,
@@ -16,8 +17,8 @@ from oprim import (
 from oprim._exceptions import OprimConnectionError, OprimValidationError
 
 
-def test_caddy_routes_list_is_public():
-    assert callable(caddy_routes_list)
+def test_caddy_admin_routes_is_alias():
+    assert caddy_admin_routes is caddy_routes_list
 
 
 # ===== caddy_admin_config =====
@@ -40,13 +41,10 @@ def test_caddy_admin_config_success():
 
 
 def test_caddy_admin_config_connection_error():
-    with (
-        patch(
-            "oprim._caddy._admin_request",
-            return_value=_mock_response(500, text="internal error"),
-        ),
-        pytest.raises(OprimConnectionError),
-    ):
+    with patch(
+        "oprim._caddy._admin_request",
+        return_value=_mock_response(500, text="internal error"),
+    ), pytest.raises(OprimConnectionError):
         caddy_admin_config(admin_url="http://localhost:2019")
 
 
@@ -128,14 +126,12 @@ def test_caddy_route_add_atomic_validation_error():
             return _mock_response(200, [])
         return _mock_response(400, text="invalid route")
 
-    with (
-        patch("oprim._caddy._admin_request", side_effect=fake_req),
-        pytest.raises(OprimValidationError),
-    ):
-        caddy_route_add_atomic(
-            admin_url="http://localhost:2019",
-            route=_NEW_ROUTE,
-        )
+    with patch("oprim._caddy._admin_request", side_effect=fake_req):
+        with pytest.raises(OprimValidationError):
+            caddy_route_add_atomic(
+                admin_url="http://localhost:2019",
+                route=_NEW_ROUTE,
+            )
 
 
 # ===== caddy_route_remove_atomic =====
@@ -188,11 +184,9 @@ def test_caddy_route_remove_atomic_validation_error():
             return _mock_response(200, [{"@id": "route-x"}])
         return _mock_response(422, text="bad config")
 
-    with (
-        patch("oprim._caddy._admin_request", side_effect=fake_req),
-        pytest.raises(OprimValidationError),
-    ):
-        caddy_route_remove_atomic(
-            admin_url="http://localhost:2019",
-            route_id="route-x",
-        )
+    with patch("oprim._caddy._admin_request", side_effect=fake_req):
+        with pytest.raises(OprimValidationError):
+            caddy_route_remove_atomic(
+                admin_url="http://localhost:2019",
+                route_id="route-x",
+            )

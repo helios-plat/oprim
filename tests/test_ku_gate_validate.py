@@ -1,4 +1,4 @@
-"""Tests for oprim.ku_gate_validate."""
+"""Tests for oprim._ku_gate_validate."""
 
 from oprim._ku_gate_validate import ku_gate_validate
 

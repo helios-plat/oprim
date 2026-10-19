@@ -1,4 +1,4 @@
-"""Tests for oprim.ocr_detect_text."""
+"""Tests for oprim._ocr_detect_text."""
 
 from __future__ import annotations
 

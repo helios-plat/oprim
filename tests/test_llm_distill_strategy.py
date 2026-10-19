@@ -1,4 +1,4 @@
-"""Tests for oprim.llm_distill_strategy — uses stub path (no actual LLM)."""
+"""Tests for oprim._llm_distill_strategy — uses stub path (no actual LLM)."""
 
 import uuid
 

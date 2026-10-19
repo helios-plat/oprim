@@ -1,4 +1,4 @@
-"""Tests for oprim.bm25_search."""
+"""Tests for oprim._bm25_search."""
 
 from oprim import bm25_search
 

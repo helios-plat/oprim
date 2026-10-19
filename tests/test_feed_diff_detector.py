@@ -1,4 +1,4 @@
-"""Tests for oprim.feed_diff_detector."""
+"""Tests for oprim._feed_diff_detector."""
 
 from __future__ import annotations
 

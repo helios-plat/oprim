@@ -1,4 +1,4 @@
-"""Tests for oprim.usb_device_list."""
+"""Tests for oprim._usb_device_list."""
 
 from __future__ import annotations
 
@@ -75,6 +75,9 @@ class TestUsbDeviceList:
 @pytest.mark.skipif(shutil.which("lsusb") is None, reason="lsusb not installed")
 class TestRealLsusb:
     def test_smoke(self):
-        r = usb_device_list(include_root_hubs=True)
+        try:
+            r = usb_device_list(include_root_hubs=True)
+        except OprimError as e:  # e.g. CI runners: lsusb present but no USB bus
+            pytest.skip(f"lsusb not usable on this host: {e}")
         assert isinstance(r, UsbDeviceList)
         assert r.count == len(r.devices)

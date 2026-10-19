@@ -1,5 +1,5 @@
 """Tests for Stratum Batch 1 Group 5:
-llm_summarize, cache_invalidate, file_upload_handler,
+llm_summarize, file_upload_handler,
 temp_file_manager, push_email, otp_generate."""
 
 from __future__ import annotations
@@ -7,6 +7,8 @@ from __future__ import annotations
 import hashlib
 import io
 import smtplib
+import time
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -17,17 +19,23 @@ from oprim._file_upload_handler import UploadResult, file_upload_handler
 from oprim._llm_summarize import SummarizeResult, llm_summarize
 from oprim._otp_generate import OTPResult, otp_generate, otp_verify
 from oprim._push_email import EmailResult, push_email
-from oprim._temp_file_manager import TempFileResult, _temp_registry, temp_file_manager
+from oprim._temp_file_manager import (
+    _TTL_SECONDS,
+    TempFileResult,
+    _temp_registry,
+    temp_file_manager,
+)
 
-_memory_cache: dict = {}
 
-
-def cache_invalidate(key: str, cache_backend: str = "memory") -> bool:
-    """Invalidate cache entry (stub for compatibility)."""
-
-    _memory_cache.pop(key, None)
-
-    return True
+@contextmanager
+def _patch_llm(caller=None, *, side_effect=None):
+    """Patch obase ProviderRegistry.get().llm(provider) as used by llm_summarize."""
+    with patch("oprim._llm_summarize.ProviderRegistry") as reg:
+        if side_effect is not None:
+            reg.get.return_value.llm.side_effect = side_effect
+        else:
+            reg.get.return_value.llm.return_value = caller
+        yield reg
 
 
 # ---------------------------------------------------------------------------
@@ -44,7 +52,7 @@ class TestLlmSummarize:
 
     def test_mock_provider_returns_string(self) -> None:
         mock_caller = MagicMock(return_value="Short summary.")
-        with patch("oprim.llm_summarize.ProviderRegistry.get_caller", return_value=mock_caller):
+        with _patch_llm(mock_caller):
             result = llm_summarize(
                 text="A long text to summarize.", provider="qwen3", model="qwen3-max"
             )
@@ -55,20 +63,15 @@ class TestLlmSummarize:
     def test_mock_provider_returns_dict_with_content(self) -> None:
         dict_response = {"content": "Dict summary here.", "usage": {"total_tokens": 42}}
         mock_caller = MagicMock(return_value=dict_response)
-        with patch("oprim.llm_summarize.ProviderRegistry.get_caller", return_value=mock_caller):
+        with _patch_llm(mock_caller):
             result = llm_summarize(text="Some input text.", provider="qwen3", model="qwen3-max")
         assert result.summary == "Dict summary here."
         assert result.tokens_used == 42
 
     def test_provider_error_raises_oprim_error(self) -> None:
-        with (
-            patch(
-                "oprim.llm_summarize.ProviderRegistry.get_caller",
-                side_effect=RuntimeError("provider unavailable"),
-            ),
-            pytest.raises(OprimError, match="llm_summarize failed"),
-        ):
-            llm_summarize(text="Some text.", provider="bad_provider", model="x")
+        with _patch_llm(side_effect=RuntimeError("provider unavailable")):
+            with pytest.raises(OprimError, match="llm_summarize failed"):
+                llm_summarize(text="Some text.", provider="bad_provider", model="x")
 
     def test_style_param_passed_in_prompt(self) -> None:
         captured: list[list[dict[str, str]]] = []
@@ -77,9 +80,7 @@ class TestLlmSummarize:
             captured.append(messages)
             return "Bullet summary."
 
-        with patch(
-            "oprim.llm_summarize.ProviderRegistry.get_caller", return_value=capturing_caller
-        ):
+        with _patch_llm(capturing_caller):
             llm_summarize(
                 text="Input text.", provider="qwen3", model="qwen3-max", style="bullet_points"
             )
@@ -90,59 +91,11 @@ class TestLlmSummarize:
 
     def test_result_is_summarize_result_model(self) -> None:
         mock_caller = MagicMock(return_value="Summary text.")
-        with patch("oprim.llm_summarize.ProviderRegistry.get_caller", return_value=mock_caller):
+        with _patch_llm(mock_caller):
             result = llm_summarize(
                 text="Something to summarize.", provider="qwen3", model="qwen3-max"
             )
         assert isinstance(result, SummarizeResult)
-
-
-# ---------------------------------------------------------------------------
-# cache_invalidate
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.skipif(
-    __import__("importlib.util").util.find_spec("oprim.cache_invalidate") is None,
-    reason="cache invalidation moved to obase; covered by obase.cache tests",
-)
-class TestCacheInvalidate:
-    def setup_method(self) -> None:
-        _memory_cache.clear()
-
-    def test_memory_backend_returns_true_when_key_exists(self) -> None:
-        _memory_cache["user:42"] = "cached_value"
-        result = cache_invalidate(key="user:42", cache_backend="memory")
-        assert result is True
-        assert "user:42" not in _memory_cache
-
-    def test_memory_backend_returns_false_when_key_missing(self) -> None:
-        result = cache_invalidate(key="nonexistent:key", cache_backend="memory")
-        assert result is False
-
-    def test_redis_mock_returns_true_when_delete_returns_one(self) -> None:
-        mock_client = MagicMock()
-        mock_client.delete.return_value = 1
-        with patch("oprim.cache_invalidate.redis.Redis.from_url", return_value=mock_client):
-            result = cache_invalidate(
-                key="session:abc", cache_backend="redis", redis_url="redis://localhost:6379/0"
-            )
-        assert result is True
-        mock_client.delete.assert_called_once_with("session:abc")
-
-    def test_unsupported_backend_raises_oprim_error(self) -> None:
-        with pytest.raises(OprimError, match="unsupported cache_backend"):
-            cache_invalidate(key="k", cache_backend="memcached")
-
-    def test_redis_connection_error_raises_oprim_error(self) -> None:
-        with (
-            patch(
-                "oprim.cache_invalidate.redis.Redis.from_url",
-                side_effect=ConnectionError("refused"),
-            ),
-            pytest.raises(OprimError, match="cache_invalidate redis failed"),
-        ):
-            cache_invalidate(key="k", cache_backend="redis", redis_url="redis://bad:6379/0")
 
 
 # ---------------------------------------------------------------------------
@@ -253,7 +206,9 @@ class TestTempFileManager:
         assert created.file_path is not None
         path_str = created.file_path
         # Manually backdate the registry entry
-        _temp_registry[path_str] = (0.0, None)  # epoch 0 → definitely expired
+        # Backdate past the TTL relative to the monotonic clock (epoch 0.0 is not
+        # "expired" on a freshly booted host such as a CI runner).
+        _temp_registry[path_str] = (time.monotonic() - _TTL_SECONDS - 1, None)
         got = temp_file_manager(action="get", file_path=Path(path_str))
         assert got.success is False
         assert got.message == "expired"
@@ -268,7 +223,7 @@ class TestTempFileManager:
         created = temp_file_manager(action="create")
         assert created.file_path is not None
         # Backdate to expired
-        _temp_registry[created.file_path] = (0.0, None)
+        _temp_registry[created.file_path] = (time.monotonic() - _TTL_SECONDS - 1, None)
         result = temp_file_manager(action="cleanup_expired")
         assert result.cleaned_count >= 1
         assert created.file_path not in _temp_registry
@@ -303,7 +258,7 @@ class TestTempFileManager:
 
 class TestPushEmail:
     def test_success_plain_text(self) -> None:
-        with patch("oprim.push_email.smtplib.SMTP") as mock_smtp_cls:
+        with patch("oprim._push_email.smtplib.SMTP") as mock_smtp_cls:
             mock_server = MagicMock()
             mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
             mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
@@ -319,7 +274,7 @@ class TestPushEmail:
         assert result.subject == "Test"
 
     def test_smtp_exception_raises_oprim_error(self) -> None:
-        with patch("oprim.push_email.smtplib.SMTP") as mock_smtp_cls:
+        with patch("oprim._push_email.smtplib.SMTP") as mock_smtp_cls:
             mock_smtp_cls.return_value.__enter__ = MagicMock(
                 side_effect=smtplib.SMTPException("auth failed")
             )
@@ -334,7 +289,7 @@ class TestPushEmail:
                 )
 
     def test_html_body_sends_multipart(self) -> None:
-        with patch("oprim.push_email.smtplib.SMTP") as mock_smtp_cls:
+        with patch("oprim._push_email.smtplib.SMTP") as mock_smtp_cls:
             mock_server = MagicMock()
             mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
             mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
@@ -354,7 +309,7 @@ class TestPushEmail:
         assert "multipart/alternative" in raw_msg
 
     def test_no_auth_skips_login(self) -> None:
-        with patch("oprim.push_email.smtplib.SMTP") as mock_smtp_cls:
+        with patch("oprim._push_email.smtplib.SMTP") as mock_smtp_cls:
             mock_server = MagicMock()
             mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
             mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
@@ -370,13 +325,10 @@ class TestPushEmail:
         mock_server.login.assert_not_called()
 
     def test_os_error_raises_oprim_error(self) -> None:
-        with (
-            patch(
-                "oprim.push_email.smtplib.SMTP",
-                side_effect=OSError("connection refused"),
-            ),
-            pytest.raises(OprimError, match="push_email connection failed"),
-        ):
+        with patch(
+            "oprim._push_email.smtplib.SMTP",
+            side_effect=OSError("connection refused"),
+        ), pytest.raises(OprimError, match="push_email connection failed"):
             push_email(
                 to="a@b.com",
                 subject="x",
@@ -386,7 +338,7 @@ class TestPushEmail:
             )
 
     def test_result_is_email_result_model(self) -> None:
-        with patch("oprim.push_email.smtplib.SMTP") as mock_smtp_cls:
+        with patch("oprim._push_email.smtplib.SMTP") as mock_smtp_cls:
             mock_server = MagicMock()
             mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
             mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)

@@ -1,4 +1,4 @@
-"""Tests for oprim.citation_formatter."""
+"""Tests for oprim._citation_formatter."""
 
 from __future__ import annotations
 

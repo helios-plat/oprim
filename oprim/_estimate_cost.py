@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ._exceptions import ParseOprimError
+from .text import _DEFAULT_PRICING, _FALLBACK_PRICING
+
 
 _DEFAULT_PRICING: dict[str, dict[str, float]] = {}
 _FALLBACK_PRICING: dict[str, float] = {}

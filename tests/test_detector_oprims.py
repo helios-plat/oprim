@@ -376,7 +376,7 @@ class TestDetectNewsShock:
         prices = [10.0, 10.3, 10.6, 10.2, 10.8]
         news = [NewsItem(content="盈利暴增")]
         with patch(
-            "oprim.detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.8)
+            "oprim._detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.8)
         ):
             sig = detect_news_shock(news=news, five_min_prices=prices)
         assert _is_signal(sig)
@@ -386,7 +386,7 @@ class TestDetectNewsShock:
         prices = [10.0, 10.3, 10.6, 10.2, 10.8]
         news = [NewsItem(content="普通新闻")]
         with patch(
-            "oprim.detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.2)
+            "oprim._detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.2)
         ):
             result = detect_news_shock(news=news, five_min_prices=prices)
         assert result is None
@@ -395,7 +395,7 @@ class TestDetectNewsShock:
         prices = [10.0, 10.001, 10.002, 10.001, 10.002]  # near-zero vol
         news = [NewsItem(content="高情感新闻")]
         with patch(
-            "oprim.detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.9)
+            "oprim._detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.9)
         ):
             cfg = NewsShockConfig(volatility_threshold=0.05)
             result = detect_news_shock(news=news, five_min_prices=prices, config=cfg)
@@ -413,7 +413,7 @@ class TestDetectNewsShock:
         prices = [10.0, 10.4, 10.7, 10.2, 10.9]
         news = [NewsItem(content="test")]
         with patch(
-            "oprim.detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.75)
+            "oprim._detect_news_shock.financial_metric_extraction", return_value=_mock_metrics(0.75)
         ):
             sig = detect_news_shock(news=news, five_min_prices=prices)
         assert sig is not None
@@ -426,7 +426,7 @@ class TestDetectNewsShock:
         import pathlib
 
         # Use path-based read to avoid name clash with exported function in oprim.__init__
-        src = (pathlib.Path(__file__).parent.parent / "oprim" / "detect_news_shock.py").read_text()
+        src = (pathlib.Path(__file__).parent.parent / "oprim" / "_detect_news_shock.py").read_text()
         assert "from oprim.financial_metric_extraction import" in src
         assert "from oprim.volume_ratio import" not in src
         assert "_five_min_volatility" in src  # inline impl confirmed

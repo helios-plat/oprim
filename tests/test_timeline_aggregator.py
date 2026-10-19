@@ -1,4 +1,4 @@
-"""Tests for oprim.timeline_aggregator."""
+"""Tests for oprim._timeline_aggregator."""
 
 from __future__ import annotations
 

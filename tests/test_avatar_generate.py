@@ -1,4 +1,4 @@
-"""Tests for oprim.avatar_generate."""
+"""Tests for oprim._avatar_generate."""
 
 from __future__ import annotations
 

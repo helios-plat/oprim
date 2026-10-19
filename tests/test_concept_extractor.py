@@ -1,4 +1,4 @@
-"""Tests for oprim.concept_extractor."""
+"""Tests for oprim._concept_extractor."""
 
 from __future__ import annotations
 

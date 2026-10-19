@@ -11,6 +11,8 @@ from ._lsp_helpers import (
     _text_doc_pos,
 )
 from ._protocols import LspServerHandle
+from .lsp import _parse_workspace_edit, _text_doc_pos
+
 
 
 class LspOprimError(OprimError):

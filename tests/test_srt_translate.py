@@ -1,4 +1,4 @@
-"""Tests for oprim.srt_translate."""
+"""Tests for oprim._srt_translate."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Tests for oprim.structural_chunk."""
+"""Tests for oprim._structural_chunk."""
 
 from oprim._structural_chunk import structural_chunk
 

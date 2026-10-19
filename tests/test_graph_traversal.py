@@ -1,4 +1,4 @@
-"""Tests for oprim.graph_traversal."""
+"""Tests for oprim._graph_traversal."""
 
 from __future__ import annotations
 

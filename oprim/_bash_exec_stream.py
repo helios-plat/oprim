@@ -7,6 +7,8 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 
 from ._exceptions import ShellOprimError
+from .shell import _SENTINEL
+
 
 _SENTINEL = object()
 

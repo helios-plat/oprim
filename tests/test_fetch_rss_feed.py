@@ -1,4 +1,4 @@
-"""Tests for oprim.fetch_rss_feed."""
+"""Tests for oprim._fetch_rss_feed."""
 
 from __future__ import annotations
 

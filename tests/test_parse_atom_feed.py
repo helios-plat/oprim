@@ -1,4 +1,4 @@
-"""Tests for oprim.parse_atom_feed."""
+"""Tests for oprim._parse_atom_feed."""
 
 from __future__ import annotations
 

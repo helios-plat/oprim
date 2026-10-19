@@ -6,6 +6,8 @@ import re
 from dataclasses import dataclass
 
 from ._exceptions import ParseOprimError
+from .text import _DEFAULT_PATTERNS
+
 
 _DEFAULT_PATTERNS: list[str] = []
 

@@ -1,4 +1,4 @@
-"""Tests for oprim.podcast_episode_parser."""
+"""Tests for oprim._podcast_episode_parser."""
 
 from __future__ import annotations
 

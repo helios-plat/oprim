@@ -1,4 +1,4 @@
-"""Tests for oprim.edge_tts_synthesize (多语言云 TTS — ≥6 tests).
+"""Tests for oprim._edge_tts_synthesize (多语言云 TTS — ≥6 tests).
 
 用注入的 _synth_fn / _ffmpeg_fn 避开 edge_tts / obase.ffmpeg 依赖(不触网、不装可选依赖)。
 """

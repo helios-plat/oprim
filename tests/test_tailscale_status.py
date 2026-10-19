@@ -1,4 +1,4 @@
-"""Tests for oprim.tailscale_status."""
+"""Tests for oprim._tailscale_status."""
 
 from __future__ import annotations
 

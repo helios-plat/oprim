@@ -1,4 +1,4 @@
-"""Tests for oprim.keyword_alert_checker."""
+"""Tests for oprim._keyword_alert_checker."""
 
 from __future__ import annotations
 

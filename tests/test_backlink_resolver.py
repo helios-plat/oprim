@@ -1,4 +1,4 @@
-"""Tests for oprim.backlink_resolver."""
+"""Tests for oprim._backlink_resolver."""
 
 from __future__ import annotations
 
