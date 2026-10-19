@@ -1,4 +1,8 @@
-"""Cursor-based changefeed reader."""
+"""Cursor-based changefeed reader.
+
+Restored from Phase 2 Wave 2 (commit 11a6f0b) and adapted to the current
+consumer contract (event_type/seq/device_id) + lazy schema bootstrap.
+"""
 
 from __future__ import annotations
 
@@ -27,8 +31,9 @@ class ChangefeedReader:
     ) -> list[ChangefeedEvent]:
         """Return events with seq > since_seq, ascending order.
 
-        This is a synchronous call — DuckDB is in-process and fast.
+        This is a synchronous call — the backing store is in-process/local.
         """
+        ensure_schema(self.db)
         if event_types:
             placeholders = ", ".join("?" * len(event_types))
             sql = f"""
@@ -58,6 +63,7 @@ class ChangefeedReader:
 
     def get_latest_seq(self) -> int:
         """Return the maximum seq for this user, or 0 if no events."""
+        ensure_schema(self.db)
         rows = self.db.fetchall(
             "SELECT COALESCE(MAX(seq), 0) FROM changefeed_events WHERE user_id = ?",
             [self.user_id],
@@ -66,6 +72,7 @@ class ChangefeedReader:
 
     def count(self) -> int:
         """Return total event count for this user."""
+        ensure_schema(self.db)
         rows = self.db.fetchall(
             "SELECT COUNT(*) FROM changefeed_events WHERE user_id = ?",
             [self.user_id],
