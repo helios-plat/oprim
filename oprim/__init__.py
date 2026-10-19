@@ -243,6 +243,12 @@ _MANIFEST_ELEMENTS: tuple[str, ...] = (
     "ProviderCapability",
     "Subject",
     "VideoQuality",
+    # repo3o intake
+    "crop_video_to_portrait",
+    "multimodal_embed",
+    "synthesize_speech_chunk",
+    "vector_cosine_search",
+    "whisper_transcribe",
 )
 
 
