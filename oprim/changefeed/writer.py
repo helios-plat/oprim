@@ -1,9 +1,12 @@
-"""Append-only changefeed writer backed by DuckDB.
+"""Append-only changefeed writer backed by MetaDB (DuckDB/Postgres).
 
 Invariants:
 - Only INSERTs — never UPDATE or DELETE changefeed_events
 - seq is strictly increasing per (user_id)
 - asyncio.Lock per user_id serializes concurrent writers within a process
+
+Restored from Phase 2 Wave 2 (commit 11a6f0b) and adapted to the current
+consumer contract (event_type/seq/device_id) + lazy schema bootstrap.
 """
 
 from __future__ import annotations
