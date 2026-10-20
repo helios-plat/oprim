@@ -1,4 +1,9 @@
 from oprim.derivatives.american import lsm_american_price
+from oprim.derivatives.analytics import (
+    analyze_option_chain,
+    compute_max_pain,
+    compute_put_call_ratio,
+)
 from oprim.derivatives.binomial_tree import binomial_tree_price
 from oprim.derivatives.black_scholes import (
     black_scholes_greeks,
@@ -23,4 +28,7 @@ __all__ = [
     "svensson_yield_curve",
     "cubic_spline_yield_curve",
     "sabr_implied_volatility",
+    "analyze_option_chain",
+    "compute_max_pain",
+    "compute_put_call_ratio",
 ]
