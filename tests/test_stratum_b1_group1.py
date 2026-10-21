@@ -15,7 +15,7 @@ from oprim._exceptions import OprimError
 from oprim._file_size_limiter import SizeLimitResult, file_size_limiter
 from oprim._http_post import HTTPResponse, http_post
 from oprim._template_render import template_render
-from oprim.file_type_detector import FileTypeInfo, file_type_detector
+from oprim._file_type_detector import FileTypeInfo, file_type_detector
 
 _MB = 1024 * 1024
 
