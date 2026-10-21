@@ -1,5 +1,6 @@
 """Technical indicator submodule."""
 
+from oprim.technical.adx import adx
 from oprim.technical.adaptive import kama
 from oprim.technical.bands import bollinger_bands, donchian_channel, keltner_channels
 from oprim.technical.exits import chandelier_exit
@@ -29,6 +30,7 @@ __all__ = [
     "kama",
     "obv",
     "mfi",
+    "adx",
     "atr_series",
     "adx_series",
     "supertrend",
