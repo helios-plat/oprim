@@ -12,7 +12,9 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
+import sys
 from typing import Any
 
 
@@ -42,6 +44,15 @@ def tdd_test_run(
         }
     """
     try:
+        # Use the same interpreter environment for child commands. Minimal Linux
+        # images often provide ``python3`` but not a ``python`` shim; placing the
+        # active interpreter directory first makes the documented command stable.
+        child_env = os.environ.copy()
+        if env is not None:
+            child_env.update(env)
+        interpreter_dir = os.path.dirname(sys.executable)
+        current_path = child_env.get("PATH", "")
+        child_env["PATH"] = interpreter_dir + (os.pathsep + current_path if current_path else "")
         proc = subprocess.run(
             test_command,
             shell=True,
@@ -49,7 +60,7 @@ def tdd_test_run(
             capture_output=True,
             text=True,
             timeout=timeout_sec,
-            env=env,
+            env=child_env,
         )
         passed = proc.returncode == 0
         return {
