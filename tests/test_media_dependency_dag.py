@@ -299,7 +299,7 @@ class TestNonMediaBacklogPinned:
 
     # Pinned from the TV3O worktree's actual scanner output after restoring
     # risk and technical atoms (150 violations, measured 2026-10-21).
-    EXPECTED_COUNT = 150
+    EXPECTED_COUNT = 149
 
     #: Element→element compositions outside the media scope, same defect class as
     #: the pre-D video DAG. Removed from the 3o_lint allowlist in P0-D (the old
