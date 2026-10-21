@@ -79,13 +79,13 @@ def _theme_rows():
 
 class TestFetchThemesDaily:
     async def test_returns_theme_entries(self):
-        with patch("oprim.fetch_themes_daily._akshare_fetch_themes", return_value=_theme_rows()):
+        with patch("oprim._fetch_themes_daily._akshare_fetch_themes", return_value=_theme_rows()):
             entries = await fetch_themes_daily(as_of_date=date(2024, 3, 1))
         assert all(isinstance(e, ThemeEntry) for e in entries)
         assert len(entries) == 3
 
     async def test_sorted_by_change_pct_desc(self):
-        with patch("oprim.fetch_themes_daily._akshare_fetch_themes", return_value=_theme_rows()):
+        with patch("oprim._fetch_themes_daily._akshare_fetch_themes", return_value=_theme_rows()):
             entries = await fetch_themes_daily()
         chgs = [e.change_pct for e in entries]
         assert chgs == sorted(chgs, reverse=True)
@@ -97,19 +97,19 @@ class TestFetchThemesDaily:
     async def test_network_error_wraps(self):
         with (
             patch(
-                "oprim.fetch_themes_daily._akshare_fetch_themes", side_effect=ConnectionError("x")
+                "oprim._fetch_themes_daily._akshare_fetch_themes", side_effect=ConnectionError("x")
             ),
             pytest.raises(ThemesFetchError, match="fetch_themes_daily"),
         ):
             await fetch_themes_daily()
 
     async def test_empty_rows_returns_empty(self):
-        with patch("oprim.fetch_themes_daily._akshare_fetch_themes", return_value=[]):
+        with patch("oprim._fetch_themes_daily._akshare_fetch_themes", return_value=[]):
             entries = await fetch_themes_daily()
         assert entries == []
 
     async def test_theme_name_and_code_preserved(self):
-        with patch("oprim.fetch_themes_daily._akshare_fetch_themes", return_value=_theme_rows()):
+        with patch("oprim._fetch_themes_daily._akshare_fetch_themes", return_value=_theme_rows()):
             entries = await fetch_themes_daily()
         ai = next(e for e in entries if e.theme_name == "人工智能")
         assert ai.theme_code == "BK0811"
@@ -166,7 +166,7 @@ def _sector_rows():
 class TestFetchSectorReturns:
     async def test_returns_sector_return_instances(self):
         with patch(
-            "oprim.fetch_sector_returns._akshare_fetch_sectors", return_value=_sector_rows()
+            "oprim._fetch_sector_returns._akshare_fetch_sectors", return_value=_sector_rows()
         ):
             results = await fetch_sector_returns()
         assert all(isinstance(r, SectorReturn) for r in results)
@@ -174,7 +174,7 @@ class TestFetchSectorReturns:
 
     async def test_sorted_desc(self):
         with patch(
-            "oprim.fetch_sector_returns._akshare_fetch_sectors", return_value=_sector_rows()
+            "oprim._fetch_sector_returns._akshare_fetch_sectors", return_value=_sector_rows()
         ):
             results = await fetch_sector_returns()
         chgs = [r.change_pct for r in results]
@@ -182,7 +182,7 @@ class TestFetchSectorReturns:
 
     async def test_top_n_limits_results(self):
         with patch(
-            "oprim.fetch_sector_returns._akshare_fetch_sectors", return_value=_sector_rows()
+            "oprim._fetch_sector_returns._akshare_fetch_sectors", return_value=_sector_rows()
         ):
             results = await fetch_sector_returns(top_n=2)
         assert len(results) == 2
@@ -194,14 +194,14 @@ class TestFetchSectorReturns:
 
     async def test_network_error_wraps(self):
         with (
-            patch("oprim.fetch_sector_returns._akshare_fetch_sectors", side_effect=OSError("down")),
+            patch("oprim._fetch_sector_returns._akshare_fetch_sectors", side_effect=OSError("down")),
             pytest.raises(SectorFetchError, match="fetch_sector_returns"),
         ):
             await fetch_sector_returns()
 
     async def test_date_in_result(self):
         with patch(
-            "oprim.fetch_sector_returns._akshare_fetch_sectors", return_value=_sector_rows()
+            "oprim._fetch_sector_returns._akshare_fetch_sectors", return_value=_sector_rows()
         ):
             results = await fetch_sector_returns(as_of_date=date(2024, 3, 1))
         assert all(r.date == date(2024, 3, 1) for r in results)

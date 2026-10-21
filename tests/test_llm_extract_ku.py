@@ -170,7 +170,7 @@ class TestProviderRegistryPath:
                 def __init__(self, msg):
                     self.message = msg
 
-            with patch("oprim.llm_extract_ku._log") as mock_log:
+            with patch("oprim._llm_extract_ku._log") as mock_log:
                 mock_log.warning.side_effect = lambda msg, *a, **k: records.append(
                     _R(msg % a if a else msg)
                 )

@@ -26,7 +26,7 @@ class TestSubtitleBurn:
         video.write_bytes(b"\x00" * 64)
         srt.write_text("1\n00:00:00,000 --> 00:00:01,000\nHello\n")
         out = tmp_path / "burned.mp4"
-        with patch("oprim.subtitle_burn.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._subtitle_burn.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await subtitle_burn(video_path=video, srt_paths=[srt], output_path=out)
         assert result == out
 
@@ -38,7 +38,7 @@ class TestSubtitleBurn:
         srt_zh.write_text("1\n00:00:00,000 --> 00:00:01,000\n你好\n")
         srt_en.write_text("1\n00:00:00,000 --> 00:00:01,000\nHello\n")
         out = tmp_path / "dual.mp4"
-        with patch("oprim.subtitle_burn.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._subtitle_burn.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await subtitle_burn(
                 video_path=video, srt_paths=[srt_zh, srt_en], output_path=out
             )
@@ -76,7 +76,7 @@ class TestSubtitleBurn:
             raise FFmpegError("subtitle error", code=1, stderr="subtitle error")
 
         with (
-            patch("oprim.subtitle_burn.ffmpeg_run", side_effect=_fail),
+            patch("oprim._subtitle_burn.ffmpeg_run", side_effect=_fail),
             pytest.raises(SubtitleBurnError, match="FFmpeg subtitle burn failed"),
         ):
             await subtitle_burn(video_path=video, srt_paths=[srt], output_path=tmp_path / "out.mp4")
@@ -93,6 +93,6 @@ class TestSubtitleBurn:
         video.write_bytes(b"\x00" * 64)
         srt.write_text("1\n00:00:00,000 --> 00:00:01,000\nHi\n")
         out = tmp_path / "result.mp4"
-        with patch("oprim.subtitle_burn.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._subtitle_burn.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             await subtitle_burn(video_path=video, srt_paths=[srt], output_path=out)
         assert out.exists()
