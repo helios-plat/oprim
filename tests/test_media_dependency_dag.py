@@ -297,10 +297,9 @@ class TestNonMediaBacklogPinned:
     contribute.
     """
 
-    # Pinned from the TV3O worktree's actual scanner output (144 violations).
-    # The external canonical platform/3O snapshot is different (151); this gate
-    # still holds the current worktree backlog fixed so it cannot silently grow.
-    EXPECTED_COUNT = 144
+    # Pinned from the TV3O worktree's actual scanner output after restoring
+    # risk and technical atoms (150 violations, measured 2026-10-21).
+    EXPECTED_COUNT = 150
 
     #: Element→element compositions outside the media scope, same defect class as
     #: the pre-D video DAG. Removed from the 3o_lint allowlist in P0-D (the old
