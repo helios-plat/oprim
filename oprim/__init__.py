@@ -249,7 +249,9 @@ class _OprimPackage(_types.ModuleType):
                 return
             exported = getattr(value, name, None)
             if callable(exported):
-                value.__class__ = _CallableOprimElementModule
+                # Expose the callable at package level while preserving the
+                # defining module in sys.modules for explicit importlib access.
+                value = exported
             elif exported is not None and not isinstance(exported, _types.ModuleType):
                 value = exported
         super().__setattr__(name, value)
