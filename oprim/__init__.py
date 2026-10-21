@@ -382,6 +382,14 @@ _MANIFEST_ELEMENTS: tuple[str, ...] = (
     "synthesize_speech_chunk",
     "vector_cosine_search",
     "whisper_transcribe",
+    # technical indicators upstreamed from the Helios consumer line
+    "swing_failure_pattern",
+    "triple_barrier_label",
+    # risk primitives upstreamed from the Helios consumer line
+    "atr_position_cap",
+    "cvar_portfolio_optimize",
+    "fee_edge_filter",
+    "net_exposure_clip",
 )
 
 
