@@ -376,6 +376,14 @@ _MANIFEST_ELEMENTS: tuple[str, ...] = (
     "ProviderCapability",
     "Subject",
     "VideoQuality",
+    # TradingView read-only market data sidecar
+    "fetch_tv_technicals",
+    "fetch_tv_crypto_screener",
+    "fetch_tv_symbol_markets",
+    "fetch_tv_news",
+    "fetch_tv_minds",
+    "fetch_tv_ideas",
+    "fetch_tv_ohlcv",
     # repo3o intake
     "crop_video_to_portrait",
     "multimodal_embed",
