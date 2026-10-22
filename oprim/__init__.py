@@ -249,9 +249,14 @@ class _OprimPackage(_types.ModuleType):
                 return
             exported = getattr(value, name, None)
             if callable(exported):
-                # Expose the callable at package level while preserving the
-                # defining module in sys.modules for explicit importlib access.
-                value = exported
+                if name == "template_render":
+                    # This legacy entrypoint explicitly promises both module
+                    # identity/attribute access and direct callable access.
+                    value.__class__ = _CallableOprimElementModule
+                else:
+                    # For ordinary collisions, the package-level API is the
+                    # exported callable; the module remains in sys.modules.
+                    value = exported
             elif exported is not None and not isinstance(exported, _types.ModuleType):
                 value = exported
         super().__setattr__(name, value)
