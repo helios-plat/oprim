@@ -2,6 +2,7 @@
 
 Reference: Bodie, Kane, Marcus (2014), "Investments", 10th ed.
 """
+
 from __future__ import annotations
 
 import numpy as np

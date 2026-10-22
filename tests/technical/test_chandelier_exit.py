@@ -16,15 +16,15 @@ def _make_ohlc(n=50, seed=42):
 
 
 def test_chandelier_basic():
-    h, l, c = _make_ohlc()
-    result = chandelier_exit(h, l, c, period=10, multiplier=3.0)
+    h, low, c = _make_ohlc()
+    result = chandelier_exit(h, lows=low, closes=c, period=10, multiplier=3.0)
     assert set(result.keys()) == {"long_exit", "short_exit"}
     assert len(result["long_exit"]) == 50
 
 
 def test_chandelier_long_exit_below_recent_high():
-    h, l, c = _make_ohlc(50)
-    result = chandelier_exit(h, l, c, period=10, multiplier=3.0)
+    h, low, c = _make_ohlc(50)
+    result = chandelier_exit(h, lows=low, closes=c, period=10, multiplier=3.0)
     long_exit = result["long_exit"]
     # long_exit should be below rolling high by at least multiplier * small_atr
     valid_idx = np.where(np.isfinite(long_exit))[0]
@@ -34,46 +34,46 @@ def test_chandelier_long_exit_below_recent_high():
 
 
 def test_chandelier_short_exit_above_recent_low():
-    h, l, c = _make_ohlc(50)
-    result = chandelier_exit(h, l, c, period=10, multiplier=3.0)
+    h, low, c = _make_ohlc(50)
+    result = chandelier_exit(h, lows=low, closes=c, period=10, multiplier=3.0)
     short_exit = result["short_exit"]
     valid_idx = np.where(np.isfinite(short_exit))[0]
     for t in valid_idx:
-        roll_low = np.min(l[max(0, t - 9) : t + 1])
+        roll_low = np.min(low[max(0, t - 9) : t + 1])
         assert short_exit[t] >= roll_low
 
 
 def test_chandelier_mismatched_length_raises():
-    h, l, c = _make_ohlc(50)
+    h, low, c = _make_ohlc(50)
     with pytest.raises(ValueError):
-        chandelier_exit(h[:40], l, c)
+        chandelier_exit(h[:40], lows=low, closes=c)
     with pytest.raises(ValueError):
-        chandelier_exit(h, l[:40], c)
+        chandelier_exit(h, lows=low[:40], closes=c)
 
 
 def test_chandelier_invalid_period():
-    h, l, c = _make_ohlc()
+    h, low, c = _make_ohlc()
     with pytest.raises(ValueError):
-        chandelier_exit(h, l, c, period=0)
+        chandelier_exit(h, lows=low, closes=c, period=0)
     with pytest.raises(ValueError):
-        chandelier_exit(h, l, c, period=-5)
+        chandelier_exit(h, lows=low, closes=c, period=-5)
 
 
 def test_chandelier_invalid_multiplier():
-    h, l, c = _make_ohlc()
+    h, low, c = _make_ohlc()
     with pytest.raises(ValueError):
-        chandelier_exit(h, l, c, multiplier=0.0)
+        chandelier_exit(h, lows=low, closes=c, multiplier=0.0)
     with pytest.raises(ValueError):
-        chandelier_exit(h, l, c, multiplier=-1.0)
+        chandelier_exit(h, lows=low, closes=c, multiplier=-1.0)
 
 
 def test_chandelier_preserves_series():
-    h, l, c = _make_ohlc(50)
+    h, low, c = _make_ohlc(50)
     idx = pd.date_range("2024-01-01", periods=50)
     result = chandelier_exit(
         pd.Series(h, index=idx),
-        pd.Series(l, index=idx),
-        pd.Series(c, index=idx),
+        lows=pd.Series(low, index=idx),
+        closes=pd.Series(c, index=idx),
     )
     assert isinstance(result["long_exit"], pd.Series)
     assert list(result["long_exit"].index) == list(idx)
@@ -93,10 +93,11 @@ def test_chandelier_matches_published_example():
     period = 22
     multiplier = 3.0
 
-    result = chandelier_exit(highs, lows, closes, period=period, multiplier=multiplier)
+    result = chandelier_exit(highs, lows=lows, closes=closes, period=period, multiplier=multiplier)
 
     # Manual: ATR via Wilder, rolling max/min
     from oprim.technical._base import _wilder_atr
+
     atr_arr = _wilder_atr(highs, lows, closes, period)
     roll_high = pd.Series(highs).rolling(period).max().to_numpy()
     roll_low = pd.Series(lows).rolling(period).min().to_numpy()
@@ -119,9 +120,9 @@ def test_chandelier_matches_published_example():
 def test_chandelier_too_short_series():
     """_wilder_atr returns all NaN when n-1 < period."""
     h = np.array([1.1, 1.2])
-    l = np.array([0.9, 1.0])
+    low = np.array([0.9, 1.0])
     c = np.array([1.0, 1.1])
-    result = chandelier_exit(h, l, c, period=5)
+    result = chandelier_exit(h, lows=low, closes=c, period=5)
     # Too short for ATR: all NaN
     assert all(np.isnan(result["long_exit"]))
 
@@ -129,13 +130,13 @@ def test_chandelier_too_short_series():
 def test_chandelier_single_bar_too_short():
     """_wilder_atr n < 2 returns all NaN."""
     h = np.array([1.1])
-    l = np.array([0.9])
+    low = np.array([0.9])
     c = np.array([1.0])
-    result = chandelier_exit(h, l, c, period=1)
+    result = chandelier_exit(h, lows=low, closes=c, period=1)
     assert all(np.isnan(result["long_exit"]))
 
 
 def test_chandelier_exit_empty_closes_raises():
     """Empty closes array raises ValueError."""
     with pytest.raises(ValueError, match="empty"):
-        chandelier_exit(np.array([]), np.array([]), np.array([]))
+        chandelier_exit(np.array([]), lows=np.array([]), closes=np.array([]))

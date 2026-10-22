@@ -28,6 +28,7 @@ except ImportError:
 # Models
 # ---------------------------------------------------------------------------
 
+
 class UploadResult(BaseModel):
     s3_url: str
     etag: str
@@ -50,6 +51,7 @@ class ObjectMetadata(BaseModel):
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _parse_s3_url(s3_url: str) -> tuple[str, str]:
     """Parse s3://bucket/key → (bucket, key). Raise on bad format."""
     parsed = urlparse(s3_url)
@@ -64,9 +66,7 @@ def _parse_s3_url(s3_url: str) -> tuple[str, str]:
 
 def _make_s3_client() -> Any:
     if boto3 is None:
-        raise OprimError(
-            "boto3 is required for S3 oprim. Install with: pip install boto3"
-        )
+        raise OprimError("boto3 is required for S3 oprim. Install with: pip install boto3")
 
     try:
         return boto3.client("s3")
@@ -77,6 +77,7 @@ def _make_s3_client() -> Any:
 # ---------------------------------------------------------------------------
 # 10.2 s3_upload_file
 # ---------------------------------------------------------------------------
+
 
 def s3_upload_file(
     *,
@@ -144,6 +145,7 @@ def s3_upload_file(
 # ---------------------------------------------------------------------------
 # 10.3 s3_object_metadata
 # ---------------------------------------------------------------------------
+
 
 def s3_object_metadata(
     *,

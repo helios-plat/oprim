@@ -1,4 +1,5 @@
 """HTML parser using trafilatura with readability-lxml fallback."""
+
 from __future__ import annotations
 
 import trafilatura

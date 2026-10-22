@@ -20,7 +20,8 @@ def large_loss_aversion_degree(
 
     The LLAD measures how strongly the agent overweights large losses relative
     to gains as payoff magnitudes grow.  Under a Pareto distribution with tail
-    index ``xi`` the relevant threshold is ``xi / (xi - 1)``; LLAD > threshold
+    index ``xi`` the relevant threshold is ``xi / (xi - 1)``
+    LLAD > threshold
     indicates the CPT functional is well-posed (finite expected value).
 
     Parameters

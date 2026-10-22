@@ -9,10 +9,10 @@ import pytest
 from oprim import cpu_memory_snapshot, process_list_top
 from oprim._system import ProcessInfo, SystemSnapshot
 
-
 # ---------------------------------------------------------------------------
 # cpu_memory_snapshot
 # ---------------------------------------------------------------------------
+
 
 class TestCpuMemorySnapshot:
     def _psutil_mock(self, cpu_percents=None, mem_total=8 * 1024**3, mem_avail=4 * 1024**3):
@@ -23,7 +23,7 @@ class TestCpuMemorySnapshot:
         mem.total = mem_total
         mem.available = mem_avail
         mem.used = mem_total - mem_avail
-        mem.percent = ((mem_total - mem_avail) / mem_total * 100)
+        mem.percent = (mem_total - mem_avail) / mem_total * 100
         psutil.virtual_memory.return_value = mem
         swap = MagicMock()
         swap.total = 2 * 1024**3
@@ -33,9 +33,11 @@ class TestCpuMemorySnapshot:
 
     def test_local_snapshot(self):
         psutil = self._psutil_mock()
-        with patch.dict("sys.modules", {"psutil": psutil}):
-            with patch("oprim._system.os.getloadavg", return_value=(1.2, 1.5, 1.8)):
-                result = cpu_memory_snapshot()
+        with (
+            patch.dict("sys.modules", {"psutil": psutil}),
+            patch("oprim._system.os.getloadavg", return_value=(1.2, 1.5, 1.8)),
+        ):
+            result = cpu_memory_snapshot()
         assert isinstance(result, SystemSnapshot)
         assert result.host is None
         assert result.cpu_count == 4
@@ -45,16 +47,20 @@ class TestCpuMemorySnapshot:
 
     def test_memory_percent_calculated(self):
         psutil = self._psutil_mock(mem_total=1024, mem_avail=256)
-        with patch.dict("sys.modules", {"psutil": psutil}):
-            with patch("oprim._system.os.getloadavg", return_value=(0.5, 0.5, 0.5)):
-                result = cpu_memory_snapshot()
+        with (
+            patch.dict("sys.modules", {"psutil": psutil}),
+            patch("oprim._system.os.getloadavg", return_value=(0.5, 0.5, 0.5)),
+        ):
+            result = cpu_memory_snapshot()
         assert result.memory_percent == pytest.approx(75.0, abs=1.0)
 
     def test_load_averages_present(self):
         psutil = self._psutil_mock()
-        with patch.dict("sys.modules", {"psutil": psutil}):
-            with patch("oprim._system.os.getloadavg", return_value=(2.1, 1.8, 1.5)):
-                result = cpu_memory_snapshot()
+        with (
+            patch.dict("sys.modules", {"psutil": psutil}),
+            patch("oprim._system.os.getloadavg", return_value=(2.1, 1.8, 1.5)),
+        ):
+            result = cpu_memory_snapshot()
         assert result.load_avg_1m == pytest.approx(2.1)
         assert result.load_avg_5m == pytest.approx(1.8)
 
@@ -64,15 +70,18 @@ class TestCpuMemorySnapshot:
 
     def test_per_core_cpu_list(self):
         psutil = self._psutil_mock(cpu_percents=[10.0, 20.0, 30.0, 40.0])
-        with patch.dict("sys.modules", {"psutil": psutil}):
-            with patch("oprim._system.os.getloadavg", return_value=(1.0, 1.0, 1.0)):
-                result = cpu_memory_snapshot()
+        with (
+            patch.dict("sys.modules", {"psutil": psutil}),
+            patch("oprim._system.os.getloadavg", return_value=(1.0, 1.0, 1.0)),
+        ):
+            result = cpu_memory_snapshot()
         assert len(result.cpu_percent_per_core) == 4
 
 
 # ---------------------------------------------------------------------------
 # process_list_top
 # ---------------------------------------------------------------------------
+
 
 class TestProcessListTop:
     def _make_procs(self, n=5):
@@ -133,9 +142,14 @@ class TestProcessListTop:
 
         good_proc = MagicMock()
         good_proc.info = {
-            "pid": 1, "name": "good", "cmdline": ["/usr/bin/good"],
-            "cpu_percent": 5.0, "memory_percent": 1.0,
-            "memory_info": MagicMock(rss=1024), "status": "running", "username": "user",
+            "pid": 1,
+            "name": "good",
+            "cmdline": ["/usr/bin/good"],
+            "cpu_percent": 5.0,
+            "memory_percent": 1.0,
+            "memory_info": MagicMock(rss=1024),
+            "status": "running",
+            "username": "user",
         }
         bad_proc = MagicMock()
         type(bad_proc).info = PropertyMock(side_effect=ad("denied"))

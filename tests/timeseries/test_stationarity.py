@@ -1,4 +1,5 @@
 """Tests for oprim.timeseries.stationarity: adf_test, kpss_test."""
+
 import numpy as np
 import pytest
 
@@ -16,6 +17,7 @@ def _ar1_series(phi, n=500, seed=42):
 
 # ---------- ADF tests ----------
 
+
 def test_adf_stationary_rejects():
     x = _ar1_series(0.5, 500)
     r = adf_test(x)
@@ -31,7 +33,15 @@ def test_adf_random_walk_fails_to_reject():
 def test_adf_returns_expected_keys():
     x = _ar1_series(0.5, 200)
     r = adf_test(x)
-    for key in ("statistic", "p_value", "lags_used", "n_obs", "critical_values", "is_stationary", "regression_type"):
+    for key in (
+        "statistic",
+        "p_value",
+        "lags_used",
+        "n_obs",
+        "critical_values",
+        "is_stationary",
+        "regression_type",
+    ):
         assert key in r, f"Missing key: {key}"
 
 
@@ -114,6 +124,7 @@ def test_adf_pvalue_matches_statsmodels():
 
 # ---------- KPSS tests ----------
 
+
 def test_kpss_stationary_series():
     x = _ar1_series(0.5, 500)
     r = kpss_test(x)
@@ -176,6 +187,7 @@ def test_adf_regression_ctt():
 
 def test_adf_series_input():
     import pandas as pd
+
     x = pd.Series(_ar1_series(0.5, 300))
     r = adf_test(x)
     assert r["is_stationary"]
@@ -183,6 +195,7 @@ def test_adf_series_input():
 
 def test_kpss_series_input():
     import pandas as pd
+
     x = pd.Series(_ar1_series(0.5, 200))
     r = kpss_test(x)
     assert isinstance(r["statistic"], float)
@@ -197,6 +210,7 @@ def test_kpss_with_n_lags():
 def test_adf_pvalue_extremes():
     """Test that very negative and very positive t-stats get boundary p-values."""
     from oprim.timeseries.stationarity import _adf_pvalue
+
     p_low = _adf_pvalue(-10.0, "c")
     assert p_low <= 0.01
     p_high = _adf_pvalue(5.0, "c")
@@ -225,6 +239,7 @@ def test_kpss_matches_statsmodels():
     except ImportError:
         pytest.skip("statsmodels not installed")
     import warnings
+
     x = _ar1_series(0.5, 300)
     r = kpss_test(x, regression="c")
     with warnings.catch_warnings():

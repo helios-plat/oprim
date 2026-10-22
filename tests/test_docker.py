@@ -6,22 +6,35 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from oprim import (
-    docker_container_inspect,
-    docker_container_logs,
-    docker_container_restart,
-    docker_container_start,
-    docker_container_stats,
-    docker_container_stop,
-    docker_image_pull,
-)
-from oprim._docker import ContainerInfo, ContainerOpResult, ContainerStats, ImagePullResult, LogLine
-from oprim._exceptions import OprimConnectionError, OprimNotFoundError
+try:
+    from oprim._docker import (
+        ContainerInfo,
+        ContainerOpResult,
+        ContainerStats,
+        ImagePullResult,
+        LogLine,
+    )
 
+    from oprim import (
+        docker_container_inspect,
+        docker_container_logs,
+        docker_container_restart,
+        docker_container_start,
+        docker_container_stats,
+        docker_container_stop,
+        docker_image_pull,
+    )
+    from oprim._exceptions import OprimAuthError, OprimConnectionError, OprimNotFoundError
+except ImportError:
+    pytest.skip(
+        "Docker primitives moved to obase; the owning obase suite is authoritative",
+        allow_module_level=True,
+    )
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 def _make_container(
     status: str = "running",
@@ -64,6 +77,7 @@ def _mock_client(container=None, image=None):
 # docker_container_inspect
 # ---------------------------------------------------------------------------
 
+
 class TestDockerContainerInspect:
     def test_running_container(self):
         container = _make_container(status="running")
@@ -92,25 +106,37 @@ class TestDockerContainerInspect:
 
     def test_container_not_found(self):
         import docker.errors
+
         client = MagicMock()
         client.containers.get.side_effect = docker.errors.NotFound("not found")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimNotFoundError):
-                docker_container_inspect(container_id="nonexistent")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimNotFoundError),
+        ):
+            docker_container_inspect(container_id="nonexistent")
 
     def test_docker_unreachable(self):
         import docker.errors
-        with patch("oprim._docker.docker.DockerClient", side_effect=docker.errors.DockerException("fail")):
-            with pytest.raises(OprimConnectionError):
-                docker_container_inspect(container_id="abc123")
+
+        with (
+            patch(
+                "oprim._docker.docker.DockerClient",
+                side_effect=docker.errors.DockerException("fail"),
+            ),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_container_inspect(container_id="abc123")
 
     def test_get_container_docker_exception(self):
         import docker.errors
+
         client = MagicMock()
         client.containers.get.side_effect = docker.errors.DockerException("daemon error")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimConnectionError):
-                docker_container_inspect(container_id="abc123")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_container_inspect(container_id="abc123")
 
     def test_inspect_started_at_epoch_zero(self):
         container = _make_container(status="created")
@@ -145,6 +171,7 @@ class TestDockerContainerInspect:
 # docker_container_logs
 # ---------------------------------------------------------------------------
 
+
 class TestDockerContainerLogs:
     def test_recent_lines(self):
         container = _make_container()
@@ -178,11 +205,14 @@ class TestDockerContainerLogs:
 
     def test_container_not_found(self):
         import docker.errors
+
         client = MagicMock()
         client.containers.get.side_effect = docker.errors.NotFound("not found")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimNotFoundError):
-                docker_container_logs(container_id="gone")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimNotFoundError),
+        ):
+            docker_container_logs(container_id="gone")
 
     def test_with_mixed_lines(self):
         container = _make_container()
@@ -208,11 +238,14 @@ class TestDockerContainerLogs:
 
     def test_logs_docker_exception(self):
         import docker.errors
+
         container = _make_container()
         container.logs.side_effect = docker.errors.DockerException("read error")
-        with patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)):
-            with pytest.raises(OprimConnectionError):
-                docker_container_logs(container_id="abc123")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_container_logs(container_id="abc123")
 
     def test_logs_with_empty_line_skipped(self):
         container = _make_container()
@@ -226,13 +259,16 @@ class TestDockerContainerLogs:
 # docker_container_start
 # ---------------------------------------------------------------------------
 
+
 class TestDockerContainerStart:
     def test_start_stopped_container(self):
         container = _make_container(status="exited")
         container.reload.side_effect = [None]
+
         # After start(), reload sets status to "running"
         def reload():
             container.status = "running"
+
         container.reload.side_effect = reload
         with patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)):
             result = docker_container_start(container_id="abc123")
@@ -250,17 +286,26 @@ class TestDockerContainerStart:
 
     def test_container_not_found(self):
         import docker.errors
+
         client = MagicMock()
         client.containers.get.side_effect = docker.errors.NotFound("nf")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimNotFoundError):
-                docker_container_start(container_id="gone")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimNotFoundError),
+        ):
+            docker_container_start(container_id="gone")
 
     def test_docker_unreachable(self):
         import docker.errors
-        with patch("oprim._docker.docker.DockerClient", side_effect=docker.errors.DockerException("fail")):
-            with pytest.raises(OprimConnectionError):
-                docker_container_start(container_id="abc123")
+
+        with (
+            patch(
+                "oprim._docker.docker.DockerClient",
+                side_effect=docker.errors.DockerException("fail"),
+            ),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_container_start(container_id="abc123")
 
     def test_elapsed_ms_positive(self):
         container = _make_container(status="exited")
@@ -270,22 +315,28 @@ class TestDockerContainerStart:
 
     def test_start_docker_exception(self):
         import docker.errors
+
         container = _make_container(status="exited")
         container.start.side_effect = docker.errors.DockerException("daemon error")
-        with patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)):
-            with pytest.raises(OprimConnectionError):
-                docker_container_start(container_id="abc123")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_container_start(container_id="abc123")
 
 
 # ---------------------------------------------------------------------------
 # docker_container_stop
 # ---------------------------------------------------------------------------
 
+
 class TestDockerContainerStop:
     def test_stop_running(self):
         container = _make_container(status="running")
+
         def reload():
             container.status = "exited"
+
         container.reload.side_effect = reload
         with patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)):
             result = docker_container_stop(container_id="abc123")
@@ -307,11 +358,14 @@ class TestDockerContainerStop:
 
     def test_container_not_found(self):
         import docker.errors
+
         client = MagicMock()
         client.containers.get.side_effect = docker.errors.NotFound("nf")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimNotFoundError):
-                docker_container_stop(container_id="gone")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimNotFoundError),
+        ):
+            docker_container_stop(container_id="gone")
 
     def test_elapsed_ms_non_negative(self):
         container = _make_container(status="running")
@@ -321,16 +375,20 @@ class TestDockerContainerStop:
 
     def test_stop_docker_exception(self):
         import docker.errors
+
         container = _make_container(status="running")
         container.stop.side_effect = docker.errors.DockerException("daemon error")
-        with patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)):
-            with pytest.raises(OprimConnectionError):
-                docker_container_stop(container_id="abc123")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_container_stop(container_id="abc123")
 
 
 # ---------------------------------------------------------------------------
 # docker_container_restart
 # ---------------------------------------------------------------------------
+
 
 class TestDockerContainerRestart:
     def test_restart_running(self):
@@ -354,11 +412,14 @@ class TestDockerContainerRestart:
 
     def test_container_not_found(self):
         import docker.errors
+
         client = MagicMock()
         client.containers.get.side_effect = docker.errors.NotFound("nf")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimNotFoundError):
-                docker_container_restart(container_id="gone")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimNotFoundError),
+        ):
+            docker_container_restart(container_id="gone")
 
     def test_elapsed_positive(self):
         container = _make_container()
@@ -368,21 +429,26 @@ class TestDockerContainerRestart:
 
     def test_restart_docker_exception(self):
         import docker.errors
+
         container = _make_container(status="running")
         container.restart.side_effect = docker.errors.DockerException("daemon error")
-        with patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)):
-            with pytest.raises(OprimConnectionError):
-                docker_container_restart(container_id="abc123")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_container_restart(container_id="abc123")
 
 
 # ---------------------------------------------------------------------------
 # docker_image_pull
 # ---------------------------------------------------------------------------
 
+
 class TestDockerImagePull:
     def test_pull_public_latest(self):
         client = MagicMock()
         import docker.errors
+
         client.images.get.side_effect = docker.errors.ImageNotFound("not local")
         img = MagicMock()
         img.id = "sha256:abc"
@@ -397,6 +463,7 @@ class TestDockerImagePull:
     def test_pull_specific_tag(self):
         client = MagicMock()
         import docker.errors
+
         client.images.get.side_effect = docker.errors.ImageNotFound("not local")
         img = MagicMock()
         img.id = "sha256:abc"
@@ -420,62 +487,79 @@ class TestDockerImagePull:
 
     def test_image_not_found(self):
         import docker.errors
+
         client = MagicMock()
         client.images.get.side_effect = docker.errors.ImageNotFound("not local")
         client.images.pull.side_effect = docker.errors.ImageNotFound("not found")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimNotFoundError):
-                docker_image_pull(image="nosuchimage", tag="notexist")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimNotFoundError),
+        ):
+            docker_image_pull(image="nosuchimage", tag="notexist")
 
     def test_auth_failure(self):
         import docker.errors
+
         client = MagicMock()
         client.images.get.side_effect = docker.errors.ImageNotFound("not local")
-        client.images.pull.side_effect = docker.errors.APIError("unauthorized: authentication required")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimAuthError if False else (OprimAuthError, OprimConnectionError)):
-                docker_image_pull(image="private/image", tag="latest")
+        client.images.pull.side_effect = docker.errors.APIError(
+            "unauthorized: authentication required"
+        )
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimAuthError if False else (OprimAuthError, OprimConnectionError)),
+        ):
+            docker_image_pull(image="private/image", tag="latest")
 
     def test_registry_unreachable(self):
         import docker.errors
+
         client = MagicMock()
         client.images.get.side_effect = docker.errors.ImageNotFound("not local")
         client.images.pull.side_effect = docker.errors.DockerException("connection refused")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimConnectionError):
-                docker_image_pull(image="nginx", tag="latest")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_image_pull(image="nginx", tag="latest")
 
     def test_local_image_check_docker_exception(self):
         import docker.errors
+
         client = MagicMock()
         client.images.get.side_effect = docker.errors.DockerException("daemon error")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimConnectionError):
-                docker_image_pull(image="nginx", tag="latest")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_image_pull(image="nginx", tag="latest")
 
     def test_api_error_non_auth(self):
         import docker.errors
+
         client = MagicMock()
         client.images.get.side_effect = docker.errors.ImageNotFound("not local")
         client.images.pull.side_effect = docker.errors.APIError("rate limited by registry")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimConnectionError):
-                docker_image_pull(image="nginx", tag="latest")
-
-
-# Fix: import OprimAuthError
-from oprim._exceptions import OprimAuthError
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_image_pull(image="nginx", tag="latest")
 
 
 # ---------------------------------------------------------------------------
 # docker_container_stats
 # ---------------------------------------------------------------------------
 
+
 class TestDockerContainerStats:
     def _make_stats(self) -> dict:
         return {
             "cpu_stats": {
-                "cpu_usage": {"total_usage": 200_000_000, "percpu_usage": [100_000_000, 100_000_000]},
+                "cpu_usage": {
+                    "total_usage": 200_000_000,
+                    "percpu_usage": [100_000_000, 100_000_000],
+                },
                 "system_cpu_usage": 1_000_000_000,
             },
             "precpu_stats": {
@@ -486,9 +570,7 @@ class TestDockerContainerStats:
                 "usage": 100 * 1024 * 1024,
                 "limit": 1024 * 1024 * 1024,
             },
-            "networks": {
-                "eth0": {"rx_bytes": 1000, "tx_bytes": 2000}
-            },
+            "networks": {"eth0": {"rx_bytes": 1000, "tx_bytes": 2000}},
             "blkio_stats": {
                 "io_service_bytes_recursive": [
                     {"op": "Read", "value": 512},
@@ -529,11 +611,14 @@ class TestDockerContainerStats:
 
     def test_container_not_found(self):
         import docker.errors
+
         client = MagicMock()
         client.containers.get.side_effect = docker.errors.NotFound("nf")
-        with patch("oprim._docker.docker.DockerClient", return_value=client):
-            with pytest.raises(OprimNotFoundError):
-                docker_container_stats(container_id="gone")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=client),
+            pytest.raises(OprimNotFoundError),
+        ):
+            docker_container_stats(container_id="gone")
 
     def test_timestamp_present(self):
         container = _make_container()
@@ -544,11 +629,14 @@ class TestDockerContainerStats:
 
     def test_stats_docker_exception(self):
         import docker.errors
+
         container = _make_container()
         container.stats.side_effect = docker.errors.DockerException("stats error")
-        with patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)):
-            with pytest.raises(OprimConnectionError):
-                docker_container_stats(container_id="abc123")
+        with (
+            patch("oprim._docker.docker.DockerClient", return_value=_mock_client(container)),
+            pytest.raises(OprimConnectionError),
+        ):
+            docker_container_stats(container_id="abc123")
 
     def test_stats_zero_cpu_delta(self):
         container = _make_container()

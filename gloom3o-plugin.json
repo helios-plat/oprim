@@ -1,0 +1,13 @@
+{
+  "name": "gloom3o.oprim",
+  "version": "1.0.0",
+  "description": "Gloom 3O quantitative indicators and risk analytics",
+  "entrypoint": "oprim.derivatives.analytics",
+  "dependencies": [
+    "gloom3o.obase>=1.0.0"
+  ],
+  "capabilities": [
+    "risk-analytics",
+    "derivatives-analytics"
+  ]
+}

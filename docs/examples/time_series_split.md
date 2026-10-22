@@ -17,9 +17,9 @@ result = time_series_split(
     gap_days=15,
 )
 
-print(result["train"])       # (date(2024, 1, 1), date(2024, 7, 13))
-print(result["val"])         # (date(2024, 7, 29), ...)
-print(result["oos"])         # (..., date(2024, 12, 30))
-print(result["n_train"])     # 219
-print(result["gap_days"])    # 15
+print(result["train"])  # (date(2024, 1, 1), date(2024, 7, 13))
+print(result["val"])  # (date(2024, 7, 29), ...)
+print(result["oos"])  # (..., date(2024, 12, 30))
+print(result["n_train"])  # 219
+print(result["gap_days"])  # 15
 ```

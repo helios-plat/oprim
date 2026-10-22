@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from oprim.lighting_control_prompt import lighting_control_prompt
 
 

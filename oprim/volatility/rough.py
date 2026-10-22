@@ -7,6 +7,7 @@ Bayer, C., Friz, P. & Gatheral, J. (2016). Pricing under rough volatility.
 Bennedsen, M., Lunde, A. & Pakkanen, M.S. (2017). Hybrid scheme for Brownian
     semistationary processes. Finance and Stochastics, 21(4), 931-965.
 """
+
 from __future__ import annotations
 
 import warnings
@@ -105,7 +106,7 @@ def rough_volatility_simulate(
 
     # Variance process: v_t = xi0 * exp(eta * W^H_t - 0.5 * eta^2 * t^(2H))
     t_pow = time_grid ** (2.0 * hurst)  # shape (n_time_steps+1,)
-    variance_paths = xi0 * np.exp(eta * w_h - 0.5 * eta ** 2 * t_pow[None, :])
+    variance_paths = xi0 * np.exp(eta * w_h - 0.5 * eta**2 * t_pow[None, :])
 
     # Correlated stock BM increments using fractional BM diffs as proxy
     d_w_h = np.diff(w_h, axis=1)  # (n_paths, n_time_steps)
@@ -113,7 +114,7 @@ def rough_volatility_simulate(
     d_w_h_std = np.where(d_w_h_std < 1e-14, 1.0, d_w_h_std)
     d_w_h_norm = d_w_h / d_w_h_std
 
-    d_w_s = rho * d_w_h_norm + np.sqrt(1.0 - rho ** 2) * z2
+    d_w_s = rho * d_w_h_norm + np.sqrt(1.0 - rho**2) * z2
 
     # Simulate price paths using Euler-Maruyama on log price
     log_s = np.log(initial_price) * np.ones((n_paths, n_time_steps + 1))

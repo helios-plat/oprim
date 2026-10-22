@@ -9,10 +9,9 @@ from oprim.technical._base import _to_array, _wilder_atr, _wrap
 
 
 def chandelier_exit(
-    highs: np.ndarray | pd.Series,
+    highs: np.ndarray | pd.Series, *,
     lows: np.ndarray | pd.Series,
     closes: np.ndarray | pd.Series,
-    *,
     period: int = 22,
     multiplier: float = 3.0,
 ) -> dict[str, np.ndarray | pd.Series]:
@@ -26,7 +25,8 @@ def chandelier_exit(
     Uses _wilder_atr from oprim/technical/_base.py (H1 compliant — no import of sibling oprim.atr).
     First `period` positions are NaN.
 
-    Reference: Le Beau (1990s); "Computerized Trading".
+    Reference: Le Beau (1990s)
+    "Computerized Trading".
 
     Parameters
     ----------

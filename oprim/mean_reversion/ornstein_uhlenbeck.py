@@ -7,6 +7,7 @@ Smith, J.E. (2010). On the Simulation and Estimation of the Mean-Reverting
 López de Prado, M. (2018). Advances in Financial Machine Learning, Ch.4.
 Chan, E. (2013). Algorithmic Trading.
 """
+
 from __future__ import annotations
 
 import math
@@ -49,11 +50,11 @@ def ornstein_uhlenbeck_fit(series, *, dt: float = 1.0) -> dict:
     if len(arr) < 30:
         raise ValueError(f"Need at least 30 observations, got {len(arr)}")
 
-    X = arr[:-1]
-    Y = arr[1:]
+    x_val = arr[:-1]
+    y_val = arr[1:]
 
     # Closed-form MLE: correlation-based estimator
-    rho = float(np.corrcoef(X, Y)[0, 1])
+    rho = float(np.corrcoef(x_val, y_val)[0, 1])
 
     # Guard against rho <= 0 (random walk or anti-mean-reversion)
     if rho <= 0:
@@ -68,7 +69,7 @@ def ornstein_uhlenbeck_fit(series, *, dt: float = 1.0) -> dict:
 
     mu = float(np.mean(arr) / (1.0 - rho))
 
-    residuals = Y - rho * X
+    residuals = y_val - rho * x_val
     sigma2 = float(np.var(residuals) * 2.0 * theta / (1.0 - rho**2))
     sigma = math.sqrt(max(sigma2, 0.0))
     half_life = math.log(2.0) / theta
@@ -116,10 +117,10 @@ def ornstein_uhlenbeck_half_life(series, *, method: str = "regression") -> float
 
     if method == "regression":
         # OLS: dX_t = beta * X_{t-1} + eps
-        dX = arr[1:] - arr[:-1]
-        X_lag = arr[:-1]
-        cov = float(np.cov(dX, X_lag)[0, 1])
-        var = float(np.var(X_lag, ddof=1))
+        dx = arr[1:] - arr[:-1]
+        x_lag = arr[:-1]
+        cov = float(np.cov(dx, x_lag)[0, 1])
+        var = float(np.var(x_lag, ddof=1))
         if var == 0:
             return float("nan")
         beta = cov / var
@@ -130,9 +131,9 @@ def ornstein_uhlenbeck_half_life(series, *, method: str = "regression") -> float
 
     elif method == "mle":
         # Inline MLE theta computation (no import of ornstein_uhlenbeck_fit)
-        X = arr[:-1]
-        Y = arr[1:]
-        rho = float(np.corrcoef(X, Y)[0, 1])
+        x_val = arr[:-1]
+        y_val = arr[1:]
+        rho = float(np.corrcoef(x_val, y_val)[0, 1])
         if rho <= 0:
             return float("inf")
         theta = -math.log(rho)  # dt=1.0

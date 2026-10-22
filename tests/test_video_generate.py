@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock
 
 import pytest
-
 from obase import ProviderRegistry
+
 from oprim.video_generate import VideoGenError, VideoGenProviderNotFoundError, video_generate
 
 
@@ -34,16 +33,14 @@ def _register_stub_provider(tmp_path: Path) -> None:
     ) -> None:
         output_path.write_bytes(b"\x00" * 128)
 
-    ProviderRegistry.register(category="video_gen", name="stub", fn=_stub)
+    ProviderRegistry.register(category="video_gen", name="stub", caller=_stub)
 
 
 class TestVideoGenerate:
     async def test_provider_registered_success(self, tmp_path: Path) -> None:
         _register_stub_provider(tmp_path)
         out = tmp_path / "generated.mp4"
-        result = await video_generate(
-            provider="stub", prompt="A cat on the moon", output_path=out
-        )
+        result = await video_generate(provider="stub", prompt="A cat on the moon", output_path=out)
         assert result == out
         assert out.exists()
 
@@ -60,7 +57,7 @@ class TestVideoGenerate:
             captured.update(kw)
             Path(str(kw["output_path"])).write_bytes(b"\x00")
 
-        ProviderRegistry.register(category="video_gen", name="mock", fn=_capture)
+        ProviderRegistry.register(category="video_gen", name="mock", caller=_capture)
         out = tmp_path / "out.mp4"
         await video_generate(
             provider="mock",
@@ -78,21 +75,17 @@ class TestVideoGenerate:
         async def _timeout(**kw: object) -> None:
             raise TimeoutError("provider timed out")
 
-        ProviderRegistry.register(category="video_gen", name="slow", fn=_timeout)
+        ProviderRegistry.register(category="video_gen", name="slow", caller=_timeout)
         with pytest.raises(VideoGenError, match="failed"):
-            await video_generate(
-                provider="slow", prompt="test", output_path=tmp_path / "out.mp4"
-            )
+            await video_generate(provider="slow", prompt="test", output_path=tmp_path / "out.mp4")
 
     async def test_output_not_produced_raises(self, tmp_path: Path) -> None:
         async def _noop(**kw: object) -> None:
             pass  # Does not create output file
 
-        ProviderRegistry.register(category="video_gen", name="noop", fn=_noop)
+        ProviderRegistry.register(category="video_gen", name="noop", caller=_noop)
         with pytest.raises(VideoGenError, match="did not produce output"):
-            await video_generate(
-                provider="noop", prompt="test", output_path=tmp_path / "out.mp4"
-            )
+            await video_generate(provider="noop", prompt="test", output_path=tmp_path / "out.mp4")
 
     async def test_reference_image_passed(self, tmp_path: Path) -> None:
         captured: dict[str, object] = {}
@@ -101,11 +94,9 @@ class TestVideoGenerate:
             captured.update(kw)
             Path(str(kw["output_path"])).write_bytes(b"\x00")
 
-        ProviderRegistry.register(category="video_gen", name="ref", fn=_capture)
+        ProviderRegistry.register(category="video_gen", name="ref", caller=_capture)
         ref = tmp_path / "ref.png"
         ref.write_bytes(b"\x89PNG")
         out = tmp_path / "out.mp4"
-        await video_generate(
-            provider="ref", prompt="test", reference_image=ref, output_path=out
-        )
+        await video_generate(provider="ref", prompt="test", reference_image=ref, output_path=out)
         assert captured["reference_image"] == ref

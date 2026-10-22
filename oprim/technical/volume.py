@@ -9,7 +9,7 @@ from oprim.technical._base import _to_array, _wrap
 
 
 def obv(
-    closes: np.ndarray | pd.Series,
+    closes: np.ndarray | pd.Series, *,
     volumes: np.ndarray | pd.Series,
 ) -> np.ndarray | pd.Series:
     """On-Balance Volume (OBV).
@@ -19,7 +19,8 @@ def obv(
         OBV[t] = OBV[t-1] + sign(C[t] - C[t-1]) * V[t]
         where sign: +1 if up, -1 if down, 0 if unchanged.
 
-    OBV is a cumulative indicator; its direction matters more than magnitude.
+    OBV is a cumulative indicator
+    its direction matters more than magnitude.
 
     Parameters
     ----------
@@ -64,11 +65,10 @@ def obv(
 
 
 def mfi(
-    highs: np.ndarray | pd.Series,
+    highs: np.ndarray | pd.Series, *,
     lows: np.ndarray | pd.Series,
     closes: np.ndarray | pd.Series,
     volumes: np.ndarray | pd.Series,
-    *,
     period: int = 14,
     normalize: bool = True,
 ) -> np.ndarray | pd.Series:
@@ -129,7 +129,7 @@ def mfi(
 
     for i in range(period, n):
         # Slice of period bars ending at i
-        tp_window = tp[i - period : i + 1]     # length period+1
+        tp_window = tp[i - period : i + 1]  # length period+1
         mf_window = money_flow[i - period : i + 1]  # length period+1
 
         pos_mf = 0.0
@@ -144,10 +144,7 @@ def mfi(
             mfi_val = 1.0 if normalize else 100.0
         else:
             mfr = pos_mf / neg_mf
-            if normalize:
-                mfi_val = 1.0 - 1.0 / (1.0 + mfr)
-            else:
-                mfi_val = 100.0 - 100.0 / (1.0 + mfr)
+            mfi_val = 1.0 - 1.0 / (1.0 + mfr) if normalize else 100.0 - 100.0 / (1.0 + mfr)
 
         out[i] = mfi_val
 

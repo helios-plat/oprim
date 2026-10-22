@@ -1,679 +1,527 @@
-"""Oprim — atomic operations library (Layer 1 meta-primitives)."""
+"""Oprim — atomic operations library (Layer 1 meta-primitives). Lazy-loaded."""
 
-from oprim.crypto_scoring import (
-    CryptoScoringError,
-    score_active_addresses_change,
-    score_basis,
-    score_cex_balance_change,
-    score_etf_inflow,
-    score_funding_rate,
-    score_lth_change,
-    score_ma200_position,
-    score_ma50_slope,
-    score_ma_arrangement,
-    score_max_pain_distance,
-    score_mvrv_zscore,
-    score_oi_change,
-    score_options_skew,
-    score_resistance_distance,
-    score_stablecoin_inflow,
-    score_support_distance,
-    score_vpvr_position,
-)
+from __future__ import annotations
 
-from oprim.crypto_lookup import (
-    CryptoLookupError,
-    regime_score,
-    seasonality_score,
-    sector_rotation_score,
-)
+import ast
+import importlib
+import sys as _sys
+import types as _types
+from pathlib import Path
+from typing import Any
 
-from oprim.crypto_technical import (
-    CryptoTechnicalError,
-    compute_cross_asset_divergence_revert,
-    compute_stablecoin_event_revert,
-    compute_vpvr,
-    detect_pivots,
-)
-
-from oprim.io_fetch import (
-    FetchError,
-    fetch_btc_spy_corr,
-    fetch_coingecko_history,
-    fetch_crypto,
-    fetch_current_price,
-    fetch_decision_count,
-    fetch_equity_series,
-    fetch_prefs,
-    fetch_regime,
-    fetch_regime_crisis_flips,
-    fetch_rss,
-    fetch_stablecoin_mcap,
-    fetch_strategy_trades,
-    fetch_yahoo_history,
-    fetch_yahoo_quote,
-    get_active_event,
-    get_etf_weight_modifier,
-    get_previous_30d,
-    get_regime_by_date,
-    get_stablecoin_change_7d,
-    get_symbol_funding_rate,
-    get_symbol_oi_change_7d,
-)
-
-from oprim.io_write import (
-    WriteError,
-    clear_event,
-    is_deduped,
-    refresh_view,
-    send_alert,
-    store_news,
-    upsert_canonical_metric,
-    upsert_equity_series,
-    upsert_events,
-    write_event,
-    write_rows,
-)
-
-from oprim._caddy import (
-    caddy_admin_post,
-    caddy_admin_reload,
-    caddy_certificates_status,
-    caddy_routes_list,
-)
-
-from oprim.llm_judge_rerank import LLMCaller, RerankResult, llm_judge_rerank
-from oprim.llm_query_expand import llm_query_expand
-from oprim.parse_obsidian_tasks import ObsidianTask, parse_obsidian_tasks
-
-# Aegis Batch 1 — infrastructure / ops primitives (v2.9.0)
-from oprim._docker import (
-    compose_down,
-    compose_up,
-    docker_container_inspect,
-    docker_container_list,
-    docker_container_logs,
-    docker_container_restart,
-    docker_container_start,
-    docker_container_stats,
-    docker_container_stop,
-    docker_image_delete,
-    docker_image_list,
-    docker_image_pull,
-    docker_network_list,
-    docker_volume_delete,
-    docker_volume_list,
-)
-from oprim._filesystem import (
-    archive_to_targz,
-    dir_archive_to_targz,
-    disk_usage,
-    file_checksum,
-)
-from oprim._metrics_logs import (
-    loki_log_query,
-    prometheus_instant_query,
-    prometheus_range_query,
-    structlog_parse,
-)
-from oprim._network import (
-    dns_resolve,
-    http_health_probe,
-    http_request_once,
-    tcp_port_check,
-)
-from oprim._postgres import (
-    postgres_locks_status,
-    postgres_pool_status,
-    postgres_replication_lag,
-    postgres_slow_queries,
-    postgres_table_size,
-)
-from oprim._rabbitmq import (
-    rabbitmq_connection_status,
-    rabbitmq_consumer_status,
-    rabbitmq_node_status,
-    rabbitmq_queue_status,
-)
-from oprim._s3 import (
-    s3_object_metadata,
-    s3_upload_file,
-)
-from oprim._system import (
-    cpu_memory_snapshot,
-    process_list_top,
-)
+from oprim._layering import LAYER_ELEMENT, LAYER_INFRA, declared_exports, layer_from_tree
 from oprim._version import __version__
 
-# P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
-from oprim.style_marker_prompt import StyleType, style_marker_prompt
-from oprim.lighting_control_prompt import LightingType, lighting_control_prompt
-from oprim.camera_motion_prompt import MotionType, camera_motion_prompt
-from oprim.first_last_frame_transition import (
-    FrameTransitionError,
-    FrameTransitionProviderNotFoundError,
-    first_last_frame_transition,
+_ELEMENT_MAP: dict[str, str] = {}
+_SUBMODULE_SET: set[str] = set()
+#: module path → declared layer (from `__oprim_layer__`). Authoritative for
+#: dependency-direction checks; see `oprim._layering`.
+_MODULE_LAYERS: dict[str, str] = {}
+
+
+def _build_element_map() -> None:
+    pkg_dir = Path(__file__).parent
+    pkg_name = __package__ or "oprim"
+    for py in sorted(pkg_dir.rglob("*.py")):
+        rel_path = py.relative_to(pkg_dir)
+        if rel_path.parts == ("__init__.py",):
+            continue
+        mod_parts = list(rel_path.with_suffix("").parts)
+        if mod_parts[-1] == "__init__":
+            mod_parts.pop()
+        if not mod_parts:
+            continue
+        mod_path = pkg_name + "." + ".".join(mod_parts)
+        stem = mod_parts[-1]
+        _SUBMODULE_SET.add(stem)
+        try:
+            tree = ast.parse(py.read_text(encoding="utf-8"))
+            layer = layer_from_tree(tree)
+            _MODULE_LAYERS[mod_path] = layer
+            # Infra modules are shared bases, not capabilities. Their unlisted
+            # helpers stay reachable by direct module path
+            # (`from oprim._ffprobe import probe_json`) but never enter the
+            # element namespace. `__oprim_exports__` re-publishes the names that
+            # are genuinely public API (e.g. the dataclasses in `_media_types`).
+            #
+            # Provider modules always export: their layer governs dependency
+            # direction only, while the export surface is backward-compatibility
+            # governed and known consumers do `from oprim import veo3_generate`.
+            allowed: set[str] | None = None
+            if layer == LAYER_INFRA:
+                allowed = set(declared_exports(tree))
+            for node in tree.body:
+                names = []
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    names.append(node.name)
+                elif (
+                    isinstance(node, ast.Assign)
+                    and isinstance(node.value, ast.Name)
+                    and not stem.startswith("__")
+                ):
+                    # module-level public alias, e.g.
+                    # ``caddy_admin_routes = caddy_routes_list``; the element
+                    # namespace must expose the alias as well as the original.
+                    names.extend(t.id for t in node.targets if isinstance(t, ast.Name))
+                elif isinstance(node, ast.ImportFrom) and rel_path.name == "__init__.py":
+                    for alias in node.names:
+                        if alias.name != "*":
+                            names.append(alias.asname or alias.name)
+                for name in names:
+                    if name.startswith("_"):
+                        continue
+                    if allowed is not None and name not in allowed:
+                        continue
+                    cond = name not in _ELEMENT_MAP or (
+                        not mod_path.split(".")[-1].startswith("_")
+                        and _ELEMENT_MAP[name].split(".")[-1].startswith("_")
+                    )
+                    if cond:
+                        _ELEMENT_MAP[name] = mod_path
+        except Exception:
+            continue
+
+
+_build_element_map()
+
+# Authoritative export bindings inherited from origin/main's explicit import
+# surface.  The AST walk above is permissive (it discovers new atoms without a
+# registry edit), but several public names are defined in more than one module
+# (e.g. ``LLMResponse`` exists in ``llm/_types`` and in the legacy
+# ``llm_complete`` / ``embed_text`` / ``llm_stream`` shims).  Where both lines
+# shipped a binding, origin/main's explicit ``from ... import`` is the contract;
+# apply it as an override so the exported name and the value returned by the
+# owning function are the same object.
+_AUTHORITATIVE_EXPORTS: dict[str, str] = {
+    "ArxivPaper": "oprim._arxiv_search",
+    "BudgetExceededError": "oprim._exceptions",
+    "CascadeDeleteResult": "oprim._aii_graph_types",
+    "ConflictDetectionInput": "oprim._aii_graph_types",
+    "ConflictPair": "oprim._aii_graph_types",
+    "ConflictSignal": "oprim._aii_graph_types",
+    "ConversationSnapshot": "oprim.llm._types",
+    "DEFAULT_MATRIX": "oprim._llm_router",
+    "EmbedResult": "oprim.llm._types",
+    "FileOprimError": "oprim._exceptions",
+    "GitOprimError": "oprim._exceptions",
+    "GradeResult": "oprim.types",
+    "GraphRetrievalResult": "oprim._aii_graph_types",
+    "HttpOprimError": "oprim._exceptions",
+    "HttpResponse": "oprim.llm._types",
+    "LLMOprimError": "oprim._exceptions",
+    "LLMResponse": "oprim.llm._types",
+    "OprimError": "oprim._exceptions",
+    "ParseOprimError": "oprim._exceptions",
+    "PathSecurityError": "oprim._exceptions",
+    "PeerPercentileResult": "oprim.types",
+    "Plot2DData": "oprim.types",
+    "PromptOprimError": "oprim._exceptions",
+    "SearchOprimError": "oprim._exceptions",
+    "SearchResult": "oprim.llm._types",
+    "ShellOprimError": "oprim._exceptions",
+    "SnapshotOprimError": "oprim._exceptions",
+    "SolveResult": "oprim.types",
+    "SolveStep": "oprim.types",
+    "SourceResult": "oprim._media_types",
+    "SourceTraceResult": "oprim._aii_graph_types",
+    "StepCheckResult": "oprim.types",
+    "StreamDelta": "oprim.llm._types",
+    "ThinkingResult": "oprim.llm._types",
+    "Three3DData": "oprim.types",
+    "TwoStepIngestResult": "oprim._aii_graph_types",
+    "__version__": "oprim._version",
+    "adamic_adar_score": "oprim._adamic_adar_score",
+    "aggregate_results": "oprim._parallel_llm",
+    "arxiv_search": "oprim._arxiv_search",
+    "build_system_prompt": "oprim.prompt",
+    "compute_effortful_gain": "oprim.compute_effortful_gain",
+    "compute_effortful_gain_from_arrays": "oprim.compute_effortful_gain",
+    "compute_feedback": "oprim.compute_feedback",
+    "compute_peer_percentile": "oprim.compute_peer_percentile",
+    "compute_percentile_batch": "oprim.compute_peer_percentile",
+    "compute_shapley_decomposition": "oprim._quant_analysis",
+    "compute_shapley_values": "oprim._quant_analysis",
+    "direct_link_score": "oprim._direct_link_score",
+    "dispatch_parallel": "oprim._parallel_llm",
+    "document_structure_extractor": "oprim._document_structure_extractor",
+    "due_compute": "oprim.due_compute",
+    "error_classify": "oprim.error_classify",
+    "extract_thinking": "oprim.prompt",
+    "file_parser_plaintext": "oprim._file_parser_plaintext",
+    "file_type_detector": "oprim.file_type_detector",
+    "grade_answer": "oprim.compute_feedback",
+    "gutenberg_search": "oprim._gutenberg_search",
+    "http_download_file": "oprim._http_download_file",
+    "ku_conflict_detect": "oprim._ku_conflict_detect",
+    "load_matrix": "oprim._llm_router",
+    "markdown_frontmatter_build": "oprim._markdown_frontmatter_build",
+    "oapen_search": "oprim._oapen_search",
+    "purpose_alignment_score": "oprim._purpose_alignment_score",
+    "quality_check": "oprim._quality_gate",
+    "recognition_update": "oprim.recognition_update",
+    "recognition_update_sequence": "oprim.recognition_update",
+    "route_decision": "oprim._llm_router",
+    "snapshot_conversation": "oprim.prompt",
+    "source_overlap_score": "oprim._source_overlap_score",
+    "source_trace": "oprim._source_trace",
+    "speech_to_math": "oprim.speech_to_math",
+    "split_prompt": "oprim._parallel_llm",
+    "text_clean_publish_noise": "oprim._text_clean_publish_noise",
+    "truncate_messages": "oprim.prompt",
+    "type_affinity_score": "oprim._type_affinity_score",
+    # Upstreamed consumer elements: the subpackage ``__init__`` re-exports them,
+    # but the manifest audit resolves an entry to the module that *defines* it.
+    "swing_failure_pattern": "oprim.technical.sfp",
+    "triple_barrier_label": "oprim.technical.triple_barrier_label",
+    "atr_position_cap": "oprim.risk.atr_position_cap",
+    "cvar_portfolio_optimize": "oprim.risk.cvar_portfolio_optimize",
+    "fee_edge_filter": "oprim.risk.fee_edge_filter",
+    "net_exposure_clip": "oprim.risk.net_exposure_clip",
+}
+_ELEMENT_MAP.update(_AUTHORITATIVE_EXPORTS)
+
+# KCState 归 obase（经 oprim._cognitive 单源、惰性暴露）。登记到元素表以保持
+# `from oprim import KCState`（oskill 兼容）与 __all__ 可达，但不在 import 时 eager-load obase：
+# __getattr__ 命中后 getattr(_cognitive, "KCState") 触发其模块级 __getattr__ 才 import obase。
+_ELEMENT_MAP["KCState"] = "oprim._cognitive"  # re-export for oskill compatibility
+
+# 无前缀 BKT 别名（单源 oprim._cognitive，经 oprim.bkt 别名层暴露）。
+# bkt.py 不是 __init__ 包文件，AST 元素扫描不收录其 ImportFrom 别名，故在此显式登记，
+# 以保持 `from oprim import classify_error` 可达（M2 collection 契约）。
+_ELEMENT_MAP["classify_error"] = "oprim.bkt"
+
+# `oprim.storage` (storage adapter contracts) also defines an UploadResult; keep the
+# historical top-level binding pointing at the file-upload handler type.
+_ELEMENT_MAP["UploadResult"] = "oprim._file_upload_handler"
+
+
+def __getattr__(name: str) -> Any:
+    if name == "__version__":
+        return __version__
+    if name in _ELEMENT_MAP:
+        mod = importlib.import_module(_ELEMENT_MAP[name])
+        if (
+            getattr(mod, "__name__", None) == f"{__package__ or 'oprim'}.{name}"
+            and isinstance(mod, _CallableOprimElementModule)
+        ):
+            return mod
+        return getattr(mod, name)
+    if name in _SUBMODULE_SET:
+        pkg_name = __package__ or "oprim"
+        return importlib.import_module(f"{pkg_name}.{name}")
+    raise AttributeError(f"module '{__name__}' has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
+
+
+class _CallableOprimElementModule(_types.ModuleType):
+    """Allow a defining module to retain both module and callable access.
+
+    Some atoms are named exactly like their module (``oprim.template_render``).
+    Legacy callers invoke ``oprim.template_render(...)`` while tooling and
+    tests patch ``oprim.template_render.template_render``. Keeping the defining
+    module and making it callable supports both forms without import-order drift.
+    """
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        export_name = self.__name__.rsplit(".", 1)[-1]
+        exported = getattr(self, export_name, None)
+        if not callable(exported):
+            raise TypeError(f"{self.__name__} has no callable {export_name!r} export")
+        return exported(*args, **kwargs)
+
+
+class _OprimPackage(_types.ModuleType):
+    """Keep exported callables winning over same-named submodules.
+
+    Many atoms live in ``oprim/<name>.py`` and export a callable also called ``<name>``.
+    ``oprim.<name>`` must be that callable (``__getattr__`` resolves it via
+    ``_ELEMENT_MAP``), but once anything imports the submodule ``oprim.<name>`` the
+    import system does ``setattr(oprim, "<name>", <module>)``, shadowing ``__getattr__``
+    -- so ``oprim.<name>(...)`` raised "'module' object is not callable" depending on
+    import order. Intercept that binding and store the exported callable instead; the
+    submodule stays reachable via ``sys.modules`` / ``importlib.import_module``.
+    """
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if (
+            isinstance(value, _types.ModuleType)
+            and value.__name__ == f"{self.__name__}.{name}"
+            and name in _ELEMENT_MAP
+        ):
+            if _ELEMENT_MAP[name] != value.__name__:
+                # The export lives in another module (e.g. ``_<name>.py``); leave the
+                # attribute unbound so ``__getattr__`` resolves the export lazily.
+                return
+            exported = getattr(value, name, None)
+            if callable(exported):
+                if name == "template_render":
+                    # This legacy entrypoint explicitly promises both module
+                    # identity/attribute access and direct callable access.
+                    value.__class__ = _CallableOprimElementModule
+                else:
+                    # For ordinary collisions, the package-level API is the
+                    # exported callable; the module remains in sys.modules.
+                    value = exported
+            elif exported is not None and not isinstance(exported, _types.ModuleType):
+                value = exported
+        super().__setattr__(name, value)
+
+
+_sys.modules[__name__].__class__ = _OprimPackage
+
+__all__ = sorted(_ELEMENT_MAP.keys())
+
+
+# --- Lazy-load wrappers for obase-dependent functions ---
+def llm_complete(*args, **kwargs):
+    from oprim.llm._llm_complete import llm_complete as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def llm_stream(*args, **kwargs):
+    from oprim.llm._llm_stream import llm_stream as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def embed_text(*args, **kwargs):
+    from oprim.llm._embed_text import embed_text as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def image_generate(*args, **kwargs):
+    from oprim.image_generate import image_generate as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def image_understand(*args, **kwargs):
+    from oprim.image_understand import image_understand as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def tts_synthesize(*args, **kwargs):
+    from oprim.tts_synthesize import tts_synthesize as _fn
+
+    return _fn(*args, **kwargs)
+
+
+# --- File parsers + structure extractor (lazy-loaded) ---
+def file_parser_pdf(*args, **kwargs):
+    from oprim._file_parser_pdf import file_parser_pdf as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def file_parser_epub(*args, **kwargs):
+    from oprim._file_parser_epub import file_parser_epub as _fn
+
+    return _fn(*args, **kwargs)
+
+
+def file_parser_html(*args, **kwargs):
+    from oprim._file_parser_html import file_parser_html as _fn
+
+    return _fn(*args, **kwargs)
+
+
+# from oprim._file_parser_markdown import file_parser_markdown as file_parser_markdown
+from oprim._file_parser_plaintext import (  # noqa: E402,I001
+    file_parser_plaintext as file_parser_plaintext,
 )
-from oprim.video_edit_element_remove import (
-    VideoEditError,
-    VideoEditProviderNotFoundError,
-    video_edit_element_remove,
-)
-from oprim.story_predict import (
-    StoryPredictError,
-    StoryPrediction,
-    TimePrediction,
-    story_predict,
+from oprim._document_structure_extractor import (  # noqa: E402,I001
+    document_structure_extractor as document_structure_extractor,
 )
 
-# P6-B2 — Video Generation + Audience Analytics
-from oprim.audience_feedback_extract import audience_feedback_extract
-from oprim.audience_sentiment_analyze import audience_sentiment_analyze
-from oprim.bilibili_comments_fetch import bilibili_comments_fetch
-from oprim.bilibili_video_stats import bilibili_video_stats
-from oprim.face_animation import face_animation
-from oprim.image_to_video import image_to_video
-from oprim.motion_prompt_translate import motion_prompt_translate
-from oprim.video_quality_metrics import video_quality_metrics
-from oprim.vlm_video_analyze import vlm_video_analyze
-from oprim.youtube_comments_fetch import youtube_comments_fetch
-from oprim.youtube_video_stats import youtube_video_stats
 
-# Phase 10 additions (v2.0.0)
-from oprim.behavioral import (
-    cpt_value_function,
-    large_loss_aversion_degree,
-    probability_weighting_function,
-    salience_function,
-    salience_ranking_weights,
-)
+def epub_toc_split(*args, **kwargs):
+    from oprim._epub_toc_split import epub_toc_split as _fn
 
-# Phase 6A additions (v1.9.0)
-from oprim.crypto.ed25519 import (
-    ed25519_keypair_generate,
-    ed25519_sign,
-    ed25519_verify,
-    generate_keypair,
-    load_private_key_pem,
-    load_public_key_pem,
-    save_keypair_pem,
-    sign,
-    verify,
-)
-from oprim.crypto.hashing import hmac_sha256, sha256_hash
-from oprim.crypto.merkle import rfc6962_inclusion_proof, rfc6962_merkle_root
-from oprim.derivatives.american import lsm_american_price
+    return _fn(*args, **kwargs)
 
-# Phase 5A additions (v1.8.0)
-from oprim.derivatives.binomial_tree import binomial_tree_price
-from oprim.derivatives.black_scholes import (
-    black_scholes_greeks,
-    black_scholes_price,
-    implied_volatility,
-)
-from oprim.derivatives.exotic import barrier_option_price, lookback_option_price
-from oprim.derivatives.monte_carlo import mc_asian_price, mc_european_price
-from oprim.derivatives.rates import cubic_spline_yield_curve, svensson_yield_curve
-from oprim.derivatives.sabr import sabr_implied_volatility
-from oprim.distance import (
-    cosine_similarity_batch,
-    distributional_distance,
-    dtw_distance,
-    euclidean_distance_matrix,
-    symmetric_kl_divergence,
-    wasserstein_distance,
-)
-from oprim.finance import (
-    beta_alpha_ols,
-    drawdown_curve,
-    futures_curve_shape,
-    nelson_siegel_yield_curve,
-    sharpe_ratio,
-    value_at_risk,
-)
-from oprim.info_geometry.fisher_rao import fisher_rao_distance
-from oprim.information import ordinal_pattern, phase_randomize, shannon_entropy
-from oprim.mean_reversion.ornstein_uhlenbeck import (
-    ornstein_uhlenbeck_fit,
-    ornstein_uhlenbeck_half_life,
-)
-from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
-from oprim.performance.annualization import cagr
 
-# Phase 2 additions (v1.5.0)
-# Note: cumulative_returns below shadows the time_series one;
-# the time_series version remains accessible via oprim.time_series directly.
-from oprim.performance.cumulative import cumulative_returns
-from oprim.point_process import hawkes_nll
-from oprim.recursive_utility import epstein_zin_aggregator
-from oprim.regime import regime_filter_data, regime_label_align, regime_transition_matrix
-from oprim.risk.cvar import cvar
+def _get_epub_book():
+    from oprim._epub_toc_split import EpubBook
 
-# Phase 4 additions (v1.7.0)
-from oprim.risk.dispersion import mean_deviation
-from oprim.serialization.canonical import canonical_json
-from oprim.signal_processing import (
-    H_change_rate_std,
-    atr,
-    compute_dwt,
-    hurst_exponent,
-    linear_slope,
-    orderbook_entropy,
-)
+    return EpubBook
 
-# Phase 9A additions (v1.11.0)
-from oprim.signature.compute import path_signature_compute
 
-# Phase 3 additions (v1.6.0)
-from oprim.similarity.vector import vector_similarity
-from oprim.spectral import (
-    ledoit_wolf_shrinkage,
-    marchenko_pastur_threshold,
-    rotationally_invariant_estimator,
-    spectral_eigengap_detect,
-)
-from oprim.statistics import (
-    bayes_beta_update,
-    bootstrap_ci,
-    brier_score_decomposed,
-    correlation_batch,
-    distribution_summary,
-    kde_density,
-    kolmogorov_smirnov_test,
-    mann_kendall_trend,
-    pearson_spearman_corr,
-    percentile_ci,
-    percentile_value,
-    skew_kurt_robust,
-)
-from oprim.technical.adaptive import kama
-from oprim.technical.bands import bollinger_bands, donchian_channel, keltner_channels
-from oprim.technical.exits import chandelier_exit
+# ---------------------------------------------------------------------------
+# Release manifest (consumed by HEVI's `test_three_o_contracts` and
+# `scripts/ci/run_3o_v3_manifest_audit.py`).
+#
+# Derived from `_ELEMENT_MAP`, never hand-written. The previous hardcoded
+# manifest listed 5 entries with signatures that did not match the real
+# functions (`(request, /, *, provider, output_path)` — there is no `request`
+# parameter), so it was a second, wrong source of truth of exactly the kind
+# `_manifest.py` was. `_build_element_map` is the only authority now.
+#
+# `signature` is computed lazily by `element_signature()` rather than eagerly:
+# introspecting every element would import the whole package at import time.
+# The audit script treats `signature` as optional (`entry.get("signature")`).
+# ---------------------------------------------------------------------------
 
-# Phase 1 additions (v1.4.0)
-from oprim.technical.moving_averages import ema, macd, sma, vwap
-from oprim.technical.oscillators import cci, rsi_normalized, stochastic_oscillator, williams_r
-from oprim.technical.volume import mfi, obv
-from oprim.time_series import (
-    ewma_smooth,
-    gap_detect,
-    lag_forward_fill,
-    log_returns,
-    percentile_rank,
-    purge_embargo_split,
-    realized_vol,
-    resample_align,
-    rolling_window_split,
-    zscore_normalize,
-)
-from oprim.timeseries.autocorrelation import durbin_watson, ljung_box_test
-from oprim.timeseries.causality import granger_causality_test
-from oprim.timeseries.cointegration import engle_granger_cointegration, johansen_cointegration
-from oprim.timeseries.distribution_tests import jarque_bera_test
-from oprim.timeseries.heteroskedasticity import breusch_pagan_test
-from oprim.timeseries.stationarity import adf_test, kpss_test
-from oprim.timeseries.time_series_split import time_series_split
-from oprim.timeseries.equity_curve_segment_label import equity_curve_segment_label
-from oprim.timeseries.rolling_window_aggregate import rolling_window_aggregate
-from oprim.markets.sector_strength_proxy import sector_strength_proxy
-from oprim.stats.within_group_percentile import within_group_percentile
-from oprim.topology import persistence_landscape, takens_embed
-from oprim.volatility.egarch import egarch_fit, egarch_forecast
-from oprim.volatility.ewma import ewma_volatility
-from oprim.volatility.garch import garch_fit, garch_forecast
-from oprim.volatility.gjr_garch import gjr_garch_fit, gjr_garch_forecast
-from oprim.volatility.range_based import (
-    garman_klass_volatility,
-    parkinson_volatility,
-    yang_zhang_volatility,
-)
-from oprim.volatility.realized import realized_variance
-from oprim.volatility.rough import rough_volatility_simulate
-
-__all__ = [
-    "__version__",
-    # Time Series (11)
-    "log_returns",
-    "cumulative_returns",
-    "rolling_window_split",
-    "lag_forward_fill",
-    "percentile_rank",
-    "ewma_smooth",
-    "realized_vol",
-    "zscore_normalize",
-    "gap_detect",
-    "resample_align",
-    "purge_embargo_split",
-    # Statistics (12)
-    "bootstrap_ci",
-    "percentile_ci",
-    "percentile_value",
-    "distribution_summary",
-    "skew_kurt_robust",
-    "kolmogorov_smirnov_test",
-    "mann_kendall_trend",
-    "bayes_beta_update",
-    "brier_score_decomposed",
-    "pearson_spearman_corr",
-    "kde_density",
-    "correlation_batch",
-    # Distance (6)
-    "wasserstein_distance",
-    "dtw_distance",
-    "cosine_similarity_batch",
-    "euclidean_distance_matrix",
-    "symmetric_kl_divergence",
-    "distributional_distance",
-    # Numerics (3)
-    "logsumexp_safe",
-    "softmax_safe",
-    "clip_with_warning",
-    # Regime (3)
-    "regime_filter_data",
-    "regime_transition_matrix",
-    "regime_label_align",
-    # Finance (6)
-    "drawdown_curve",
-    "sharpe_ratio",
-    "beta_alpha_ols",
-    "value_at_risk",
-    "nelson_siegel_yield_curve",
-    "futures_curve_shape",
-    # Information (3)
-    "shannon_entropy",
-    "ordinal_pattern",
-    "phase_randomize",
-    # Signal Processing (6)
-    "linear_slope",
-    "atr",
-    "hurst_exponent",
-    "compute_dwt",
-    "H_change_rate_std",
-    "orderbook_entropy",
-    # Topology (2)
-    "takens_embed",
-    "persistence_landscape",
-    # Point Process (1)
-    "hawkes_nll",
-    # Technical (8) — Phase 1
-    "sma",
-    "ema",
-    "vwap",
-    "macd",
-    "rsi_normalized",
-    "bollinger_bands",
-    "donchian_channel",
-    "chandelier_exit",
-    # Crypto (4) — Phase 1
-    "sha256_hash",
-    "hmac_sha256",
-    "rfc6962_merkle_root",
-    "rfc6962_inclusion_proof",
-    # Crypto (3→9) — Phase 6A + Phase 3 v2.1.0
-    "ed25519_keypair_generate",
-    "ed25519_sign",
-    "ed25519_verify",
-    "generate_keypair",
-    "sign",
-    "verify",
-    "save_keypair_pem",
-    "load_private_key_pem",
-    "load_public_key_pem",
-    # Serialization (1) — Phase 1
-    "canonical_json",
-    # Risk (1) — Phase 1
-    "cvar",
-    # Performance (2) — Phase 2
-    "cagr",
-    # Mean Reversion (2) — Phase 2
-    "ornstein_uhlenbeck_fit",
-    "ornstein_uhlenbeck_half_life",
-    # Volatility (3) — Phase 2
-    "garch_fit",
-    "garch_forecast",
-    "ewma_volatility",
-    # Derivatives (3) — Phase 2
-    "black_scholes_price",
-    "black_scholes_greeks",
-    "implied_volatility",
-    # Derivatives (8) — Phase 5A
-    "binomial_tree_price",
-    "mc_european_price",
-    "mc_asian_price",
-    "barrier_option_price",
-    "lookback_option_price",
-    "lsm_american_price",
-    "svensson_yield_curve",
-    "cubic_spline_yield_curve",
-    # Similarity (1) — Phase 3
-    "vector_similarity",
-    # Risk (Phase 4)
-    "mean_deviation",
-    # Timeseries (Phase 4)
-    "adf_test",
-    "kpss_test",
-    "engle_granger_cointegration",
-    "johansen_cointegration",
-    "ljung_box_test",
-    "durbin_watson",
-    "granger_causality_test",
-    "jarque_bera_test",
-    "breusch_pagan_test",
-    # Volatility (Phase 4)
-    "egarch_fit",
-    "egarch_forecast",
-    "gjr_garch_fit",
-    "gjr_garch_forecast",
-    "realized_variance",
-    "parkinson_volatility",
-    "garman_klass_volatility",
-    "yang_zhang_volatility",
-    # Technical (Phase 4)
-    "kama",
-    "stochastic_oscillator",
-    "cci",
-    "williams_r",
-    "keltner_channels",
-    "obv",
-    "mfi",
-    # Phase 9A (v1.11.0)
-    "path_signature_compute",
-    "fisher_rao_distance",
-    "rough_volatility_simulate",
-    "sabr_implied_volatility",
-    # Phase 10 Behavioral (v2.0.0)
-    "cpt_value_function",
-    "probability_weighting_function",
-    "salience_function",
-    "large_loss_aversion_degree",
-    "salience_ranking_weights",
-    # Phase 10 Spectral (v2.0.0)
-    "marchenko_pastur_threshold",
-    "rotationally_invariant_estimator",
-    "ledoit_wolf_shrinkage",
-    "spectral_eigengap_detect",
-    "llm_judge_rerank",
-    "RerankResult",
-    "LLMCaller",
-    "llm_query_expand",
-    "parse_obsidian_tasks",
-    "ObsidianTask",
-    # Phase 10 Recursive Utility (v2.8.0)
-    "epstein_zin_aggregator",
-    # Aegis Batch 1 — Docker (v2.9.0)
-    "compose_down",
-    "compose_up",
-    "docker_container_inspect",
-    "docker_container_list",
-    "docker_container_logs",
-    "docker_container_start",
-    "docker_container_stop",
-    "docker_container_restart",
-    "docker_image_delete",
-    "docker_image_list",
-    "docker_image_pull",
-    "docker_container_stats",
-    "docker_network_list",
-    "docker_volume_delete",
-    "docker_volume_list",
-    # Aegis Batch 1 — PostgreSQL (v2.9.0)
-    "postgres_pool_status",
-    "postgres_slow_queries",
-    "postgres_locks_status",
-    "postgres_table_size",
-    "postgres_replication_lag",
-    # Aegis Batch 1 — RabbitMQ (v2.9.0)
-    "rabbitmq_queue_status",
-    "rabbitmq_connection_status",
-    "rabbitmq_consumer_status",
-    "rabbitmq_node_status",
-    # Aegis Batch 1 — Caddy (v2.9.0)
-    "caddy_admin_post",
-    "caddy_admin_reload",
-    "caddy_routes_list",
-    "caddy_certificates_status",
-    # Aegis Batch 1 — Network (v2.9.0)
-    "tcp_port_check",
-    "http_health_probe",
-    "dns_resolve",
-    "http_request_once",
-    # Aegis Batch 1 — Filesystem (v2.9.0)
-    "disk_usage",
-    "archive_to_targz",
-    "dir_archive_to_targz",
-    "file_checksum",
-    # Aegis Batch 1 — Metrics/Logs (v2.9.0)
-    "prometheus_instant_query",
-    "prometheus_range_query",
-    "loki_log_query",
-    "structlog_parse",
-    # Aegis Batch 1 — System (v2.9.0)
-    "cpu_memory_snapshot",
-    "process_list_top",
-    # Aegis Batch 1 — S3 (v2.9.0)
-    "s3_upload_file",
-    "s3_object_metadata",
-    # Sprint 11 — Timeseries (v2.12.0)
-    "time_series_split",
-    "equity_curve_segment_label",
-    # Sprint 12 — Markets + Stats (v2.13.0)
-    "sector_strength_proxy",
-    "within_group_percentile",
-    # Sprint 14 — Timeseries (v2.14.0)
-    "rolling_window_aggregate",
-    # P6-B2 — Video Generation + Audience Analytics
-    "image_to_video",
-    "face_animation",
-    "motion_prompt_translate",
-    "audience_sentiment_analyze",
-    "audience_feedback_extract",
-    "youtube_video_stats",
-    "youtube_comments_fetch",
-    "bilibili_video_stats",
-    "bilibili_comments_fetch",
-    "video_quality_metrics",
-    "vlm_video_analyze",
-    # P7-B2 — Video Prompt Primitives + Frame Transition + Story Predict
+#: Elements the manifest publishes. Keep this list to the canonical surface a
+#: release is contracted on — not every one of the 1400+ discovered names.
+_MANIFEST_ELEMENTS: tuple[str, ...] = (
+    # media inspection
+    "media_probe",
+    "probe_duration",
+    # transcription
+    "transcribe_audio",
+    # frames / waveform / segmentation
+    "extract_video_frames",
+    "extract_audio_waveform",
+    "segment_media",
+    "extract_media_segment",
+    # transcript-aware timing
+    "word_boundary_snap",
+    # render / mix / burn
+    "render_html_to_mp4",
+    "render_media",
+    "audio_mix",
+    "audio_normalize",
+    "audio_video_merge",
+    "subtitle_burn",
+    # generation
+    "video_generate",
+    "tts_synthesize",
+    "avatar_generate",
+    "encode_voice_reference",
+    # origin's 5d992f2 manifest also lists edge_tts_synthesize
+    "edge_tts_synthesize",
+    # safety / prompt
+    "validate_html",
     "style_marker_prompt",
-    "StyleType",
-    "lighting_control_prompt",
-    "LightingType",
-    "camera_motion_prompt",
-    "MotionType",
-    "first_last_frame_transition",
-    "FrameTransitionError",
-    "FrameTransitionProviderNotFoundError",
-    "video_edit_element_remove",
-    "VideoEditError",
-    "VideoEditProviderNotFoundError",
-    "story_predict",
-    "StoryPrediction",
-    "TimePrediction",
-    "StoryPredictError",
-    # Helios Wave 01 — Crypto Scoring (17 oprim)
-    "score_ma200_position",
-    "score_ma50_slope",
-    "score_ma_arrangement",
-    "score_stablecoin_inflow",
-    "score_etf_inflow",
-    "score_cex_balance_change",
-    "score_funding_rate",
-    "score_basis",
-    "score_mvrv_zscore",
-    "score_active_addresses_change",
-    "score_lth_change",
-    "score_options_skew",
-    "score_max_pain_distance",
-    "score_oi_change",
-    "score_resistance_distance",
-    "score_support_distance",
-    "score_vpvr_position",
-    "CryptoScoringError",
-    # --- Helios Wave 01: Crypto Lookup (3) ---
-    "regime_score",
-    "seasonality_score",
-    "sector_rotation_score",
-    "CryptoLookupError",
-    # --- Helios Wave 01: Crypto Technical (4) ---
-    "compute_vpvr",
-    "detect_pivots",
-    "compute_cross_asset_divergence_revert",
-    "compute_stablecoin_event_revert",
-    "CryptoTechnicalError",
-    # --- Helios Wave 01: IO Fetch (22) ---
-    "FetchError",
-    "fetch_yahoo_history",
-    "fetch_yahoo_quote",
-    "fetch_crypto",
-    "fetch_stablecoin_mcap",
-    "fetch_rss",
-    "fetch_current_price",
-    "fetch_coingecko_history",
-    "fetch_equity_series",
-    "fetch_decision_count",
-    "fetch_strategy_trades",
-    "fetch_prefs",
-    "fetch_btc_spy_corr",
-    "fetch_regime_crisis_flips",
-    "fetch_regime",
-    "get_active_event",
-    "get_regime_by_date",
-    "get_previous_30d",
-    "get_stablecoin_change_7d",
-    "get_etf_weight_modifier",
-    "get_symbol_funding_rate",
-    "get_symbol_oi_change_7d",
-    # --- Helios Wave 01: IO Write (11) ---
-    "WriteError",
-    "write_rows",
-    "store_news",
-    "upsert_events",
-    "upsert_canonical_metric",
-    "upsert_equity_series",
-    "write_event",
-    "clear_event",
-    "is_deduped",
-    "refresh_view",
-    "send_alert",
-    # --- Aegis Step 15 B2 — SSRF prevention ---
-    "url_safety_check",
-    "URLSafetyResult",
-    "URLSafetyError",
-]
+    # consumer-facing types (HEVI imports these from `oprim.hevi_types`;
+    # the module itself is a namespace, not a resolvable entity, so the
+    # manifest names the types rather than the module)
+    "CanvasEdge",
+    "CanvasNode",
+    "ProviderCapability",
+    "Subject",
+    "VideoQuality",
+    # TradingView read-only market data sidecar
+    "fetch_tv_technicals",
+    "fetch_tv_crypto_screener",
+    "fetch_tv_symbol_markets",
+    "fetch_tv_news",
+    "fetch_tv_minds",
+    "fetch_tv_ideas",
+    "fetch_tv_ohlcv",
+    # repo3o intake
+    "crop_video_to_portrait",
+    "multimodal_embed",
+    "synthesize_speech_chunk",
+    "vector_cosine_search",
+    "whisper_transcribe",
+    # technical indicators upstreamed from the Helios consumer line
+    "swing_failure_pattern",
+    "triple_barrier_label",
+    # risk primitives upstreamed from the Helios consumer line
+    "atr_position_cap",
+    "cvar_portfolio_optimize",
+    "fee_edge_filter",
+    "net_exposure_clip",
+)
 
-# --- Tide v4 extraction: B1-B3 (11 oprims) ---
-from oprim.kdj import kdj, KDJResult
-from oprim.limit_status_calc import limit_status_calc, LimitStatusResult
-from oprim.beneish_m_score import beneish_m_score, BeneishInput, BeneishResult
-from oprim.dupont_decomposition import dupont_decomposition, DuPontResult
-from oprim.dcf_valuation import dcf_valuation, DCFResult
-from oprim.volume_ratio import volume_ratio
-from oprim.apply_screen_filter import apply_screen_filter, ScreenRule, ScreenResult
-from oprim.financial_metric_extraction import financial_metric_extraction, NewsItem, FinancialMetric
-from oprim.policy_event_extraction import policy_event_extraction, PolicyNews, PolicyEvent
-from oprim.industry_attribution import industry_attribution, IndustryImpact
-from oprim.pattern_detection import pattern_detection, OHLCVInput, PatternMatch
-from oprim.predicate import evaluate_threshold_condition, OperatorType
 
-# --- Aegis Step 15 B2 — SSRF prevention (oprim 2.16.0) ---
-from oprim.url_safety_check import URLSafetyError, URLSafetyResult, url_safety_check
+def element_signature(name: str) -> str | None:
+    """Real signature of a manifest element, or None if it cannot be resolved.
+
+    Imports the owning module on demand. Kept out of the eager manifest build
+    so `import oprim` stays cheap.
+    """
+    import importlib
+    import inspect
+
+    module_path = _ELEMENT_MAP.get(name)
+    if module_path is None:
+        return None
+    try:
+        obj = getattr(importlib.import_module(module_path), name)
+    except Exception:  # pragma: no cover - defensive: manifest must never break import
+        return None
+    try:
+        return f"{name}{inspect.signature(obj)}"
+    except (TypeError, ValueError):  # pragma: no cover - builtins have no signature
+        return None
+
+
+def _source_path_for(module_path: str) -> Path | None:
+    """File that defines `module_path`, whether it is a module or a subpackage."""
+    rel = Path(*module_path.split(".")[1:])
+    direct = Path(__file__).parent / rel.with_suffix(".py")
+    if direct.exists():
+        return direct
+    pkg_init = Path(__file__).parent / rel / "__init__.py"
+    return pkg_init if pkg_init.exists() else None
+
+
+def _element_depends_on(name: str) -> list[str]:
+    """Intra-package modules the element's implementation imports."""
+    module_path = _ELEMENT_MAP.get(name)
+    if module_path is None:
+        return []
+    source = _source_path_for(module_path)
+    if source is None:
+        return []
+    try:
+        tree = ast.parse(source.read_text(encoding="utf-8"))
+    except (OSError, SyntaxError):  # pragma: no cover - defensive
+        return []
+    deps: set[str] = set()
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.ImportFrom)
+            and node.module
+            and node.level == 0
+            and node.module.split(".")[0] == "oprim"
+        ):
+            deps.add(node.module)
+    return sorted(deps)
+
+
+def _module_path_for(name: str) -> str | None:
+    """Resolve a manifest name to the module that defines it.
+
+    Two shapes are legitimate. Most elements resolve through `_ELEMENT_MAP`.
+    A few are pure module re-exports (`hevi_types`) that consumers import as a
+    namespace rather than a callable; those resolve to the module itself.
+    """
+    via_element = _ELEMENT_MAP.get(name)
+    if via_element is not None:
+        return via_element
+    if _source_path_for(f"{__name__}.{name}") is not None:
+        return f"{__name__}.{name}"
+    return None
+
+
+def _build_manifest() -> dict[str, object]:
+    elements: list[dict[str, object]] = []
+    for name in _MANIFEST_ELEMENTS:
+        module_path = _module_path_for(name)
+        if module_path is None:
+            # Never publish a name discovery cannot resolve: the audit script
+            # flags such entries as dangling.
+            continue
+        elements.append(
+            {
+                "name": name,
+                "kind": "oprim",
+                "module": module_path,
+                "layer": _MODULE_LAYERS.get(module_path, LAYER_ELEMENT),
+                "depends_on": _element_depends_on(name),
+                "pillars": [],
+            }
+        )
+    return {"package": __name__, "version": __version__, "elements": elements}
+
+
+__manifest__: dict[str, object] = _build_manifest()

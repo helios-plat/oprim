@@ -1,4 +1,5 @@
 """Tests for oprim.spectral.ledoit_wolf_shrinkage."""
+
 from __future__ import annotations
 
 import numpy as np

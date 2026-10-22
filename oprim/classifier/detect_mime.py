@@ -1,4 +1,5 @@
 """Detect MIME type of a file using libmagic."""
+
 from __future__ import annotations
 
 from pathlib import Path

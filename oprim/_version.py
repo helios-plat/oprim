@@ -1,1 +1,3 @@
-__version__ = "2.16.0"
+
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__version__ = "3.24.0"

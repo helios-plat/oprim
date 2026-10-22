@@ -20,7 +20,8 @@ def sha256_hash(data: bytes | str) -> str:
     Parameters
     ----------
     data : bytes or str
-        Input to hash. str is UTF-8 encoded; bytes hashed directly.
+        Input to hash. str is UTF-8 encoded
+        bytes hashed directly.
 
     Returns
     -------
@@ -39,13 +40,14 @@ def sha256_hash(data: bytes | str) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def hmac_sha256(key: bytes, data: bytes | str) -> str:
+def hmac_sha256(key: bytes, *, data: bytes | str) -> str:
     """HMAC-SHA-256.
 
     Mathematical definition: RFC 2104 HMAC construction with SHA-256.
     Returns lowercase hex string of exactly 64 characters.
 
-    Reference: RFC 2104 (1997); RFC 4231 (test vectors).
+    Reference: RFC 2104 (1997)
+    RFC 4231 (test vectors).
     https://datatracker.ietf.org/doc/html/rfc2104
     https://datatracker.ietf.org/doc/html/rfc4231
 

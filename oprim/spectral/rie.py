@@ -7,6 +7,7 @@ Bouchaud, J.-P., & Potters, M. (2009). Financial Applications of Random
 Ledoit, O., & Péché, S. (2011). Eigenvectors of some large sample covariance
     matrix ensembles. Probability Theory and Related Fields, 151(1), 233-264.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -85,6 +86,7 @@ def rotationally_invariant_estimator(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _stieltjes_real(eig_vals: np.ndarray, eps: float) -> np.ndarray:
     """Real part of complex Stieltjes transform for each eigenvalue."""

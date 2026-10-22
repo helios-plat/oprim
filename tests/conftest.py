@@ -1,11 +1,15 @@
 """Shared test fixtures for oprim."""
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
 
+# Mock paramiko
+sys.modules["paramiko"] = MagicMock()
 
 @pytest.fixture
 def rng():

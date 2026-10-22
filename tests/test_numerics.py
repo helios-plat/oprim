@@ -1,4 +1,4 @@
-"""Tests for oprim.numerics module."""
+"""Tests for oprim._numerics module."""
 
 import logging
 import warnings
@@ -8,7 +8,7 @@ import pytest
 from scipy.special import logsumexp as scipy_logsumexp
 from scipy.special import softmax as scipy_softmax
 
-from oprim.numerics import clip_with_warning, logsumexp_safe, softmax_safe
+from oprim._numerics import clip_with_warning, logsumexp_safe, softmax_safe
 
 
 # ============================================================
@@ -137,7 +137,7 @@ class TestClipWithWarning:
 
     def test_logger(self):
         logger = logging.getLogger("test_clip")
-        handler = logging.handlers = []
+        logging.handlers = []
         x = np.zeros(10)
         x[0:8] = 100  # 80% will be clipped
         with warnings.catch_warnings(record=True) as w:
@@ -195,7 +195,7 @@ class TestNumericsAcademic:
         expected = scipy_logsumexp(x, b=w)
         np.testing.assert_allclose(result, expected, rtol=1e-12)
 
-    def test_softmax_T1_vs_scipy(self):
+    def test_softmax_t1_vs_scipy(self):
         """softmax_safe(T=1) matches scipy.special.softmax exactly."""
         rng = np.random.default_rng(42)
         x = rng.normal(0, 3, 15)
@@ -203,7 +203,7 @@ class TestNumericsAcademic:
         expected = scipy_softmax(x)
         np.testing.assert_allclose(result, expected, rtol=1e-12)
 
-    def test_softmax_T05_manual(self):
+    def test_softmax_t05_manual(self):
         """softmax_safe(T=0.5) matches manual calculation."""
         x = np.array([1.0, 2.0, 3.0])
         result = softmax_safe(x, temperature=0.5)

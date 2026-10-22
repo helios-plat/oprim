@@ -66,19 +66,19 @@ def jarque_bera_test(data: np.ndarray | pd.Series) -> dict:
 
     # Standardized moments
     z = (arr - mean) / std
-    S = float(np.mean(z**3))   # skewness
-    K = float(np.mean(z**4))   # raw kurtosis (=3 for normal)
-    excess_K = K - 3.0
+    skew = float(np.mean(z**3))  # skewness
+    kurt = float(np.mean(z**4))  # raw kurtosis (=3 for normal)
+    excess_kurt = kurt - 3.0
 
-    jb = float(n / 6.0 * (S**2 + excess_K**2 / 4.0))
+    jb = float(n / 6.0 * (skew**2 + excess_kurt**2 / 4.0))
     p_value = float(stats.chi2.sf(jb, df=2))
     is_normal = bool(p_value >= 0.05)
 
     return {
         "statistic": jb,
         "p_value": p_value,
-        "skewness": S,
-        "kurtosis": K,
-        "excess_kurtosis": excess_K,
+        "skewness": skew,
+        "kurtosis": kurt,
+        "excess_kurtosis": excess_kurt,
         "is_normal": is_normal,
     }

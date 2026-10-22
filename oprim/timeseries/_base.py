@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
+__oprim_layer__ = "infra"  # shared base module, not a capability
+__oprim_exports__ = [
+    "annotations",
+]
+
 import numpy as np
 
 
-def _ols_fit(y: np.ndarray, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def _ols_fit(y: np.ndarray, x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """OLS via numpy lstsq.
 
     Parameters
     ----------
     y : np.ndarray, shape (n,)
         Dependent variable.
-    X : np.ndarray, shape (n, k)
+    x : np.ndarray, shape (n, k)
         Design matrix (should include constant column if desired).
 
     Returns
@@ -20,8 +25,8 @@ def _ols_fit(y: np.ndarray, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     coefficients : np.ndarray, shape (k,)
     residuals : np.ndarray, shape (n,)
     """
-    coeffs, _, _, _ = np.linalg.lstsq(X, y, rcond=None)
-    residuals = y - X @ coeffs
+    coeffs, _, _, _ = np.linalg.lstsq(x, y, rcond=None)
+    residuals = y - x @ coeffs
     return coeffs, residuals
 
 
@@ -59,8 +64,8 @@ def _adf_statistic(
 
     # Need at least lags+1 observations of dy
     # Regression uses obs from index lags onwards in dy (i.e., dy[lags:])
-    T = len(dy) - lags  # effective sample size
-    if T <= 0:  # pragma: no cover
+    t_val = len(dy) - lags  # effective sample size
+    if t_val <= 0:  # pragma: no cover
         return np.nan, np.array([])
 
     # Dependent variable: dy[lags:]
@@ -74,31 +79,31 @@ def _adf_statistic(
 
     # Deterministics
     if regression in ("c", "ct", "ctt"):
-        cols.append(np.ones(T))
+        cols.append(np.ones(t_val))
     if regression in ("ct", "ctt"):
-        trend = np.arange(1, T + 1, dtype=float)
+        trend = np.arange(1, t_val + 1, dtype=float)
         cols.append(trend)
     if regression == "ctt":
-        cols.append(np.arange(1, T + 1, dtype=float) ** 2)
+        cols.append(np.arange(1, t_val + 1, dtype=float) ** 2)
 
     # Augmenting lags
     for lag_i in range(1, lags + 1):
         # Delta_y_{t-lag_i}: dy[lags-lag_i : n-1-lag_i]
         cols.append(dy[lags - lag_i : n - 1 - lag_i])
 
-    X = np.column_stack(cols)  # shape (T, k)
+    x_mat = np.column_stack(cols)  # shape (T, k)
 
     # OLS
-    coeffs, residuals = _ols_fit(endog, X)
+    coeffs, residuals = _ols_fit(endog, x_mat)
     rho_coeff = coeffs[0]
 
     # Standard error of rho
-    sigma2 = np.sum(residuals**2) / (T - X.shape[1])
+    sigma2 = np.sum(residuals**2) / (t_val - x_mat.shape[1])
     if sigma2 <= 0:
         return np.nan, residuals  # pragma: no cover
 
-    XtX_inv = np.linalg.pinv(X.T @ X)
-    se_rho = np.sqrt(sigma2 * XtX_inv[0, 0])
+    xtx_inv = np.linalg.pinv(x_mat.T @ x_mat)
+    se_rho = np.sqrt(sigma2 * xtx_inv[0, 0])
 
     if se_rho == 0:
         return np.nan, residuals  # pragma: no cover

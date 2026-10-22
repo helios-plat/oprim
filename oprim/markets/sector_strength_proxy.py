@@ -44,12 +44,12 @@ def sector_strength_proxy(
         raw = float(np.mean(valid))
     elif scoring == "volume_adj_return":
         vol_arr = np.asarray(volumes if volumes is not None else np.ones_like(valid), dtype=float)
-        vol_valid = vol_arr[~np.isnan(arr)][:len(valid)]
+        vol_valid = vol_arr[~np.isnan(arr)][: len(valid)]
         total_vol = np.sum(vol_valid)
         if total_vol == 0:
             raw = float(np.mean(valid))
         else:
-            raw = float(np.sum(valid * vol_valid[:len(valid)]) / total_vol)
+            raw = float(np.sum(valid * vol_valid[: len(valid)]) / total_vol)
     elif scoring == "breadth":
         raw = float(np.sum(valid > 0) / len(valid))
     else:
