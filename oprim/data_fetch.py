@@ -1,0 +1,86 @@
+"""Public facade for oprim.data_fetch.
+
+oprim 3.x moved the implementations into the private ``oprim._data_fetch`` module
+and, for most symbols, exposes them through thin public facade modules (see
+``signal_processing.py`` / ``ic_oos_decay.py``). This aggregate facade was
+missing after the 2.x→3.x refactor — callers doing ``from oprim.data_fetch
+import ...`` (oskill.signal_fusion_skills, helios analytics/collectors, and
+oprim's own test_data_* suite) hit ModuleNotFoundError.
+Restored 2026-07-10 to re-export the full public surface of _data_fetch.
+"""
+
+from oprim._data_fetch import (
+    DataFetchError,
+    fetch_order_book_depth,
+    compute_spread,
+    compute_slippage_estimate,
+    fetch_news_events,
+    fetch_regulatory_news,
+    fetch_etf_news,
+    fetch_smart_money_flows,
+    fetch_whale_transactions,
+    fetch_miner_flows,
+    fetch_validator_data,
+    fetch_staking_changes,
+    fetch_stablecoin_mint_burn,
+    fetch_stablecoin_supply_change,
+    fetch_funding_rate,
+    cross_exchange_funding_diff,
+    fetch_option_vol_surface,
+    compute_option_skew,
+    fetch_option_open_interest,
+    fetch_perp_basis,
+    compute_term_structure,
+    fetch_social_sentiment,
+    nlp_sentiment_analysis,
+    fetch_github_activity,
+    fetch_dev_metrics,
+    fetch_tvl_defillama,
+    fetch_defi_health_metrics,
+    fetch_ashare_market_data,
+    merge_exchange_ohlcv,
+    clean_ohlcv_outliers,
+    compute_volume_weighted_price,
+    fetch_tick_data,
+    compute_microstructure_features,
+    fetch_etf_premium_discount,
+    fetch_iiv,
+)
+
+__all__ = [
+    "DataFetchError",
+    "fetch_order_book_depth",
+    "compute_spread",
+    "compute_slippage_estimate",
+    "fetch_news_events",
+    "fetch_regulatory_news",
+    "fetch_etf_news",
+    "fetch_smart_money_flows",
+    "fetch_whale_transactions",
+    "fetch_miner_flows",
+    "fetch_validator_data",
+    "fetch_staking_changes",
+    "fetch_stablecoin_mint_burn",
+    "fetch_stablecoin_supply_change",
+    "fetch_funding_rate",
+    "cross_exchange_funding_diff",
+    "fetch_option_vol_surface",
+    "compute_option_skew",
+    "fetch_option_open_interest",
+    "fetch_perp_basis",
+    "compute_term_structure",
+    "fetch_social_sentiment",
+    "nlp_sentiment_analysis",
+    "fetch_github_activity",
+    "fetch_dev_metrics",
+    "fetch_tvl_defillama",
+    "fetch_defi_health_metrics",
+    "fetch_ashare_market_data",
+    "merge_exchange_ohlcv",
+    "clean_ohlcv_outliers",
+    "compute_volume_weighted_price",
+    "fetch_tick_data",
+    "compute_microstructure_features",
+    "fetch_etf_premium_discount",
+    "fetch_iiv",
+]

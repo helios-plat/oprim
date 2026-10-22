@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "oprim"
-version = "3.23.0"
+version = "3.24.0"
 description = "Atomic operations library — Layer 1 meta-primitives for financial analysis"
 readme = "README.md"
 license = "MIT"

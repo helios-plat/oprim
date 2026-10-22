@@ -169,6 +169,14 @@ _AUTHORITATIVE_EXPORTS: dict[str, str] = {
     "text_clean_publish_noise": "oprim._text_clean_publish_noise",
     "truncate_messages": "oprim.prompt",
     "type_affinity_score": "oprim._type_affinity_score",
+    # Upstreamed consumer elements: the subpackage ``__init__`` re-exports them,
+    # but the manifest audit resolves an entry to the module that *defines* it.
+    "swing_failure_pattern": "oprim.technical.sfp",
+    "triple_barrier_label": "oprim.technical.triple_barrier_label",
+    "atr_position_cap": "oprim.risk.atr_position_cap",
+    "cvar_portfolio_optimize": "oprim.risk.cvar_portfolio_optimize",
+    "fee_edge_filter": "oprim.risk.fee_edge_filter",
+    "net_exposure_clip": "oprim.risk.net_exposure_clip",
 }
 _ELEMENT_MAP.update(_AUTHORITATIVE_EXPORTS)
 
@@ -413,6 +421,14 @@ _MANIFEST_ELEMENTS: tuple[str, ...] = (
     "synthesize_speech_chunk",
     "vector_cosine_search",
     "whisper_transcribe",
+    # technical indicators upstreamed from the Helios consumer line
+    "swing_failure_pattern",
+    "triple_barrier_label",
+    # risk primitives upstreamed from the Helios consumer line
+    "atr_position_cap",
+    "cvar_portfolio_optimize",
+    "fee_edge_filter",
+    "net_exposure_clip",
 )
 
 

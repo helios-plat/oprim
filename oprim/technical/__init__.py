@@ -11,7 +11,9 @@ from oprim.technical.oscillators import (
     stochastic_oscillator,
     williams_r,
 )
+from oprim.technical.sfp import swing_failure_pattern
 from oprim.technical.trend import adx_series, atr_series, supertrend
+from oprim.technical.triple_barrier_label import triple_barrier_label
 from oprim.technical.volume import mfi, obv
 
 __all__ = [
@@ -34,4 +36,6 @@ __all__ = [
     "atr_series",
     "adx_series",
     "supertrend",
+    "swing_failure_pattern",
+    "triple_barrier_label",
 ]
