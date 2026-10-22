@@ -35,25 +35,25 @@ def _mock_ffmpeg_run(output_path_arg_index: int = -1):
 class TestAudioMix:
     async def test_two_tracks(self, audio_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "mixed.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_mix(inputs=audio_files[:2], output_path=out)
         assert result == out
 
     async def test_three_tracks(self, audio_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "mixed3.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_mix(inputs=audio_files, output_path=out)
         assert result == out
 
     async def test_unequal_weights(self, audio_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "weighted.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_mix(inputs=audio_files[:2], weights=[1.0, 0.3], output_path=out)
         assert result == out
 
     async def test_single_track_allowed(self, audio_files: list[Path], tmp_path: Path) -> None:
         out = tmp_path / "single.wav"
-        with patch("oprim.audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_mix.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_mix(inputs=audio_files[:1], output_path=out)
         assert result == out
 
@@ -74,7 +74,7 @@ class TestAudioMix:
 
         out = tmp_path / "fail.wav"
         with (
-            patch("oprim.audio_mix.ffmpeg_run", side_effect=_fail),
+            patch("oprim._audio_mix.ffmpeg_run", side_effect=_fail),
             pytest.raises(AudioMixError, match="FFmpeg mixing failed"),
         ):
             await audio_mix(inputs=audio_files[:2], output_path=out)

@@ -2,6 +2,61 @@
 
 <!-- Governance: see RELEASE_POLICY.md. main = release branch; feat branches deleted after merge; oprim → oskill → omodul merge order required; container bind-mount means git checkout is a live operation. -->
 
+## [3.24.0] — 2026-10-22
+
+### Added (upstreaming consumer patches — 3O 主库成为唯一来源)
+
+合回 helios / tide 两条使用方线上「上游没有」的 oprim 元素，按 SPEC §4 归位
+（纯计算原子，无同层裸调）。详见 `/data/soffy/projects/ext/3o_upstream_report.md`。
+
+**technical 子模块 (2)**
+- feat: `swing_failure_pattern` — 流动性扫单 + 回收 (SFP) 形态识别，
+  `oprim/technical/sfp.py`；用 `_base._wilder_atr` 归一化穿刺深度。
+- feat: `triple_barrier_label` — López de Prado 三重障碍标注
+  (`oprim/technical/triple_barrier_label.py`)，纯 numpy，无 IO。
+
+**technical 单源收敛 (1)**
+- feat: `adx` — 标量「最新 ADX」视图 (`oprim/technical/adx.py`)，**委托**
+  `oprim.technical.trend.adx_series`（唯一实现）。使用方曾各自重写 Wilder 平滑，
+  违反 SPEC §1.4 单源约束；现改为委托 + `tests/technical/test_adx.py`
+  守卫测试（逐位比对两条路径）。
+
+**risk 子模块 (4)**
+- feat: `atr_position_cap` — ATR 自适应仓位上限 (风险预算 / 归一化波动率)
+- feat: `cvar_portfolio_optimize` — 历史 CVaR 均值-风险组合优化
+  (可选依赖 `riskfolio-lib`；未安装时 raise ImportError，不做静默降级)
+- feat: `fee_edge_filter` — 手续费/边际可行性闸门
+- feat: `net_exposure_clip` — 相关性加权净暴露裁剪
+
+**恢复的聚合 facade 子模块 (3)**
+2.x→3.x 重构把实现搬进私有模块，却漏掉了这三个聚合 facade，导致使用方
+`from oprim.signal_analysis import ...` 直接 ModuleNotFoundError：
+- fix: `oprim/signal_analysis.py` — 重新导出 `_signal_analysis` 的 15 个公开符号
+- fix: `oprim/correlation_options.py` — 重新导出 `_correlation_options` 的 3 个符号
+- fix: `oprim/data_fetch.py` — 重新导出 `_data_fetch` 的 35 个符号
+
+facade 只做 re-export，不复制实现；`tests/test_aggregate_facades.py` 逐名断言
+`facade.X is impl.X`（单源守卫）。
+
+**注册**
+- `oprim/technical/__init__.py`、`oprim/risk/__init__.py` 补 `__all__` 导出
+- `oprim.__manifest__` 增 6 个元素；`_AUTHORITATIVE_EXPORTS` 固定到**定义**模块
+  （子包 `__init__` 只是 re-export，manifest 审计要求条目可解析到定义处）
+
+### Not upstreamed (不合范式，未合回)
+- `oprim.db_insert` / `oprim.db_query` — 5 行兼容 shim，转调
+  `obase.persistence.crud`。SPEC §7.4 + `治理蓝图_oprim_IO元素迁移obase.md`
+  明确 DB 访问归 obase，oprim 不得持有；这两个 shim 的存在本身就是历史错位。
+  正确做法是使用方直接 `from obase.persistence.crud import insert_one`，
+  因此不入主库（详见上游报告）。
+
+### Tests
+- 新增 `tests/technical/test_sfp.py`、`tests/technical/test_triple_barrier_label.py`、
+  `tests/technical/test_adx.py`、`tests/risk/test_risk_position_primitives.py`、
+  `tests/test_aggregate_facades.py`
+- 全套：`5441 passed`，新增失败 0（基线 176 failed / 13 errors 全部为环境缺依赖的
+  既有失败，与本次改动无关）
+
 ## [3.23.0] — 2026-07-30
 
 ### Added (SPEC §2.2/§2.3: batch-warehouse commerce vertical atoms)

@@ -132,9 +132,13 @@ class TestProviderRegistryPath:
             }
         )
         mock_llm = MagicMock(return_value=fake_response)
-        with patch("obase.ProviderRegistry.get", return_value=mock_llm) as mock_get:
+        mock_llm.call_sync = None
+        mock_registry = MagicMock()
+        mock_registry.llm.return_value = mock_llm
+        with patch("obase.ProviderRegistry.get", return_value=mock_registry) as mock_get:
             result = llm_extract_ku(text="Some text chunk.", provider="deepseek")
-        mock_get.assert_called_once_with("llm", "deepseek")
+        mock_get.assert_called_once_with()
+        mock_registry.llm.assert_called_once_with("deepseek")
         mock_llm.assert_called_once()
         prompt_used = mock_llm.call_args[0][0]
         assert "Some text chunk." in prompt_used
@@ -170,7 +174,7 @@ class TestProviderRegistryPath:
                 def __init__(self, msg):
                     self.message = msg
 
-            with patch("oprim.llm_extract_ku._log") as mock_log:
+            with patch("oprim._llm_extract_ku._log") as mock_log:
                 mock_log.warning.side_effect = lambda msg, *a, **k: records.append(
                     _R(msg % a if a else msg)
                 )

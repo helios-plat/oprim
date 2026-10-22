@@ -17,9 +17,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from obase import ProviderRegistry
-from obase.exceptions import ProviderNotFoundError
-
 
 class TTSError(Exception):
     """TTS synthesis failed."""
@@ -60,6 +57,11 @@ async def tts_synthesize(
     """
     if not text:
         raise TTSError("text must not be empty")
+
+    # Import provider infrastructure only when synthesis is invoked. This
+    # avoids an import cycle when the knowledge packages load during obase init.
+    from obase.provider_registry import ProviderRegistry
+    from obase.exceptions import ProviderNotFoundError
 
     try:
         tts_fn = ProviderRegistry.get().generic("tts", provider)

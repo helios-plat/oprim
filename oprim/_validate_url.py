@@ -43,4 +43,4 @@ def validate_url(url: str) -> bool:
         return False
 
     # urlparse requires a netloc/hostname for the URL to be meaningful
-    return parsed.netloc
+    return bool(parsed.netloc)

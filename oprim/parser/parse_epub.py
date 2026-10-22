@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import zipfile
 from pathlib import Path
 
 try:
@@ -28,6 +29,8 @@ def parse_epub(path: Path) -> ParsedContent:
     require_optional(ebooklib, feature="epub", extra="epub", package="ebooklib")
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
+    if not zipfile.is_zipfile(path):
+        raise zipfile.BadZipFile(f"Invalid EPUB archive: {path}")
     try:
         book = epub.read_epub(str(path))
         chapters = []

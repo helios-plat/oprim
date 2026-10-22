@@ -7,7 +7,7 @@ allow-direct-references = true
 
 [project]
 name = "oprim"
-version = "3.23.0"
+version = "3.24.0"
 description = "Atomic operations library — Layer 1 meta-primitives for financial analysis"
 readme = "README.md"
 license = "MIT"
@@ -45,6 +45,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+portfolio = ["riskfolio-lib>=7.0.0"]
 pdf = [
     "pymupdf>=1.27",
     "pymupdf4llm>=0.3",
