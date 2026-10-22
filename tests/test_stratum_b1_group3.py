@@ -367,7 +367,7 @@ class TestMigrationRunner:
         mock_engine, mock_mig_ctx = self._patch_alembic("rev1")
         with (
             patch("oprim.migration_runner.command.upgrade") as mock_upgrade,
-            patch("oprim.migration_runner.create_engine", return_value=mock_engine),
+            patch("oprim._migration_runner.create_engine", return_value=mock_engine),
             patch(
                 "oprim.migration_runner.MigrationContext.configure",
                 return_value=mock_mig_ctx,
@@ -389,7 +389,7 @@ class TestMigrationRunner:
         mock_engine, mock_mig_ctx = self._patch_alembic(None)
         with (
             patch("oprim.migration_runner.command.downgrade") as mock_down,
-            patch("oprim.migration_runner.create_engine", return_value=mock_engine),
+            patch("oprim._migration_runner.create_engine", return_value=mock_engine),
             patch(
                 "oprim.migration_runner.MigrationContext.configure",
                 return_value=mock_mig_ctx,
@@ -420,7 +420,7 @@ class TestMigrationRunner:
         mock_engine, mock_mig_ctx = self._patch_alembic("head")
         with (
             patch("oprim.migration_runner.command.stamp") as mock_stamp,
-            patch("oprim.migration_runner.create_engine", return_value=mock_engine),
+            patch("oprim._migration_runner.create_engine", return_value=mock_engine),
             patch(
                 "oprim.migration_runner.MigrationContext.configure",
                 return_value=mock_mig_ctx,

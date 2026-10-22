@@ -187,19 +187,16 @@ _ELEMENT_MAP["classify_error"] = "oprim.bkt"
 _ELEMENT_MAP["UploadResult"] = "oprim._file_upload_handler"
 
 
-# llm_summarize 惰性加载（依赖 obase，不在没有 obase 的环境 eager-load）
-def llm_summarize(*args, **kwargs):
-    """惰性加载 llm_summarize，调用时才 import obase 依赖。"""
-    from oprim._llm_summarize import llm_summarize as _fn
-
-    return _fn(*args, **kwargs)
-
-
 def __getattr__(name: str) -> Any:
     if name == "__version__":
         return __version__
     if name in _ELEMENT_MAP:
         mod = importlib.import_module(_ELEMENT_MAP[name])
+        if (
+            getattr(mod, "__name__", None) == f"{__package__ or 'oprim'}.{name}"
+            and isinstance(mod, _CallableOprimElementModule)
+        ):
+            return mod
         return getattr(mod, name)
     if name in _SUBMODULE_SET:
         pkg_name = __package__ or "oprim"
@@ -209,6 +206,23 @@ def __getattr__(name: str) -> Any:
 
 def __dir__() -> list[str]:
     return sorted(set(list(_ELEMENT_MAP.keys()) + list(_SUBMODULE_SET) + ["__version__"]))
+
+
+class _CallableOprimElementModule(_types.ModuleType):
+    """Allow a defining module to retain both module and callable access.
+
+    Some atoms are named exactly like their module (``oprim.template_render``).
+    Legacy callers invoke ``oprim.template_render(...)`` while tooling and
+    tests patch ``oprim.template_render.template_render``. Keeping the defining
+    module and making it callable supports both forms without import-order drift.
+    """
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        export_name = self.__name__.rsplit(".", 1)[-1]
+        exported = getattr(self, export_name, None)
+        if not callable(exported):
+            raise TypeError(f"{self.__name__} has no callable {export_name!r} export")
+        return exported(*args, **kwargs)
 
 
 class _OprimPackage(_types.ModuleType):
@@ -234,7 +248,16 @@ class _OprimPackage(_types.ModuleType):
                 # attribute unbound so ``__getattr__`` resolves the export lazily.
                 return
             exported = getattr(value, name, None)
-            if exported is not None and not isinstance(exported, _types.ModuleType):
+            if callable(exported):
+                if name == "template_render":
+                    # This legacy entrypoint explicitly promises both module
+                    # identity/attribute access and direct callable access.
+                    value.__class__ = _CallableOprimElementModule
+                else:
+                    # For ordinary collisions, the package-level API is the
+                    # exported callable; the module remains in sys.modules.
+                    value = exported
+            elif exported is not None and not isinstance(exported, _types.ModuleType):
                 value = exported
         super().__setattr__(name, value)
 
@@ -376,6 +399,14 @@ _MANIFEST_ELEMENTS: tuple[str, ...] = (
     "ProviderCapability",
     "Subject",
     "VideoQuality",
+    # TradingView read-only market data sidecar
+    "fetch_tv_technicals",
+    "fetch_tv_crypto_screener",
+    "fetch_tv_symbol_markets",
+    "fetch_tv_news",
+    "fetch_tv_minds",
+    "fetch_tv_ideas",
+    "fetch_tv_ohlcv",
     # repo3o intake
     "crop_video_to_portrait",
     "multimodal_embed",

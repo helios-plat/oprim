@@ -24,6 +24,12 @@ def __getattr__(name: str):
     raise AttributeError(name)
 
 
+def _open_duckdb(path: Path):
+    from oprim.meta_db.duckdb import open_meta_db as open_duckdb
+
+    return open_duckdb(path)
+
+
 def open_meta_db(path: Path):
     """Open a MetaDB. Postgres backend when META_DB_BACKEND=postgres, else DuckDB."""
     backend = os.environ.get("META_DB_BACKEND", "duckdb").strip().lower()
@@ -31,6 +37,4 @@ def open_meta_db(path: Path):
         from oprim.meta_db.postgres import PgMetaDB
 
         return PgMetaDB(path)
-    from oprim.meta_db.duckdb import open_meta_db as _open_duckdb
-
     return _open_duckdb(path)

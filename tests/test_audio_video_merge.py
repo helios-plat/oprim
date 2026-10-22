@@ -26,7 +26,7 @@ class TestAudioVideoMerge:
         video.write_bytes(b"\x00" * 64)
         audio.write_bytes(b"\x00" * 64)
         out = tmp_path / "merged.mp4"
-        with patch("oprim.audio_video_merge.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_video_merge.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             result = await audio_video_merge(video_path=video, audio_path=audio, output_path=out)
         assert result == out
 
@@ -64,7 +64,7 @@ class TestAudioVideoMerge:
             out.write_bytes(b"\x00" * 8)
             return "ok"
 
-        with patch("oprim.audio_video_merge.ffmpeg_run", side_effect=_capture):
+        with patch("oprim._audio_video_merge.ffmpeg_run", side_effect=_capture):
             await audio_video_merge(
                 video_path=video, audio_path=audio, output_path=out, audio_codec="opus"
             )
@@ -82,7 +82,7 @@ class TestAudioVideoMerge:
             raise FFmpegError("merge error", code=1, stderr="merge error")
 
         with (
-            patch("oprim.audio_video_merge.ffmpeg_run", side_effect=_fail),
+            patch("oprim._audio_video_merge.ffmpeg_run", side_effect=_fail),
             pytest.raises(AudioVideoMergeError, match="FFmpeg merge failed"),
         ):
             await audio_video_merge(
@@ -95,6 +95,6 @@ class TestAudioVideoMerge:
         video.write_bytes(b"\x00" * 64)
         audio.write_bytes(b"\x00" * 64)
         out = tmp_path / "result.mp4"
-        with patch("oprim.audio_video_merge.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
+        with patch("oprim._audio_video_merge.ffmpeg_run", side_effect=_mock_ffmpeg_run()):
             await audio_video_merge(video_path=video, audio_path=audio, output_path=out)
         assert out.exists()

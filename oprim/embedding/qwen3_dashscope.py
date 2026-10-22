@@ -12,10 +12,10 @@ from oprim.errors import EmbeddingError, QuotaExceededError
 
 try:
     import dashscope
+    from dashscope import TextEmbedding as TextEmbedding
 except ImportError:  # optional llm extra
     dashscope = None  # type: ignore[assignment]
-
-TextEmbedding = None
+    TextEmbedding = None
 
 
 _DASHSCOPE_EMBED_MODEL = "text-embedding-v3"

@@ -45,6 +45,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+portfolio = ["riskfolio-lib>=7.0.0"]
 pdf = [
     "pymupdf>=1.27",
     "pymupdf4llm>=0.3",
