@@ -6,6 +6,7 @@ import math
 from typing import Literal
 
 import numpy as np
+from scipy.stats import kendalltau, rankdata
 
 
 class SignalAnalysisError(Exception):
@@ -142,12 +143,33 @@ def correlation_matrix(
         >>> correlation_matrix(returns={"A": [1,2,3], "B": [1,2,3]})
         {'A': {'A': 1.0, 'B': 1.0}, 'B': {'A': 1.0, 'B': 1.0}}
     """
+    if method not in ("pearson", "spearman", "kendall"):
+        raise SignalAnalysisError(f"unknown correlation method: {method}")
     assets = list(returns.keys())
+    if len(assets) < 2:
+        raise SignalAnalysisError("at least two assets are required")
     n = len(assets)
-    data = np.array([returns[a] for a in assets], dtype=float)
+    try:
+        data = np.asarray([returns[asset] for asset in assets], dtype=float)
+    except (TypeError, ValueError) as exc:
+        raise SignalAnalysisError("returns must be equally sized numeric sequences") from exc
+    if data.ndim != 2 or data.shape[1] < 2:
+        raise SignalAnalysisError("each asset requires at least two observations")
+    if not np.isfinite(data).all():
+        raise SignalAnalysisError("returns must contain only finite values")
+    if np.any(np.ptp(data, axis=1) == 0.0):
+        raise SignalAnalysisError("constant return series have undefined correlation")
     if method == "spearman":
-        data = np.apply_along_axis(lambda x: np.argsort(np.argsort(x)).astype(float), 1, data)
-    corr = np.corrcoef(data)
+        data = np.apply_along_axis(rankdata, 1, data)
+        corr = np.corrcoef(data)
+    elif method == "kendall":
+        corr = np.eye(len(assets), dtype=float)
+        for row in range(len(assets)):
+            for col in range(row + 1, len(assets)):
+                value = float(kendalltau(data[row], data[col]).statistic)
+                corr[row, col] = corr[col, row] = value
+    else:
+        corr = np.corrcoef(data)
     result = {}
     for i, a in enumerate(assets):
         result[a] = {assets[j]: round(float(corr[i, j]), 6) for j in range(n)}
