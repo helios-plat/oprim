@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from obase import ProviderRegistry
+from obase.provider_registry import ProviderRegistry
 from obase.exceptions import ProviderNotFoundError
 
 
