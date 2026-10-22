@@ -299,7 +299,9 @@ class TestNonMediaBacklogPinned:
 
     # Pinned from the TV3O worktree's actual scanner output after restoring
     # risk and technical atoms (150 violations, measured 2026-10-21).
-    EXPECTED_COUNT = 149
+    # The integ risk facade now uses lazy re-exports; this removes one static
+    # sibling-import edge from the pinned non-media backlog (149 -> 148).
+    EXPECTED_COUNT = 148
 
     #: Element→element compositions outside the media scope, same defect class as
     #: the pre-D video DAG. Removed from the 3o_lint allowlist in P0-D (the old
